@@ -42,6 +42,7 @@ method groovy.lang.Range step int
 method groovy.lang.Range step int groovy.lang.Closure
 new groovy.lang.Script
 method groovy.lang.Script getBinding
+method groovy.lang.Script println java.lang.Object
 new groovy.lang.Script groovy.lang.Binding
 staticMethod groovy.xml.XmlUtil escapeXml java.lang.String
 
@@ -1401,6 +1402,12 @@ staticMethod org.codehaus.groovy.runtime.StringGroovyMethods unexpand java.lang.
 staticMethod org.codehaus.groovy.runtime.StringGroovyMethods unexpand java.lang.CharSequence int
 staticMethod org.codehaus.groovy.runtime.StringGroovyMethods unexpandLine java.lang.CharSequence int
 
-# Needed for normal Pipeline script instantiation. TODO: Add @Whitelisted annotation to the constructor and remove this entry.
-new org.jenkinsci.plugins.workflow.cps.CpsScript
 
+# Crafter Studio
+new scripts.libs.CommonLifecycleApi java.lang.Object
+staticMethod org.slf4j.LoggerFactory getLogger java.lang.Class
+method org.slf4j.Logger debug java.lang.String java.lang.Object java.lang.Object
+method scripts.libs.CommonLifecycleApi execute
+method scripts.libs.CommonLifecycleApi getContentLifecycleParams
+method scripts.libs.CommonLifecycleApi * java.lang.Object java.lang.Object
+method scripts.libs.CommonLifecycleApi getLogger
