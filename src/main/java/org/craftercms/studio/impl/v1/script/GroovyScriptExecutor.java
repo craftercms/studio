@@ -61,13 +61,16 @@ public class GroovyScriptExecutor implements ScriptExecutor {
 
 	@Override
 	public void executeScriptString(String script, Map<String, Object> model) throws ScriptException {
-		if (sandboxInterceptor != null) {
+		if (scriptEngine == null) {
+			throw new IllegalStateException("GroovyScriptExecutor not initialized (init() not called)");
+		}
+		if (enableScriptSandbox && sandboxInterceptor != null) {
 			sandboxInterceptor.register();
 		}
 		try {
 			this.scriptEngine.eval(script, new SimpleBindings(model));
 		} finally {
-			if (sandboxInterceptor != null) {
+			if (enableScriptSandbox && sandboxInterceptor != null) {
 				sandboxInterceptor.unregister();
 			}
 		}
