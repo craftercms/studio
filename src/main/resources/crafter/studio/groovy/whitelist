@@ -1412,3 +1412,11 @@ method scripts.libs.CommonLifecycleApi onRename java.lang.Object java.lang.Objec
 method scripts.libs.CommonLifecycleApi onRevert java.lang.Object java.lang.Object
 method scripts.libs.CommonLifecycleApi onUpdate java.lang.Object java.lang.Object
 method scripts.libs.CommonLifecycleApi getLogger
+staticField org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService$ContentLifeCycleOperation COPY
+staticField org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService$ContentLifeCycleOperation DELETE
+staticField org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService$ContentLifeCycleOperation DUPLICATE
+staticField org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService$ContentLifeCycleOperation NEW
+staticField org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService$ContentLifeCycleOperation RENAME
+staticField org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService$ContentLifeCycleOperation REVERT
+staticField org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService$ContentLifeCycleOperation UPDATE
+staticMethod org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService$ContentLifeCycleOperation getOperation java.lang.String
