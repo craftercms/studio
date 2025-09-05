@@ -1063,7 +1063,8 @@ studio.taskExecutor.queueCapacity: 25
 ##################################################
 ##           Studio Groovy Scripts              ##
 ##################################################
-
+# Content lifecycle scripts classpath
+studio.scripting.lifecycle.classpath: default-site
 # Indicates if the sandbox should be enabled
 studio.scripting.sandbox.enable: true
 # Indicates if the blacklist should be enabled (this will have no effect if the sandbox is disabled)

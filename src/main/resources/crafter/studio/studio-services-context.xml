@@ -1314,10 +1314,10 @@
 		<property name="waitForTasksToCompleteOnShutdown" value="false"/>
 	</bean>
 
-	<bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor">
+	<bean id="studioGroovyScriptExecutor" class="org.craftercms.studio.impl.v1.script.GroovyScriptExecutor" depends-on="studioConfiguration">
 		<constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
 		<constructor-arg name="sandboxInterceptor" ref="sandboxInterceptor"/>
-		<constructor-arg name="scriptsClassPath" value="#{'${crafter-studio}/default-site'.split(',')}"/>
+		<constructor-arg name="scriptsClassPath" value="#{'${crafter-studio}' + studioConfiguration.getProperty('studio.scripting.lifecycle.classpath')}"/>
 		<constructor-arg name="pluginClassPath"
 				 value="#{studioConfiguration.getProperty('studio.scripting.classes.path')}"/>
 		<constructor-arg name="enableScriptSandbox"
