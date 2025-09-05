@@ -1401,7 +1401,30 @@ staticMethod org.codehaus.groovy.runtime.StringGroovyMethods unexpandLine java.l
 # Crafter Studio
 new scripts.libs.CommonLifecycleApi java.lang.Object
 staticMethod org.slf4j.LoggerFactory getLogger java.lang.Class
+method org.slf4j.Logger debug java.lang.String
+method org.slf4j.Logger debug java.lang.String java.lang.Object
 method org.slf4j.Logger debug java.lang.String java.lang.Object java.lang.Object
+method org.slf4j.Logger debug java.lang.String java.lang.Object[]
+method org.slf4j.Logger debug java.lang.String java.lang.Throwable
+method org.slf4j.Logger info java.lang.String
+method org.slf4j.Logger info java.lang.String java.lang.Object
+method org.slf4j.Logger info java.lang.String java.lang.Object java.lang.Object
+method org.slf4j.Logger info java.lang.String java.lang.Object[]
+method org.slf4j.Logger info java.lang.String java.lang.Throwable
+method org.slf4j.Logger warn java.lang.String
+method org.slf4j.Logger warn java.lang.String java.lang.Object
+method org.slf4j.Logger warn java.lang.String java.lang.Object java.lang.Object
+method org.slf4j.Logger warn java.lang.String java.lang.Object[]
+method org.slf4j.Logger warn java.lang.String java.lang.Throwable
+method org.slf4j.Logger error java.lang.String
+method org.slf4j.Logger error java.lang.String java.lang.Object
+method org.slf4j.Logger error java.lang.String java.lang.Object java.lang.Object
+method org.slf4j.Logger error java.lang.String java.lang.Object[]
+method org.slf4j.Logger error java.lang.String java.lang.Throwable
+method org.slf4j.Logger isDebugEnabled
+method org.slf4j.Logger isInfoEnabled
+method org.slf4j.Logger isWarnEnabled
+method org.slf4j.Logger isErrorEnabled
 method scripts.libs.CommonLifecycleApi execute
 method scripts.libs.CommonLifecycleApi getContentLifecycleParams
 method scripts.libs.CommonLifecycleApi onCopy java.lang.Object java.lang.Object
