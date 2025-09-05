@@ -24,7 +24,6 @@ import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.RejectASTTransformsCu
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SandboxInterceptor;
 import org.kohsuke.groovy.sandbox.SandboxTransformer;
 
-import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
@@ -38,6 +37,7 @@ public class GroovyScriptExecutor implements ScriptExecutor {
 	protected final SandboxInterceptor sandboxInterceptor;
 	protected final boolean enableScriptSandbox;
 	protected final List<String> scriptsClassPath;
+	protected GroovyScriptEngineImpl scriptEngine;
 
 	@ConstructorProperties({"sandboxInterceptor", "scriptsClassPath", "enableScriptSandbox"})
 	public GroovyScriptExecutor(SandboxInterceptor sandboxInterceptor, List<String> scriptsClassPath, boolean enableScriptSandbox) {
@@ -46,10 +46,9 @@ public class GroovyScriptExecutor implements ScriptExecutor {
 		this.enableScriptSandbox = enableScriptSandbox;
 	}
 
-	protected ScriptEngine getScriptEngine(Map<String, Object> model) {
+	protected void init() {
 		ScriptEngineManager factory = new ScriptEngineManager();
-		factory.setBindings(new SimpleBindings(model));
-		GroovyScriptEngineImpl scriptEngine = (GroovyScriptEngineImpl) factory.getEngineByName(GROOVY_ENGINE_NAME);
+		this.scriptEngine = (GroovyScriptEngineImpl) factory.getEngineByName(GROOVY_ENGINE_NAME);
 		CompilerConfiguration config = new CompilerConfiguration();
 		if (enableScriptSandbox) {
 			config.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
@@ -58,7 +57,6 @@ public class GroovyScriptExecutor implements ScriptExecutor {
 		for (String classPath : scriptsClassPath) {
 			scriptEngine.getClassLoader().addClasspath(classPath);
 		}
-		return scriptEngine;
 	}
 
 	@Override
@@ -67,8 +65,7 @@ public class GroovyScriptExecutor implements ScriptExecutor {
 			sandboxInterceptor.register();
 		}
 		try {
-			ScriptEngine scriptEngine = getScriptEngine(model);
-			scriptEngine.eval(script);
+			this.scriptEngine.eval(script, new SimpleBindings(model));
 		} finally {
 			if (sandboxInterceptor != null) {
 				sandboxInterceptor.unregister();
