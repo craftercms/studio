@@ -1406,5 +1406,11 @@ staticMethod org.slf4j.LoggerFactory getLogger java.lang.Class
 method org.slf4j.Logger debug java.lang.String java.lang.Object java.lang.Object
 method scripts.libs.CommonLifecycleApi execute
 method scripts.libs.CommonLifecycleApi getContentLifecycleParams
-method scripts.libs.CommonLifecycleApi * java.lang.Object java.lang.Object
+method scripts.libs.CommonLifecycleApi onCopy java.lang.Object java.lang.Object
+method scripts.libs.CommonLifecycleApi onDelete java.lang.Object java.lang.Object
+method scripts.libs.CommonLifecycleApi onDuplicate java.lang.Object java.lang.Object
+method scripts.libs.CommonLifecycleApi onNew java.lang.Object java.lang.Object
+method scripts.libs.CommonLifecycleApi onRename java.lang.Object java.lang.Object
+method scripts.libs.CommonLifecycleApi onRevert java.lang.Object java.lang.Object
+method scripts.libs.CommonLifecycleApi onUpdate java.lang.Object java.lang.Object
 method scripts.libs.CommonLifecycleApi getLogger
