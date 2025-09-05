@@ -77,14 +77,14 @@ public class GroovyScriptExecutor implements ScriptExecutor {
 
 	@Override
 	public void executeScriptString(String siteId, String script, Map<String, Object> model) throws ScriptException {
-		if (sandboxInterceptor != null) {
+		if (enableScriptSandbox && sandboxInterceptor != null) {
 			sandboxInterceptor.register();
 		}
 		try {
 			ScriptEngine scriptEngine = getScriptEngine(siteId, model);
 			scriptEngine.eval(script);
 		} finally {
-			if (sandboxInterceptor != null) {
+			if (enableScriptSandbox && sandboxInterceptor != null) {
 				sandboxInterceptor.unregister();
 			}
 		}
