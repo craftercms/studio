@@ -14,6 +14,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-ALTER TABLE `group_user` ADD COLUMN IF NOT EXISTS `externally_managed` INT NOT NULL DEFAULT 0 ;
+/************************* DELETE TABLES *************************/
+DROP TABLE IF EXISTS `publish_request` ;
+DROP TABLE IF EXISTS `workflow` ;
 
-UPDATE `_meta` SET `version` = '5.0.0.2' ;
+/************************* DELETE COLUMNS *************************/
+ALTER TABLE `item` DROP COLUMN `last_published_on` ;
+ALTER TABLE `item` DROP COLUMN `previous_path` ;
+ALTER TABLE `publish_package` DROP COLUMN `old_package_id` ;
+
+/************************* DROP PROCEDURES *************************/
+DROP PROCEDURE IF EXISTS populateItemTarget ;

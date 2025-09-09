@@ -628,7 +628,7 @@ CREATE TABLE IF NOT EXISTS `publish_package`
 	`reviewed_on`	                TIMESTAMP,
 	`published_on`	                TIMESTAMP,
 	`package_type`	                ENUM ('INITIAL_PUBLISH', 'PUBLISH_ALL', 'ITEM_LIST')    NOT NULL,
-	`commit_id`	                    CHAR(40)	    NOT NULL,
+	`commit_id`	                    CHAR(40),
 	`published_staging_commit_id`	CHAR(40),
 	`published_live_commit_id`	    CHAR(40),
 	PRIMARY KEY (`id`),
@@ -685,7 +685,7 @@ CREATE TABLE IF NOT EXISTS `item_target`
 	`item_id`       	    BIGINT	        NOT NULL,
 	`target`	            VARCHAR(20)	    NOT NULL,
 	`previous_path`         VARCHAR(2048)   NULL,
-	`last_published_on`     TIMESTAMP       NOT NULL,
+	`last_published_on`     TIMESTAMP       NULL,
 	`published_commit_id`   VARCHAR(40)     NOT NULL,
 	PRIMARY KEY(`item_id`, `target`),
 	FOREIGN KEY `item_target_item_id`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE

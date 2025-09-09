@@ -21,13 +21,14 @@
 <mapper namespace="org.craftercms.studio.api.v2.dal.ItemDAO">
 	<resultMap id="ItemMap" type="org.craftercms.studio.api.v2.dal.Item" autoMapping="true">
 		<id property="id" column="id"/>
-		<association property="modifier" column="modifier"
+		<result property="lastModifiedBy" column="last_modified_by"/>
+		<result property="createdBy" column="created_by"/>
+		<result property="lockedBy" column="locked_by"/>
+		<association property="modifier" column="last_modified_by"
 			     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-		<association property="creator" column="creator"
+		<association property="creator" column="created_by"
 			     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-		<association property="lockOwner" column="lock_owner"
-			     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
-		<association property="submitter" column="submitter"
+		<association property="lockOwner" column="locked_by"
 			     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
 	</resultMap>
 
