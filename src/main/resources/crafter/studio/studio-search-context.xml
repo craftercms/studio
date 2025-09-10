@@ -27,6 +27,8 @@
         <property name="socketTimeout" value="#{studioConfiguration.getProperty('studio.search.timeout.socket')}"/>
         <property name="threadCount" value="#{studioConfiguration.getProperty('studio.search.threads')}"/>
         <property name="socketKeepAlive" value="#{studioConfiguration.getProperty('studio.search.keepAlive')}"/>
+        <property name="maxTotalConnections" value="#{studioConfiguration.getProperty('studio.search.maxTotalConnections')}"/>
+        <property name="maxConnectionsPerRoute" value="#{studioConfiguration.getProperty('studio.search.maxConnectionsPerRoute')}"/>
     </bean>
 
     <bean id="authoringSearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
