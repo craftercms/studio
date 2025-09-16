@@ -304,7 +304,6 @@
 						AND iPage.path = concat(ichild.path, '/index.xml')
 					)
 			)
-			AND ichild.system_type &lt;&gt; '${systemTypeLevelDescriptor}'
 		))
 	</sql>
 
