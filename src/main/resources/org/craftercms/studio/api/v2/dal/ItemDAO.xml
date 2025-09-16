@@ -213,7 +213,7 @@
 
 	<sql id="detailedItemSelect">
 		SELECT i.*,
-				COUNT (DISTINCT IF(ichild.system_type = '${systemTypeLevelDescriptor}', NULL, ichild.id)) AS children_count
+				COUNT (DISTINCT ichild.id) AS children_count
 		FROM item i
 			INNER JOIN site s ON i.site_id = s.id
 			LEFT OUTER JOIN item ichild ON i.id = ichild.parent_id
