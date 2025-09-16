@@ -757,6 +757,14 @@ pipelines:
                 path: /configuration/global-role-mappings-config.xml
                 template: crafter/studio/upgrade/4.3.x/system/global-role-mappings-config-v4.3.0.1.xslt
                 commitDetails: Add new mapping for site_developer
+      - currentVersion: 4.3.0.1
+        nextVersion: 4.5.0.0
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file with new SEARCH_KEYWORDS regex
 
   # Pipeline to upgrade site repositories
   site:
