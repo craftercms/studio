@@ -347,7 +347,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		String label = new File(directory).getName();
 		Item item = itemService.instantiateItem(siteId, directory)
 			.withPreviewUrl(null)
-			.withState(NEW.value)
+			.withState(0)
 			.withLockedBy(null)
 			.withCreatedBy(userId)
 			.withCreatedOn(now)

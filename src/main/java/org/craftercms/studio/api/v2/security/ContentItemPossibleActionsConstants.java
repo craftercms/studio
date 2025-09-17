@@ -83,7 +83,7 @@ public final class ContentItemPossibleActionsConstants {
 	public static final long CONFIGURATION = PUBLISH + PUBLISH_REQUEST;
 
 	public static final long FOLDER = CONTENT_COPY + CONTENT_CREATE + CONTENT_PASTE + CONTENT_RENAME + CONTENT_CUT +
-		CONTENT_UPLOAD + FOLDER_CREATE + CONTENT_DELETE + ITEM_UNLOCK;
+		CONTENT_UPLOAD + FOLDER_CREATE + CONTENT_DELETE;
 
 	public static final long USER = 0L;
 

@@ -272,16 +272,16 @@ public class ItemServiceInternalImpl implements ItemService {
 
 	@Override
 	public void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, Long parentId)
-		throws AuthenticationException {
+			throws AuthenticationException {
 		User userObj = SecurityUtils.getCurrentUser();
 		Item item = instantiateItem(siteId, folderPath)
-			.withLastModifiedBy(userObj.getId())
-			.withLastModifiedOn(DateUtils.getCurrentTime())
-			.withLabel(folderName)
-			.withParentId(parentId)
-			.build();
-		item.setState(ItemState.savedAndClosed(item.getState()));
-		item.setSystemType("folder");
+				.withLastModifiedBy(userObj.getId())
+				.withLastModifiedOn(DateUtils.getCurrentTime())
+				.withLabel(folderName)
+				.withParentId(parentId)
+				.withState(0L)
+				.build();
+		item.setSystemType(CONTENT_TYPE_FOLDER);
 		upsertEntry(item);
 	}
 
