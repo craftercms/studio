@@ -735,6 +735,10 @@ studio.search.timeout.socket: -1
 studio.search.threads: -1
 # The number of threads to use, if set to -1 the default will be used
 studio.search.keepAlive: false
+# The max total connections, if set to -1 the default will be used
+studio.search.maxTotalConnections: -1
+# The max connections per route, if set to -1 the default will be used
+studio.search.maxConnectionsPerRoute: -1
 # Suffix added to the name for authoring indexes
 studio.search.index.suffix: -authoring
 # Name of the field for paths
