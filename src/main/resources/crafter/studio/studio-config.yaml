@@ -1090,6 +1090,10 @@ studio.scripting.restrictBeans: false
 # List of patterns for bean names that should be accessible for the scripts (regexes separated by commas)
 studio.scripting.allowedBeans: ''
 
+# Indicates if @Grab annotations should download grapes
+# If false, only already downloaded grapes will be available
+studio.scripting.grapes.download.enabled: false
+
 ##################################################
 ##           Dashboard Service                  ##
 ##################################################
