@@ -86,7 +86,7 @@
 
 	<!-- Override bean from studio to use property from studio config -->
 	<!-- Disable Grape auto-download -->
-	<bean id="grapeAutoDownloadDisabler" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+	<bean id="grapeAutoDownloadDisabler" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" depends-on="studioConfiguration">
 		<property name="targetClass" value="groovy.grape.Grape" />
 		<property name="targetMethod" value="setEnableAutoDownload" />
 		<property name="arguments">
