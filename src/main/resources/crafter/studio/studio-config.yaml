@@ -740,7 +740,7 @@ studio.search.timeout.connect: -1
 studio.search.timeout.socket: -1
 # The number of threads to use, if set to -1 the default will be used
 studio.search.threads: -1
-# The number of threads to use, if set to -1 the default will be used
+# Whether to enable TCP keep-alive on search sockets (boolean)
 studio.search.keepAlive: false
 # The max total connections, if set to -1 the default will be used
 studio.search.maxTotalConnections: -1
