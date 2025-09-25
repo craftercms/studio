@@ -351,6 +351,7 @@
 		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 			#{path}
 		</foreach>
+		AND system_type = '${systemTypeFolder}'
 	</update>
 
 	<update id="resetStatesBySiteAndPathBulk">
@@ -359,6 +360,7 @@
 		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 			#{path}
 		</foreach>
+		AND system_type = '${systemTypeFolder}'
 	</update>
 
 	<update id="updateStatesBySiteAndPathBulk">
@@ -367,6 +369,7 @@
 		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 			#{path}
 		</foreach>
+		AND system_type = '${systemTypeFolder}'
 	</update>
 
 	<update id="moveItemInternal">
@@ -524,6 +527,7 @@
 		<if test="statesBitMap != null">
 			AND (i.state &amp; #{statesBitMap}) &gt; 0
 		</if>
+		AND i.system_type = '${systemTypeFolder}'
 	</update>
 
 	<update id="updateNewPageChildren">
@@ -666,7 +670,10 @@
 		SET
 			path = REPLACE(path, #{previousPath}, #{newPath}),
 			locked_by = NULL,
-			state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+			state = CASE
+					WHEN system_type = '${systemTypeFolder}' THEN 0
+					ELSE (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+				END
 		WHERE
 			site_id = #{siteId}
 			AND (path = #{previousPath} OR path LIKE CONCAT(#{previousPath}, '/%'));
