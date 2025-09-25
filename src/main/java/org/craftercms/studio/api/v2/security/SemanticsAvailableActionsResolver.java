@@ -32,7 +32,7 @@ public interface SemanticsAvailableActionsResolver {
 	 *
 	 * @param username     user name to apply permissions
 	 * @param siteId       site identifier
-	 * @param detailedItem Item
+	 * @param detailedItem detailed content item to calculate available actions for
 	 * @return bitmap representing available actions
 	 */
 	long calculateContentItemAvailableActions(String username, String siteId, ContentItem detailedItem)
