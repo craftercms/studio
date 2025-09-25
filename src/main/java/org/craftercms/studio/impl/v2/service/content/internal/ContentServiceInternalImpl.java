@@ -1151,7 +1151,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected Set<String> getMissingFoldersForCopyOrMove(String siteId, Collection<ContentLifecycleItem> lifecycleItems) {
 		return lifecycleItems.stream()
-				.filter(item -> item.sourcePath() == null)
 				.flatMap(item -> calculateMissingFolders(siteId, item.repoPath()).stream())
 				.collect(toSet());
 	}
