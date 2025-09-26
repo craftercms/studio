@@ -22,7 +22,6 @@
 -->
 
 <dependency-resolver>
-	<version>5.0.0.1</version>
 	<item-types>
 		<item-type>
 			<!-- name of type -->

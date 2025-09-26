@@ -22,7 +22,7 @@
 -->
 
 <dependency-resolver>
-	<version>5.0.0.0</version>
+	<version>5.0.0.1</version>
 	<item-types>
 		<item-type>
 			<!-- name of type -->
@@ -39,6 +39,15 @@
 					<includes>
 						<pattern>
 							<find-regex>/site/website/([^&lt;]+)\.xml</find-regex>
+						</pattern>
+						<pattern>
+							<find-regex>href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts)(\/[^"']+)["']</find-regex>
+							<transforms>
+								<transform>
+									<match>href=["'](\/[^"']+)["']</match>
+									<replace>/site/website$1</replace>
+								</transform>
+							</transforms>
 						</pattern>
 					</includes>
 				</dependency-type>
@@ -124,6 +133,15 @@
 						<pattern>
 							<find-regex>/site/website/([^&lt;]+)\.xml</find-regex>
 						</pattern>
+						<pattern>
+							<find-regex>href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts)(\/[^"']+)["']</find-regex>
+							<transforms>
+								<transform>
+									<match>href=["'](\/[^"']+)["']</match>
+									<replace>/site/website$1</replace>
+								</transform>
+							</transforms>
+						</pattern>
 					</includes>
 				</dependency-type>
 				<dependency-type>
@@ -206,6 +224,15 @@
 					<includes>
 						<pattern>
 							<find-regex>/site/website/([^&lt;]+)\.xml</find-regex>
+						</pattern>
+						<pattern>
+							<find-regex>href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts)(\/[^"']+)["']</find-regex>
+							<transforms>
+								<transform>
+									<match>href=["'](\/[^"']+)["']</match>
+									<replace>/site/website$1</replace>
+								</transform>
+							</transforms>
 						</pattern>
 					</includes>
 				</dependency-type>

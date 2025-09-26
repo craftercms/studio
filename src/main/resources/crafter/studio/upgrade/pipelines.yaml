@@ -1519,6 +1519,12 @@ configurations:
                     -   type: xsltFileUpgrader
                         template: crafter/studio/upgrade/5.0.x/config/resolver-config/resolver-config-v5.0.0.0.xslt
                         commitDetails: Update static asset dependencies regex
+            -   currentVersion: 5.0.0.0
+                nextVersion: 5.0.0.1
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/5.0.x/config/resolver-config/resolver-config-v5.0.0.1.xslt
+                        commitDetails: Add support for relative page urls
 
     engine-site-config:
         module: engine
