@@ -41,7 +41,7 @@
 							<find-regex>/site/website/([^&lt;]+)\.xml</find-regex>
 						</pattern>
 						<pattern>
-							<find-regex>href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts)(\/[^"']+)["']</find-regex>
+							<find-regex>href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts|\/\/)(\/[^"']+)["']</find-regex>
 							<transforms>
 								<transform>
 									<match>href=["'](\/[^"']+)["']</match>
@@ -134,7 +134,7 @@
 							<find-regex>/site/website/([^&lt;]+)\.xml</find-regex>
 						</pattern>
 						<pattern>
-							<find-regex>href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts)(\/[^"']+)["']</find-regex>
+							<find-regex>href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts|\/\/)(\/[^"']+)["']</find-regex>
 							<transforms>
 								<transform>
 									<match>href=["'](\/[^"']+)["']</match>
@@ -226,7 +226,7 @@
 							<find-regex>/site/website/([^&lt;]+)\.xml</find-regex>
 						</pattern>
 						<pattern>
-							<find-regex>href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts)(\/[^"']+)["']</find-regex>
+							<find-regex>href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts|\/\/)(\/[^"']+)["']</find-regex>
 							<transforms>
 								<transform>
 									<match>href=["'](\/[^"']+)["']</match>
