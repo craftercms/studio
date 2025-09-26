@@ -340,8 +340,8 @@ public class XsltTest {
 			},
 			new Object[] {
 				new ClassPathResource("crafter/studio/upgrade/5.0.x/config/resolver-config/resolver-config-v5.0.0.0.xslt"),
-				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0.0.0/input.xml"),
-				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0.0.0/expected.xml"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0/5.0.0.0/input.xml"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0/5.0.0.0/expected.xml"),
 				emptyMap()
 			}
 		};
