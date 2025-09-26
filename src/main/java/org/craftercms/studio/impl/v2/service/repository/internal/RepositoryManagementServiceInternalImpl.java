@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
@@ -72,10 +73,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 
-import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1047,13 +1045,20 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	}
 
 	@Override
-	public boolean unlockRepository(String siteId, GitRepositories repositoryType) {
-		boolean toRet = false;
+	public void unlockRepository(String siteId, GitRepositories repositoryType) throws ServiceLayerException {
 		Repository repo = gitRepositoryHelper.getRepository(siteId, repositoryType);
-		if (Objects.nonNull(repo)) {
-			toRet = FileUtils.deleteQuietly(Paths.get(repo.getDirectory().getAbsolutePath(), LOCK_FILE).toFile());
+		if (!Objects.nonNull(repo)) {
+			throw new RepositoryNotFoundException(siteId, repositoryType);
 		}
-		return toRet;
+		File lockFile = Paths.get(repo.getDirectory().getAbsolutePath(), LOCK_FILE).toFile();
+		if (!lockFile.exists()) {
+			logger.debug("Lock file does not exist, nothing to unlock for site '{}' repository type '{}'", siteId, repositoryType);
+			return;
+		}
+		logger.debug("Unlocking repository for site '{}' repository type '{}'", siteId, repositoryType);
+		if (!FileUtils.deleteQuietly(lockFile) && lockFile.exists()) {
+			throw new ServiceLayerException("Failed to delete lock file: " + lockFile);
+		}
 	}
 
 	@Override

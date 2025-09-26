@@ -14,30 +14,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest;
+package org.craftercms.studio.api.v2.exception.repository;
 
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
-public class UnlockRepositoryRequest {
+import static java.lang.String.format;
 
-	@ValidSiteId
-	private String siteId;
-	private GitRepositories repositoryType;
-
-	public String getSiteId() {
-		return siteId;
-	}
-
-	public void setSiteId(String siteId) {
-		this.siteId = siteId;
-	}
-
-	public GitRepositories getRepositoryType() {
-		return repositoryType;
-	}
-
-	public void setRepositoryType(GitRepositories repositoryType) {
-		this.repositoryType = repositoryType;
+/**
+ * Extension of {@link ServiceLayerException} thrown when a repository is not found.
+ */
+public class RepositoryNotFoundException extends ServiceLayerException {
+	public RepositoryNotFoundException(String siteId, GitRepositories repoType) {
+		super(format("Repository of type '%s' not found for site '%s'", repoType, siteId));
 	}
 }

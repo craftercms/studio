@@ -192,15 +192,10 @@ public class RepositoryManagementController {
 	}
 
 	@PostMapping(UNLOCK)
-	public Result unlockRepository(@Valid @RequestBody UnlockRepositoryRequest unlockRepositoryRequest) throws SiteNotFoundException {
-		boolean success = repositoryManagementService.unlockRepository(unlockRepositoryRequest.getSiteId(),
-			unlockRepositoryRequest.getRepositoryType());
+	public Result unlockRepository(@Valid @RequestBody UnlockRepositoryRequest unlockRepositoryRequest) throws ServiceLayerException {
+		repositoryManagementService.unlockRepository(unlockRepositoryRequest.getSiteId(), unlockRepositoryRequest.getRepositoryType());
 		Result result = new Result();
-		if (success) {
-			result.setResponse(OK);
-		} else {
-			result.setResponse(INTERNAL_SYSTEM_FAILURE);
-		}
+		result.setResponse(OK);
 		return result;
 	}
 
