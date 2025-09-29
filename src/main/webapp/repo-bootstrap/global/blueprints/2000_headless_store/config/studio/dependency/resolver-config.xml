@@ -22,7 +22,7 @@
 -->
 
 <dependency-resolver>
-	<version>5.0.0.1</version>
+	<version>5.0.0.7</version>
 	<item-types>
 		<item-type>
 			<!-- name of type -->
@@ -249,14 +249,6 @@
 					<includes>
 						<pattern>
 							<find-regex>/site/components/([^&lt;]+)\.xml</find-regex>
-						</pattern>
-					</includes>
-				</dependency-type>
-				<dependency-type>
-					<name>item</name>
-					<includes>
-						<pattern>
-							<find-regex>/site/(?!website/|components/)([^&lt;]+)\.xml</find-regex>
 						</pattern>
 					</includes>
 				</dependency-type>
