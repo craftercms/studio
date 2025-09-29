@@ -42,10 +42,8 @@ import java.util.Set;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertNotNull;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RelativePageDependencyResolverTest {
