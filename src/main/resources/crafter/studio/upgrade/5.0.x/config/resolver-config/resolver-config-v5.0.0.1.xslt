@@ -36,7 +36,7 @@
 			<xsl:text>&#10;</xsl:text>
 		</xsl:if>
 	</xsl:template>
-	<xsl:variable name="regex">href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets|\/site|\/templates|\/config|\/scripts|\/\/)(\/[^"']+)["']</xsl:variable>
+	<xsl:variable name="regex">href=["'](?!http|https|ftp|mailto|tel|#|javascript|\/static-assets\/|\/site\/|\/templates\/|\/config\/|\/scripts\/|\/\/)(\/[^"']+)["']</xsl:variable>
 
 	<xsl:template
 	    match="/dependency-resolver/item-types/item-type/dependency-types/dependency-type[name='page']/includes">
