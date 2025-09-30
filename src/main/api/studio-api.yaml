@@ -9046,7 +9046,7 @@ paths:
       description: Required permission "request_publish, publish"
       operationId: workflowRejectPackage
       requestBody:
-        description: parameters to reject a workflow package
+        description: Parameters to reject a workflow package
         required: true
         content:
           application/json:
@@ -9055,7 +9055,7 @@ paths:
               properties:
                 siteId:
                   type: string
-                  description: site identifier
+                  description: Site identifier
                 packages:
                   type: array
                   items:
@@ -9063,10 +9063,10 @@ paths:
                     properties:
                       packageId:
                         type: string
-                        description: ID of the workflow package to reject
+                        description: Id of the workflow package to reject
                       rejectionComment:
                         type: string
-                        description: Approver's comment about the rejected workflow package
+                        description: Reviewer's comment about the rejected workflow package
                     required:
                       - packageId
                       - rejectionComment
