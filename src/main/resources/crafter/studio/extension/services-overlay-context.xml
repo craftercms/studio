@@ -84,6 +84,18 @@
 		<property name="cacheTemplates" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CACHE_TEMPLATES)}"/>
 	</bean>
 
+	<!-- Override bean from studio to use property from studio config -->
+	<!-- Disable Grape auto-download -->
+	<bean id="grapeAutoDownloadDisabler" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" depends-on="studioConfiguration">
+		<property name="targetClass" value="groovy.grape.Grape" />
+		<property name="targetMethod" value="setEnableAutoDownload" />
+		<property name="arguments">
+		    <list>
+			<value type="java.lang.Boolean">#{studioConfiguration.getProperty('studio.scripting.grapes.download.enabled')}</value>
+		    </list>
+		</property>
+	</bean>
+
 	<!-- ////////////////////////////////// -->
 	<!--                                    -->
 	<!--            STUDIO                  -->

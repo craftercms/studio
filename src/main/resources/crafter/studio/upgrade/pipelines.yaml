@@ -800,6 +800,14 @@ pipelines:
                 operations:
                     -   type: dbScriptUpgrader
                         filename: upgrade/5.0.x/5.0.0.4-to-5.0.0.5.sql
+            -   currentVersion: 5.0.0.5
+                nextVersion: 5.0.0.6
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file with new SEARCH_KEYWORDS regex
 
     # Pipeline to upgrade site repositories
     site:
