@@ -42,7 +42,7 @@
 	    match="/dependency-resolver/item-types/item-type/dependency-types/dependency-type[name='page']/includes">
 		<xsl:copy>
 			<xsl:apply-templates select="node() | @*"/>
-			<xsl:if test="not(pattern/find-regex[contains(text(), $regex)])">
+			<xsl:if test="not(pattern/find-regex[text() = $regex])">
 				<xsl:element name="pattern">
 					<xsl:element name="find-regex">
 						<xsl:value-of select="$regex"/>
