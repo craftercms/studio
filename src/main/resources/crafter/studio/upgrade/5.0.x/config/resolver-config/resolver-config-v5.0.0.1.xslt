@@ -50,7 +50,7 @@
 					<xsl:element name="transforms">
 						<xsl:element name="transform">
 							<xsl:element name="match">
-								<xsl:text>href=["'](\/[^"']+)["']</xsl:text>
+								<xsl:text>href=["'](\/[^"'?#]+)([^"']*)["']</xsl:text>
 							</xsl:element>
 							<xsl:element name="replace">
 								<xsl:text>/site/website$1</xsl:text>

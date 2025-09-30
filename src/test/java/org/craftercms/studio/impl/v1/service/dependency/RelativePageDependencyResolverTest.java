@@ -103,7 +103,6 @@ public class RelativePageDependencyResolverTest {
 		assertEquals(pageDeps.size(), 2);
 		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/page1/index.xml")));
 		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/articles/page1")));
-
 	}
 
 	@Test
@@ -121,6 +120,39 @@ public class RelativePageDependencyResolverTest {
 		Set<DependencyResolver.ResolvedDependency> pageDeps = deps.get("page");
 		assertEquals(pageDeps.size(), 1);
 		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/sitemap/custom/path")));
+	}
 
+	@Test
+	public void testQueryStringHrefs() {
+		String content = """
+				<html>
+				<body>
+				    <a href="/page1/path?param=shouldNotBeIncluded">Link to A</a>
+				</body>
+				</html>
+				""";
+		when(contentService.getContentAsString(SITE_ID, PAGE_PATH)).thenReturn(content);
+		Map<String, Set<DependencyResolver.ResolvedDependency>> deps = dependencyResolver.resolve(SITE_ID, PAGE_PATH);
+		assertNotNull(deps);
+		Set<DependencyResolver.ResolvedDependency> pageDeps = deps.get("page");
+		assertEquals(pageDeps.size(), 1);
+		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/page1/path")));
+	}
+
+	@Test
+	public void testFragmentsHrefs() {
+		String content = """
+				<html>
+				<body>
+				    <a href="/page1/path#fragmentShouldNotBeIncluded">Link to A</a>
+				</body>
+				</html>
+				""";
+		when(contentService.getContentAsString(SITE_ID, PAGE_PATH)).thenReturn(content);
+		Map<String, Set<DependencyResolver.ResolvedDependency>> deps = dependencyResolver.resolve(SITE_ID, PAGE_PATH);
+		assertNotNull(deps);
+		Set<DependencyResolver.ResolvedDependency> pageDeps = deps.get("page");
+		assertEquals(pageDeps.size(), 1);
+		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/page1/path")));
 	}
 }
