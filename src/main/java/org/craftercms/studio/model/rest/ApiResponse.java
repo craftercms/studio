@@ -160,6 +160,9 @@ public class ApiResponse {
 				"and make sure you have write access.", StringUtils.EMPTY);
 	public static final ApiResponse REPOSITORY_NOT_FOUND = new ApiResponse(12008, "Repository not found",
 			"Check if you sent in the right repository type and site id", StringUtils.EMPTY);
+	public static final ApiResponse REPOSITORY_IN_MERGE_STATE =
+			new ApiResponse(12009, "Repository is in merge state",
+					"Conclude merge before writing content", StringUtils.EMPTY);
 
 	// 40000 - 41000
 	public static final ApiResponse MARKETPLACE_NOT_INITIALIZED =

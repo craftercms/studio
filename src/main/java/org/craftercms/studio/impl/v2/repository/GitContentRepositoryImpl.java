@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
+import org.craftercms.studio.api.v2.exception.git.MergeInProgressException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.*;
 import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
@@ -1634,6 +1635,39 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		return paths;
 	}
 
+	/**
+	 * Ensures that the repo is not in merge state (i.e.: MERGE_HEAD exists)
+	 *
+	 * @param siteId the site id
+	 * @param repo   the git repo
+	 * @throws ServiceLayerException if the repo is not clean or if there is an error while checking the status
+	 */
+	protected void ensureNoMergeState(String siteId, Repository repo) throws ServiceLayerException {
+		try (Git git = new Git(repo)) {
+			StatusCommand statusCommand = git.status();
+			Status status = retryingRepositoryOperationFacade.call(statusCommand);
+			if (!status.isClean()) {
+				logger.error("Repository is not clean for write-content in site '{}':" +
+								" added '{}', changed '{}', removed '{}'," +
+								" missing '{}', modified '{}', untracked '{}'," +
+								" conflicting '{}'",
+						siteId,
+						status.getAdded(), status.getChanged(), status.getRemoved(),
+						status.getMissing(), status.getModified(), status.getUntracked(),
+						status.getConflicting());
+				if (!status.getConflicting().isEmpty()) {
+					throw new MergeInProgressException(format("Repository has merge conflicts for write-content in site '%s'. Refuse to write-content", siteId));
+				}
+				if (repo.resolve(Constants.MERGE_HEAD) != null) {
+					throw new MergeInProgressException(format("Repository for site '%s' is currently in a merge state. Refuse to write-content", siteId));
+				}
+			}
+			logger.debug("Repository is clean for write-content in site '{}'", siteId);
+		} catch (GitAPIException | IOException e) {
+			throw new ServiceLayerException(format("Failed to check status of the repository for site '%s'", siteId), e);
+		}
+	}
+
 	@Override
 	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
 		throws ServiceLayerException, UserNotFoundException {
@@ -1645,6 +1679,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				logger.error("Missing repository during write for site '{}' items '{}'", siteId, writeItems);
 				throw new ServiceLayerException(format("Missing repository during write for site '%s' items '%s'", siteId, writeItems));
 			}
+
+			ensureNoMergeState(siteId, repo);
 
 			for (ContentWriteItem writeItem : writeItems) {
 				try (InputStream content = writeItem.content()) {

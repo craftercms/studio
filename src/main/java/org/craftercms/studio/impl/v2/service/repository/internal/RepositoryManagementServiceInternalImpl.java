@@ -254,7 +254,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
 	@Override
 	public MergeResult pullFromRemote(@SiteId String siteId, String remoteName,
-									  String remoteBranch, String mergeStrategy) throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
+									  String remoteBranch, String mergeStrategy) throws ServiceLayerException,
+			InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
 		MergeResult mergeResult = doPullFromRemote(siteId, remoteName, remoteBranch,
 			mergeStrategy);
 		insertRemoteAuditLog(siteId, OPERATION_PULL_FROM_REMOTE, remoteName + "/" + remoteBranch,
@@ -560,7 +561,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		}
 	}
 
-
 	private MergeResult doPullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
 		throws InvalidRemoteUrlException, ServiceLayerException, InvalidRemoteRepositoryCredentialsException,
 		RemoteRepositoryNotFoundException {
@@ -583,7 +583,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		} catch (InvalidRemoteException e) {
 			logger.error("Failed to pull from the remote '{}' in site '{}' because the remote is invalid",
 				remoteName, siteId, e);
-			throw new InvalidRemoteUrlException();
+			throw new InvalidRemoteUrlException(e);
 		} catch (TransportException e) {
 			// TODO: SJ: Seems like the actual logging is being done inside the util, not great, need to fix
 			GitUtils.translateException(e, logger, remoteName, remoteRepository.getRemoteUrl());

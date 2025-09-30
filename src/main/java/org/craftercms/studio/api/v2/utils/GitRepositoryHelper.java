@@ -59,7 +59,6 @@ import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -1212,7 +1211,8 @@ public class GitRepositoryHelper implements DisposableBean {
 	 *
 	 * @throws ServiceLayerException general service exception
 	 */
-	public String commitFiles(Repository repo, String site, String comment, PersonIdent user, String... paths) throws ServiceLayerException {
+	public String commitFiles(Repository repo, String site, String comment, PersonIdent user, String... paths)
+			throws ServiceLayerException {
 		if (!ArrayUtils.isNotEmpty(paths)) {
 			return null;
 		}
@@ -1239,18 +1239,19 @@ public class GitRepositoryHelper implements DisposableBean {
 			}
 		} catch (Exception e) {
 			Throwable cause = ExceptionUtils.getRootCause(e);
-			if (cause instanceof NoChangesToCommitException ||
-				(cause instanceof JGitInternalException && "no changes".equalsIgnoreCase(cause.getMessage()))) {
+			if (cause instanceof NoChangesToCommitException) {
 				// we should ignore empty commit errors
 				logger.debug("No changes were committed to git in site '{}' paths '{}'", site,
 					ArrayUtils.toString(paths));
 			} else {
 				restorePaths(repo, site, paths);
 				logger.error("Failed to commit files to git in site '{}' paths '{}'", site,
-					ArrayUtils.toString(paths), e);
+					ArrayUtils.toString(paths), cause);
 				if (cause instanceof CommitterIdentityUnknownException) {
 					throw new ServiceLayerException(GIT_COMMITTER_IDENTITY_UNKNOWN_MESSAGE, e.getCause());
 				}
+				throw new ServiceLayerException(format("Failed to commit files to git in site '%s' paths '%s'",
+					site, ArrayUtils.toString(paths)), e);
 			}
 		} finally {
 			generalLockService.unlock(gitLockKey);
