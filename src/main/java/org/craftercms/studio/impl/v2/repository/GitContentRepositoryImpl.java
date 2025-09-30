@@ -1647,14 +1647,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			StatusCommand statusCommand = git.status();
 			Status status = retryingRepositoryOperationFacade.call(statusCommand);
 			if (!status.isClean()) {
-				logger.error("Repository is not clean for write-content in site '{}':" +
-								" added '{}', changed '{}', removed '{}'," +
-								" missing '{}', modified '{}', untracked '{}'," +
-								" conflicting '{}'",
-						siteId,
-						status.getAdded(), status.getChanged(), status.getRemoved(),
-						status.getMissing(), status.getModified(), status.getUntracked(),
-						status.getConflicting());
 				if (!status.getConflicting().isEmpty()) {
 					throw new MergeInProgressException(format("Repository has merge conflicts for write-content in site '%s'. Refuse to write-content", siteId));
 				}
