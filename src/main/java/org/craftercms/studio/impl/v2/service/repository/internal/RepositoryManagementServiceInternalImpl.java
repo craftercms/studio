@@ -866,15 +866,17 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 			}
 			ObjectId mergeCommitId = mergeHeads.getFirst();
 			logger.debug("Get the local content of the conflicting file from site '{}' path '{}'", siteId, path);
-			InputStream studioVersionIs = contentRepository.getContentByCommitId(siteId, path, Constants.HEAD)
-				.orElseThrow()
-				.getInputStream();
-			diffResult.setStudioVersion(IOUtils.toString(studioVersionIs, UTF_8));
+			try (InputStream studioVersionIs = contentRepository.getContentByCommitId(siteId, path, Constants.HEAD)
+					.orElseThrow()
+					.getInputStream()) {
+				diffResult.setStudioVersion(IOUtils.toString(studioVersionIs, UTF_8));
+			}
 			logger.debug("Get the remote content of the conflicting file from site '{}' path '{}'", siteId, path);
-			InputStream remoteVersionIs = contentRepository.getContentByCommitId(siteId, path, mergeCommitId.getName())
-				.orElseThrow()
-				.getInputStream();
-			diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
+			try (InputStream remoteVersionIs = contentRepository.getContentByCommitId(siteId, path, mergeCommitId.getName())
+					.orElseThrow()
+					.getInputStream()) {
+				diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
+			}
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 			logger.debug("Diff the local and remote versions of the conflicting file in site '{}' path '{}'", siteId, path);
