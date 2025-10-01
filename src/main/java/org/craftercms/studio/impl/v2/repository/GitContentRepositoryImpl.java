@@ -42,7 +42,6 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
-import org.craftercms.studio.api.v2.exception.git.MergeInProgressException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.*;
 import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
@@ -785,8 +784,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(site, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
-			ensureNoMergeState(site, repo);
+			Repository repo = helper.getRepositoryForWrite(site);
 			try (Git git = new Git(repo)) {
 				List<String> pathsToCommit = new ArrayList<>(paths.size());
 				for (String path : paths) {
@@ -1551,8 +1549,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			ensureNoMergeState(siteId, repo);
+			Repository repo = helper.getRepositoryForWrite(siteId);
 			if (repo == null) {
 				logger.error("Missing repository during create folder for site '{}' folder path '{}'", siteId, folderPath);
 				throw new ServiceLayerException(format("Missing repository during create folder for site '%s' folder path '%s'", siteId, folderPath));
@@ -1582,8 +1579,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		generalLockService.lock(gitLockKey);
 		try {
 			Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			ensureNoMergeState(siteId, repo);
+			Repository repo = helper.getRepositoryForWrite(siteId);
 
 			// Create basic file
 			File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
@@ -1638,44 +1634,13 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		return paths;
 	}
 
-	/**
-	 * Ensures that the repo is not in merge state (i.e.: MERGE_HEAD exists)
-	 *
-	 * @param siteId the site id
-	 * @param repo   the git repo
-	 * @throws ServiceLayerException if the repo is not clean or if there is an error while checking the status
-	 */
-	protected void ensureNoMergeState(String siteId, Repository repo) throws ServiceLayerException {
-		try (Git git = new Git(repo)) {
-			StatusCommand statusCommand = git.status();
-			Status status = retryingRepositoryOperationFacade.call(statusCommand);
-			if (!status.isClean()) {
-				if (!status.getConflicting().isEmpty()) {
-					throw new MergeInProgressException(format("Repository has merge conflicts for write-content in site '%s'. Refuse to write-content", siteId));
-				}
-				if (repo.resolve(Constants.MERGE_HEAD) != null) {
-					throw new MergeInProgressException(format("Repository for site '%s' is currently in a merge state. Refuse to write-content", siteId));
-				}
-			}
-			logger.debug("Repository is clean for write-content in site '{}'", siteId);
-		} catch (GitAPIException | IOException e) {
-			throw new ServiceLayerException(format("Failed to check status of the repository for site '%s'", siteId), e);
-		}
-	}
-
 	@Override
 	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
 		throws ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			if (repo == null) {
-				logger.error("Missing repository during write for site '{}' items '{}'", siteId, writeItems);
-				throw new ServiceLayerException(format("Missing repository during write for site '%s' items '%s'", siteId, writeItems));
-			}
-
-			ensureNoMergeState(siteId, repo);
+			Repository repo = helper.getRepositoryForWrite(siteId);
 
 			for (ContentWriteItem writeItem : writeItems) {
 				try (InputStream content = writeItem.content()) {
@@ -1737,8 +1702,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			ensureNoMergeState(siteId, repo);
+			Repository repo = helper.getRepositoryForWrite(siteId);
 			String gitFromPath = helper.getGitPath(fromPath);
 			String gitToPath = helper.getGitPath(toPath);
 			moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
@@ -1787,8 +1751,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			ensureNoMergeState(siteId, repo);
+			Repository repo = helper.getRepositoryForWrite(siteId);
 			String gitFromPath = helper.getGitPath(fromPath);
 			String gitToPath = helper.getGitPath(toPath);
 			copyFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
@@ -1856,8 +1819,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			ensureNoMergeState(siteId, repo);
+			Repository repo = helper.getRepositoryForWrite(siteId);
 			helper.restoreVersion(repo, siteId, helper.getGitPath(path), version);
 			commitId = helper.commitFiles(repo, siteId, comment, helper.getCurrentUserIdent(), path);
 			if (commitId != null) {
@@ -1904,15 +1866,11 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 	@Override
 	public String writeContent(String siteId, String path, InputStream content) throws
-		ServiceLayerException, UserNotFoundException {
+			ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			if (repo == null) {
-				logger.error("Missing repository during write for site '{}' path '{}'", siteId, path);
-				throw new ServiceLayerException(format("Missing repository during write for site '%s' path '%s'", siteId, path));
-			}
+			Repository repo = helper.getRepositoryForWrite(siteId);
 			helper.writeFile(repo, siteId, path, content);
 			PersonIdent user = helper.getCurrentUserIdent();
 			String username = SecurityUtils.getCurrentUsername();
