@@ -340,8 +340,8 @@ public class XsltTest {
 			},
 			new Object[] {
 				new ClassPathResource("crafter/studio/upgrade/5.0.x/config/resolver-config/resolver-config-v5.0.0.0.xslt"),
-				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0.0.0/input.xml"),
-				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0.0.0/expected.xml"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0/5.0.0.0/input.xml"),
+				new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0/5.0.0.0/expected.xml"),
 				emptyMap()
 			}
 		};
@@ -406,6 +406,23 @@ public class XsltTest {
 
 	@Test(dataProvider = "xsltData")
 	public void testXsltData(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
+	@DataProvider(name = "depResolver5001TestData")
+	public Object[][] depResolver5001TestData() {
+		return new Object[][]{
+				new Object[] {
+						new ClassPathResource("crafter/studio/upgrade/5.0.x/config/resolver-config/resolver-config-v5.0.0.1.xslt"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0/5.0.0.1/input.xml"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config/5.0/5.0.0.1/expected.xml"),
+						emptyMap()
+				}
+		};
+	}
+
+	@Test(dataProvider = "depResolver5001TestData")
+	public void depResolver5001Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
 		testXsltTemplate(template, content, expected, params);
 	}
 
