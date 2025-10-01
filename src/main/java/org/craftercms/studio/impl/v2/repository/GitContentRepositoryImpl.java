@@ -786,6 +786,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		generalLockService.lock(gitLockKey);
 		try {
 			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
+			ensureNoMergeState(site, repo);
 			try (Git git = new Git(repo)) {
 				List<String> pathsToCommit = new ArrayList<>(paths.size());
 				for (String path : paths) {
@@ -1551,6 +1552,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		generalLockService.lock(gitLockKey);
 		try {
 			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+			ensureNoMergeState(siteId, repo);
 			if (repo == null) {
 				logger.error("Missing repository during create folder for site '{}' folder path '{}'", siteId, folderPath);
 				throw new ServiceLayerException(format("Missing repository during create folder for site '%s' folder path '%s'", siteId, folderPath));
@@ -1581,6 +1583,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		try {
 			Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
 			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+			ensureNoMergeState(siteId, repo);
 
 			// Create basic file
 			File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
@@ -1733,11 +1736,11 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 							  Set<String> newFolders) throws ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
-		Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-
-		String gitFromPath = helper.getGitPath(fromPath);
-		String gitToPath = helper.getGitPath(toPath);
 		try {
+			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+			ensureNoMergeState(siteId, repo);
+			String gitFromPath = helper.getGitPath(fromPath);
+			String gitToPath = helper.getGitPath(toPath);
 			moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
 
 			// The operation is done on disk, now it's time to commit
@@ -1783,11 +1786,11 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		// TODO: try to unify this method with moveContent, as they are very similar
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
-		Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-
-		String gitFromPath = helper.getGitPath(fromPath);
-		String gitToPath = helper.getGitPath(toPath);
 		try {
+			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+			ensureNoMergeState(siteId, repo);
+			String gitFromPath = helper.getGitPath(fromPath);
+			String gitToPath = helper.getGitPath(toPath);
 			copyFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
 
 			helper.addFiles(repo, siteId, gitFromPath, gitToPath);
@@ -1854,6 +1857,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		generalLockService.lock(gitLockKey);
 		try {
 			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+			ensureNoMergeState(siteId, repo);
 			helper.restoreVersion(repo, siteId, helper.getGitPath(path), version);
 			commitId = helper.commitFiles(repo, siteId, comment, helper.getCurrentUserIdent(), path);
 			if (commitId != null) {
