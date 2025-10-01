@@ -20,6 +20,7 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
@@ -237,6 +238,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<String> getCurrentUserSitePermissions(@SiteId String site)
 		throws ServiceLayerException, UserNotFoundException, ExecutionException {
