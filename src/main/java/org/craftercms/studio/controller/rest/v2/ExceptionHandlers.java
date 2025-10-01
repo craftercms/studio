@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateExcepti
 import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.repository.InvalidRemoteException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.exception.security.PeerReviewCheckException;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -83,8 +84,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.INVALID_PARAMS;
 import static org.slf4j.event.Level.DEBUG;
 import static org.slf4j.event.Level.ERROR;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 
 /**
  * Controller advice that handles exceptions thrown by API 2 REST controllers.
@@ -637,6 +637,13 @@ public class ExceptionHandlers {
 		result.setResponse(response);
 		result.setEntity(RESULT_KEY_PACKAGE, e.getPackageId());
 		return result;
+	}
+
+	@ExceptionHandler
+	@ResponseStatus(NOT_FOUND)
+	public Result handleException(HttpServletRequest request, RepositoryNotFoundException e) {
+		ApiResponse response = new ApiResponse(ApiResponse.REPOSITORY_NOT_FOUND);
+		return handleExceptionInternal(request, e, response);
 	}
 
 	@ExceptionHandler(InvalidRemoteException.class)

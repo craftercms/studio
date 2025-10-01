@@ -140,9 +140,9 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_UNLOCK_REPO)
-	public boolean unlockRepository(@SiteId String siteId,
-					GitRepositories repositoryType) throws SiteNotFoundException {
-		return repositoryManagementServiceInternal.unlockRepository(siteId, repositoryType);
+	public void unlockRepository(@SiteId String siteId,
+					GitRepositories repositoryType) throws ServiceLayerException {
+		repositoryManagementServiceInternal.unlockRepository(siteId, repositoryType);
 	}
 
 	@Override

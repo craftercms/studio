@@ -160,9 +160,10 @@ public interface RepositoryManagementService {
 	 *
 	 * @param siteId         site identifier, if null or empty it is global repository
 	 * @param repositoryType repository type (GLOBAL, SANDBOX, PUBLISHED)
-	 * @return true if successful
+	 * @throws SiteNotFoundException if the site is not found
+	 * @throws ServiceLayerException if there is any error unlocking the repository
 	 */
-	boolean unlockRepository(String siteId, GitRepositories repositoryType) throws SiteNotFoundException;
+	void unlockRepository(String siteId, GitRepositories repositoryType) throws ServiceLayerException;
 
 	/**
 	 * Checks if a given Git repository is corrupted
