@@ -9042,11 +9042,11 @@ paths:
     post:
       tags:
         - workflow
-      summary: Create workflow package
+      summary: Reject workflow package
       description: Required permission "request_publish, publish"
       operationId: workflowRejectPackage
       requestBody:
-        description: parameters to create new workflow package
+        description: Parameters to reject a workflow package
         required: true
         content:
           application/json:
@@ -9055,7 +9055,7 @@ paths:
               properties:
                 siteId:
                   type: string
-                  description: site identifier
+                  description: Site identifier
                 packages:
                   type: array
                   items:
@@ -9063,10 +9063,10 @@ paths:
                     properties:
                       packageId:
                         type: string
-                        description: Id of the workflow package to approve
+                        description: Id of the workflow package to reject
                       rejectionComment:
                         type: string
-                        description: approver's comment about approved workflow package
+                        description: Reviewer's comment about the rejected workflow package
                     required:
                       - packageId
                       - rejectionComment
