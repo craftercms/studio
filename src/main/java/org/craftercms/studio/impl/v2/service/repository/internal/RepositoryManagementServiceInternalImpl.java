@@ -188,7 +188,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 			} catch (URISyntaxException e) {
 				logger.error("Failed to add the remote '{}' URL '{}' to site '{}' because the URL is invalid",
 					remoteRepository.getRemoteName(), remoteRepository.getRemoteUrl(), siteId, e);
-				throw new InvalidRemoteUrlException();
+				throw new InvalidRemoteUrlException(e);
 			} catch (GitAPIException e) {
 				if (e.getCause() instanceof NoRemoteRepositoryException) {
 					logger.error("Failed to add the remote '{}' URL '{}' to site '{}' because the remote repository " +
