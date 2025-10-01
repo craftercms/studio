@@ -19,6 +19,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
@@ -298,7 +299,7 @@ public class ClipboardServiceInternalImplTest {
 	}
 
 	@Test
-	public void duplicatePageTest() throws ServiceLayerException, AuthenticationException {
+	public void duplicatePageTest() throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		String path = "/site/website/style/index.xml";
 		when(contentService.duplicate(any(), any())).thenReturn(mock(PasteContentResult.class));
 		service.duplicateItem(SITE_ID, path);
@@ -307,7 +308,7 @@ public class ClipboardServiceInternalImplTest {
 	}
 
 	@Test
-	public void duplicateAssetTest() throws ServiceLayerException, AuthenticationException {
+	public void duplicateAssetTest() throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		String path = "/static-assets/images/screenshot.png";
 		when(contentService.duplicate(any(), any())).thenReturn(mock(PasteContentResult.class));
 		service.duplicateItem(SITE_ID, path);

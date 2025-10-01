@@ -64,7 +64,7 @@ public class ClipboardServiceImpl implements ClipboardService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
 	public String duplicateItem(@SiteId String siteId,
 				    @ContentPath String path)
-		throws ServiceLayerException, AuthenticationException {
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		return clipboardServiceInternal.duplicateItem(siteId, path);
 	}
 }

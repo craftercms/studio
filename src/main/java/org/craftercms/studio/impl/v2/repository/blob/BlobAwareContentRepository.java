@@ -275,7 +275,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 		} catch (ServiceLayerException e) {
 			logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
 			throw e;
-		} catch (Exception e) {
+		} catch (IOException e) {
 			logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
 			throw new ServiceLayerException(e);
 		}
@@ -426,6 +426,8 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 				localToPath = isFolder ? toPath : getPointerPath(site, toPath);
 			}
 			return localRepository.moveContent(site, localFromPath, localToPath, writeItemsToBlobStores(site, additionalItems, newFolders), newFolders);
+		} catch (ServiceLayerException e) {
+			throw e;
 		} catch (Exception e) {
 			logger.error("Failed to move content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
 			throw new ServiceLayerException("Failed to move content in site '%s' from '%s' to '%s'".formatted(site, fromPath, toPath), e);
@@ -448,7 +450,10 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 				localToPath = isFolder ? targetPath : getPointerPath(siteId, targetPath);
 			}
 			return localRepository.copy(siteId, localFromPath, localToPath, writeItemsToBlobStores(siteId, additionalItems, newFolders), newFolders);
-		} catch (Exception e) {
+		} catch (ServiceLayerException | UserNotFoundException e) {
+			logger.error("Failed to copy content in site '{}' from '{}' to '{}'", siteId, sourcePath, targetPath, e);
+			throw e;
+		} catch (IOException e) {
 			logger.error("Failed to copy content in site '{}' from '{}' to '{}'", siteId, sourcePath, targetPath, e);
 			throw new ServiceLayerException("Failed to copy content in site '%s' from '%s' to '%s'".formatted(siteId, sourcePath, targetPath), e);
 		}
