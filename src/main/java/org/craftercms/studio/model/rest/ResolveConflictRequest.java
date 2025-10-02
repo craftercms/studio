@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,11 +16,11 @@
 
 package org.craftercms.studio.model.rest;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-
-import jakarta.validation.constraints.NotEmpty;
+import org.craftercms.studio.api.v2.service.repository.ConflictResolution;
 
 public class ResolveConflictRequest {
 
@@ -30,8 +30,8 @@ public class ResolveConflictRequest {
 	@NotEmpty
 	@ValidExistingContentPath
 	private String path;
-	@ValidateStringParam(whitelistedPatterns = "ours|theirs")
-	private String resolution;
+	@NotNull
+	private ConflictResolution resolution;
 
 	public String getSiteId() {
 		return siteId;
@@ -49,11 +49,11 @@ public class ResolveConflictRequest {
 		this.path = path;
 	}
 
-	public String getResolution() {
+	public ConflictResolution getResolution() {
 		return resolution;
 	}
 
-	public void setResolution(String resolution) {
+	public void setResolution(ConflictResolution resolution) {
 		this.resolution = resolution;
 	}
 }

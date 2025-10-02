@@ -42,6 +42,7 @@ import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueExcep
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.exception.git.MergeInProgressException;
+import org.craftercms.studio.api.v2.exception.git.NoMergeStateException;
 import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
@@ -658,6 +659,13 @@ public class ExceptionHandlers {
 	@ResponseStatus(HttpStatus.CONFLICT)
 	public Result handleException(HttpServletRequest request, MergeInProgressException e) {
 		ApiResponse response = new ApiResponse(ApiResponse.REPOSITORY_IN_MERGE_STATE);
+		return handleExceptionInternal(request, e, response);
+	}
+
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public Result handleException(HttpServletRequest request, NoMergeStateException e) {
+		ApiResponse response = new ApiResponse(ApiResponse.REPOSITORY_NOT_IN_MERGE_STATE);
 		return handleExceptionInternal(request, e, response);
 	}
 

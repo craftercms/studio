@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -117,11 +118,11 @@ public interface RepositoryManagementService {
 	 *
 	 * @param siteId     the site id
 	 * @param path       the path of the conflicted file
-	 * @param resolution the resolution (ours|theirs)
+	 * @param resolution the {@link ConflictResolution} resolution
 	 * @return the repository status after the operation
 	 * @throws ServiceLayerException if there is any error resolving the conflict
 	 */
-	RepositoryStatus resolveConflict(String siteId, String path, String resolution)
+	RepositoryStatus resolveConflict(String siteId, String path, ConflictResolution resolution)
 		throws ServiceLayerException;
 
 	/**

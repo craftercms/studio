@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
+import org.craftercms.studio.api.v2.service.repository.ConflictResolution;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 
@@ -107,7 +108,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_RESOLVE_CONFLICT)
 	public RepositoryStatus resolveConflict(@SiteId String siteId,
-						@ProtectedResourceId(PATH_RESOURCE_ID) String path, String resolution)
+						@ProtectedResourceId(PATH_RESOURCE_ID) String path, ConflictResolution resolution)
 		throws ServiceLayerException {
 		return repositoryManagementServiceInternal.resolveConflict(siteId, path, resolution);
 	}

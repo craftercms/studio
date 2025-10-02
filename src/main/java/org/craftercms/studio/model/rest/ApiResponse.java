@@ -163,6 +163,9 @@ public class ApiResponse {
 	public static final ApiResponse REPOSITORY_IN_MERGE_STATE =
 			new ApiResponse(12009, "Repository is in merge state",
 					"Conclude merge before writing content", StringUtils.EMPTY);
+	public static final ApiResponse REPOSITORY_NOT_IN_MERGE_STATE =
+			new ApiResponse(12010, "Repository is NOT in merge state",
+					"No conflict to resolve if repository is not merging", StringUtils.EMPTY);
 
 	// 40000 - 41000
 	public static final ApiResponse MARKETPLACE_NOT_INITIALIZED =
