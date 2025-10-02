@@ -184,7 +184,7 @@ public class GitRepositoryHelper implements DisposableBean {
 				if (!status.getConflicting().isEmpty()) {
 					throw new MergeInProgressException(format("Repository has merge conflicts for write-content in site '%s'. Refuse to write-content", siteId));
 				}
-				if (repo.resolve(Constants.MERGE_HEAD) != null) {
+				if (CollectionUtils.isNotEmpty(repo.readMergeHeads())) {
 					throw new MergeInProgressException(format("Repository for site '%s' is currently in a merge state. Refuse to write-content", siteId));
 				}
 			}
