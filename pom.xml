@@ -550,6 +550,9 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<forkedProcessExitTimeoutInSeconds>50</forkedProcessExitTimeoutInSeconds>
+					<additionalClasspathElements>
+						<additionalClasspathElement>${project.basedir}/src/main/webapp</additionalClasspathElement>
+					</additionalClasspathElements>
 				</configuration>
 			</plugin>
 		</plugins>

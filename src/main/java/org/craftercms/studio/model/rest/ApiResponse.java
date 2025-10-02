@@ -158,6 +158,8 @@ public class ApiResponse {
 		new ApiResponse(12007, "Remote repository authentication failed",
 			"Recreate the remote repository with the correct authentication credentials " +
 				"and make sure you have write access.", StringUtils.EMPTY);
+	public static final ApiResponse REPOSITORY_NOT_FOUND = new ApiResponse(12008, "Repository not found",
+			"Check if you sent in the right repository type and site id", StringUtils.EMPTY);
 
 	// 40000 - 41000
 	public static final ApiResponse MARKETPLACE_NOT_INITIALIZED =
