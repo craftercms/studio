@@ -1277,10 +1277,11 @@ public class GitRepositoryHelper implements DisposableBean {
 					author, comment, getGitPaths(paths)));
 			// Check if commit id matches jgit
 			ObjectId jgitHead = repo.resolve(HEAD);
-			if (CS.equals(jgitHead.getName(), commitId)) {
-				logger.debug("JGit HEAD '{}' matches CGit's '{}', will not rebuild JGit repository", jgitHead.getName(), commitId);
+			String jgitHeadCommitId = jgitHead != null ? jgitHead.getName() : null;
+			if (CS.equals(jgitHeadCommitId, commitId)) {
+				logger.debug("JGit HEAD '{}' matches CGit's '{}', will not rebuild JGit repository", jgitHeadCommitId, commitId);
 			} else {
-				logger.warn("JGit HEAD '{}' does not match CGit's '{}', will rebuild JGit repository", jgitHead.getName(), commitId);
+				logger.warn("JGit HEAD '{}' does not match CGit's '{}', will rebuild JGit repository", jgitHeadCommitId, commitId);
 				reloadSiteSandboxRepository(site);
 			}
 		} catch (Exception e) {
