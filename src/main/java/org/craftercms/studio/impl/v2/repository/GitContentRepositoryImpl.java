@@ -92,7 +92,7 @@ import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.prependIfMissing;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
@@ -513,7 +513,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId);
 		generalLockService.lock(gitLockKey);
 		try {
-			toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
+			toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteBranch,
 				singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
 				createAsOrphan, creator);
 
@@ -1017,10 +1017,10 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			treeWalk.setRecursive(false);
 			while (treeWalk.next()) {
 				if (treeWalk.isSubtree()) {
-					directoryProcessor.acceptWithException(prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
+					directoryProcessor.acceptWithException(CS.prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
 					treeWalk.enterSubtree();
 				} else {
-					fileProcessor.acceptWithException(prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
+					fileProcessor.acceptWithException(CS.prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
 				}
 			}
 		}
@@ -1040,7 +1040,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					boolean found = false;
 					while (!found && iterator.hasNext()) {
 						RevCommit revCommit = iterator.next();
-						if (StringUtils.equals(commitId, revCommit.getName())) {
+						if (CS.equals(commitId, revCommit.getName())) {
 							found = true;
 							if (iterator.hasNext()) {
 								revCommit = iterator.next();
@@ -1349,7 +1349,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			for (RevCommit revCommit : revWalk) {
 				ItemVersion version = new ItemVersion();
 				version.setRevertible(revertible);
-				version.setPath(prependIfMissing(currentPath, FILE_SEPARATOR));
+				version.setPath(CS.prependIfMissing(currentPath, FILE_SEPARATOR));
 				version.setVersionNumber(revCommit.getName());
 				version.setCommitter(revCommit.getAuthorIdent().getName());
 				version.setModifiedDate(
@@ -1357,8 +1357,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				version.setComment(revCommit.getFullMessage());
 				try {
 					DiffEntry diffEntry = helper.getDiffEntry(repo, revCommit, currentPath);
-					if (!StringUtils.equals(currentPath, diffEntry.getOldPath())) {
-						if (StringUtils.equals(diffEntry.getOldPath(), DiffEntry.DEV_NULL)) {
+					if (!CS.equals(currentPath, diffEntry.getOldPath())) {
+						if (CS.equals(diffEntry.getOldPath(), DiffEntry.DEV_NULL)) {
 							currentPath = null;
 						} else {
 							currentPath = diffEntry.getOldPath();
@@ -1369,7 +1369,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					logger.error("Failed to get diff entry for path '{}' in commit '{}'", currentPath, revCommit.getName(), e);
 				}
 				// Set this after the diff entry is retrieved, so that the old path is set correctly
-				version.setOldPath(prependIfMissing(currentPath, FILE_SEPARATOR));
+				version.setOldPath(CS.prependIfMissing(currentPath, FILE_SEPARATOR));
 				versionHistory.add(version);
 				if (currentPath == null) {
 					// We have reached the latest creation of a file in this path
@@ -1464,7 +1464,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			FileUtils.copyDirectory(sourcePublishedPath.toFile(), destPublishedPath.toFile());
 			// Cache the repo
 			Repository publishedRepo = helper.getRepository(siteId, PUBLISHED);
-			if (StringUtils.equals(sourceSandboxBranch, sandboxBranch)) {
+			if (CS.equals(sourceSandboxBranch, sandboxBranch)) {
 				return;
 			}
 			try {
@@ -1532,7 +1532,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					}
 					loader = repo.open(tw.getObjectId(0));
 					boolean isFolder = loader.getType() == OBJ_TREE;
-					String itemPath = FILE_SEPARATOR + StringUtils.removeEnd(tw.getPathString(), FILE_SEPARATOR + name);
+					String itemPath = FILE_SEPARATOR + CS.removeEnd(tw.getPathString(), FILE_SEPARATOR + name);
 					retItems.add(new RepositoryItem(itemPath, name, isFolder));
 				}
 			}
@@ -1545,15 +1545,12 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public String createFolder(String siteId, String folderPath) throws ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
 			Repository repo = helper.getRepositoryForWrite(siteId);
-			if (repo == null) {
-				logger.error("Missing repository during create folder for site '{}' folder path '{}'", siteId, folderPath);
-				throw new ServiceLayerException(format("Missing repository during create folder for site '%s' folder path '%s'", siteId, folderPath));
-			}
 			File newFolderFile = new File(repo.getDirectory().getParent(), folderPath);
 			newFolderFile.mkdirs();
 
@@ -1573,6 +1570,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public String createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException {
 		// SJ: Git doesn't care about empty folders, so we will create the folders and put a 0 byte file in them
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
@@ -1620,7 +1618,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	 *
 	 * @param siteId     the site id
 	 * @param repo       the git repo
-	 * @param newFolders the list of new folder psths
+	 * @param newFolders the list of new folder paths
 	 * @return the list of paths to the empty files
 	 */
 	protected List<String> addNewFolders(String siteId, Repository repo, Set<String> newFolders) throws ServiceLayerException {
