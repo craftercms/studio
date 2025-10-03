@@ -1374,8 +1374,8 @@ public class GitRepositoryHelper implements DisposableBean {
 			repositoryCache.invalidate(cacheKey);
 			repo.close();
 		}
-		logger.debug("Reload repository '{}' and add it to cache", cacheKey);
-		repositoryCache.put(cacheKey, getRepository(site, repoType));
+		logger.debug("Reload repository '{}' so it gets added", cacheKey);
+		getRepository(site, repoType);
 	}
 
 	/**
