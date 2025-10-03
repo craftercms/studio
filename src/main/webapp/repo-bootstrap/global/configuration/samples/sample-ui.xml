@@ -564,11 +564,11 @@
 				<value><![CDATA[<@crafter.DESIRED_TAG $field="FIELD_ID">${contentModel.FIELD_ID}</@crafter.DESIRED_TAG>]]></value>
 			</specificHTMLTag>
 			<renderComponentCollection label="Render Component Collection">
-				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/4.2/search.html?q=renderComponentCollection&check_keywords=yes&area=default -->
+				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=renderComponentCollection&check_keywords=yes&area=default -->
 <@crafter.renderComponentCollection $field="features_o" $containerAttributes={ "class": "features-container" } $itemAttributes={ "data-custom-attribute": "true" } />]]></value>
 			</renderComponentCollection>
 			<renderRepeatGroup label="Render Repeat Group">
-				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/4.2/search.html?q=renderRepeatCollection&check_keywords=yes&area=default -->
+				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=renderRepeatCollection&check_keywords=yes&area=default -->
 <@crafter.renderRepeatGroup
   $field="VARIABLE_NAME"
   $containerAttributes={'attr': 'value'};
@@ -583,7 +583,7 @@
 </@crafter.renderRepeatGroup>]]></value>
 			</renderRepeatGroup>
 			<navigation label="Navigation">
-				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/4.2/search.html?q=crafter.navigation&check_keywords=yes&area=default -->
+				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=crafter.navigation&check_keywords=yes&area=default -->
   <@crafter.navigation
     showNavElement=false
     url="NAVIGATION_URL"
@@ -594,7 +594,7 @@
   />]]></value>
 			</navigation>
 			<breadcrumb label="Breadcrumb">
-				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/4.2/search.html?q=crafter.breadcrumb&check_keywords=yes&area=default -->
+				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=crafter.breadcrumb&check_keywords=yes&area=default -->
   <@crafter.breadcrumb
     url=contentModel.storeUrl
     containerElementClass="container-element-class"
