@@ -109,7 +109,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	private TextEncryptor encryptor;
 	private GeneralLockService generalLockService;
 	private GitRepositoryHelper gitRepositoryHelper;
-	private GitContentRepository contentRepositoryV2;
+	private GitContentRepository contentRepository;
 	private PublishService publishService;
 	private SitesService siteService;
 	private AuditService auditService;
@@ -188,7 +188,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 			} catch (URISyntaxException e) {
 				logger.error("Failed to add the remote '{}' URL '{}' to site '{}' because the URL is invalid",
 					remoteRepository.getRemoteName(), remoteRepository.getRemoteUrl(), siteId, e);
-				throw new InvalidRemoteUrlException();
+				throw new InvalidRemoteUrlException(e);
 			} catch (GitAPIException e) {
 				if (e.getCause() instanceof NoRemoteRepositoryException) {
 					logger.error("Failed to add the remote '{}' URL '{}' to site '{}' because the remote repository " +
@@ -254,7 +254,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
 	@Override
 	public MergeResult pullFromRemote(@SiteId String siteId, String remoteName,
-									  String remoteBranch, String mergeStrategy) throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
+									  String remoteBranch, String mergeStrategy) throws ServiceLayerException,
+			InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
 		MergeResult mergeResult = doPullFromRemote(siteId, remoteName, remoteBranch,
 			mergeStrategy);
 		insertRemoteAuditLog(siteId, OPERATION_PULL_FROM_REMOTE, remoteName + "/" + remoteBranch,
@@ -560,11 +561,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		}
 	}
 
-
 	private MergeResult doPullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
 		throws InvalidRemoteUrlException, ServiceLayerException, InvalidRemoteRepositoryCredentialsException,
 		RemoteRepositoryNotFoundException {
-		logger.debug("Get the git remote repository information from the database for remote '{}' in site '{}'",
+		logger.debug("Pull from remote. Get the git remote repository information from the database for remote '{}' in site '{}'",
 			remoteName, siteId);
 		RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
 		if (remoteRepository == null) {
@@ -583,7 +583,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		} catch (InvalidRemoteException e) {
 			logger.error("Failed to pull from the remote '{}' in site '{}' because the remote is invalid",
 				remoteName, siteId, e);
-			throw new InvalidRemoteUrlException();
+			throw new InvalidRemoteUrlException(e);
 		} catch (TransportException e) {
 			// TODO: SJ: Seems like the actual logging is being done inside the util, not great, need to fix
 			GitUtils.translateException(e, logger, remoteName, remoteRepository.getRemoteUrl());
@@ -636,7 +636,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	private boolean doPushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
 		throws ServiceLayerException, InvalidRemoteUrlException, InvalidRemoteRepositoryCredentialsException,
 		RemoteRepositoryNotFoundException {
-		logger.debug("Get the git remote repository information from the database for remote '{}' in site '{}'",
+		logger.debug("Push to remote. Get the git remote repository information from the database for remote '{}' in site '{}'",
 			remoteName, siteId);
 		RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
 
@@ -798,7 +798,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 			switch (resolution.toLowerCase()) {
 				case "ours":
 					logger.debug("Resolve conflicts using _OURS_ strategy for site '{}' path '{}'", siteId, path);
-					logger.trace("Reset merge conflict in git index in site '{}'", siteId);
+					logger.trace("Reset merge conflict in git index in site '{}' strategy 'ours'", siteId);
 					resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
 					retryingRepositoryOperationFacade.call(resetCommand);
 					logger.trace("Checkout the content from local merge HEAD in site '{}'", siteId);
@@ -808,7 +808,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 					break;
 				case "theirs":
 					logger.debug("Resolve conflicts using _THEIRS_ strategy for site '{}' path '{}'", siteId, path);
-					logger.trace("Reset merge conflict in git index in site '{}'", siteId);
+					logger.trace("Reset merge conflict in git index in site '{}' strategy 'theirs'", siteId);
 					resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
 					retryingRepositoryOperationFacade.call(resetCommand);
 					logger.trace("Checkout the content from remote merge HEAD in site '{}'", siteId);
@@ -866,15 +866,17 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 			}
 			ObjectId mergeCommitId = mergeHeads.getFirst();
 			logger.debug("Get the local content of the conflicting file from site '{}' path '{}'", siteId, path);
-			InputStream studioVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, Constants.HEAD)
-				.orElseThrow()
-				.getInputStream();
-			diffResult.setStudioVersion(IOUtils.toString(studioVersionIs, UTF_8));
+			try (InputStream studioVersionIs = contentRepository.getContentByCommitId(siteId, path, Constants.HEAD)
+					.orElseThrow()
+					.getInputStream()) {
+				diffResult.setStudioVersion(IOUtils.toString(studioVersionIs, UTF_8));
+			}
 			logger.debug("Get the remote content of the conflicting file from site '{}' path '{}'", siteId, path);
-			InputStream remoteVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, mergeCommitId.getName())
-				.orElseThrow()
-				.getInputStream();
-			diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
+			try (InputStream remoteVersionIs = contentRepository.getContentByCommitId(siteId, path, mergeCommitId.getName())
+					.orElseThrow()
+					.getInputStream()) {
+				diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
+			}
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 			logger.debug("Diff the local and remote versions of the conflicting file in site '{}' path '{}'", siteId, path);
@@ -1137,8 +1139,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	}
 
 	@SuppressWarnings("unused")
-	public void setContentRepositoryV2(GitContentRepository contentRepositoryV2) {
-		this.contentRepositoryV2 = contentRepositoryV2;
+	public void setContentRepository(GitContentRepository contentRepository) {
+		this.contentRepository = contentRepository;
 	}
 
 	@SuppressWarnings("unused")

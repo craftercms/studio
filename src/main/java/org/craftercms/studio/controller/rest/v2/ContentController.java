@@ -307,7 +307,7 @@ public class ContentController {
 
 	@PostMapping(value = MOVE_AND_UPDATE, consumes = APPLICATION_JSON_VALUE)
 	public Result moveAndUpdate(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody MoveAndUpdateRequestBody requestBody)
-			throws AuthenticationException, ServiceLayerException {
+			throws AuthenticationException, ServiceLayerException, UserNotFoundException {
 		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(
 				contentService.moveAndUpdate(siteId, requestBody.getSourcePath(), requestBody.getTargetPath(), requestBody.getContent())
 		);
@@ -327,7 +327,7 @@ public class ContentController {
 
 	@PostMapping(REVERT)
 	public Result revert(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody RevertRequestBody revertRequestBody)
-			throws ServiceLayerException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		contentService.revert(siteId, revertRequestBody.getPath(), revertRequestBody.getCommitId());
 		var result = new Result();
 		result.setResponse(OK);
@@ -337,7 +337,7 @@ public class ContentController {
 	@PostMapping(FOLDER)
 	@ResponseStatus(HttpStatus.CREATED)
 	public Result createFolder(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody CreateFolderRequestBody requestBody)
-			throws UserNotFoundException, ServiceLayerException {
+			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		WriteContentResult createFolderResult = contentService.createFolder(siteId, requestBody.getPath());
 		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(createFolderResult);
 		result.setResponse(CREATED);

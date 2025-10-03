@@ -784,7 +784,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(site, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepositoryForWrite(site);
 			try (Git git = new Git(repo)) {
 				List<String> pathsToCommit = new ArrayList<>(paths.size());
 				for (String path : paths) {
@@ -1549,7 +1549,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepositoryForWrite(siteId);
 			if (repo == null) {
 				logger.error("Missing repository during create folder for site '{}' folder path '{}'", siteId, folderPath);
 				throw new ServiceLayerException(format("Missing repository during create folder for site '%s' folder path '%s'", siteId, folderPath));
@@ -1579,7 +1579,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		generalLockService.lock(gitLockKey);
 		try {
 			Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepositoryForWrite(siteId);
 
 			// Create basic file
 			File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
@@ -1640,11 +1640,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			if (repo == null) {
-				logger.error("Missing repository during write for site '{}' items '{}'", siteId, writeItems);
-				throw new ServiceLayerException(format("Missing repository during write for site '%s' items '%s'", siteId, writeItems));
-			}
+			Repository repo = helper.getRepositoryForWrite(siteId);
 
 			for (ContentWriteItem writeItem : writeItems) {
 				try (InputStream content = writeItem.content()) {
@@ -1705,11 +1701,10 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 							  Set<String> newFolders) throws ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
-		Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-
-		String gitFromPath = helper.getGitPath(fromPath);
-		String gitToPath = helper.getGitPath(toPath);
 		try {
+			Repository repo = helper.getRepositoryForWrite(siteId);
+			String gitFromPath = helper.getGitPath(fromPath);
+			String gitToPath = helper.getGitPath(toPath);
 			moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
 
 			// The operation is done on disk, now it's time to commit
@@ -1755,11 +1750,10 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		// TODO: try to unify this method with moveContent, as they are very similar
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
-		Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-
-		String gitFromPath = helper.getGitPath(fromPath);
-		String gitToPath = helper.getGitPath(toPath);
 		try {
+			Repository repo = helper.getRepositoryForWrite(siteId);
+			String gitFromPath = helper.getGitPath(fromPath);
+			String gitToPath = helper.getGitPath(toPath);
 			copyFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
 
 			helper.addFiles(repo, siteId, gitFromPath, gitToPath);
@@ -1825,7 +1819,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+			Repository repo = helper.getRepositoryForWrite(siteId);
 			helper.restoreVersion(repo, siteId, helper.getGitPath(path), version);
 			commitId = helper.commitFiles(repo, siteId, comment, helper.getCurrentUserIdent(), path);
 			if (commitId != null) {
@@ -1872,15 +1866,11 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 	@Override
 	public String writeContent(String siteId, String path, InputStream content) throws
-		ServiceLayerException, UserNotFoundException {
+			ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			if (repo == null) {
-				logger.error("Missing repository during write for site '{}' path '{}'", siteId, path);
-				throw new ServiceLayerException(format("Missing repository during write for site '%s' path '%s'", siteId, path));
-			}
+			Repository repo = helper.getRepositoryForWrite(siteId);
 			helper.writeFile(repo, siteId, path, content);
 			PersonIdent user = helper.getCurrentUserIdent();
 			String username = SecurityUtils.getCurrentUsername();

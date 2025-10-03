@@ -294,7 +294,7 @@ public interface ContentService {
 	 * @param content    the content to write at the target path
 	 * @return {@link WriteContentResult} object containing the affected paths
 	 */
-	WriteContentResult moveAndUpdate(String siteId, String sourcePath, String targetPath, String content) throws AuthenticationException, ServiceLayerException;
+	WriteContentResult moveAndUpdate(String siteId, String sourcePath, String targetPath, String content) throws AuthenticationException, ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Returns content wrapped as a {@link Resource} instance
@@ -339,7 +339,7 @@ public interface ContentService {
 	 * @return the result of the copy operation, which includes affected paths
 	 */
 	PasteContentResult copy(String siteId, String sourcePath, String targetPath, Set<String> copyPaths)
-			throws ServiceLayerException, AuthenticationException;
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
 	/**
 	 * Create a copy of a content item
@@ -348,7 +348,7 @@ public interface ContentService {
 	 * @param path   the path of the content item to duplicate
 	 * @return the result of the copy
 	 */
-	PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException, AuthenticationException;
+	PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
 	/**
 	 * Revert content to a previous commit id
@@ -357,7 +357,7 @@ public interface ContentService {
 	 * @param path     the path of the content item to revert
 	 * @param commitId the commit id to revert to
 	 */
-	void revert(String siteId, String path, String commitId) throws ServiceLayerException;
+	void revert(String siteId, String path, String commitId) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Create a new folder at the given path.
@@ -366,5 +366,5 @@ public interface ContentService {
 	 * @param path   the path where the folder will be created, e.g. /site/website/folder1/folder2
 	 * @return the result of the folder creation, which includes affected paths
 	 */
-	WriteContentResult createFolder(String siteId, String path) throws ServiceLayerException, UserNotFoundException;
+	WriteContentResult createFolder(String siteId, String path) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 }

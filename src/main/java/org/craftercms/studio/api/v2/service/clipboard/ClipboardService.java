@@ -96,6 +96,6 @@ public interface ClipboardService {
 	 * @return the path of the new item
 	 * @throws ServiceLayerException if there is any error copying the item
 	 */
-	String duplicateItem(String siteId, String path) throws ServiceLayerException, AuthenticationException;
+	String duplicateItem(String siteId, String path) throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
 }

@@ -71,6 +71,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.db.DBUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.Person;
@@ -134,7 +135,6 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.*;
 import static org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl.ContentItemIds.generate;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
-import static org.craftercms.studio.impl.v2.utils.db.DBUtils.runInTransaction;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
@@ -566,9 +566,34 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		return doWrite(siteId, path, content, operation);
 	}
 
+	/**
+	 * Run a write operation in a transaction.
+	 * This method will re-throw any exception of type ServiceLayerException, ActionDeniedException,AuthenticationException, UserNotFoundException,
+	 * and wrap any other exception in a ServiceLayerException
+	 *
+	 * @param transactionId the transaction id
+	 * @param supplier      the operation to run
+	 * @param <T>           the type of the result
+	 * @return the result of the operation
+	 * @throws ServiceLayerException   if an error occurs
+	 * @throws ActionDeniedException   if the user does not have permission
+	 * @throws AuthenticationException if the user is not authenticated
+	 * @throws UserNotFoundException   if the user is not found
+	 */
+	protected <T> T runWriteInTransaction(String transactionId, ThrowingSupplier<T> supplier)
+			throws ServiceLayerException, ActionDeniedException, AuthenticationException, UserNotFoundException {
+		try {
+			return DBUtils.runInTransaction(transactionManager, transactionId, supplier);
+		} catch (ServiceLayerException | ActionDeniedException | AuthenticationException | UserNotFoundException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new ServiceLayerException("Error during write transaction " + transactionId, e);
+		}
+	}
+
 	protected WriteContentResult doWrite(final String siteId, final String path,
 										 final InputStream content, final LifecycleOperation operation)
-			throws ServiceLayerException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		WriteContentResult writeContentResult;
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
@@ -587,14 +612,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				trySetSystemProcessing(siteId, lifecycleItemPaths);
 				affectedPaths.addAll(lifecycleItemPaths);
 				String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
-				writeContentResult = runInTransaction(transactionManager, transactionId,
+				writeContentResult = runWriteInTransaction(transactionId,
 						() -> writeInternal(siteId, path, lifecycleContent));
-			} catch (ServiceLayerException | ActionDeniedException e) {
-				logger.error("Failed to write content at site '{}' path '{}'", siteId, path, e);
-				throw e;
-			} catch (Exception e) {
+			} catch (IOException e) {
 				logger.error("Failed to write content at site '{}' path '{}'", siteId, path, e);
 				throw new ServiceLayerException(format("Failed to write content at site '%s' path '%s'", siteId, path), e);
+			} catch (Exception e) {
+				logger.error("Failed to write content at site '{}' path '{}'", siteId, path, e);
+				throw e;
 			} finally {
 				itemService.setSystemProcessingBulk(siteId, affectedPaths, false);
 			}
@@ -612,7 +637,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	@Override
 	public PasteContentResult copy(final String siteId, final String from,
 								   final String initialTargetPath, final Set<String> itemPaths)
-			throws ServiceLayerException, AuthenticationException {
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		return doCopy(siteId, from, initialTargetPath, itemPaths, COPY);
 	}
 
@@ -624,7 +649,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected PasteContentResult doCopy(final String siteId, final String from,
 										final String initialTargetPath, final Set<String> itemPaths,
 										final LifecycleOperation operation)
-			throws ServiceLayerException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		PastedPath pastedPath = constructNewPathForCutCopy(siteId, from, initialTargetPath);
 		String to = pastedPath.path;
 		if (!contentExists(siteId, from)) {
@@ -645,31 +670,34 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			targetPath = to;
 		}
 		PasteContentResult pasteResult;
-		Collection<LifecycleContent> lifecycleContents = new ArrayList<>(itemPaths.size());
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
 		try {
-			validateCopyOperation(siteId, sourcePath, targetPath, itemPaths);
-			Site site = siteService.getSite(siteId);
-			for (String itemPath : itemPaths) {
-				if (contentRepository.isFolder(siteId, itemPath)) {
-					// No content lifecycle for a folder
-					continue;
+			Collection<LifecycleContent> lifecycleContents = new ArrayList<>(itemPaths.size());
+			try {
+				validateCopyOperation(siteId, sourcePath, targetPath, itemPaths);
+				Site site = siteService.getSite(siteId);
+				for (String itemPath : itemPaths) {
+					if (contentRepository.isFolder(siteId, itemPath)) {
+						// No content lifecycle for a folder
+						continue;
+					}
+					boolean isRootItem = StringUtils.equals(sourcePath, removeEnd(itemPath, SLASH_INDEX_FILE));
+					String newPath = movePath(sourcePath, targetPath, itemPath);
+					LifecycleContent lifecycleContent = runLifecycle(siteId, itemPath, newPath,
+							() -> loadContent(siteId, itemPath), operation, isRootItem ? pastedPath.newLabel : null);
+					lifecycleContents.add(lifecycleContent);
 				}
-				boolean isRootItem = StringUtils.equals(sourcePath, removeEnd(itemPath, SLASH_INDEX_FILE));
-				String newPath = movePath(sourcePath, targetPath, itemPath);
-				LifecycleContent lifecycleContent = runLifecycle(siteId, itemPath, newPath,
-						() -> loadContent(siteId, itemPath), operation, isRootItem ? pastedPath.newLabel : null);
-				lifecycleContents.add(lifecycleContent);
-			}
 
-			String transactionId = format(COPY_TRANSACTION_FORMAT, siteId);
-			pasteResult = runInTransaction(transactionManager, transactionId,
-					() -> copyInternal(site, sourcePath, targetPath, lifecycleContents, itemPaths, pastedPath.newLabel, operation));
+				String transactionId = format(COPY_TRANSACTION_FORMAT, siteId);
+				pasteResult = runWriteInTransaction(transactionId,
+						() -> copyInternal(site, sourcePath, targetPath, lifecycleContents, itemPaths, pastedPath.newLabel, operation));
+			} finally {
+				closeCollection(lifecycleContents);
+			}
 		} catch (Exception e) {
-			closeCollection(lifecycleContents);
 			logger.error("Failed to copy content from '{}' to '{}' in site '{}'", sourcePath, targetPath, siteId, e);
-			throw new ServiceLayerException(format("Failed to copy content from '%s' to '%s' in site '%s'", sourcePath, targetPath, siteId), e);
+			throw e;
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
@@ -682,14 +710,14 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException, AuthenticationException {
+	public PasteContentResult duplicate(String siteId, String path) throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		String parentUrl = getParentUrl(path);
 
 		return doCopy(siteId, path, parentUrl, of(path), DUPLICATE);
 	}
 
 	@Override
-	public void revert(String siteId, String path, String commitId) throws ServiceLayerException {
+	public void revert(String siteId, String path, String commitId) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		InputStream content;
 		try {
 			content = contentRepository.getContentByCommitId(siteId, path, commitId)
@@ -704,7 +732,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public WriteContentResult createFolder(String siteId, String path) throws ServiceLayerException, UserNotFoundException {
+	public WriteContentResult createFolder(String siteId, String path) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		validateEntitlements();
 		WriteContentResult writeContentResult;
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
@@ -719,14 +747,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				throw new ContentNotFoundException(parentPath, siteId, format("Parent content not found at path '%s' in site '%s'", parentPath, siteId));
 			}
 			String transactionId = format(CREATE_FOLDER_TRANSACTION_FORMAT, siteId);
-			writeContentResult = runInTransaction(transactionManager, transactionId,
+			writeContentResult = runWriteInTransaction(transactionId,
 					() -> createFolderInternal(siteId, path));
-		} catch (ServiceLayerException | ActionDeniedException e) {
-			logger.error("Failed to create folder at site '{}' path '{}'", siteId, path, e);
-			throw e;
 		} catch (Exception e) {
 			logger.error("Failed to create folder at site '{}' path '{}'", siteId, path, e);
-			throw new ServiceLayerException(format("Failed to create folder at site '%s' path '%s'", siteId, path), e);
+			throw e;
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
 		}
@@ -897,42 +922,38 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											  String newLabel, LifecycleOperation operation)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String siteId = site.getSiteId();
-		try {
-			if (underPagesRoot(sourcePath)) {
-				pageNavOrderService.copy(siteId, sourcePath, targetPath);
-			}
-			Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
-			Map<String, ContentWriteItem> dependencies =
-					lifecycleContents.stream()
-							.map(LifecycleContent::getDependencies)
-							.collect(HashMap::new, HashMap::putAll, Map::putAll);
-			// Source path is null since copy does not affect the source path
-			validateLifecycleResults(siteId, null, targetPath, getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems));
-			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourceItemPaths, lifecycleItems.values(), operation);
-			validateEntitlements(operationsByPath);
-			Set<String> newFolders = getMissingFoldersForCopyOrMove(siteId, lifecycleItems.values());
-			Map<String, ContentWriteItem> additionalItems = calculateAdditionalItemsForCopyOrMove(lifecycleItems);
-			additionalItems.putAll(dependencies);
-			for (String copyDependencyPath : dependencies.keySet()) {
-				newFolders.addAll(calculateMissingFolders(siteId, copyDependencyPath));
-			}
-
-			String commitId = contentRepository.copy(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
-			List<WriteContentResultItem> copyResultItems = lifecycleItems.values().stream()
-					.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
-					.toList();
-			PasteContentResult pasteResult = new PasteContentResult(commitId, copyResultItems, targetPath);
-			if (isEmpty(commitId)) {
-				return pasteResult;
-			}
-
-			persistCopyToDB(site, sourcePath, targetPath, additionalItems, newFolders, operationsByPath, sourceItemPaths, newLabel);
-
-			insertContentAudit(siteId, sourcePath, targetPath, operation, pasteResult);
-			return pasteResult;
-		} finally {
-			closeCollection(lifecycleContents);
+		if (underPagesRoot(sourcePath)) {
+			pageNavOrderService.copy(siteId, sourcePath, targetPath);
 		}
+		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
+		Map<String, ContentWriteItem> dependencies =
+				lifecycleContents.stream()
+						.map(LifecycleContent::getDependencies)
+						.collect(HashMap::new, HashMap::putAll, Map::putAll);
+		// Source path is null since copy does not affect the source path
+		validateLifecycleResults(siteId, null, targetPath, getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems));
+		Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourceItemPaths, lifecycleItems.values(), operation);
+		validateEntitlements(operationsByPath);
+		Set<String> newFolders = getMissingFoldersForCopyOrMove(siteId, lifecycleItems.values());
+		Map<String, ContentWriteItem> additionalItems = calculateAdditionalItemsForCopyOrMove(lifecycleItems);
+		additionalItems.putAll(dependencies);
+		for (String copyDependencyPath : dependencies.keySet()) {
+			newFolders.addAll(calculateMissingFolders(siteId, copyDependencyPath));
+		}
+
+		String commitId = contentRepository.copy(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
+		List<WriteContentResultItem> copyResultItems = lifecycleItems.values().stream()
+				.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
+				.toList();
+		PasteContentResult pasteResult = new PasteContentResult(commitId, copyResultItems, targetPath);
+		if (isEmpty(commitId)) {
+			return pasteResult;
+		}
+
+		persistCopyToDB(site, sourcePath, targetPath, additionalItems, newFolders, operationsByPath, sourceItemPaths, newLabel);
+
+		insertContentAudit(siteId, sourcePath, targetPath, operation, pasteResult);
+		return pasteResult;
 	}
 
 	/**
@@ -1456,21 +1477,22 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				allPaths.addAll(dependencies);
 
 				Collection<LifecycleContent> lifecycleContents = runLifecycleForDelete(siteId, allPaths);
-				String transactionId = format(DELETE_TRANSACTION_FORMAT, UUID.randomUUID());
-				deleteResult = runInTransaction(transactionManager, transactionId,
-						() -> deleteInternal(siteId, union(paths, children), dependencies, lifecycleContents, publishTitle, publishComment));
+				try {
+					String transactionId = format(DELETE_TRANSACTION_FORMAT, UUID.randomUUID());
+					deleteResult = runWriteInTransaction(transactionId,
+							() -> deleteInternal(siteId, union(paths, children), dependencies, lifecycleContents, publishTitle, publishComment));
+				} finally {
+					closeCollection(lifecycleContents);
+				}
 				// Do this after the transaction to ensure the visibility of the changes
 				if (deleteResult.getPublishPackageId() > 0) {
 					eventPublisher.publishEvent(
 							new RequestPublishEvent(siteId, deleteResult.getPublishPackageId()));
 					eventPublisher.publishEvent(new WorkflowEvent(getAuthentication(), siteId, deleteResult.getPublishPackageId(), DIRECT_PUBLISH));
 				}
-			} catch (ServiceLayerException e) {
-				throw e;
 			} catch (Exception e) {
 				logger.error("Failed to delete content in site '{}' at paths '{}'", siteId, paths, e);
-				throw new ServiceLayerException(
-						format("Failed to delete content in site '%s' at paths '%s'", siteId, paths), e);
+				throw e;
 			} finally {
 				itemService.setSystemProcessingBulk(siteId, allPaths, false);
 			}
@@ -1511,8 +1533,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			}
 		} catch (Exception e) {
 			closeCollection(lifecycleContents);
-			throw new ServiceLayerException(format("Failed to run lifecycle for delete operation for site '%s'",
-					siteId), e);
+			logger.error("Failed to run lifecycle for delete operation for site '{}' paths '{}'", siteId, paths, e);
+			throw e;
 		}
 		return lifecycleContents;
 	}
@@ -1521,65 +1543,61 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 												 Set<String> dependencies, Collection<LifecycleContent> lifecycleContents,
 												 String publishTitle, String publishComment)
 			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-		try {
-			Site site = siteService.getSite(siteId);
-			long publishPackageId = 0;
-			Set<String> deletePaths = new HashSet<>(userRequestedPaths.size() + dependencies.size());
-			deletePaths.addAll(userRequestedPaths);
-			deletePaths.addAll(dependencies);
+		Site site = siteService.getSite(siteId);
+		long publishPackageId = 0;
+		Set<String> deletePaths = new HashSet<>(userRequestedPaths.size() + dependencies.size());
+		deletePaths.addAll(userRequestedPaths);
+		deletePaths.addAll(dependencies);
 
-			Map<String, ContentLifecycleItem> additionalItems = lifecycleContents.stream()
-					.flatMap(lifecycleContent -> lifecycleContent.getItems().values()
-							.stream()
-							.filter(item -> !deletePaths.contains(item.repoPath())))
-					.collect(toMap(ContentLifecycleItem::repoPath, identity()));
+		Map<String, ContentLifecycleItem> additionalItems = lifecycleContents.stream()
+				.flatMap(lifecycleContent -> lifecycleContent.getItems().values()
+						.stream()
+						.filter(item -> !deletePaths.contains(item.repoPath())))
+				.collect(toMap(ContentLifecycleItem::repoPath, identity()));
 
-			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, deletePaths, emptyList(), additionalItems.values(), DELETE);
-			validateEntitlements(operationsByPath);
-			Set<String> newFolders = additionalItems.values().stream()
-					.flatMap(i -> calculateMissingFolders(siteId, i.repoPath()).stream())
+		Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, deletePaths, emptyList(), additionalItems.values(), DELETE);
+		validateEntitlements(operationsByPath);
+		Set<String> newFolders = additionalItems.values().stream()
+				.flatMap(i -> calculateMissingFolders(siteId, i.repoPath()).stream())
+				.collect(toSet());
+
+		// check and fail if any of the items is part of a publish package
+		assertNotInWorkflow(siteId, deletePaths, false);
+		String commitId = contentRepository.deleteContent(siteId, deletePaths, additionalItems.values(), newFolders);
+
+		if (contentRepository.publishedRepositoryExists(siteId)) {
+			Set<String> writtenPaths = additionalItems.values().stream()
+					.map(ContentWriteItem::repoPath)
 					.collect(toSet());
-
-			// check and fail if any of the items is part of a publish package
-			assertNotInWorkflow(siteId, deletePaths, false);
-			String commitId = contentRepository.deleteContent(siteId, deletePaths, additionalItems.values(), newFolders);
-
-			if (contentRepository.publishedRepositoryExists(siteId)) {
-				Set<String> writtenPaths = additionalItems.values().stream()
-						.map(ContentWriteItem::repoPath)
-						.collect(toSet());
-				// Do not publish deletePaths that were not really deleted
-				publishPackageId = publishService.publishDelete(siteId, difference(userRequestedPaths, writtenPaths),
-						difference(dependencies, writtenPaths), publishTitle, publishComment);
-			}
-
-			List<WriteContentResultItem> resultItems = new LinkedList<>();
-			resultItems.addAll(
-					deletePaths.stream()
-							.filter(path -> !additionalItems.containsKey(path))
-							.map(path -> new WriteContentResultItem(path, DELETE, false))
-							.toList());
-			resultItems.addAll(
-					additionalItems.values().stream()
-							.map(item -> new WriteContentResultItem(item.repoPath(), UPDATE, false))
-							.toList()
-			);
-
-			DeleteContentResult deleteResult = new DeleteContentResult(commitId, resultItems, publishPackageId);
-
-			insertDeleteContentAudit(siteId, deleteResult);
-
-			for (String path : deletePaths) {
-				dependencyService.deleteItemDependencies(siteId, path);
-				dependencyService.invalidateDependencies(siteId, path);
-				itemService.deleteItem(site.getId(), path, true);
-			}
-			persistWriteToDB(site.getSiteId(), additionalItems.values(), newFolders, operationsByPath);
-
-			return deleteResult;
-		} finally {
-			closeCollection(lifecycleContents);
+			// Do not publish deletePaths that were not really deleted
+			publishPackageId = publishService.publishDelete(siteId, difference(userRequestedPaths, writtenPaths),
+					difference(dependencies, writtenPaths), publishTitle, publishComment);
 		}
+
+		List<WriteContentResultItem> resultItems = new LinkedList<>();
+		resultItems.addAll(
+				deletePaths.stream()
+						.filter(path -> !additionalItems.containsKey(path))
+						.map(path -> new WriteContentResultItem(path, DELETE, false))
+						.toList());
+		resultItems.addAll(
+				additionalItems.values().stream()
+						.map(item -> new WriteContentResultItem(item.repoPath(), UPDATE, false))
+						.toList()
+		);
+
+		DeleteContentResult deleteResult = new DeleteContentResult(commitId, resultItems, publishPackageId);
+
+		insertDeleteContentAudit(siteId, deleteResult);
+
+		for (String path : deletePaths) {
+			dependencyService.deleteItemDependencies(siteId, path);
+			dependencyService.invalidateDependencies(siteId, path);
+			itemService.deleteItem(site.getId(), path, true);
+		}
+		persistWriteToDB(site.getSiteId(), additionalItems.values(), newFolders, operationsByPath);
+
+		return deleteResult;
 	}
 
 	/**
@@ -1658,7 +1676,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException {
+	public void renameContent(final String siteId, final String path, final String name) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		logger.debug("Rename path '{}' to new name '{}' for site '{}'", path, name, siteId);
 		String parentPath = getParentUrl(path);
 		String targetPath = parentPath + FILE_SEPARATOR + name;
@@ -1698,13 +1716,13 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent) throws ServiceLayerException {
+	public PasteContentResult moveToParentPath(String siteId, String sourcePath, String targetParent) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		PastedPath pastedPath = constructNewPathForCutCopy(siteId, sourcePath, targetParent);
 		return doMove(siteId, sourcePath, pastedPath.path, pastedPath.newLabel, null);
 	}
 
 	@Override
-	public WriteContentResult moveAndUpdate(String siteId, String sourcePath, String targetPath, String content) throws ServiceLayerException {
+	public WriteContentResult moveAndUpdate(String siteId, String sourcePath, String targetPath, String content) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		return doMove(siteId, sourcePath, targetPath, null, () -> IOUtils.toInputStream(content, UTF_8));
 	}
 
@@ -1719,7 +1737,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected PasteContentResult doMove(final String siteId, final String from, final String to, final String newLabel,
 										final ThrowingSupplier<InputStream> newContent)
-			throws ServiceLayerException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		if (!contentExists(siteId, from)) {
 			throw new ContentNotFoundException(from, siteId, format("Content not found at path '%s' in site '%s'", from, siteId));
 		}
@@ -1755,17 +1773,21 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					sourcePathChildren.add(sourcePath);
 				}
 				Collection<LifecycleContent> lifecycleContents = runLifecycleForMove(siteId, sourcePath, targetPath, sourcePathChildren, newLabel, newContent);
-				Collection<String> lifecyclePaths = getPathsForSystemProcessing(lifecycleContents);
-				// Set system processing for paths added by the lifecycle
-				trySetSystemProcessing(siteId, subtract(lifecyclePaths, processingPaths));
-				processingPaths.addAll(lifecyclePaths);
-				String transactionId = format(MOVE_TRANSACTION_FORMAT, UUID.randomUUID());
-				logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
-				pasteResult = runInTransaction(transactionManager, transactionId,
-						() -> moveInternal(site, sourcePath, targetPath, lifecycleContents, sourcePathChildren));
+				try {
+					Collection<String> lifecyclePaths = getPathsForSystemProcessing(lifecycleContents);
+					// Set system processing for paths added by the lifecycle
+					trySetSystemProcessing(siteId, subtract(lifecyclePaths, processingPaths));
+					processingPaths.addAll(lifecyclePaths);
+					String transactionId = format(MOVE_TRANSACTION_FORMAT, UUID.randomUUID());
+					logger.debug("Persisting move operation to DB for site '{}' source path '{}' target path '{}' transaction ID '{}'", siteId, sourcePath, targetPath, transactionId);
+					pasteResult = runWriteInTransaction(transactionId,
+							() -> moveInternal(site, sourcePath, targetPath, lifecycleContents, sourcePathChildren));
+				} finally {
+					closeCollection(lifecycleContents);
+				}
 			} catch (Exception e) {
 				logger.error("Failed to persist move operation for site '{}' source path '{}' target path '{}'", siteId, sourcePath, targetPath, e);
-				throw new ServiceLayerException(format("Failed to persist move operation for site '%s' source path '%s' target path '%s'", siteId, sourcePath, targetPath), e);
+				throw e;
 			} finally {
 				itemService.setSystemProcessingBulk(siteId, processingPaths, false);
 			}
@@ -1800,41 +1822,37 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											  Collection<LifecycleContent> lifecycleContents, Set<String> sourcePathChildren)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException, DocumentException, IOException {
 		String siteId = site.getSiteId();
-		try {
-			if (underPagesRoot(sourcePath)) {
-				pageNavOrderService.move(siteId, sourcePath, targetPath);
-			}
-			updateNavOrderForMove(siteId, sourcePath, lifecycleContents, sourcePathChildren);
-			// Consolidate the items into a single map
-			Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
-			Collection<String> workflowAffectedPaths = getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems);
-			validateLifecycleResults(siteId, sourcePath, targetPath, workflowAffectedPaths);
-
-			Set<String> newFolders = getMissingFoldersForCopyOrMove(siteId, lifecycleItems.values());
-
-			// Items that are either amended or not in the moved paths
-			Map<String, ContentWriteItem> additionalItems = calculateAdditionalItemsForCopyOrMove(lifecycleItems);
-			// We need to calculate this before the commit
-			Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourcePathChildren, lifecycleItems.values(), RENAME);
-			validateEntitlements(operationsByPath);
-			// Commit the changeset
-			String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
-			List<WriteContentResultItem> moveResultItems = lifecycleItems.values().stream()
-					.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
-					.toList();
-			PasteContentResult pasteResult = new PasteContentResult(commitId, moveResultItems, targetPath);
-			if (isEmpty(commitId)) {
-				return pasteResult;
-			}
-
-			persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders, operationsByPath);
-
-			// Audit operation
-			insertContentAudit(siteId, sourcePath, targetPath, RENAME, pasteResult);
-			return pasteResult;
-		} finally {
-			closeCollection(lifecycleContents);
+		if (underPagesRoot(sourcePath)) {
+			pageNavOrderService.move(siteId, sourcePath, targetPath);
 		}
+		updateNavOrderForMove(siteId, sourcePath, lifecycleContents, sourcePathChildren);
+		// Consolidate the items into a single map
+		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
+		Collection<String> workflowAffectedPaths = getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems);
+		validateLifecycleResults(siteId, sourcePath, targetPath, workflowAffectedPaths);
+
+		Set<String> newFolders = getMissingFoldersForCopyOrMove(siteId, lifecycleItems.values());
+
+		// Items that are either amended or not in the moved paths
+		Map<String, ContentWriteItem> additionalItems = calculateAdditionalItemsForCopyOrMove(lifecycleItems);
+		// We need to calculate this before the commit
+		Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, sourcePathChildren, lifecycleItems.values(), RENAME);
+		validateEntitlements(operationsByPath);
+		// Commit the changeset
+		String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath, additionalItems.values(), newFolders);
+		List<WriteContentResultItem> moveResultItems = lifecycleItems.values().stream()
+				.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
+				.toList();
+		PasteContentResult pasteResult = new PasteContentResult(commitId, moveResultItems, targetPath);
+		if (isEmpty(commitId)) {
+			return pasteResult;
+		}
+
+		persistMoveToDB(site, sourcePath, targetPath, sourcePathChildren, additionalItems, newFolders, operationsByPath);
+
+		// Audit operation
+		insertContentAudit(siteId, sourcePath, targetPath, RENAME, pasteResult);
+		return pasteResult;
 	}
 
 	/**
@@ -1937,8 +1955,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			}
 		} catch (Exception e) {
 			closeCollection(lifecycleContents);
-			throw new ServiceLayerException(format("Failed to run lifecycle for move operation for site '%s' source path '%s' target path '%s'",
-					siteId, sourcePath, targetPath), e);
+			logger.error("Failed to run lifecycle for move operation for site '{}' source path '{}' target path '{}'",
+					siteId, sourcePath, targetPath, e);
+			throw e;
 		}
 		return lifecycleContents;
 	}

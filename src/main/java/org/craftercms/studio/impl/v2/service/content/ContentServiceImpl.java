@@ -222,7 +222,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
 	public WriteContentResult moveAndUpdate(@SiteId String siteId, @ActionSourcePath String sourcePath,
 											@ActionTargetPath String targetPath, String content)
-			throws AuthenticationException, ServiceLayerException {
+			throws AuthenticationException, ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.moveAndUpdate(siteId, sourcePath, targetPath, content);
 	}
 
@@ -259,7 +259,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
 	public PasteContentResult copy(@SiteId String siteId, @ActionSourcePath String sourcePath,
 								   @ActionTargetPath @ContentPath String targetPath, Set<String> copyPaths)
-			throws ServiceLayerException, AuthenticationException {
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		return contentServiceInternal.copy(siteId, sourcePath, targetPath, copyPaths);
 	}
 
@@ -267,14 +267,14 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@ValidateAction(type = COPY)
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public PasteContentResult duplicate(@SiteId String siteId, @ContentPath String sourcePath) throws ServiceLayerException, AuthenticationException {
+	public PasteContentResult duplicate(@SiteId String siteId, @ContentPath String sourcePath) throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		return contentServiceInternal.duplicate(siteId, sourcePath);
 	}
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
 	@ValidateAction(type = Type.EDIT)
-	public void revert(@SiteId String siteId, @ActionTargetPath @ContentPath String path, String commitId) throws ServiceLayerException {
+	public void revert(@SiteId String siteId, @ActionTargetPath @ContentPath String path, String commitId) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		contentServiceInternal.revert(siteId, path, commitId);
 	}
 
@@ -283,7 +283,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_FOLDER_CREATE)
 	@ValidateAction(type = Type.CREATE)
 	public WriteContentResult createFolder(@SiteId String siteId, @ActionTargetPath @ContentPath String path)
-			throws UserNotFoundException, ServiceLayerException {
+			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		return contentServiceInternal.createFolder(siteId, path);
 	}
 

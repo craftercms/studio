@@ -187,7 +187,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 	}
 
 	@RequireContentExists
-	public String duplicateItem(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException, AuthenticationException {
+	public String duplicateItem(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		PasteContentResult pasteContentResult = contentServiceV2.duplicate(siteId, path);
 		String pastedTargetPath = pasteContentResult.getTargetPath();
 		if (isPageDescriptor(path)) {

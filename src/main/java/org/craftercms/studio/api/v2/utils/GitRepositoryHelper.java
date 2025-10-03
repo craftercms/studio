@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.exception.git.MergeInProgressException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.git.cli.CommitterIdentityUnknownException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
@@ -59,7 +60,6 @@ import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -78,6 +78,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.NonNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -148,6 +149,49 @@ public class GitRepositoryHelper implements DisposableBean {
 
 	public Repository getRepository(String siteId, GitRepositories gitRepository) {
 		return getRepository(siteId, gitRepository, null);
+	}
+
+	/**
+	 * Get the repository for write operations, ensuring it is not in a merge state
+	 *
+	 * @param siteId the site id
+	 * @return the repository
+	 * @throws ServiceLayerException if the repository is in a merge state or if there is an error accessing it
+	 */
+	@NonNull
+	public Repository getRepositoryForWrite(String siteId) throws ServiceLayerException {
+		Repository repo = getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
+		if (repo == null) {
+			logger.error("Missing repository for write for site '{}'", siteId);
+			throw new ServiceLayerException(format("Missing repository for write for site '%s'", siteId));
+		}
+		ensureNoMergeState(siteId, repo);
+		return repo;
+	}
+
+	/**
+	 * Ensures that the repo is not in merge state (i.e.: MERGE_HEAD exists)
+	 *
+	 * @param siteId the site id
+	 * @param repo   the git repo
+	 * @throws ServiceLayerException if the repo is not clean or if there is an error while checking the status
+	 */
+	protected void ensureNoMergeState(String siteId, Repository repo) throws ServiceLayerException {
+		try (Git git = new Git(repo)) {
+			StatusCommand statusCommand = git.status();
+			Status status = retryingRepositoryOperationFacade.call(statusCommand);
+			if (!status.isClean()) {
+				if (!status.getConflicting().isEmpty()) {
+					throw new MergeInProgressException(format("Repository has merge conflicts for write-content in site '%s'. Refuse to write-content", siteId));
+				}
+				if (CollectionUtils.isNotEmpty(repo.readMergeHeads())) {
+					throw new MergeInProgressException(format("Repository for site '%s' is currently in a merge state. Refuse to write-content", siteId));
+				}
+			}
+			logger.debug("Repository is clean for write-content in site '{}'", siteId);
+		} catch (GitAPIException | IOException e) {
+			throw new ServiceLayerException(format("Failed to check status of the repository for site '%s'", siteId), e);
+		}
 	}
 
 	public Repository getRepository(String siteId, GitRepositories repoType, String sandboxBranch) {
@@ -1212,7 +1256,8 @@ public class GitRepositoryHelper implements DisposableBean {
 	 *
 	 * @throws ServiceLayerException general service exception
 	 */
-	public String commitFiles(Repository repo, String site, String comment, PersonIdent user, String... paths) throws ServiceLayerException {
+	public String commitFiles(Repository repo, String site, String comment, PersonIdent user, String... paths)
+			throws ServiceLayerException {
 		if (!ArrayUtils.isNotEmpty(paths)) {
 			return null;
 		}
@@ -1239,18 +1284,19 @@ public class GitRepositoryHelper implements DisposableBean {
 			}
 		} catch (Exception e) {
 			Throwable cause = ExceptionUtils.getRootCause(e);
-			if (cause instanceof NoChangesToCommitException ||
-				(cause instanceof JGitInternalException && "no changes".equalsIgnoreCase(cause.getMessage()))) {
+			if (cause instanceof NoChangesToCommitException) {
 				// we should ignore empty commit errors
 				logger.debug("No changes were committed to git in site '{}' paths '{}'", site,
 					ArrayUtils.toString(paths));
 			} else {
 				restorePaths(repo, site, paths);
 				logger.error("Failed to commit files to git in site '{}' paths '{}'", site,
-					ArrayUtils.toString(paths), e);
+					ArrayUtils.toString(paths), cause);
 				if (cause instanceof CommitterIdentityUnknownException) {
 					throw new ServiceLayerException(GIT_COMMITTER_IDENTITY_UNKNOWN_MESSAGE, e.getCause());
 				}
+				throw new ServiceLayerException(format("Failed to commit files to git in site '%s' paths '%s'",
+					site, ArrayUtils.toString(paths)), e);
 			}
 		} finally {
 			generalLockService.unlock(gitLockKey);

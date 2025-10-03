@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
+import org.craftercms.studio.api.v2.exception.git.MergeInProgressException;
 import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
@@ -650,6 +651,13 @@ public class ExceptionHandlers {
 	@ResponseStatus(INTERNAL_SERVER_ERROR)
 	public Result handleException(HttpServletRequest request, InvalidRemoteException e) {
 		ApiResponse response = new ApiResponse(ApiResponse.ADD_REMOTE_INVALID);
+		return handleExceptionInternal(request, e, response);
+	}
+
+	@ExceptionHandler
+	@ResponseStatus(HttpStatus.CONFLICT)
+	public Result handleException(HttpServletRequest request, MergeInProgressException e) {
+		ApiResponse response = new ApiResponse(ApiResponse.REPOSITORY_IN_MERGE_STATE);
 		return handleExceptionInternal(request, e, response);
 	}
 
