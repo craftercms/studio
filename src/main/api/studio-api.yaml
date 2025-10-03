@@ -2438,8 +2438,7 @@ paths:
                 commit_ids: [
                   "c89ee1cb2be4b41b0966d20c12d53b68ca70d74a",
                   "0664df1ad04a9627dccb55a51ebf3704e313e40b",
-                  "93ae0e5e8d084fa9b7723cf3cf7ce526f47af0a9"
-                ]
+                  "93ae0e5e8d084fa9b7723cf3cf7ce526f47af0a9"]
                 comment: "My submission comment"
               required:
                 - site_id
@@ -11278,7 +11277,7 @@ components:
           description: The type, e.g. page, component, etc
         contentAsFolder:
           type: boolean
-          description: "Indicates whether to create content in a folder wrapper e.g. pageUrl: 101 means 101\/index.xml instead of 101.xml"
+          description: Indicates whether to create content in a folder wrapper e.g. pageUrl 101 means 101/index.xml instead of 101.xml
         useRoundedFolder:
           type: boolean
           description: Indicates whether use rounded folder to arrange content
