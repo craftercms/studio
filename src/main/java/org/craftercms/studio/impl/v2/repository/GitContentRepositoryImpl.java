@@ -1699,66 +1699,33 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	@Override
 	public String moveContent(String siteId, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems,
 							  Set<String> newFolders) throws ServiceLayerException, UserNotFoundException {
-		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
-		generalLockService.lock(gitLockKey);
-		try {
-			Repository repo = helper.getRepositoryForWrite(siteId);
-			String gitFromPath = helper.getGitPath(fromPath);
-			String gitToPath = helper.getGitPath(toPath);
-			moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
-
-			// The operation is done on disk, now it's time to commit
-			helper.addFiles(repo, siteId, gitFromPath, gitToPath);
-			List<String> changeSet = new ArrayList<>(additionalItems.size() + newFolders.size() + 2);
-			changeSet.add(gitFromPath);
-			changeSet.add(gitToPath);
-
-			for (ContentWriteItem writeItem : additionalItems) {
-				try (InputStream content = writeItem.content()) {
-					helper.writeFile(repo, siteId, writeItem.repoPath(), content);
-					changeSet.add(writeItem.repoPath());
-				}
-			}
-			changeSet.addAll(addNewFolders(siteId, repo, newFolders));
-
-			PersonIdent user = helper.getCurrentUserIdent();
-			String commitMsg = helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
-				.replaceAll(PATTERN_FROM_PATH, fromPath)
-				.replaceAll(PATTERN_TO_PATH, toPath);
-			String commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
-			if (commitId != null) {
-				persistCommit(siteId, commitId);
-			}
-			return commitId;
-		} catch (ServiceLayerException e) {
-			logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
-			throw e;
-		} catch (UserNotFoundException e) {
-			logger.error("Failed to move item in site '{}' from path '{}' to path '{}': user not found", siteId, fromPath, toPath, e);
-			throw e;
-		} catch (Exception e) {
-			logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
-			throw new ServiceLayerException(format("Failed to move item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath), e);
-		} finally {
-			generalLockService.unlock(gitLockKey);
-		}
+		return copyOrMoveContent(siteId, fromPath, toPath, additionalItems, newFolders, true);
 	}
 
-	@Override
-	public String copy(String siteId, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+	protected String copyOrMoveContent(String siteId, String fromPath, String toPath,
+									   Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders,
+									   boolean isMove)
 			throws ServiceLayerException, UserNotFoundException {
-		// TODO: try to unify this method with moveContent, as they are very similar
+		String operation = isMove ? "move" : "copy";
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
 			Repository repo = helper.getRepositoryForWrite(siteId);
 			String gitFromPath = helper.getGitPath(fromPath);
 			String gitToPath = helper.getGitPath(toPath);
-			copyFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
+			if (isMove) {
+				moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
+			} else {
+				copyFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
+			}
 
 			helper.addFiles(repo, siteId, gitFromPath, gitToPath);
 			List<String> changeSet = new ArrayList<>(additionalItems.size() + newFolders.size() + 1);
 			changeSet.add(gitToPath);
+			if (isMove) {
+				// If it's a move, we need to add the 'from' path, so it gets removed
+				changeSet.add(gitFromPath);
+			}
 
 			for (ContentWriteItem writeItem : additionalItems) {
 				try (InputStream content = writeItem.content()) {
@@ -1768,7 +1735,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			}
 			changeSet.addAll(addNewFolders(siteId, repo, newFolders));
 			PersonIdent user = helper.getCurrentUserIdent();
-			String commitMsg = helper.getCommitMessage(REPO_COPY_CONTENT_COMMIT_MESSAGE)
+			String commitMsg = helper.getCommitMessage(isMove ? REPO_MOVE_CONTENT_COMMIT_MESSAGE : REPO_COPY_CONTENT_COMMIT_MESSAGE)
 					.replaceAll(PATTERN_FROM_PATH, fromPath)
 					.replaceAll(PATTERN_TO_PATH, toPath);
 			String commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
@@ -1777,17 +1744,23 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			}
 			return commitId;
 		} catch (ServiceLayerException e) {
-			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
+			logger.error("Failed to {} item in site '{}' from path '{}' to path '{}'", operation, siteId, fromPath, toPath, e);
 			throw e;
 		} catch (UserNotFoundException e) {
-			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}': user not found", siteId, fromPath, toPath, e);
+			logger.error("Failed to {} item in site '{}' from path '{}' to path '{}': user not found", operation, siteId, fromPath, toPath, e);
 			throw e;
 		} catch (Exception e) {
-			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
-			throw new ServiceLayerException(format("Failed to copy item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath), e);
+			logger.error("Failed to {} item in site '{}' from path '{}' to path '{}'", operation, siteId, fromPath, toPath, e);
+			throw new ServiceLayerException(format("Failed to %s item in site '%s' from path '%s' to path '%s'", operation, siteId, fromPath, toPath), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
+	}
+
+	@Override
+	public String copy(String siteId, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+			throws ServiceLayerException, UserNotFoundException {
+		return copyOrMoveContent(siteId, fromPath, toPath, additionalItems, newFolders, false);
 	}
 
 	/**
