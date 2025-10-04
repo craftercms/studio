@@ -92,7 +92,7 @@ import static org.apache.commons.collections4.CollectionUtils.subtract;
 import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.prependIfMissing;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
@@ -513,7 +513,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId);
 		generalLockService.lock(gitLockKey);
 		try {
-			toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
+			toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteBranch,
 				singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
 				createAsOrphan, creator);
 
@@ -1017,10 +1017,10 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			treeWalk.setRecursive(false);
 			while (treeWalk.next()) {
 				if (treeWalk.isSubtree()) {
-					directoryProcessor.acceptWithException(prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
+					directoryProcessor.acceptWithException(CS.prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
 					treeWalk.enterSubtree();
 				} else {
-					fileProcessor.acceptWithException(prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
+					fileProcessor.acceptWithException(CS.prependIfMissing(treeWalk.getPathString(), FILE_SEPARATOR));
 				}
 			}
 		}
@@ -1040,7 +1040,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					boolean found = false;
 					while (!found && iterator.hasNext()) {
 						RevCommit revCommit = iterator.next();
-						if (StringUtils.equals(commitId, revCommit.getName())) {
+						if (CS.equals(commitId, revCommit.getName())) {
 							found = true;
 							if (iterator.hasNext()) {
 								revCommit = iterator.next();
@@ -1349,7 +1349,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			for (RevCommit revCommit : revWalk) {
 				ItemVersion version = new ItemVersion();
 				version.setRevertible(revertible);
-				version.setPath(prependIfMissing(currentPath, FILE_SEPARATOR));
+				version.setPath(CS.prependIfMissing(currentPath, FILE_SEPARATOR));
 				version.setVersionNumber(revCommit.getName());
 				version.setCommitter(revCommit.getAuthorIdent().getName());
 				version.setModifiedDate(
@@ -1357,8 +1357,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				version.setComment(revCommit.getFullMessage());
 				try {
 					DiffEntry diffEntry = helper.getDiffEntry(repo, revCommit, currentPath);
-					if (!StringUtils.equals(currentPath, diffEntry.getOldPath())) {
-						if (StringUtils.equals(diffEntry.getOldPath(), DiffEntry.DEV_NULL)) {
+					if (!CS.equals(currentPath, diffEntry.getOldPath())) {
+						if (CS.equals(diffEntry.getOldPath(), DiffEntry.DEV_NULL)) {
 							currentPath = null;
 						} else {
 							currentPath = diffEntry.getOldPath();
@@ -1369,7 +1369,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					logger.error("Failed to get diff entry for path '{}' in commit '{}'", currentPath, revCommit.getName(), e);
 				}
 				// Set this after the diff entry is retrieved, so that the old path is set correctly
-				version.setOldPath(prependIfMissing(currentPath, FILE_SEPARATOR));
+				version.setOldPath(CS.prependIfMissing(currentPath, FILE_SEPARATOR));
 				versionHistory.add(version);
 				if (currentPath == null) {
 					// We have reached the latest creation of a file in this path
@@ -1464,7 +1464,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			FileUtils.copyDirectory(sourcePublishedPath.toFile(), destPublishedPath.toFile());
 			// Cache the repo
 			Repository publishedRepo = helper.getRepository(siteId, PUBLISHED);
-			if (StringUtils.equals(sourceSandboxBranch, sandboxBranch)) {
+			if (CS.equals(sourceSandboxBranch, sandboxBranch)) {
 				return;
 			}
 			try {
@@ -1532,7 +1532,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					}
 					loader = repo.open(tw.getObjectId(0));
 					boolean isFolder = loader.getType() == OBJ_TREE;
-					String itemPath = FILE_SEPARATOR + StringUtils.removeEnd(tw.getPathString(), FILE_SEPARATOR + name);
+					String itemPath = FILE_SEPARATOR + CS.removeEnd(tw.getPathString(), FILE_SEPARATOR + name);
 					retItems.add(new RepositoryItem(itemPath, name, isFolder));
 				}
 			}
@@ -1545,15 +1545,12 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public String createFolder(String siteId, String folderPath) throws ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
 			Repository repo = helper.getRepositoryForWrite(siteId);
-			if (repo == null) {
-				logger.error("Missing repository during create folder for site '{}' folder path '{}'", siteId, folderPath);
-				throw new ServiceLayerException(format("Missing repository during create folder for site '%s' folder path '%s'", siteId, folderPath));
-			}
 			File newFolderFile = new File(repo.getDirectory().getParent(), folderPath);
 			newFolderFile.mkdirs();
 
@@ -1573,6 +1570,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public String createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException {
 		// SJ: Git doesn't care about empty folders, so we will create the folders and put a 0 byte file in them
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
@@ -1620,7 +1618,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	 *
 	 * @param siteId     the site id
 	 * @param repo       the git repo
-	 * @param newFolders the list of new folder psths
+	 * @param newFolders the list of new folder paths
 	 * @return the list of paths to the empty files
 	 */
 	protected List<String> addNewFolders(String siteId, Repository repo, Set<String> newFolders) throws ServiceLayerException {
@@ -1699,66 +1697,33 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	@Override
 	public String moveContent(String siteId, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems,
 							  Set<String> newFolders) throws ServiceLayerException, UserNotFoundException {
-		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
-		generalLockService.lock(gitLockKey);
-		try {
-			Repository repo = helper.getRepositoryForWrite(siteId);
-			String gitFromPath = helper.getGitPath(fromPath);
-			String gitToPath = helper.getGitPath(toPath);
-			moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
-
-			// The operation is done on disk, now it's time to commit
-			helper.addFiles(repo, siteId, gitFromPath, gitToPath);
-			List<String> changeSet = new ArrayList<>(additionalItems.size() + newFolders.size() + 2);
-			changeSet.add(gitFromPath);
-			changeSet.add(gitToPath);
-
-			for (ContentWriteItem writeItem : additionalItems) {
-				try (InputStream content = writeItem.content()) {
-					helper.writeFile(repo, siteId, writeItem.repoPath(), content);
-					changeSet.add(writeItem.repoPath());
-				}
-			}
-			changeSet.addAll(addNewFolders(siteId, repo, newFolders));
-
-			PersonIdent user = helper.getCurrentUserIdent();
-			String commitMsg = helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
-				.replaceAll(PATTERN_FROM_PATH, fromPath)
-				.replaceAll(PATTERN_TO_PATH, toPath);
-			String commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
-			if (commitId != null) {
-				persistCommit(siteId, commitId);
-			}
-			return commitId;
-		} catch (ServiceLayerException e) {
-			logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
-			throw e;
-		} catch (UserNotFoundException e) {
-			logger.error("Failed to move item in site '{}' from path '{}' to path '{}': user not found", siteId, fromPath, toPath, e);
-			throw e;
-		} catch (Exception e) {
-			logger.error("Failed to move item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
-			throw new ServiceLayerException(format("Failed to move item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath), e);
-		} finally {
-			generalLockService.unlock(gitLockKey);
-		}
+		return copyOrMoveContent(siteId, fromPath, toPath, additionalItems, newFolders, true);
 	}
 
-	@Override
-	public String copy(String siteId, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+	protected String copyOrMoveContent(String siteId, String fromPath, String toPath,
+									   Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders,
+									   boolean isMove)
 			throws ServiceLayerException, UserNotFoundException {
-		// TODO: try to unify this method with moveContent, as they are very similar
+		String operation = isMove ? "move" : "copy";
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
 			Repository repo = helper.getRepositoryForWrite(siteId);
 			String gitFromPath = helper.getGitPath(fromPath);
 			String gitToPath = helper.getGitPath(toPath);
-			copyFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
+			if (isMove) {
+				moveFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
+			} else {
+				copyFiles(repo.getDirectory().getParent(), gitFromPath, gitToPath);
+			}
 
 			helper.addFiles(repo, siteId, gitFromPath, gitToPath);
 			List<String> changeSet = new ArrayList<>(additionalItems.size() + newFolders.size() + 1);
 			changeSet.add(gitToPath);
+			if (isMove) {
+				// If it's a move, we need to add the 'from' path, so it gets removed
+				changeSet.add(gitFromPath);
+			}
 
 			for (ContentWriteItem writeItem : additionalItems) {
 				try (InputStream content = writeItem.content()) {
@@ -1768,7 +1733,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			}
 			changeSet.addAll(addNewFolders(siteId, repo, newFolders));
 			PersonIdent user = helper.getCurrentUserIdent();
-			String commitMsg = helper.getCommitMessage(REPO_COPY_CONTENT_COMMIT_MESSAGE)
+			String commitMsg = helper.getCommitMessage(isMove ? REPO_MOVE_CONTENT_COMMIT_MESSAGE : REPO_COPY_CONTENT_COMMIT_MESSAGE)
 					.replaceAll(PATTERN_FROM_PATH, fromPath)
 					.replaceAll(PATTERN_TO_PATH, toPath);
 			String commitId = helper.commitFiles(repo, siteId, commitMsg, user, changeSet.toArray(new String[0]));
@@ -1777,17 +1742,23 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			}
 			return commitId;
 		} catch (ServiceLayerException e) {
-			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
+			logger.error("Failed to {} item in site '{}' from path '{}' to path '{}'", operation, siteId, fromPath, toPath, e);
 			throw e;
 		} catch (UserNotFoundException e) {
-			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}': user not found", siteId, fromPath, toPath, e);
+			logger.error("Failed to {} item in site '{}' from path '{}' to path '{}': user not found", operation, siteId, fromPath, toPath, e);
 			throw e;
 		} catch (Exception e) {
-			logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'", siteId, fromPath, toPath, e);
-			throw new ServiceLayerException(format("Failed to copy item in site '%s' from path '%s' to path '%s'", siteId, fromPath, toPath), e);
+			logger.error("Failed to {} item in site '{}' from path '{}' to path '{}'", operation, siteId, fromPath, toPath, e);
+			throw new ServiceLayerException(format("Failed to %s item in site '%s' from path '%s' to path '%s'", operation, siteId, fromPath, toPath), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
+	}
+
+	@Override
+	public String copy(String siteId, String fromPath, String toPath, Collection<? extends ContentWriteItem> additionalItems, Set<String> newFolders)
+			throws ServiceLayerException, UserNotFoundException {
+		return copyOrMoveContent(siteId, fromPath, toPath, additionalItems, newFolders, false);
 	}
 
 	/**

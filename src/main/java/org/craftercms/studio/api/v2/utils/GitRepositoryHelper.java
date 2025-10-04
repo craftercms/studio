@@ -99,6 +99,7 @@ import java.util.concurrent.Callable;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -465,8 +466,7 @@ public class GitRepositoryHelper implements DisposableBean {
 		try (RevWalk revWalk = new RevWalk(repository)) {
 			RevCommit commit = revWalk.parseCommit(commitId);
 			// and using commit's tree find the path
-			RevTree tree = commit.getTree();
-			return tree;
+			return commit.getTree();
 		}
 	}
 
@@ -713,13 +713,13 @@ public class GitRepositoryHelper implements DisposableBean {
 			sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
 		}
 		try (Git git = new Git(sandboxRepo)) {
-			if (!StringUtils.equals(sandboxRepo.getBranch(), sandboxBranchName)) {
+			if (!CS.equals(sandboxRepo.getBranch(), sandboxBranchName)) {
 				ListBranchCommand listBranchCommand = git.branchList();
 				List<Ref> branchList = retryingRepositoryOperationFacade.call(listBranchCommand);
 				boolean createBranch = true;
 				for (Ref branch : branchList) {
-					if (StringUtils.equals(branch.getName(), sandboxBranchName) ||
-						StringUtils.equals(branch.getName(), Constants.R_HEADS + sandboxBranchName)) {
+					if (CS.equals(branch.getName(), sandboxBranchName) ||
+						CS.equals(branch.getName(), Constants.R_HEADS + sandboxBranchName)) {
 						createBranch = false;
 						break;
 					}
@@ -785,13 +785,14 @@ public class GitRepositoryHelper implements DisposableBean {
 		return toReturn;
 	}
 
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	protected boolean replaceSiteNameVariable(String site, Path path) {
 		boolean toReturn;
 		Charset charset = StandardCharsets.UTF_8;
 		try {
 			String content = Files.readString(path, charset);
 			content = content.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
-			Files.write(path, content.getBytes(charset));
+			Files.writeString(path, content, charset);
 			toReturn = true;
 		} catch (IOException e) {
 			logger.error("Failed to replace the _sitename_ variable inside the configuration file '{}' in site '{}'",
@@ -900,7 +901,8 @@ public class GitRepositoryHelper implements DisposableBean {
 		return toReturn;
 	}
 
-	public boolean createSiteCloneRemoteGitRepo(String siteId, String sandboxBranch, String remoteName,
+	@SuppressWarnings("ResultOfMethodCallIgnored")
+	public boolean createSiteCloneRemoteGitRepo(String siteId, String remoteName,
 						    String remoteUrl, String remoteBranch, boolean singleBranch,
 						    String authenticationType, String remoteUsername, String remotePassword,
 						    String remoteToken, String remotePrivateKey, boolean createAsOrphan,
@@ -968,7 +970,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	}
 
 	/**
-	 * Checks if the clone was executed ok (mostly check for null references and
+	 * Checks if the clone was executed ok: mostly check for null references and
 	 * if the clone folder was created as a folder and current user has RW permissions.
 	 * <b> Never returns null</b>
 	 *
@@ -1030,13 +1032,11 @@ public class GitRepositoryHelper implements DisposableBean {
 			ResetCommand resetCommand = git.reset();
 			retryingRepositoryOperationFacade.call(resetCommand);
 
+			User user = userService.getUserByIdOrUsername(-1, creator);
 			// Commit empty repo, because we need to have HEAD to delete old and rename new branch
 			CommitCommand commitCommand = git.commit()
-				.setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
-			User user = userService.getUserByIdOrUsername(-1, creator);
-			if (Objects.nonNull(user)) {
-				commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
-			}
+					.setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE))
+					.setAuthor(getAuthorIdent(user));
 			retryingRepositoryOperationFacade.call(commitCommand);
 
 			logger.debug("Delete cloned branch '{}' for site '{}' and clean up.", sandboxBranchName, site);
@@ -1168,6 +1168,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @throws ServiceLayerException if there is an error while trying to write the file
 	 * @throws IOException           if there is an error while trying to write the file
 	 */
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public void writeFile(Repository repo, String site, String path, InputStream content)
 			throws ServiceLayerException, IOException {
 		logger.debug("Write a file at site '{}' path '{}'", site, path);
@@ -1258,7 +1259,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 */
 	public String commitFiles(Repository repo, String site, String comment, PersonIdent user, String... paths)
 			throws ServiceLayerException {
-		if (!ArrayUtils.isNotEmpty(paths)) {
+		if (ArrayUtils.isEmpty(paths)) {
 			return null;
 		}
 		if (logger.isDebugEnabled()) {
@@ -1276,11 +1277,12 @@ public class GitRepositoryHelper implements DisposableBean {
 					author, comment, getGitPaths(paths)));
 			// Check if commit id matches jgit
 			ObjectId jgitHead = repo.resolve(HEAD);
-			if (StringUtils.equals(jgitHead.getName(), commitId)) {
-				logger.debug("JGit HEAD '{}' matches CGit's '{}', will not rebuild JGit repository", jgitHead.getName(), commitId);
+			String jgitHeadCommitId = jgitHead != null ? jgitHead.getName() : null;
+			if (CS.equals(jgitHeadCommitId, commitId)) {
+				logger.debug("JGit HEAD '{}' matches CGit's '{}', will not rebuild JGit repository", jgitHeadCommitId, commitId);
 			} else {
-				logger.warn("JGit HEAD '{}' does not match CGit's '{}', will rebuild JGit repository", jgitHead.getName(), commitId);
-				reloadSiteRepository(site, SANDBOX);
+				logger.warn("JGit HEAD '{}' does not match CGit's '{}', will rebuild JGit repository", jgitHeadCommitId, commitId);
+				reloadSiteSandboxRepository(site);
 			}
 		} catch (Exception e) {
 			Throwable cause = ExceptionUtils.getRootCause(e);
@@ -1356,18 +1358,15 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * Refresh the repository cache for the given site and repository type. <br/>
 	 * <strong>Note:</strong> consumers of this method should use generalLockService to prevent concurrent access to the repository
 	 *
-	 * @param site     the site id, or empty for global
-	 * @param repoType the repository type. When site is empty, repoType GLOBAL will be assumed
+	 * @param site the site id, or empty for global
 	 */
-	private void reloadSiteRepository(final String site, final GitRepositories repoType) {
+	private void reloadSiteSandboxRepository(final String site) {
 		String cacheKey;
-		GitRepositories actualRepoType = repoType;
+		GitRepositories repoType = SANDBOX;
 		if (isEmpty(site)) {
-			cacheKey = getRepoCacheKey(EMPTY, GLOBAL);
-			actualRepoType = GLOBAL;
-		} else {
-			cacheKey = getRepoCacheKey(site, repoType);
+			repoType = GLOBAL;
 		}
+		cacheKey = getRepoCacheKey(site, repoType);
 
 		logger.debug("Remove repository '{}' from cache", cacheKey);
 		Repository repo = repositoryCache.getIfPresent(cacheKey);
@@ -1375,8 +1374,8 @@ public class GitRepositoryHelper implements DisposableBean {
 			repositoryCache.invalidate(cacheKey);
 			repo.close();
 		}
-		logger.debug("Reload repository '{}' and add it to cache", cacheKey);
-		repositoryCache.put(cacheKey, getRepository(site, actualRepoType));
+		logger.debug("Reload repository '{}' so it gets added", cacheKey);
+		getRepository(site, repoType);
 	}
 
 	/**
