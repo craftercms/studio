@@ -35,12 +35,14 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
+import org.craftercms.studio.api.v2.exception.git.NoMergeStateException;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.repository.ConflictResolution;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -94,6 +96,8 @@ import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockK
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.LOCK_FILE;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
+import static org.eclipse.jgit.lib.IndexDiff.StageState.DELETED_BY_THEM;
+import static org.eclipse.jgit.lib.IndexDiff.StageState.DELETED_BY_US;
 
 public class RepositoryManagementServiceInternalImpl implements RepositoryManagementService, ApplicationContextAware {
 
@@ -787,47 +791,34 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	}
 
 	@Override
-	public RepositoryStatus resolveConflict(String siteId, String path, String resolution)
-		throws ServiceLayerException {
+	public RepositoryStatus resolveConflict(String siteId, String path, ConflictResolution resolution)
+			throws ServiceLayerException {
 		Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
 		String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
 		generalLockService.lock(gitLockKey);
-		ResetCommand resetCommand;
-		CheckoutCommand checkoutCommand;
 		try (Git git = new Git(repo)) {
-			switch (resolution.toLowerCase()) {
-				case "ours":
-					logger.debug("Resolve conflicts using _OURS_ strategy for site '{}' path '{}'", siteId, path);
-					logger.trace("Reset merge conflict in git index in site '{}' strategy 'ours'", siteId);
-					resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
-					retryingRepositoryOperationFacade.call(resetCommand);
-					logger.trace("Checkout the content from local merge HEAD in site '{}'", siteId);
-					checkoutCommand =
-						git.checkout().addPath(gitRepositoryHelper.getGitPath(path)).setStartPoint(Constants.HEAD);
-					retryingRepositoryOperationFacade.call(checkoutCommand);
-					break;
-				case "theirs":
-					logger.debug("Resolve conflicts using _THEIRS_ strategy for site '{}' path '{}'", siteId, path);
-					logger.trace("Reset merge conflict in git index in site '{}' strategy 'theirs'", siteId);
-					resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
-					retryingRepositoryOperationFacade.call(resetCommand);
-					logger.trace("Checkout the content from remote merge HEAD in site '{}'", siteId);
-					List<ObjectId> mergeHeads = repo.readMergeHeads();
-					ObjectId mergeCommitId = mergeHeads.getFirst();
-					checkoutCommand = git.checkout().addPath(gitRepositoryHelper.getGitPath(path))
-						.setStartPoint(mergeCommitId.getName());
-					retryingRepositoryOperationFacade.call(checkoutCommand);
-					break;
-				default:
-					logger.error("Unsupported resolution strategy for repository conflicts " +
-						"in site '{}", siteId);
-					throw new ServiceLayerException(format("Unsupported resolution strategy for repository conflicts " +
-						"in site '%s'", siteId));
+			if (repo.resolve(Constants.MERGE_HEAD) == null) {
+				throw new NoMergeStateException(format("Repository for site '%s' is not in a merge state. No conflict to resolve", siteId));
 			}
+			String mergeCommitId = Constants.HEAD;
+			if (resolution == ConflictResolution.theirs) {
+				List<ObjectId> mergeHeads = repo.readMergeHeads();
+				mergeCommitId = mergeHeads.getFirst().getName();
+			}
+			logger.debug("Resolve conflicts using _{}_ strategy for site '{}' path '{}'", resolution.name(), siteId, path);
+			logger.trace("Reset merge conflict in git index in site '{}' strategy '{}'", siteId, resolution.name());
 
+			String gitPath = gitRepositoryHelper.getGitPath(path);
+			if (resolutionIsDelete(git, resolution, gitPath)) {
+				retryingRepositoryOperationFacade.call(git.rm().addFilepattern(gitPath));
+			} else {
+				retryingRepositoryOperationFacade.call(git.reset().addPath(gitPath));
+				logger.trace("Checkout the content from merge HEAD '{}' in site '{}'", resolution, siteId);
+				retryingRepositoryOperationFacade.call(git.checkout().addPath(gitPath).setStartPoint(mergeCommitId));
+			}
 			if (repo.getRepositoryState() == RepositoryState.MERGING_RESOLVED) {
 				logger.debug("Check for any uncommitted changes and make sure the repo is clean in site '{}'.",
-					siteId);
+						siteId);
 				StatusCommand statusCommand = git.status();
 				Status status = retryingRepositoryOperationFacade.call(statusCommand);
 				if (!status.hasUncommittedChanges()) {
@@ -836,52 +827,87 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 					User user = userService.getUserByIdOrUsername(-1, userName);
 					PersonIdent personIdent = gitRepositoryHelper.getAuthorIdent(user);
 					CommitCommand commitCommand = git.commit()
-						.setAllowEmpty(true)
-						.setMessage("Merge resolved. Repo is clean (no changes)")
-						.setAuthor(personIdent);
+							.setAllowEmpty(true)
+							.setMessage("Merge resolved. Repo is clean (no changes)")
+							.setAuthor(personIdent);
 					retryingRepositoryOperationFacade.call(commitCommand);
 				}
 			}
-		} catch (GitAPIException | IOException | UserNotFoundException | ServiceLayerException e) {
+		} catch (GitAPIException | IOException | UserNotFoundException e) {
 			logger.error("Failed to resolve conflicts in site '{}' using the resolution strategy '{}'",
-				siteId, resolution, e);
+					siteId, resolution, e);
 			throw new ServiceLayerException(format("Failed to resolve conflicts in site '%s' using the resolution " +
-				"strategy '%s'", siteId, resolution), e);
+					"strategy '%s'", siteId, resolution), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
 		return getRepositoryStatus(siteId);
 	}
 
+	/**
+	 * Check if solving a conflict with the resolution strategy would result in a delete operation.
+	 * A delete would happen if the resolution strategy is "theirs" and the file was deleted in the remote branch,
+	 * or if the resolution strategy is "ours" and the file was deleted in the local branch.
+	 *
+	 * @param git        the git instance
+	 * @param resolution the resolution strategy
+	 * @param gitPath    the git path of the conflicted file
+	 * @return true if the resolution would result in a delete operation, false otherwise
+	 * @throws GitAPIException if an error occurs while checking the git status
+	 */
+	protected boolean resolutionIsDelete(Git git, ConflictResolution resolution, String gitPath) throws GitAPIException {
+		Status status = git.status().call();
+		IndexDiff.StageState stageState = status.getConflictingStageState().get(gitPath);
+
+		if (resolution == ConflictResolution.theirs && stageState == IndexDiff.StageState.DELETED_BY_THEM) {
+			return true;
+		}
+		return resolution == ConflictResolution.ours && stageState == DELETED_BY_US;
+	}
+
 	@Override
 	public DiffConflictedFile getDiffForConflictedFile(String siteId, String path)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		DiffConflictedFile diffResult = new DiffConflictedFile();
 		Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
 		try (Git git = new Git(repo)) {
 			List<ObjectId> mergeHeads = repo.readMergeHeads();
-			if (mergeHeads == null) {
+			if (isEmpty(mergeHeads)) {
 				// No merge head
-				return diffResult;
+				throw new NoMergeStateException(format("Repository for site '%s' is not in a merge state. No conflict to diff", siteId));
 			}
-			ObjectId mergeCommitId = mergeHeads.getFirst();
+			String gitPath = gitRepositoryHelper.getGitPath(path);
+
+			Status status = git.status().call();
+			Map<String, IndexDiff.StageState> conflictingStageState = status.getConflictingStageState();
+			IndexDiff.StageState conflictState = conflictingStageState.get(gitPath);
+
 			logger.debug("Get the local content of the conflicting file from site '{}' path '{}'", siteId, path);
-			try (InputStream studioVersionIs = contentRepository.getContentByCommitId(siteId, path, Constants.HEAD)
-					.orElseThrow()
-					.getInputStream()) {
-				diffResult.setStudioVersion(IOUtils.toString(studioVersionIs, UTF_8));
+			if (conflictState.equals(DELETED_BY_US)) {
+				diffResult.setStudioVersion(null);
+			} else {
+				try (InputStream localVersionIs = contentRepository.getContentByCommitId(siteId, path, Constants.HEAD)
+						.orElseThrow()
+						.getInputStream()) {
+					diffResult.setStudioVersion(IOUtils.toString(localVersionIs, UTF_8));
+				}
 			}
+
 			logger.debug("Get the remote content of the conflicting file from site '{}' path '{}'", siteId, path);
-			try (InputStream remoteVersionIs = contentRepository.getContentByCommitId(siteId, path, mergeCommitId.getName())
-					.orElseThrow()
-					.getInputStream()) {
-				diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
+			String mergeCommitId = mergeHeads.getFirst().getName();
+			if (conflictState.equals(DELETED_BY_THEM)) {
+				diffResult.setRemoteVersion(null);
+			} else {
+				try (InputStream remoteVersionIs = contentRepository.getContentByCommitId(siteId, path, mergeCommitId)
+						.orElseThrow()
+						.getInputStream()) {
+					diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
+				}
 			}
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 			logger.debug("Diff the local and remote versions of the conflicting file in site '{}' path '{}'", siteId, path);
 			RevTree headTree = gitRepositoryHelper.getTreeForCommit(repo, Constants.HEAD);
-			RevTree remoteTree = gitRepositoryHelper.getTreeForCommit(repo, mergeCommitId.getName());
+			RevTree remoteTree = gitRepositoryHelper.getTreeForCommit(repo, mergeCommitId);
 
 			try (ObjectReader reader = repo.newObjectReader()) {
 				CanonicalTreeParser headCommitTreeParser = new CanonicalTreeParser();
@@ -890,18 +916,19 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 				remoteCommitTreeParser.reset(reader, remoteTree.getId());
 
 				// Diff the two commit Ids
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				DiffCommand diffCommand = git.diff()
-					.setPathFilter(PathFilter.create(gitRepositoryHelper.getGitPath(path)))
-					.setOldTree(headCommitTreeParser)
-					.setNewTree(remoteCommitTreeParser)
-					.setOutputStream(baos);
+						.setPathFilter(PathFilter.create(gitRepositoryHelper.getGitPath(path)))
+						.setOldTree(headCommitTreeParser)
+						.setNewTree(remoteCommitTreeParser)
+						.setOutputStream(baos);
 				retryingRepositoryOperationFacade.call(diffCommand);
 				diffResult.setDiff(baos.toString());
 			}
 		} catch (IOException | GitAPIException e) {
 			logger.error("Failed to diff the conflicting file in site '{}' path '{}'", siteId, path, e);
 			throw new ServiceLayerException(format("Failed to diff the conflicting file in site '%s' path '%s'",
-				siteId, path), e);
+					siteId, path), e);
 		}
 		return diffResult;
 	}
