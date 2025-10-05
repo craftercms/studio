@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,7 +18,6 @@ package org.craftercms.studio.api.v2.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 
 /**
@@ -31,22 +30,11 @@ public interface SemanticsAvailableActionsResolver {
 	/**
 	 * Calculate available actions for given content item
 	 *
-	 * @param username user name to apply permissions
-	 * @param siteId   site identifier
-	 * @param item     Item
-	 * @return bitmap representing available actions
-	 */
-	long calculateContentItemAvailableActions(String username, String siteId, Item item)
-		throws ServiceLayerException, UserNotFoundException;
-
-	/**
-	 * Calculate available actions for given content item
-	 *
 	 * @param username     user name to apply permissions
 	 * @param siteId       site identifier
-	 * @param detailedItem Item
+	 * @param detailedItem detailed content item to calculate available actions for
 	 * @return bitmap representing available actions
 	 */
 	long calculateContentItemAvailableActions(String username, String siteId, ContentItem detailedItem)
-		throws ServiceLayerException, UserNotFoundException;
+			throws ServiceLayerException, UserNotFoundException;
 }

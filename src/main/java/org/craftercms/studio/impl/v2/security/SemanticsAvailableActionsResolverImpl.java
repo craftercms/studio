@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
@@ -64,27 +63,19 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	private ContentTypeService contentTypeService;
 
 	@Override
-	public long calculateContentItemAvailableActions(String username, String siteId, Item item)
-			throws ServiceLayerException, UserNotFoundException {
-		long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, item.getPath());
-		long systemTypeBitmap = getPossibleActionsForObject(item.getSystemType());
-		long workflowStateBitmap = getPossibleActionsForItemState(item.getState(),
-			hasUnlockPermission(item.getLockOwner(), item.getState(), siteId, item.getPath(), username));
-
-		long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
-		return applySpecialUseCaseFilters(username, siteId, item.getPath(), item.getMimeType(),
-				item.getSystemType(), item.getContentTypeId(), item.getState(), result);
-	}
-
-	@Override
 	public long calculateContentItemAvailableActions(String username, String siteId, ContentItem detailedItem)
 			throws ServiceLayerException, UserNotFoundException {
 		long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, detailedItem.getPath());
 		long systemTypeBitmap = getPossibleActionsForObject(detailedItem.getSystemType());
-		long workflowStateBitmap = getPossibleActionsForItemState(detailedItem.getState(),
-			hasUnlockPermission(detailedItem.getLockOwner(), detailedItem.getState(), siteId, detailedItem.getPath(), username));
 
-		long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
+		long result = userPermissionsBitmap & systemTypeBitmap;
+		if (!CONTENT_TYPE_FOLDER.equals(detailedItem.getSystemType())) {
+			long workflowStateBitmap = getPossibleActionsForItemState(detailedItem.getState(),
+					hasUnlockPermission(detailedItem.getLockOwner(), detailedItem.getState(), siteId, detailedItem.getPath(), username));
+
+			result &= workflowStateBitmap;
+		}
+
 		return applySpecialUseCaseFilters(username, siteId, detailedItem.getPath(), detailedItem.getMimeType(),
 				detailedItem.getSystemType(), detailedItem.getContentTypeId(),
 				detailedItem.getState(),

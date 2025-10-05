@@ -351,6 +351,7 @@
 		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 			#{path}
 		</foreach>
+		AND system_type = '${systemTypeFolder}'
 	</update>
 
 	<update id="resetStatesBySiteAndPathBulk">
@@ -359,6 +360,7 @@
 		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 			#{path}
 		</foreach>
+		AND system_type = '${systemTypeFolder}'
 	</update>
 
 	<update id="updateStatesBySiteAndPathBulk">
@@ -367,12 +369,13 @@
 		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 			#{path}
 		</foreach>
+		AND system_type = '${systemTypeFolder}'
 	</update>
 
 	<update id="moveItemInternal">
 		UPDATE item i INNER JOIN site s ON i.site_id = s.id
 		SET path = #{newPath},
-		i.state = (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
+		i.state = CASE WHEN i.system_type = '${systemTypeFolder}' THEN 0 ELSE (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap} END,
 		i.preview_url = IF(i.system_type = '${systemTypeFolder}', NULL, #{newPreviewUrl}),
 		i.last_modified_by = #{userId},
 		i.last_modified_on = NOW()
@@ -389,7 +392,9 @@
 		INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by,
 				  last_modified_on, label, content_type_id, system_type, mime_type, locale_code,
 				  translation_source_id, size, parent_id, ignored)
-		SELECT s.id, #{newPath} AS path, IF(i.system_type = '${systemTypeFolder}', NULL, #{previewUrl}) AS preview_url, ${state}, null, ${userId}, NOW(), ${userId},
+		SELECT s.id, #{newPath} AS path, IF(i.system_type = '${systemTypeFolder}', NULL, #{previewUrl}) AS preview_url,
+				CASE WHEN i.system_type = '${systemTypeFolder}' THEN 0 ELSE ${state} END,
+				null, ${userId}, NOW(), ${userId},
 				NOW(), IFNULL(#{label}, i.label) AS label, i.content_type_id, i.system_type, i.mime_type, i.locale_code,
 				i.translation_source_id, i.size, #{parentId}, i.ignored
 		FROM item i INNER JOIN site s ON i.site_id = s.id
@@ -522,6 +527,7 @@
 		<if test="statesBitMap != null">
 			AND (i.state &amp; #{statesBitMap}) &gt; 0
 		</if>
+		AND i.system_type = '${systemTypeFolder}'
 	</update>
 
 	<update id="updateNewPageChildren">
@@ -664,7 +670,10 @@
 		SET
 			path = REPLACE(path, #{previousPath}, #{newPath}),
 			locked_by = NULL,
-			state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+			state = CASE
+					WHEN system_type = '${systemTypeFolder}' THEN 0
+					ELSE (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+				END
 		WHERE
 			site_id = #{siteId}
 			AND (path = #{previousPath} OR path LIKE CONCAT(#{previousPath}, '/%'));

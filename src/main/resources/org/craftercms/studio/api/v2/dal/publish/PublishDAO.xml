@@ -154,6 +154,7 @@
 		) AS updates
 		SET item.state = (item.state | updates.maskOn) &amp; ~updates.maskOff
 		WHERE item.id = updates.item_id
+		AND item.system_type &lt;&gt; '${systemTypeFolder}'
 	</update>
 
 	<insert id="insertItemPublishItems">

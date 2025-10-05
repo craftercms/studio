@@ -886,7 +886,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	private void addEmptyFile(Repository repo, String siteId, String path) throws ServiceLayerException {
 		try {
 			File file = new File(repo.getDirectory().getParent(), path);
-			if (!file.createNewFile()) {
+			if (!file.exists() && !file.createNewFile()) {
 				logger.error("Failed to create file to site '{}' path '{}'", siteId, path);
 				throw new ServiceLayerException(format("Failed to create file to site '%s' path '%s'", siteId, path));
 			}
