@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,6 +33,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 
+@SuppressWarnings("rawtypes")
 public interface UserDAO {
 
 	/**
@@ -75,14 +76,6 @@ public interface UserDAO {
 	 * @return Number of rows affected in DB
 	 */
 	int updateUser(Map params);
-
-	/**
-	 * Get ids for users
-	 *
-	 * @param params SQL query parameters
-	 * @return List of user ids
-	 */
-	List<Long> getUserIdsForUsernames(Map params);
 
 	/**
 	 * Delete users
@@ -185,13 +178,6 @@ public interface UserDAO {
 	 */
 	void updateUserProperties(@Param(USER_ID) long userId, @Param(SITE_ID) long siteId,
 				  @Param(PROPERTIES) Map<String, String> properties);
-
-	/**
-	 * Deletes all user properties for a given site
-	 *
-	 * @param siteId the id of the site
-	 */
-	void deleteUserPropertiesBySiteId(@Param(SITE_ID) long siteId);
 
 	/**
 	 * Deletes all user properties for a given user
