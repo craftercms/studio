@@ -98,7 +98,7 @@ public interface DependencyService {
 	 * @param path   path to get dependent items for
 	 * @return list of {@link LightItem} dependent on given path
 	 */
-	List<LightItem> getDependentItems(String siteId, String path);
+	List<LightItem> getDependentItems(String siteId, String path) throws ContentNotFoundException;
 
 	/**
 	 * Get item specific dependencies for given path

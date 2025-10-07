@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.dependency;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
@@ -86,7 +87,7 @@ public class DependencyServiceImpl implements DependencyService {
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<LightItem> getDependentItems(@SiteId String siteId,
-						      @ContentPath String path) {
+						      @ContentPath String path) throws ContentNotFoundException {
 		return dependencyServiceInternal.getDependentItems(siteId, path);
 	}
 
