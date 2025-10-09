@@ -48,8 +48,6 @@ tags:
         description: Marketplace operations
     -   name: webdav
         description: WebDAV operations
-    -   name: box
-        description: Box operations
     -   name: publishing
         description: Publishing operations
     -   name: security
