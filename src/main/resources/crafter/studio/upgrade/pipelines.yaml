@@ -821,6 +821,14 @@ pipelines:
                 operations:
                     -   type: dbScriptUpgrader
                         filename: upgrade/5.0.x/5.0.0.7-to-5.0.0.8.sql
+            -   currentVersion: 5.0.0.8
+                nextVersion: 5.0.0.9
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
+                                dest: /configuration/samples/sample-notification-config.xml
+                        commitDetails: Update sample files
 
     # Pipeline to upgrade site repositories
     site:
@@ -1487,6 +1495,32 @@ configurations:
                             pattern: "\\$\\{deploymentError\\.toString\\(\\)\\}"
                             replacement: "<pre>\\$\\{deploymentError\\}</pre>"
                             commitDetails: Update deployment error template
+                -   currentVersion: 4.0.3
+                    nextVersion: 5.0-t
+                -   currentVersion: 5.0.0  # Support for sites from blueprints with different version format
+                    nextVersion: 5.0-t
+                -   currentVersion: 5.0-t
+                    nextVersion: 5.0.0.0
+                    operations:
+                        -   type: multiFindAndReplaceUpgrader
+                            rules:
+                                -   pattern: "\\bfirst_name\\b"
+                                    replacement: 'firstName'
+                                -   pattern: "\\blast_name\\b"
+                                    replacement: 'lastName'
+                                -   pattern: "scheduleDate\\?string"
+                                    replacement: "publishPackage.schedule?datetime.iso?string"
+                                -   pattern: "\\bscheduleDate\\b"
+                                    replacement: "publishPackage.schedule"
+                                -   pattern: "\\bsubmissionComments\\b"
+                                    replacement: 'publishPackage.submitterComment'
+                                -   pattern: "\\brejectionReason\\b"
+                                    replacement: 'publishPackage.reviewerComment'
+                                -   pattern: "\\buserThatRejects\\b"
+                                    replacement: "reviewer"
+                                -   pattern: "\\bapprover\\b"
+                                    replacement: "reviewer"
+                            commitDetails: Update publish and workflow related email templates
 
     code-editor-config:
         module: studio

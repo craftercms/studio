@@ -49,7 +49,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.time.Instant;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
@@ -70,17 +69,11 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String TEMPLATE_MODEL_DEPLOYMENT_ERROR = "deploymentError";
 	private static final String TEMPLATE_MODEL_FILES = "files";
 	private static final String TEMPLATE_MODEL_PACKAGE = "publishPackage";
-	private static final String TEMPLATE_MODEL_APPROVER = "approver";
-	private static final String TEMPLATE_MODEL_SCHEDULED_DATE = "scheduleDate";
 	private static final String TEMPLATE_MODEL_SUBMITTER = "submitter";
 	private static final String TEMPLATE_MODEL_REVIEWER = "reviewer";
-	private static final String TEMPLATE_MODEL_IS_DELETED = "isDeleted";
-	private static final String TEMPLATE_MODEL_SUBMISSION_COMMENTS = "submissionComments";
 	private static final String TEMPLATE_MODEL_SITE_NAME = "siteName";
 	private static final String TEMPLATE_MODEL_LIVE_URL = "liveUrl";
 	private static final String TEMPLATE_MODEL_AUTHORING_URL = "authoringUrl";
-	private static final String TEMPLATE_MODEL_REJECTION_REASON = "rejectionReason";
-	private static final String TEMPLATE_MODEL_USER_THAT_REJECTS = "userThatRejects";
 
 	private static final String MESSAGE_ELEMENT_SUBJECT = "subject";
 	private static final String MESSAGE_ELEMENT_BODY = "body";
@@ -127,20 +120,11 @@ public class NotificationServiceImpl implements NotificationService {
 		logger.debug("Sending content approval notification for site '{}', package '{}'", siteId, publishPackage.getId());
 		try {
 			String submitterUsername = publishPackage.getSubmitter().getUsername();
-			String reviewerUsername = publishPackage.getReviewer().getUsername();
 			final Map<String, Object> submitterUser = securityService.getUserProfile(submitterUsername);
-			Map<String, Object> reviewerUser = securityService.getUserProfile(reviewerUsername);
 			Map<String, Object> templateModel = new HashMap<>();
 			templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
 			templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
-			templateModel.put(TEMPLATE_MODEL_REVIEWER, reviewerUser);
-
-			// Keeping these for backwards compatibility
-			// Prefer reviewer
-			templateModel.put(TEMPLATE_MODEL_APPROVER, reviewerUser);
-			// Prefer publishPackage.schedule
-			Instant schedule = publishPackage.getSchedule();
-			templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, schedule != null ? Date.from(schedule) : null);
+			templateModel.put(TEMPLATE_MODEL_REVIEWER, publishPackage.getReviewer());
 
 			notify(siteId, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
 				templateModel);
@@ -157,17 +141,10 @@ public class NotificationServiceImpl implements NotificationService {
 		logger.debug("Sending content rejection notification for site '{}', package '{}'", siteId, publishPackage.getId());
 		try {
 			Map<String, Object> submitterUser = securityService.getUserProfile(publishPackage.getSubmitter().getUsername());
-			Map<String, Object> reviewerUser = securityService.getUserProfile(publishPackage.getReviewer().getUsername());
 			Map<String, Object> templateModel = new HashMap<>();
 			templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
 			templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
-			templateModel.put(TEMPLATE_MODEL_REVIEWER, reviewerUser);
-
-			// Keeping these for backwards compatibility
-			// Prefer reviewer
-			templateModel.put(TEMPLATE_MODEL_USER_THAT_REJECTS, reviewerUser);
-			// Prefer package.reviewerComment
-			templateModel.put(TEMPLATE_MODEL_REJECTION_REASON, publishPackage.getReviewerComment());
+			templateModel.put(TEMPLATE_MODEL_REVIEWER, publishPackage.getReviewer());
 
 			String email = submitterUser.get(KEY_EMAIL).toString();
 			notify(siteId, List.of(email), NOTIFICATION_KEY_CONTENT_REJECTED, templateModel);
@@ -184,24 +161,13 @@ public class NotificationServiceImpl implements NotificationService {
 		logger.debug("Sending content submission notification for site '{}', package '{}'", siteId, publishPackage.getId());
 		try {
 			final NotificationConfigTO notificationConfig = getNotificationConfig(siteId);
-			final Map<String, Object> submitterUser = securityService.getUserProfile(publishPackage.getSubmitter().getUsername());
 			Map<String, Object> templateModel = new HashMap<>();
 			templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
 			templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
-			templateModel.put(TEMPLATE_MODEL_SUBMITTER, submitterUser);
-			templateModel.put(TEMPLATE_MODEL_SUBMISSION_COMMENTS, publishPackage.getSubmitterComment());
-
-			// Keeping these for backwards compatibility
-			// Prefer publishPackage.schedule
-			Instant schedule = publishPackage.getSchedule();
-			templateModel.put(TEMPLATE_MODEL_SCHEDULED_DATE, schedule != null ? Date.from(schedule) : null);
-			// Always false, never used internally
-			templateModel.put(TEMPLATE_MODEL_IS_DELETED, false);
+			templateModel.put(TEMPLATE_MODEL_SUBMITTER, publishPackage.getSubmitter());
 
 			notify(siteId, notificationConfig.getApproverEmails(), NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW,
 				templateModel);
-		} catch (UserNotFoundException e) {
-			logger.error("Failed to send content submission notification because user was not found", e);
 		} catch (Throwable e) {
 			logger.error("Failed to send content submission notification for site '{}'", siteId, e);
 		}
