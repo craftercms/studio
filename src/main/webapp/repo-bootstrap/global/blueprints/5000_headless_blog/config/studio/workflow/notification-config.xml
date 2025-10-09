@@ -106,7 +106,7 @@
                                 <#elseif publishPackage.packageType == 'PUBLISH_ALL'>
                                     ${reviewer.first_name!submitter.username} ${reviewer.last_name} has approved your publish all request.
                                 <#else>
-                                    The following content has been reviewed and approved by ${approver.firstName!approver.username} ${approver.lastName!""}:
+                                    The following content has been reviewed and approved by ${reviewer.firstName!reviewer.username} ${reviewer.lastName!""}:
                                 </#if>
                                 <ul>
                                    <#list files as file>
