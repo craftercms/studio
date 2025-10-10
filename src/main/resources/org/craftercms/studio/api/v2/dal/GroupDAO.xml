@@ -130,12 +130,6 @@
 		WHERE id = #{id}
 	</update>
 
-	<delete id="deleteGroup" parameterType="java.util.Map">
-		DELETE
-		FROM `group`
-		WHERE id = #{id}
-	</delete>
-
 	<select id="getGroup" parameterType="java.util.Map" resultMap="GroupMap">
 		SELECT *
 		FROM `group`

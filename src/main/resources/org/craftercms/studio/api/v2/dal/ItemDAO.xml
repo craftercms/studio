@@ -52,7 +52,13 @@
 		<association property="live" column="id" select="getLiveTargetStatus"/>
 	</resultMap>
 
-<!--	TODO: find a way to combine the following two <select> into one-->
+	<!-- TODO: investigate if there is a workaround this issue:
+		Notice getLiveTargetStatus and getStagingTargetStatus are the same logic but
+	 	different params for target and "published state". Natural approach would be
+	 	to create a <sql> that would take those values from variables. And having <select>
+	 	elements that <bind> the variables and <include> the <sql> fragment.
+	 	There seems to be a limitation in myBatis preventing us from using that approach
+	 	when the <select> is called from an <association> -->
 	<select id="getLiveTargetStatus" resultMap="PublishTargetStatusMap">
 		SELECT ipi1.item_id, pp1.published_on AS date_last_published, pp1.submitter_id AS submitter_id, (
 					SELECT pp1.schedule

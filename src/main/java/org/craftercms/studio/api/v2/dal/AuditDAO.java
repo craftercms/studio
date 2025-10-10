@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,10 +35,6 @@ public interface AuditDAO {
 
 	void insertAuditLogParams(Map params);
 
-	List<AuditLog> selectUserFeedEntriesHideLive(Map params);
-
-	List<AuditLog> selectUserFeedEntries(Map params);
-
 	/**
 	 * Gets commit authors from a list of commit ids.
 	 * This will retrieve a {@link CommitAuthor} object from the database when
@@ -55,13 +51,4 @@ public interface AuditDAO {
 	 * @return the List of {@link CommitAuthor} if found
 	 */
 	List<CommitAuthor> getCommitAuthors(@Param(SITE_ID) long siteId, @Param(COMMIT_IDS) List<String> commitIds, @Param(PATH) String path);
-
-	/**
-	 * Checks if a commit has been audited.
-	 *
-	 * @param siteId   site id
-	 * @param commitId commit id
-	 * @return true if an entry exists in audit table for the given commit id, false otherwise.
-	 */
-	boolean isAudited(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
 }

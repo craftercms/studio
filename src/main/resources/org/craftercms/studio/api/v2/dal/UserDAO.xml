@@ -136,13 +136,6 @@
 		WHERE id = #{userId}
 	</update>
 
-	<select id="getUserIdsForUsernames" parameterType="java.util.Map" resultType="Long">
-		SELECT id FROM `user` WHERE username IN
-		<foreach collection="usernames" item="username" index="index" separator="," open="(" close=")">
-			#{username}
-		</foreach>
-	</select>
-
 	<update id="deleteUsers" parameterType="java.util.Map">
 		UPDATE `user` SET deleted = 1
 		WHERE id IN
@@ -242,12 +235,6 @@
 		</foreach>
 		ON DUPLICATE KEY UPDATE property_value = VALUES(property_value)
 	</insert>
-
-	<delete id="deleteUserPropertiesBySiteId">
-		DELETE
-		FROM user_properties
-		WHERE site_id = #{siteId}
-	</delete>
 
 	<delete id="deleteUserPropertiesByUserIds">
 		DELETE FROM user_properties WHERE user_id in

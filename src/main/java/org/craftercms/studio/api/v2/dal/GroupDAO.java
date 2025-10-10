@@ -39,11 +39,11 @@ public interface GroupDAO {
 						@Param(SORT) String sort);
 
 	/**
-	 * Get all groups for given organization
+	 * Get group count for given organization
 	 *
 	 * @param orgId   organization identifier
 	 * @param keyword keyword to filter groups
-	 * @return List of groups
+	 * @return total number of groups
 	 */
 	int getAllGroupsForOrganizationTotal(@Param(ORG_ID) long orgId, @Param(KEYWORD) String keyword);
 
@@ -66,14 +66,6 @@ public interface GroupDAO {
 	 * @return Number of affected rows in DB
 	 */
 	Integer updateGroup(Group group);
-
-	/**
-	 * Delete group
-	 *
-	 * @param groupId group identifier
-	 * @return Number of affected rows in DB
-	 */
-	Integer deleteGroup(@Param(GROUP_ID) long groupId);
 
 	/**
 	 * Delete groups

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -35,29 +35,6 @@
 		<result property="actorDetails" column="actor_details"/>
 		<result property="clusterNodeId" column="cluster_node_id"/>
 		<result property="commitId" column="commit_id"/>
-
-		<collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParameter">
-			<result property="targetId" column="target_id"/>
-			<result property="targetType" column="target_type"/>
-			<result property="targetValue" column="target_value"/>
-		</collection>
-	</resultMap>
-
-	<resultMap id="AuditDashboardMap" type="org.craftercms.studio.api.v2.dal.AuditLog">
-		<id property="id" column="id"/>
-		<result property="organizationId" column="organization_id"/>
-		<result property="siteId" column="site_id"/>
-		<result property="siteName" column="site_name"/>
-		<result property="operation" column="operation"/>
-		<result property="operationTimestamp" column="operation_timestamp"/>
-		<result property="origin" column="origin"/>
-		<result property="primaryTargetId" column="primary_target_id"/>
-		<result property="primaryTargetType" column="primary_target_type"/>
-		<result property="primaryTargetSubtype" column="primary_target_subtype"/>
-		<result property="primaryTargetValue" column="primary_target_value"/>
-		<result property="actorId" column="actor_id"/>
-		<result property="actorDetails" column="actor_details"/>
-		<result property="clusterNodeId" column="cluster_node_id"/>
 
 		<collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParameter">
 			<result property="targetId" column="target_id"/>
@@ -200,82 +177,6 @@
 		</foreach>
 	</insert>
 
-	<select id="selectUserFeedEntries" parameterType="java.util.Map" resultMap="AuditLogMap">
-		select cs1.*
-		from audit cs1
-		inner join (select MAX(operation_timestamp) as mdate, primary_target_value from audit a, site s1
-		where a.site_id = s1.id and a.actor_id = #{userId} and s1.site_id = #{siteId} and s1.deleted = 0
-		and operation in
-		<foreach item="operation" index="index" collection="operations"
-			 open="(" separator="," close=")">
-			#{operation}
-		</foreach>
-		and primary_target_type = #{targetType}
-		<if test="contentType != null and contentType != 'all' ">
-			and primary_target_subtype = #{contentType}
-		</if>
-		group by primary_target_value) as cs2
-		on (cs1.primary_target_value = cs2.primary_target_value and cs1.operation_timestamp = cs2.mdate), site s2
-		where cs1.site_id = s2.id and cs1.actor_id = #{userId} and s2.site_id = #{siteId} and s2.deleted = 0
-		and cs1.operation in
-		<foreach item="operation" index="index" collection="operations"
-			 open="(" separator="," close=")">
-			#{operation}
-		</foreach>
-		and primary_target_type = #{targetType}
-		<if test="contentType != null and contentType != 'all' ">
-			and cs1.primary_target_subtype = #{contentType}
-		</if>
-		order by cs1.operation_timestamp desc limit #{offset},#{limit}
-	</select>
-
-	<select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="AuditLogMap">
-		select act.*
-		from (
-		select cs1.*
-		from audit cs1
-		inner join (select MAX(operation_timestamp) as mdate, primary_target_value from audit a, site s1
-		where a.site_id = s1.id and actor_id = #{userId} and s1.site_id = #{siteId} and s1.deleted = 0
-		and operation in
-		<foreach item="operation" index="index" collection="operations"
-			 open="(" separator="," close=")">
-			#{operation}
-		</foreach>
-		and primary_target_type = #{targetType}
-		<if test="contentType != null and contentType != 'all' ">
-			and primary_target_subtype = #{contentType}
-		</if>
-		group by primary_target_value) as cs2
-		on (cs1.primary_target_value = cs2.primary_target_value and cs1.operation_timestamp = cs2.mdate), site s2
-		where cs1.site_id = s2.id and cs1.actor_id = #{userId} and s2.site_id = #{siteId} and s2.deleted = 0
-		and cs1.operation in
-		<foreach item="operation" index="index" collection="operations"
-			 open="(" separator="," close=")">
-			#{operation}
-		</foreach>
-		and primary_target_type = #{targetType}
-		<if test="contentType != null and contentType != 'all' ">
-			and cs1.primary_target_subtype = #{contentType}
-		</if>
-		) act
-		inner join item i on act.site_id=i.site_id and act.primary_target_value=i.path, site s3
-		where act.site_id = s3.id
-		and act.actor_id = #{userId}
-		and s3.site_id = #{siteId}
-		and s3.deleted = 0
-		and act.operation in
-		<foreach item="operation" index="index" collection="operations"
-			 open="(" separator="," close=")">
-			#{operation}
-		</foreach>
-		and act.primary_target_type = #{targetType}
-		<if test="contentType != null and contentType != 'all' ">
-			and act.primary_target_subtype = #{contentType}
-		</if>
-		and (i.state &amp; #{liveStateBitMap}) = 0
-		order by act.operation_timestamp desc limit #{offset},#{limit}
-	</select>
-
 	<select id="getCommitAuthors" parameterType="java.util.Map" resultMap="CommitAuthorMap">
 		SELECT a.commit_id, u.*
 		FROM audit a
@@ -287,12 +188,5 @@
 		</foreach>
 		AND a.primary_target_value = #{path}
 		AND origin = 'API'
-	</select>
-
-	<select id="isAudited" parameterType="java.util.Map" resultType="boolean">
-		SELECT count(1)
-		FROM audit a
-		WHERE site_id = #{siteId}
-		  AND commit_id = #{commitId}
 	</select>
 </mapper>
