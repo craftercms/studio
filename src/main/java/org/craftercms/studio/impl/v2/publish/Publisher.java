@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.publish;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -36,8 +35,8 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
-import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
@@ -66,6 +65,7 @@ import static java.lang.String.format;
 import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.union;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
@@ -233,7 +233,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 		String siteId = publishPackage.getSite().getSiteId();
 		String target = publishPackage.getTarget();
 
-		boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), target);
+		boolean isLiveTarget = CS.equals(servicesConfig.getLiveEnvironment(siteId), target);
 
 		if (isLiveTarget && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
 			String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
@@ -314,7 +314,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 		TaskProgress<PublishTaskId, Long> taskProgress = taskManager.getTask(new PublishTaskId(siteId, packageId));
 
 		String liveTarget = servicesConfig.getLiveEnvironment(siteId);
-		boolean isLiveTarget = StringUtils.equals(liveTarget, target);
+		boolean isLiveTarget = CS.equals(liveTarget, target);
 		if (!isLiveTarget && !contentRepository.isTargetPublished(siteId, target)) {
 			Stage initStaging = taskProgress.startStage("Init staging");
 			itemTargetDAO.initStaging(packageTO.getSite().getId(), target, liveTarget);
