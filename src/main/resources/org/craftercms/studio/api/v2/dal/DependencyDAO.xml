@@ -248,11 +248,7 @@
 		FROM dependency
 		WHERE site = #{siteId}
 		AND valid = 1
-		AND source_path IN
-		<foreach item="path" index="index" collection="paths"
-			 open="(" separator="," close=")">
-			#{path}
-		</foreach>
+		AND source_path = #{path}
 	</select>
 
 	<delete id="deleteItemDependencies" parameterType="java.util.Map">

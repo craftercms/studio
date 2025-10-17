@@ -134,7 +134,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	@Override
 	public Collection<LightItem> getDependencies(String siteId, String path) {
-		return dependencyDao.getDependencies(siteId, List.of(path));
+		return dependencyDao.getDependencies(siteId, path);
 	}
 
 	@Override
