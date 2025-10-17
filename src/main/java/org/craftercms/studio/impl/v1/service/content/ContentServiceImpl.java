@@ -1441,8 +1441,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	@Override
 	@RequireSiteExists
 	public String getItemContentType(@SiteId String site, String path) throws DocumentException, SiteNotFoundException {
-		List<Item> items = itemService.getItems(site, List.of(path));
-		if (CollectionUtils.isEmpty(items)) {
+		Item item = itemService.getItem(site, path);
+		if (item == null) {
 			return getContentTypeClass(site, path);
 		}
 		Pattern taxonomyPattern = Pattern.compile(CONTENT_TYPE_TAXONOMY_REGEX);
@@ -1450,7 +1450,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		if (matcher.matches()) {
 			return CONTENT_TYPE_TAXONOMY;
 		}
-		Item item = items.getFirst();
 		if (isNotEmpty(item.getContentTypeId())) {
 			return item.getContentTypeId();
 		}

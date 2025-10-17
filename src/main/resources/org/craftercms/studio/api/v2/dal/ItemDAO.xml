@@ -225,15 +225,14 @@
 			LEFT OUTER JOIN item ichild ON i.id = ichild.parent_id
 	</sql>
 
-	<select id="getItemsByPath" resultMap="ItemMap">
+	<select id="getItemByPath" resultMap="ItemMap">
 		SELECT i.*
 		FROM item i
 		WHERE i.site_id = #{siteId}
-		AND i.path IN
-			<foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
+		AND i.path IN (
 				#{path}
 				<if test="preferContent">, CONCAT(#{path}, '/index.xml')</if>
-			</foreach>
+			)
 		AND i.ignored = 0
 		<if test="preferContent">
 			<!-- Prefer content means to get a page (if it exists) instead of its containing folder -->

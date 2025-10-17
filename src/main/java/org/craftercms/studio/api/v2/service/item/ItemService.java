@@ -58,15 +58,6 @@ public interface ItemService {
 	Item getItem(String siteId, String path, boolean preferContent);
 
 	/**
-	 * Get items for given site and paths
-	 *
-	 * @param siteId site identifier
-	 * @param paths  item paths
-	 * @return list of items
-	 */
-	List<Item> getItems(String siteId, Collection<String> paths);
-
-	/**
 	 * Update item
 	 *
 	 * @param item item to update

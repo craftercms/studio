@@ -285,25 +285,9 @@ public interface ItemDAO {
 	 * @param preferContent if true return pages (if exist) instead of their containing folders
 	 * @return list of items
 	 */
-	default Item getItemByPath(long siteId, String path, boolean preferContent) {
-		List<Item> items = getItemsByPath(siteId, List.of(path), preferContent);
-		if (items.isEmpty()) {
-			return null;
-		}
-		return items.getFirst();
-	}
-
-	/**
-	 * Get items by site and path
-	 *
-	 * @param siteId        site identifier
-	 * @param paths         paths of the items
-	 * @param preferContent if true return pages (if exist) instead of their containing folders
-	 * @return list of items
-	 */
-	List<Item> getItemsByPath(@Param(SITE_ID) long siteId,
-							  @Param(PATHS) Collection<String> paths,
-							  @Param(PREFER_CONTENT) boolean preferContent);
+	Item getItemByPath(@Param(SITE_ID) long siteId,
+					   @Param(PATH) String path,
+					   @Param(PREFER_CONTENT) boolean preferContent);
 
 	/**
 	 * Count all content items in the system

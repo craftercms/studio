@@ -83,12 +83,6 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public List<Item> getItems(String siteId, Collection<String> paths) {
-		Site site = siteDao.getSite(siteId);
-		return itemDao.getItemsByPath(site.getId(), paths, false);
-	}
-
-	@Override
 	public void deleteItem(long siteId, String path, boolean removePageParentFolder) {
 		retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(siteId, path, removePageParentFolder));
 	}
