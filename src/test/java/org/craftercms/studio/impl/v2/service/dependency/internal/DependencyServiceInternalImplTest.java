@@ -58,7 +58,7 @@ public class DependencyServiceInternalImplTest {
 
 	@Test
 	public void getDependentItemsTest() {
-		List<LightItem> items = serviceInternal.getDependentItems(SITE_ID, PATH);
+		List<LightItem> items = List.copyOf(serviceInternal.getDependentItems(SITE_ID, PATH));
 		verify(dependencyDAO, times(1)).getDependentItems(SITE_ID, Collections.singletonList(PATH));
 		assertEquals(2, items.size());
 		assertEquals(DEPENDENT_ITEM_1, items.get(0).getPath());

@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 import java.beans.ConstructorProperties;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
@@ -67,11 +66,11 @@ public class DependencyController {
 	}
 
 	@PostMapping(PATH_PARAM_SITE + DEPENDENT_ITEMS)
-	public ResultOne<List<LightItem>> getDependentItems(@PathVariable @ValidSiteId String site,
+	public ResultOne<Collection<LightItem>> getDependentItems(@PathVariable @ValidSiteId String site,
 														@RequestBody @Valid GetDependentsRequestBody request)
 		throws ServiceLayerException {
-		List<LightItem> items = dependencyService.getDependentItems(site, request.getPath());
-		var result = new ResultOne<List<LightItem>>();
+		Collection<LightItem> items = dependencyService.getDependentItems(site, request.getPath());
+		var result = new ResultOne<Collection<LightItem>>();
 		result.setResponse(OK);
 		result.setEntity(RESULT_KEY_ITEMS, items);
 		return result;
