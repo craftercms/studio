@@ -510,17 +510,11 @@
 
 	<bean id="publishServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
-		<property name="contentRepository" ref="contentRepository"/>
-		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
-		<property name="itemService" ref="itemService"/>
-		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="publishDao" ref="publishDao"/>
-		<property name="siteService" ref="sitesServiceInternal"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
-		<property name="auditService" ref="auditServiceInternal"/>
-		<property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
-		<property name="itemTargetDao" ref="itemTargetDao"/>
-		<property name="publishPackageAvailableActionResolver" ref="studio.publishPackageAvailableActionResolver" />
+		<constructor-arg name="contentRepository" ref="contentRepository"/>
+		<constructor-arg name="publishDao" ref="publishDao"/>
+		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
+		<constructor-arg name="auditService" ref="auditServiceInternal"/>
+		<constructor-arg name="dependencyService" ref="dependencyServiceInternal"/>
 	</bean>
 
 	<bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">

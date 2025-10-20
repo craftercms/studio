@@ -51,6 +51,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -85,20 +86,42 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishServiceInternalImpl.class);
 
-	private GitContentRepository contentRepository;
-	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+	private final GitContentRepository contentRepository;
+	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
-	protected ItemService itemService;
+	protected final ItemService itemService;
 
 	protected ApplicationContext applicationContext;
-	private ServicesConfig servicesConfig;
-	private AuditService auditService;
-	private DependencyService dependencyServiceInternal;
-	private PublishDAO publishDao;
-	private ItemTargetDAO itemTargetDao;
-	private SitesService siteService;
-	private GeneralLockService generalLockService;
-	private PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
+	private final ServicesConfig servicesConfig;
+	private final AuditService auditService;
+	private final DependencyService dependencyService;
+	private final PublishDAO publishDao;
+	private final ItemTargetDAO itemTargetDao;
+	private final SitesService siteService;
+	private final GeneralLockService generalLockService;
+	private final PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
+
+	@ConstructorProperties({"contentRepository", "retryingDatabaseOperationFacade", "itemService", "servicesConfig",
+			"auditService", "dependencyServiceInternal", "publishDao", "itemTargetDao", "siteService",
+			"generalLockService", "publishPackageAvailableActionResolver", "batchSqlSession", "transactionManager"})
+	public PublishServiceInternalImpl(GitContentRepository contentRepository, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+									  ItemService itemService, ServicesConfig servicesConfig, AuditService auditService,
+									  DependencyService dependencyServiceInternal, PublishDAO publishDao,
+									  ItemTargetDAO itemTargetDao,
+									  SitesService siteService, GeneralLockService generalLockService,
+									  PublishPackageAvailableActionResolver publishPackageAvailableActionResolver) {
+		this.contentRepository = contentRepository;
+		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+		this.itemService = itemService;
+		this.servicesConfig = servicesConfig;
+		this.auditService = auditService;
+		this.dependencyService = dependencyServiceInternal;
+		this.publishDao = publishDao;
+		this.itemTargetDao = itemTargetDao;
+		this.siteService = siteService;
+		this.generalLockService = generalLockService;
+		this.publishPackageAvailableActionResolver = publishPackageAvailableActionResolver;
+	}
 
 	@Override
 	public long getPublishPackagesCount(final String siteId, final String target,
@@ -184,9 +207,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 		Collection<String> deletedPaths = filteredOperations.get(true);
 
-		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
+		Collection<LightItem> softDependencies = dependencyService.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
 		// Get hard deps of them all
-		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, corePackagePaths);
+		Collection<LightItem> hardDependencies = dependencyService.getHardDependencies(siteId, publishingTarget, corePackagePaths);
 		Collection<LightItem> coreItems = isNotEmpty(corePackagePaths) ? publishDao.getMetadata(siteId, corePackagePaths) : emptyList();
 		return new CalculatedPublishPackageResult(coreItems, deletedPaths, hardDependencies, softDependencies);
 	}
@@ -199,9 +222,9 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Set<String> corePackagePaths = new HashSet<>(publishPaths.get(false));
 		Collection<String> deletedPaths = publishPaths.get(true);
 
-		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, target);
+		Collection<LightItem> softDependencies = dependencyService.getPublishingSoftDependencies(siteId, corePackagePaths, target);
 		// Get hard deps of them all
-		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
+		Collection<LightItem> hardDependencies = dependencyService.getHardDependencies(siteId, target, corePackagePaths);
 		Collection<LightItem> coreItems = isNotEmpty(corePackagePaths) ? publishDao.getMetadata(siteId, corePackagePaths) : emptyList();
 		return new CalculatedPublishPackageResult(coreItems, deletedPaths, hardDependencies, softDependencies);
 	}
@@ -444,7 +467,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			}
 		}
 		if (!softDepsPaths.isEmpty()) {
-			allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths, target).stream().map(LightItem::getPath).collect(toSet()));
+			allPaths.addAll(dependencyService.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths, target).stream().map(LightItem::getPath).collect(toSet()));
 		}
 		return allPaths;
 	}
@@ -480,7 +503,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			return;
 		}
 		publishItemsByPath.putAll(
-			dependencyServiceInternal.getHardDependencies(site.getSiteId(), paths).stream()
+			dependencyService.getHardDependencies(site.getSiteId(), paths).stream()
 				.map(LightItem::getPath)
 				.filter(dep -> !publishItemsByPath.containsKey(dep))
 				.map(dep -> createPublishItem(dep, ADD, false))
@@ -535,54 +558,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	@Override
 	public void setApplicationContext(@NotNull final ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
-	}
-
-	public void setContentRepository(final GitContentRepository contentRepository) {
-		this.contentRepository = contentRepository;
-	}
-
-	public void setRetryingDatabaseOperationFacade(final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
-		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-	}
-
-	public void setItemService(final ItemService itemService) {
-		this.itemService = itemService;
-	}
-
-	public void setServicesConfig(final ServicesConfig servicesConfig) {
-		this.servicesConfig = servicesConfig;
-	}
-
-	@SuppressWarnings("unused")
-	public void setPublishDao(final PublishDAO publishDao) {
-		this.publishDao = publishDao;
-	}
-
-	@SuppressWarnings("unused")
-	public void setItemTargetDao(final ItemTargetDAO itemTargetDao) {
-		this.itemTargetDao = itemTargetDao;
-	}
-
-	public void setSiteService(final SitesService siteService) {
-		this.siteService = siteService;
-	}
-
-	public void setGeneralLockService(final GeneralLockService generalLockService) {
-		this.generalLockService = generalLockService;
-	}
-
-	public void setAuditService(final AuditService auditService) {
-		this.auditService = auditService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setDependencyServiceInternal(final DependencyService dependencyServiceInternal) {
-		this.dependencyServiceInternal = dependencyServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setPublishPackageAvailableActionResolver(final PublishPackageAvailableActionResolver publishPackageAvailableActionResolver) {
-		this.publishPackageAvailableActionResolver = publishPackageAvailableActionResolver;
 	}
 
 	/**
