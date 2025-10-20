@@ -207,21 +207,32 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 		Collection<String> deletedPaths = filteredOperations.get(true);
 
-		Collection<LightItem> softDependencies = dependencyService.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
-		// Get hard deps of them all
-		Collection<LightItem> hardDependencies = dependencyService.getHardDependencies(siteId, publishingTarget, corePackagePaths);
-		Collection<LightItem> coreItems = isNotEmpty(corePackagePaths) ? publishDao.getMetadata(siteId, corePackagePaths) : emptyList();
-		return new CalculatedPublishPackageResult(coreItems, deletedPaths, hardDependencies, softDependencies);
+		return buildCalculatedPublishPackageResult(siteId, publishingTarget, corePackagePaths, deletedPaths);
 	}
 
 	@Override
 	public CalculatedPublishPackageResult recalculatePublishPackage(String siteId, long packageId, String target)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		Map<Boolean, List<String>> publishPaths = publishDao.getUserRequestedPathMap(siteId, packageId);
 
 		Set<String> corePackagePaths = new HashSet<>(publishPaths.get(false));
 		Collection<String> deletedPaths = publishPaths.get(true);
 
+		return buildCalculatedPublishPackageResult(siteId, target, corePackagePaths, deletedPaths);
+	}
+
+	/**
+	 * Calculate the dependencies and build a CalculatedPublishPackageResult
+	 *
+	 * @param siteId           the site id
+	 * @param target           the publishing target
+	 * @param corePackagePaths the core package paths (user requested)
+	 * @param deletedPaths     the deleted paths
+	 * @return the calculated publish package result
+	 * @throws ServiceLayerException if an error occurs while calculating dependencies
+	 */
+	private CalculatedPublishPackageResult buildCalculatedPublishPackageResult(String siteId, String target, Set<String> corePackagePaths, Collection<String> deletedPaths)
+			throws ServiceLayerException {
 		Collection<LightItem> softDependencies = dependencyService.getPublishingSoftDependencies(siteId, corePackagePaths, target);
 		// Get hard deps of them all
 		Collection<LightItem> hardDependencies = dependencyService.getHardDependencies(siteId, target, corePackagePaths);

@@ -563,6 +563,7 @@ public interface PublishDAO {
 
 	/**
 	 * Get the submitted package containing the given items
+	 * This method takes a list of paths so the filter can be reused in the underlying myBatis query
 	 *
 	 * @param siteId       the site id
 	 * @param paths        the paths of the items
@@ -717,6 +718,22 @@ public interface PublishDAO {
 	 * @param paths  the paths to get metadata for
 	 * @return a list of {@link LightItem} containing the metadata for the given paths
 	 */
-	Collection<LightItem> getMetadata(@Param(SITE_ID) String siteId,
-									  @Param(PATHS) Set<String> paths);
+	default Collection<LightItem> getMetadata(String siteId,
+											  Collection<String> paths) {
+		return partition(new ArrayList<>(paths), MY_BATIS_QUERY_BATCH_SIZE).stream()
+				.map(sublist -> getMetadataInternal(siteId, sublist))
+				.flatMap(Collection::stream)
+				.toList();
+	}
+
+	/**
+	 * Get a list of {@link LightItem} for the given site and paths, containing
+	 * the paths metadata to be returned as part of a calculated (or re-calculated) publish package
+	 *
+	 * @param siteId the site id
+	 * @param paths  the paths to get metadata for
+	 * @return a list of {@link LightItem} containing the metadata for the given paths
+	 */
+	Collection<LightItem> getMetadataInternal(@Param(SITE_ID) String siteId,
+											  @Param(PATHS) Collection<String> paths);
 }

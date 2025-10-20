@@ -45,7 +45,7 @@
 		<association property="itemMetadata" columnPrefix="meta_" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMetadataMap"/>
 	</resultMap>
 
-	<select id="getMetadata" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+	<select id="getMetadataInternal" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		SELECT i.path as path, i.label as meta_label, i.system_type as meta_system_type, i.mime_type as meta_mime_type
 		FROM item i INNER JOIN site s ON i.site_id = s.id
 		WHERE i.path IN
