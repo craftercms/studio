@@ -151,7 +151,7 @@ public class PublishServiceImpl implements PublishService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
-	public Collection<PublishPackage> getActivePackagesForItems(@SiteId final String siteId, final Collection<String> paths,
+	public Collection<PublishPackage> getActivePackagesForItems(@SiteId final String siteId, final List<String> paths,
 																final boolean includeChildren) {
 		return publishServiceInternal.getActivePackagesForItems(siteId, paths, includeChildren);
 	}

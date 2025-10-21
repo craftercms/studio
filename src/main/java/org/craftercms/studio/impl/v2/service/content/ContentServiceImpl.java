@@ -291,7 +291,7 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
-	public void assertNotInWorkflow(@SiteId String siteId, Collection<String> paths, boolean includeChildren) throws ContentInPublishQueueException {
+	public void assertNotInWorkflow(@SiteId String siteId, List<String> paths, boolean includeChildren) throws ContentInPublishQueueException {
 		contentServiceInternal.assertNotInWorkflow(siteId, paths, includeChildren);
 	}
 

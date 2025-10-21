@@ -114,7 +114,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private final PublishDAO publishDao;
 	private final SqlSessionFactory sqlSessionFactory;
 	private final ServicesConfig servicesConfig;
-	protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+	protected final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private ApplicationEventPublisher eventPublisher;
 
 	@ConstructorProperties({"sitesService", "generalLockService",

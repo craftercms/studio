@@ -231,7 +231,7 @@ public interface PublishService {
 	 * @param includeChildren whether to include the children of the paths in the search
 	 * @return the READY or PROCESSING packages containing the items
 	 */
-	Collection<PublishPackage> getActivePackagesForItems(String siteId, Collection<String> paths, boolean includeChildren);
+	Collection<PublishPackage> getActivePackagesForItems(String siteId, List<String> paths, boolean includeChildren);
 
 	/**
 	 * Publish the deletion of the given paths.

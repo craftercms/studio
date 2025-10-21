@@ -102,11 +102,11 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	private final PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
 
 	@ConstructorProperties({"contentRepository", "retryingDatabaseOperationFacade", "itemService", "servicesConfig",
-			"auditService", "dependencyServiceInternal", "publishDao", "itemTargetDao", "siteService",
-			"generalLockService", "publishPackageAvailableActionResolver", "batchSqlSession", "transactionManager"})
+			"auditService", "dependencyService", "publishDao", "itemTargetDao", "siteService",
+			"generalLockService", "publishPackageAvailableActionResolver"})
 	public PublishServiceInternalImpl(GitContentRepository contentRepository, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 									  ItemService itemService, ServicesConfig servicesConfig, AuditService auditService,
-									  DependencyService dependencyServiceInternal, PublishDAO publishDao,
+									  DependencyService dependencyService, PublishDAO publishDao,
 									  ItemTargetDAO itemTargetDao,
 									  SitesService siteService, GeneralLockService generalLockService,
 									  PublishPackageAvailableActionResolver publishPackageAvailableActionResolver) {
@@ -115,7 +115,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		this.itemService = itemService;
 		this.servicesConfig = servicesConfig;
 		this.auditService = auditService;
-		this.dependencyService = dependencyServiceInternal;
+		this.dependencyService = dependencyService;
 		this.publishDao = publishDao;
 		this.itemTargetDao = itemTargetDao;
 		this.siteService = siteService;
@@ -235,7 +235,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@Override
-	public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final Collection<String> paths, final boolean includeChildren) {
+	public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final List<String> paths, final boolean includeChildren) {
 		return publishDao.getItemPackages(siteId, null, paths,
 			PublishPackage.PackageState.READY.value + PublishPackage.PackageState.PROCESSING.value,
 			ACTIVE_APPROVAL_STATES, includeChildren);

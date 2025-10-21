@@ -518,7 +518,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws ContentInPublishQueueException if any of the items is in the publish queue
 	 * @throws ActionDeniedException          if the user does not have write permission
 	 */
-	private void validateLifecycleResults(String siteId, String sourcePath, String targetPath, Collection<String> affectedPaths)
+	private void validateLifecycleResults(String siteId, String sourcePath, String targetPath, List<String> affectedPaths)
 			throws ServiceLayerException, ActionDeniedException {
 		// Check list is not empty or throw exception  (can't write empty set)
 		if (affectedPaths.isEmpty()) {
@@ -603,7 +603,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			affectedPaths.add(path);
 			try (content; LifecycleContent lifecycleContent = runLifecycle(siteId, null, path, () -> content, operation, null)) {
 				Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
-				validateLifecycleResults(siteId, null, path, lifecycleResultItems.keySet());
+				validateLifecycleResults(siteId, null, path, new ArrayList<>(lifecycleResultItems.keySet()));
 				Set<String> lifecycleItemPaths = lifecycleResultItems.values().stream()
 						.map(ContentLifecycleItem::repoPath)
 						.filter(p -> !affectedPaths.contains(p)) // Do not add path again
@@ -1431,7 +1431,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void assertNotInWorkflow(final String siteId, final Collection<String> paths, final boolean includeChildren)
+	public void assertNotInWorkflow(final String siteId, final List<String> paths, final boolean includeChildren)
 			throws ContentInPublishQueueException {
 		// No need to check for children, as the paths collection already includes them
 		Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, paths, includeChildren);
@@ -1561,7 +1561,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				.collect(toSet());
 
 		// check and fail if any of the items is part of a publish package
-		assertNotInWorkflow(siteId, deletePaths, false);
+		assertNotInWorkflow(siteId, new ArrayList<>(deletePaths), false);
 		String commitId = contentRepository.deleteContent(siteId, deletePaths, additionalItems.values(), newFolders);
 
 		if (contentRepository.publishedRepositoryExists(siteId)) {
@@ -1827,7 +1827,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		updateNavOrderForMove(siteId, sourcePath, lifecycleContents, sourcePathChildren);
 		// Consolidate the items into a single map
 		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
-		Collection<String> workflowAffectedPaths = getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems);
+		List<String> workflowAffectedPaths = getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems);
 		validateLifecycleResults(siteId, sourcePath, targetPath, workflowAffectedPaths);
 
 		Set<String> newFolders = getMissingFoldersForCopyOrMove(siteId, lifecycleItems.values());
@@ -1872,7 +1872,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Get the paths that are affected by the move or copy operation.
 	 * This includes the root target path and any other item added during the lifecycle.
 	 */
-	protected Collection<String> getMoveOrCopyWorkflowAffectedPaths(String targetPath, Map<String, ContentLifecycleItem> lifecycleItems) {
+	protected List<String> getMoveOrCopyWorkflowAffectedPaths(String targetPath, Map<String, ContentLifecycleItem> lifecycleItems) {
 		List<String> workflowAffectedPaths = new ArrayList<>();
 		workflowAffectedPaths.add(targetPath);
 		// The affected paths are the targetPath plus any other items that might have been added by the lifecycle

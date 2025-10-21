@@ -32,8 +32,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.ListUtils.partition;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState.*;
@@ -160,8 +163,21 @@ public interface PublishDAO {
 	 * @param packageId    the package id
 	 * @param publishItems the failed items
 	 */
-	void insertInitialPublishItems(@Param(PACKAGE_ID) long packageId,
-								   @Param(ITEMS) Collection<PublishItem> publishItems);
+	default void insertInitialPublishItems(long packageId,
+										   Collection<PublishItem> publishItems) {
+		for (PublishItem publishItem : publishItems) {
+			insertInitialPublishItem(packageId, publishItem);
+		}
+	}
+
+	/**
+	 * Insert the failed initial publish item into the publish_item table
+	 *
+	 * @param packageId   the package id
+	 * @param publishItem the failed item
+	 */
+	void insertInitialPublishItem(@Param(PACKAGE_ID) long packageId,
+								  @Param(ITEM) PublishItem publishItem);
 
 	/**
 	 * Update the site item states after the initial publish
@@ -490,9 +506,22 @@ public interface PublishDAO {
 	/**
 	 * Update the state and error (if any) for the given publish items
 	 *
-	 * @param items the publish item to update state and error columns for
+	 * @param items the publish items to update state and error columns for
 	 */
-	void updatePublishItemListState(@Param(ITEMS) Collection<PublishItem> items);
+	default void updatePublishItemListState(List<PublishItem> items) {
+		// We partition the list instead of using actual myBatis BATCH feature because
+		// this method is called inside a already existing transaction (without BATCH)
+		for (Collection<PublishItem> sublist : partition(items, MY_BATIS_QUERY_BATCH_SIZE)) {
+			updatePublishItemListStateInternal(sublist);
+		}
+	}
+
+	/**
+	 * Update the state and error (if any) for the given publish items
+	 *
+	 * @param items the publish items to update state and error columns for
+	 */
+	void updatePublishItemListStateInternal(@Param(ITEMS) Collection<PublishItem> items);
 
 	/**
 	 * Get a submitted package with READY state containing the given item
@@ -556,11 +585,16 @@ public interface PublishDAO {
 	 */
 	default Collection<PublishPackage> getItemPackages(final String siteId,
 													   final String target,
-													   final Collection<String> paths,
+													   final List<String> paths,
 													   final long packageState,
 													   final List<ApprovalState> approvalStates,
 													   final boolean includeChildren) {
-		return getItemPackages(siteId, target, paths, packageState, approvalStates, includeChildren, null, null);
+		Map<Long,PublishPackage> packages = new HashMap<>();
+		for (List<String> sublist : partition(paths, MY_BATIS_QUERY_BATCH_SIZE)) {
+			packages.putAll(getItemPackagesInternal(siteId, target, sublist, packageState, approvalStates, includeChildren).stream()
+				.collect(toMap(PublishPackage::getId, identity())));
+		}
+		return packages.values();
 	}
 
 
@@ -571,18 +605,14 @@ public interface PublishDAO {
 	 * @param paths           the paths of the items
 	 * @param packageState    the mask to apply to filter the package state
 	 * @param includeChildren whether to include the children of the paths in the search
-	 * @param offset          the offset to start from
-	 * @param limit           the max number of items to return
 	 * @return collection of matching packages
 	 */
-	Collection<PublishPackage> getItemPackages(@Param(SITE_ID) String siteId,
+	Collection<PublishPackage> getItemPackagesInternal(@Param(SITE_ID) String siteId,
 											   @Param(TARGET) String target,
 											   @Param(PATHS) Collection<String> paths,
 											   @Param(PACKAGE_STATE) Long packageState,
 											   @Param(APPROVAL_STATES) Collection<ApprovalState> approvalStates,
-											   @Param(INCLUDE_CHILDREN) boolean includeChildren,
-											   @Param(OFFSET) Integer offset,
-											   @Param(LIMIT) Integer limit);
+											   @Param(INCLUDE_CHILDREN) boolean includeChildren);
 
 	/**
 	 * Get the total number of packages matching the given filters

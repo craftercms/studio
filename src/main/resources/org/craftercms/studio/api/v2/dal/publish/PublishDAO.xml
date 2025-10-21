@@ -79,7 +79,6 @@
 			#{publishPackage.submitterComment},
 			#{publishPackage.packageType},
 			#{publishPackage.commitId})
-		;
 	</insert>
 
 	<insert id="insertItems">
@@ -104,7 +103,7 @@
 		</foreach>
 	</insert>
 
-	<insert id="insertInitialPublishItems">
+	<insert id="insertInitialPublishItem">
 		INSERT INTO publish_item
 		(package_id,
 		path,
@@ -115,10 +114,7 @@
 		publish_state,
 		live_error,
 		staging_error)
-		VALUES
-		<!-- TODO: review max parameters count configs and batch as necessary -->
-		<foreach collection="items" item="item" index="index" separator=",">
-			(#{packageId},
+		VALUES (#{packageId},
 			#{item.path},
 			#{item.livePreviousPath},
 			#{item.stagingPreviousPath},
@@ -127,7 +123,6 @@
 			#{item.publishState},
 			#{item.liveError},
 			#{item.stagingError})
-		</foreach>
 	</insert>
 
 	<update id="updateItemStatesForInitialPublish">
@@ -376,8 +371,7 @@
 		WHERE package_id = #{packageId}
 	</update>
 
-	<update id="updatePublishItemListState">
-		<!-- TODO: review max parameters count configs and batch as necessary -->
+	<update id="updatePublishItemListStateInternal">
 		UPDATE publish_item pi
 		INNER JOIN (
 		<foreach collection="items" item="item" index="index" separator="UNION">
@@ -439,10 +433,9 @@
 		</if>
 	</sql>
 
-	<select id="getItemPackages" resultMap="PublishPackageMap">
+	<select id="getItemPackagesInternal" resultMap="PublishPackageMap">
 		<include refid="getAllPackagesForFilters"/>
 		<include refid="packagePathsFilter"/>
-		<include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
 	</select>
 
 	<select id="getItemPackagesCount">
