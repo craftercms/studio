@@ -387,9 +387,9 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private void syncDatabaseWithRepo(Site site, List<RepoOperation> repoOperationsDelta) {
 		final Set<String> allAncestors = new HashSet<>();
 		TimeUtils.logExecutionTime(() -> processRepoOperations(site, repoOperationsDelta, allAncestors), logger, "Process repo operations", Level.DEBUG);
-		TimeUtils.logExecutionTime(() -> updateParentId(site, getCreatedPaths(repoOperationsDelta)), logger, "Update parent id", Level.DEBUG);
+		TimeUtils.logExecutionTime(() -> itemServiceInternal.updateParentId(site.getId(), getCreatedPaths(repoOperationsDelta)), logger, "Update parent id", Level.DEBUG);
 		TimeUtils.logExecutionTime(() -> addMissingEmptyFiles(site, getCreatedPaths(repoOperationsDelta)), logger, "Add missing empty files", Level.DEBUG);
-		TimeUtils.logExecutionTime(() -> updateParentId(site, allAncestors.stream().toList()), logger, "Update parent id for created paths' ancestors", Level.DEBUG);
+		TimeUtils.logExecutionTime(() -> itemServiceInternal.updateParentId(site.getId(), allAncestors.stream().toList()), logger, "Update parent id for created paths' ancestors", Level.DEBUG);
 	}
 
 	/**
@@ -402,15 +402,6 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			.map(RepoOperation::getPath)
 			.filter(p -> !p.endsWith(EMPTY_FILE_END))
 			.toList();
-	}
-
-	/**
-	 * Update the parent id for the given paths
-	 */
-	private void updateParentId(Site site, List<String> paths) {
-		for (List<String> pathsBatch : ListUtils.partition(paths, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
-			itemServiceInternal.updateParentId(site.getId(), pathsBatch);
-		}
 	}
 
 	/**

@@ -599,7 +599,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		generalLockService.lock(sandboxRepoLockKey);
 		try {
 			Set<String> affectedPaths = new HashSet<>();
-			trySetSystemProcessing(siteId, affectedPaths);
+			trySetSystemProcessing(siteId, List.of(path));
 			affectedPaths.add(path);
 			try (content; LifecycleContent lifecycleContent = runLifecycle(siteId, null, path, () -> content, operation, null)) {
 				Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
