@@ -20,7 +20,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -75,7 +74,9 @@ import static java.lang.String.format;
 import static java.time.Instant.now;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -182,7 +183,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			// commits added after this point will be processed in subsequent executions of this method)
 			final String lastCommitInRepo = contentRepository.getRepoLastCommitId(siteId);
 			final String lastProcessedCommit = sitesService.getLastCommitId(siteId);
-			if (StringUtils.equals(lastCommitInRepo, lastProcessedCommit)) {
+			if (CS.equals(lastCommitInRepo, lastProcessedCommit)) {
 				logger.debug("Site '{}' is already synced with the repository up to commit '{}'", siteId, lastCommitInRepo);
 				return;
 			}
@@ -539,11 +540,11 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 */
 	private ItemMetadata getItemMetadata(String siteId, String path) throws SiteNotFoundException {
 		ItemMetadata result = new ItemMetadata(path);
-		if (startsWith(path, ROOT_PATTERN_PAGES) ||
-			startsWith(path, ROOT_PATTERN_ASSETS)) {
+		if (CS.startsWith(path, ROOT_PATTERN_PAGES) ||
+			CS.startsWith(path, ROOT_PATTERN_ASSETS)) {
 			result.previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
 		}
-		if (!endsWith(path, XML_PATTERN)) {
+		if (!CS.endsWith(path, XML_PATTERN)) {
 			return result;
 		}
 		try {
@@ -726,8 +727,8 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
 		boolean folderExists = contentRepository.contentExists(site.getSiteId(), folder);
 		// If the folder exists and the deleted file is the index file, then we need to update the parent id for the children
-		if (folderExists && startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) &&
-			endsWith(repoOperation.getPath(), SLASH_INDEX_FILE)) {
+		if (folderExists && CS.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) &&
+			CS.endsWith(repoOperation.getPath(), SLASH_INDEX_FILE)) {
 			itemDao.updateDeletedPageChildren(site.getId(), folder);
 		}
 		itemDao.deleteBySiteAndPath(site.getId(), repoOperation.getPath(), false);

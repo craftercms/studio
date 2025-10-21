@@ -62,6 +62,7 @@ import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.*;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -289,7 +290,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 		publishItems.addAll(union(dependencies, userRequestedPaths).stream()
 			.filter(path -> path.endsWith(DmConstants.SLASH_INDEX_FILE))
-			.map(path -> StringUtils.removeEnd(path, DmConstants.SLASH_INDEX_FILE))
+			.map(path -> CS.removeEnd(path, DmConstants.SLASH_INDEX_FILE))
 			.map(path -> createPublishItem(path, DELETE, false))
 			.toList());
 
@@ -308,7 +309,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			itemTargets.stream()
 				.filter(itemTarget -> StringUtils.isNotEmpty(itemTarget.getPreviousPath()))
 				.forEach(itemTarget -> {
-					boolean isLiveTarget = StringUtils.equals(liveEnvironment, itemTarget.getTarget());
+					boolean isLiveTarget = CS.equals(liveEnvironment, itemTarget.getTarget());
 					if (isLiveTarget) {
 						item.setLivePreviousPath(itemTarget.getPreviousPath());
 					} else {
@@ -666,7 +667,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			PublishPackage publishPackage = createPackage(site, target, packageType,
 				requestApproval, schedule, title, comment);
 
-			boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site.getSiteId()), target);
+			boolean isLiveTarget = CS.equals(servicesConfig.getLiveEnvironment(site.getSiteId()), target);
 			retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, isLiveTarget));
 			return publishPackage;
 		} finally {
