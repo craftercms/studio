@@ -74,7 +74,7 @@
 			#{publishPackage.title},
 			#{publishPackage.schedule},
 			#{publishPackage.approvalState},
-			#{readyState},
+			${packageReadyState},
 			#{publishPackage.submitterId},
 			#{publishPackage.submitterComment},
 			#{publishPackage.packageType},

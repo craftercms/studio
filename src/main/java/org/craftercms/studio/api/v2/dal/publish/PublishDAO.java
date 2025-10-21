@@ -17,14 +17,15 @@
 package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem.PublishState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState;
-import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -40,6 +41,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalSt
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
+import static org.craftercms.studio.api.v2.utils.DalUtils.MY_BATIS_QUERY_BATCH_SIZE;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 
 /**
@@ -52,7 +54,6 @@ public interface PublishDAO {
 	String TARGET = "target";
 	String PACKAGE_ID = "packageId";
 	String PUBLISH_PACKAGE = "publishPackage";
-	String PACKAGE_READY_STATE = "readyState";
 	String ITEMS = "items";
 	String APPROVAL_STATES = "approvalStates";
 	String PACKAGE_STATE = "packageState";
@@ -95,9 +96,12 @@ public interface PublishDAO {
 	 */
 	@Transactional
 	default void insertPackageAndItems(final PublishPackage publishPackage, final Collection<PublishItem> publishItems, boolean isLiveTarget) {
-		insertPackage(publishPackage, READY.value);
+		insertPackage(publishPackage);
 		if (!isEmpty(publishItems)) {
-			insertItems(publishPackage.getId(), publishItems, PENDING.value);
+			for (List<PublishItem> sublist : ListUtils.partition(List.copyOf(publishItems), MY_BATIS_QUERY_BATCH_SIZE)) {
+				insertItems(publishPackage.getId(), sublist, PENDING.value);
+			}
+
 			insertItemPublishItems(publishPackage.getId());
 			updateItemStateBitsForNewPackage(publishPackage, isLiveTarget);
 		}
@@ -148,7 +152,7 @@ public interface PublishDAO {
 	 *
 	 * @param publishPackage the package to insert
 	 */
-	void insertPackage(@Param(PUBLISH_PACKAGE) PublishPackage publishPackage, @Param(PACKAGE_READY_STATE) long packageState);
+	void insertPackage(@Param(PUBLISH_PACKAGE) PublishPackage publishPackage);
 
 	/**
 	 * Insert the failed initial publish items into the publish_item table

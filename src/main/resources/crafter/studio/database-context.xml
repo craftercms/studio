@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -89,16 +89,6 @@
 			</props>
 		</property>
 	</bean>
-
-	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
-		<constructor-arg index="0" ref="sqlSessionFactory"/>
-	</bean>
-
-	<!-- scan for mappers and let them be autowired -->
-	<!-- bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" depends-on="databaseInitializer">
-	    <property name="basePackage" value="org.craftercms.studio.api.v1.dal,org.craftercms.studio.api.v2.dal" />
-	    <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
-	</bean -->
 
 	<bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler">
 		<property name="maxRetries"
