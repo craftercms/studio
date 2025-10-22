@@ -255,8 +255,21 @@
 		AND i.path IN
 			<foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
 				#{path}
-				<if test="preferContent">, CONCAT(#{path}, '/index.xml')</if>
+				<if test="preferContent">, CONCAT(TRIM(TRAILING '/' FROM #{path}), '/index.xml')</if>
 			</foreach>
+		<if test="preferContent">
+			<!-- Prefer content means to get a page (if it exists) instead of its containing folder -->
+			AND (
+					i.system_type &lt;&gt; '${systemTypeFolder}'
+				OR
+					NOT EXISTS(SELECT *
+								FROM item page
+								WHERE page.site_id = i.site_id
+								AND page.system_type = '${systemTypePage}'
+								AND page.path = CONCAT(i.path, '/index.xml')
+					)
+			)
+		</if>
 		<include refid="filterItemChildren"/>
 		GROUP BY i.id
 	</select>
