@@ -17,7 +17,6 @@
 package org.craftercms.studio.api.v2.dal.publish;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.ibatis.annotations.Param;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v2.dal.ItemState;
@@ -32,6 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
+import static java.util.List.copyOf;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
@@ -101,7 +101,7 @@ public interface PublishDAO {
 	default void insertPackageAndItems(final PublishPackage publishPackage, final Collection<PublishItem> publishItems, boolean isLiveTarget) {
 		insertPackage(publishPackage);
 		if (!isEmpty(publishItems)) {
-			for (List<PublishItem> sublist : ListUtils.partition(List.copyOf(publishItems), MY_BATIS_QUERY_BATCH_SIZE)) {
+			for (List<PublishItem> sublist : partition(copyOf(publishItems), MY_BATIS_QUERY_BATCH_SIZE)) {
 				insertItems(publishPackage.getId(), sublist, PENDING.value);
 			}
 
