@@ -157,10 +157,9 @@ public interface ItemService {
 	 * @param name        file name
 	 * @param contentType content type
 	 * @throws ServiceLayerException if there is an error persisting the item
-	 * @throws UserNotFoundException if the user is not found
 	 */
 	void persistItemAfterRenameContent(String siteId, String path, String name, String contentType)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+		throws ServiceLayerException, AuthenticationException;
 
 	/**
 	 * Move item
