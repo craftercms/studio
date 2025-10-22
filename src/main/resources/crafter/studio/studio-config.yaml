@@ -1076,7 +1076,7 @@ studio.scripting.sandbox.blacklist.enable: true
 # The location of the default blacklist to use (this will have no effect if the sandbox is disabled)
 studio.scripting.sandbox.blacklist.path: classpath:crafter/studio/groovy/blacklist
 # Indicates if the whitelist should be enabled (this will have no effect if the sandbox is disabled)
-studio.scripting.sandbox.whitelist.enable: true
+studio.scripting.sandbox.whitelist.enable: false
 # The location of the default whitelist to use (this will have no effect if the sandbox is disabled)
 studio.scripting.sandbox.whitelist.path: classpath:crafter/studio/groovy/whitelist
 # List of patterns for that is allowed to call as `staticMethod java.lang.System getenv java.lang.String` parameter (regexes separated by commas)
