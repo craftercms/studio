@@ -26,7 +26,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
@@ -52,13 +54,14 @@ public class DependencyServiceInternalImplTest {
 		LightItem dep2 = new LightItem();
 		dep2.setPath(DEPENDENT_ITEM_2);
 		when(dependencyDAO.getDependentItems(SITE_ID, Collections.singletonList(PATH))).thenReturn(
-			List.of(dep1, dep2)
+				List.of(dep1, dep2)
 		);
 	}
 
 	@Test
 	public void getDependentItemsTest() {
-		List<LightItem> items = List.copyOf(serviceInternal.getDependentItems(SITE_ID, PATH));
+		List<LightItem> items = new ArrayList<>(serviceInternal.getDependentItems(SITE_ID, PATH));
+		items.sort(Comparator.comparing(LightItem::getPath));
 		verify(dependencyDAO, times(1)).getDependentItems(SITE_ID, Collections.singletonList(PATH));
 		assertEquals(2, items.size());
 		assertEquals(DEPENDENT_ITEM_1, items.get(0).getPath());
