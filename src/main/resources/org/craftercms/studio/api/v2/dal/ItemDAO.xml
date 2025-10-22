@@ -252,6 +252,7 @@
 	<select id="getContentItemsByPathInternal" resultMap="ContentItemMap">
 		<include refid="detailedItemSelect"/>
 		WHERE s.id = #{siteId}
+		AND i.ignored = 0
 		AND i.path IN
 			<foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
 				#{path}
