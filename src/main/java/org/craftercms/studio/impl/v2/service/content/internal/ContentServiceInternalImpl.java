@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -120,6 +119,7 @@ import static org.apache.commons.collections4.SetUtils.union;
 import static org.apache.commons.io.FilenameUtils.*;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -243,7 +243,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		if (!contentRepository.contentExists(siteId, path)) {
 			throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
 		}
-		String parentFolderPath = replace(path, SLASH_INDEX_FILE, "");
+		String parentFolderPath = CS.replace(path, SLASH_INDEX_FILE, "");
 		Site site = siteService.getSite(siteId);
 		int total = itemDao.getChildrenByPathTotal(site.getId(), parentFolderPath, locale, keyword, systemTypes,
 				List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), excludes);
@@ -342,7 +342,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
 		}
 		Site site = siteService.getSite(siteId);
-		ContentItem item = null;
+		ContentItem item;
 		if (preferContent) {
 			item = itemDao.getContentItemByPathPreferContent(site.getId(), path);
 		} else {
@@ -669,8 +669,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String targetPath;
 		if (isPageDescriptor(from) || isPageDescriptor(to)) {
 			// Normalize the paths. If we're moving a page we need to move the folder anyway
-			sourcePath = removeEnd(from, SLASH_INDEX_FILE);
-			targetPath = removeEnd(to, SLASH_INDEX_FILE);
+			sourcePath = CS.removeEnd(from, SLASH_INDEX_FILE);
+			targetPath = CS.removeEnd(to, SLASH_INDEX_FILE);
 		} else {
 			sourcePath = from;
 			targetPath = to;
@@ -688,7 +688,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 						// No content lifecycle for a folder
 						continue;
 					}
-					boolean isRootItem = StringUtils.equals(sourcePath, removeEnd(itemPath, SLASH_INDEX_FILE));
+					boolean isRootItem = CS.equals(sourcePath, CS.removeEnd(itemPath, SLASH_INDEX_FILE));
 					String newPath = movePath(sourcePath, targetPath, itemPath);
 					LifecycleContent lifecycleContent = runLifecycle(siteId, itemPath, newPath,
 							() -> loadContent(siteId, itemPath), operation, isRootItem ? pastedPath.newLabel : null);
@@ -1050,7 +1050,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected void validateMoveOrCopyOperation(String siteId, String sourcePath, String targetPath)
 			throws InvalidParametersException, ContentNotFoundException {
-		if (!StringUtils.equals(getExtension(sourcePath), getExtension(targetPath))) {
+		if (!CS.equals(getExtension(sourcePath), getExtension(targetPath))) {
 			throw new InvalidParametersException(format("Cannot copy or move content from '%s' to '%s': " +
 					"source and target paths must have the same extension", sourcePath, targetPath));
 		}
@@ -1227,7 +1227,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected Comparator<String> creationPathComparator() {
 		// index.xml should go first
 		// Otherwise sort by length so parents go first
-		return Comparator.<String, Integer>comparing(s -> removeEnd(s, DmConstants.INDEX_FILE).length())
+		return Comparator.<String, Integer>comparing(s -> CS.removeEnd(s, DmConstants.INDEX_FILE).length())
 				// If they have the same length after removing index.xml, we are comparing folder and page for the same path:
 				// 	/site/website/en/index.xml
 				// 	/site/website/en
@@ -1262,7 +1262,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			Item parent = itemService.getItem(siteId, parentItemPath, isPage);
 			itemService.persistItemAfterCreate(siteId, path, false, parent.getId());
 			if (isPage) {
-				itemService.updateNewPageChildren(siteId, removeEnd(path, SLASH_INDEX_FILE));
+				itemService.updateNewPageChildren(siteId, CS.removeEnd(path, SLASH_INDEX_FILE));
 			}
 		} else {
 			itemService.persistItemAfterWrite(siteId, path, false);
@@ -1414,7 +1414,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 		auditLogParameters.addAll(resultItems.stream()
 				.map(WriteContentResultItem::path)
-				.filter(itemPath -> path == null || !StringUtils.equals(itemPath, path))
+				.filter(itemPath -> path == null || !CS.equals(itemPath, path))
 				.map(itemPath -> {
 					AuditLogParameter auditLogParameter = new AuditLogParameter();
 					auditLogParameter.setTargetId(getContentItemId(siteId, itemPath));
@@ -1641,7 +1641,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			}
 			var username = getCurrentUsername();
 			boolean lockedByAnotherUser = ItemState.isUserLocked(item.getState()) &&
-					Objects.nonNull(item.getLockOwner()) && !StringUtils.equals(item.getLockOwner().getUsername(), username);
+					Objects.nonNull(item.getLockOwner()) && !CS.equals(item.getLockOwner().getUsername(), username);
 			if (lockedByAnotherUser) {
 				throw new ContentLockedByAnotherUserException(item.getLockOwner().getUsername());
 			}
@@ -1753,8 +1753,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String targetPath;
 		if (isPageDescriptor(from) || isPageDescriptor(to)) {
 			// Normalize the paths. If we're moving a page we need to move the folder anyway
-			sourcePath = removeEnd(from, SLASH_INDEX_FILE);
-			targetPath = removeEnd(to, SLASH_INDEX_FILE);
+			sourcePath = CS.removeEnd(from, SLASH_INDEX_FILE);
+			targetPath = CS.removeEnd(to, SLASH_INDEX_FILE);
 		} else {
 			sourcePath = from;
 			targetPath = to;
@@ -1818,7 +1818,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				.flatMap(Collection::stream)
 				.map(i -> defaultIfEmpty(i.sourcePath(), i.repoPath()))
 				// If the path is a page descriptor, we need to add the folder as well
-				.flatMap(p -> isPageDescriptor(p) ? Stream.of(removeEnd(p, SLASH_INDEX_FILE), p) : Stream.of(p))
+				.flatMap(p -> isPageDescriptor(p) ? Stream.of(CS.removeEnd(p, SLASH_INDEX_FILE), p) : Stream.of(p))
 				.toList();
 	}
 
@@ -1949,7 +1949,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		ArrayList<LifecycleContent> lifecycleContents = new ArrayList<>(sourcePathChildren.size());
 		try {
 			for (String itemSourcePath : sourcePathChildren) {
-				boolean isRootItem = StringUtils.equals(sourcePath, removeEnd(itemSourcePath, SLASH_INDEX_FILE));
+				boolean isRootItem = CS.equals(sourcePath, CS.removeEnd(itemSourcePath, SLASH_INDEX_FILE));
 				String itemTargetPath = movePath(sourcePath, targetPath, itemSourcePath);
 				ThrowingSupplier<InputStream> contentSupplier = isRootItem && newContent != null
 						? newContent
@@ -2007,7 +2007,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		if (isNotEmpty(newLabel)) {
 			updateSingleDocumentNode(root, ELM_FILE_NAME, getName(path));
 			if (isPageDescriptor(path)) {
-				String folder = FilenameUtils.getBaseName(removeEnd(path, SLASH_INDEX_FILE));
+				String folder = FilenameUtils.getBaseName(CS.removeEnd(path, SLASH_INDEX_FILE));
 				updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
 			}
 			updateSingleDocumentNode(root, ELM_INTERNAL_NAME, newLabel);
@@ -2049,7 +2049,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					lifecycleContent.getItems().values().stream()
 							.filter(item -> isPageDescriptor(item.sourcePath()))
 							// Update the nav order if the item is the root of the move operation OR if it was added by the lifecycle
-							.filter(item -> StringUtils.equals(targetPath, removeEnd(item.repoPath(), SLASH_INDEX_FILE))
+							.filter(item -> CS.equals(targetPath, CS.removeEnd(item.repoPath(), SLASH_INDEX_FILE))
 									|| !sourcePathChildren.contains(item.sourcePath()))
 							.toList();
 
@@ -2086,12 +2086,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws ServiceLayerException if an error occurs while calculating the target path
 	 */
 	protected PastedPath constructNewPathForCutCopy(String site, String from, String to) throws ServiceLayerException {
-		String sourcePath = removeEnd(from, FILE_SEPARATOR);
-		String targetPath = removeEnd(to, FILE_SEPARATOR);
+		String sourcePath = CS.removeEnd(from, FILE_SEPARATOR);
+		String targetPath = CS.removeEnd(to, FILE_SEPARATOR);
 		if (isPageDescriptor(from) || isPageDescriptor(to)) {
 			// Normalize the paths. If we're moving a page we need to move the folder anyway
-			sourcePath = removeEnd(from, SLASH_INDEX_FILE);
-			targetPath = removeEnd(to, SLASH_INDEX_FILE);
+			sourcePath = CS.removeEnd(from, SLASH_INDEX_FILE);
+			targetPath = CS.removeEnd(to, SLASH_INDEX_FILE);
 		}
 		PastedPath result = constructNewPathForCutCopyInternal(site, sourcePath, targetPath);
 		if (isPageDescriptor(from)) {
