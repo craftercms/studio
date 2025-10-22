@@ -506,7 +506,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * Create publish items for hard dependencies.
 	 * For each non-delete PublishItem, get hard dependencies and add them to the publishItemsByPath map.
 	 */
-	private void createPublishItemsForHardDeps(Site site, Map<String, PublishItem> publishItemsByPath) throws SiteNotFoundException {
+	private void createPublishItemsForHardDeps(Site site, String target, Map<String, PublishItem> publishItemsByPath) throws ServiceLayerException {
 		Collection<String> paths = publishItemsByPath.keySet().stream()
 			.filter(p -> publishItemsByPath.get(p).getAction() != DELETE)
 			.collect(toList());
@@ -514,7 +514,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			return;
 		}
 		publishItemsByPath.putAll(
-			dependencyService.getHardDependencies(site.getSiteId(), paths).stream()
+			dependencyService.getHardDependencies(site.getSiteId(), target, paths).stream()
 				.map(LightItem::getPath)
 				.filter(dep -> !publishItemsByPath.containsKey(dep))
 				.map(dep -> createPublishItem(dep, ADD, false))
@@ -757,7 +757,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Map<String, PublishItem> publishItemsByPath = new HashMap<>();
 		createPublishItemsFromCommitIds(site, commitIds, publishItemsByPath);
 		createPublishItemsFromPaths(site, paths, publishItemsByPath, target);
-		createPublishItemsForHardDeps(site, publishItemsByPath);
+		createPublishItemsForHardDeps(site, target, publishItemsByPath);
 
 		if (publishItemsByPath.isEmpty()) {
 			throw new InvalidParametersException("Failed to submit publish package: No items to publish");
