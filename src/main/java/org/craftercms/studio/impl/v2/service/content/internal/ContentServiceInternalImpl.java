@@ -537,6 +537,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				throw new ActionDeniedException(PERMISSION_CONTENT_DELETE, sourcePath);
 			}
 			assertNotInWorkflow(siteId, List.of(sourcePath), true);
+			// Validate "not in workflow" for all affected paths outside of target
+			List<String> externalAffectedPaths = affectedPaths.stream()
+					.filter(p -> !directoryContains(targetPath, p))
+					.filter(p -> !directoryContains(sourcePath, p))
+					.toList();
+			assertNotInWorkflow(siteId, externalAffectedPaths, false);
 		} else {
 			// Fail to continue the write operation if the item is in workflow
 			assertNotInWorkflow(siteId, affectedPaths, false);
