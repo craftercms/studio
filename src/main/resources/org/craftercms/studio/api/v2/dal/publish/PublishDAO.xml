@@ -185,7 +185,7 @@
 		<foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
 			#{approvalState}
 		</foreach>
-		AND pp.package_state = #{readyState}
+		AND pp.package_state = ${packageReadyState}
 		AND (pp.schedule IS NULL OR pp.schedule &lt; NOW())
 		<!-- NULL is the lowest value in MariaDB -->
 		ORDER BY IFNULL(pp.schedule, pp.submitted_on), pp.submitted_on

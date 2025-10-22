@@ -213,7 +213,7 @@ public interface PublishDAO {
 	 * @return the next publish packages to process
 	 */
 	default Map<String, List<PublishPackageId>> getNextPublishPackages() {
-		Collection<PublishPackageId> packageIds = getNextPublishPackages(List.of(APPROVED), READY.value, List.of(Site.State.READY));
+		Collection<PublishPackageId> packageIds = getNextPublishPackages(List.of(APPROVED), List.of(Site.State.READY));
 		if (CollectionUtils.isEmpty(packageIds)) {
 			return emptyMap();
 		}
@@ -227,12 +227,10 @@ public interface PublishDAO {
 	 * Get the next publish packages to process for every site matching the given states
 	 *
 	 * @param approvalStates the package approval states to match
-	 * @param readyState     the package ready state to match
 	 * @param siteStates     the site states to match
 	 * @return the next publish packages to process
 	 */
 	Collection<PublishPackageId> getNextPublishPackages(@Param(APPROVAL_STATES) List<ApprovalState> approvalStates,
-														@Param(READY_STATE) long readyState,
 														@Param(SITE_STATES) List<String> siteStates);
 
 	/**
