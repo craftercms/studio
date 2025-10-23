@@ -20,15 +20,18 @@ import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import static java.util.List.copyOf;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.collections4.ListUtils.partition;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
+import static org.craftercms.studio.api.v2.utils.DalUtils.MY_BATIS_QUERY_BATCH_SIZE;
 
 /**
  * @author Dejan Brkic
@@ -43,17 +46,23 @@ public interface DependencyDAO {
 	 * @param site                             site identifier
 	 * @param paths                            list of content paths
 	 * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
-	 * @param modifiedMask                     state bit mask for modified item
-	 * @param newMask                          state bit mask for new item
 	 * @return List of soft dependencies
 	 */
-	List<LightItem> getSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
-											   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-											   @Param(MODIFIED_MASK) long modifiedMask,
-											   @Param(NEW_MASK) long newMask);
+	default Collection<LightItem> getSoftDependenciesForList(String site, Set<String> paths,
+															 List<String> itemSpecificDependenciesPatterns) {
+		Map<String, LightItem> result = new HashMap<>();
+		for (List<String> sublist : partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE)) {
+			result.putAll(getSoftDependenciesForListInternal(site, sublist,
+					itemSpecificDependenciesPatterns, ItemState.MODIFIED_MASK, ItemState.NEW_MASK).stream()
+					.collect(toMap(LightItem::getPath, identity())));
+		}
+		return result.values();
+	}
 
 	/**
-	 * Get publishing soft dependencies from DB for list of content paths
+	 * Get soft dependencies from DB for list of content paths
+	 * This query is recursive, so it will get soft deps of soft deps, filtering the
+	 * non-new/non-edited items at the end.
 	 *
 	 * @param site                             site identifier
 	 * @param paths                            list of content paths
@@ -62,11 +71,51 @@ public interface DependencyDAO {
 	 * @param newMask                          state bit mask for new item
 	 * @return List of soft dependencies
 	 */
-	List<LightItem> getPublishingSoftDependenciesForList(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
-														 @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-														 @Param(MODIFIED_MASK) long modifiedMask,
-														 @Param(NEW_MASK) long newMask,
-														 @Param(TARGET) String target);
+	List<LightItem> getSoftDependenciesForListInternal(@Param(SITE_ID) String site, @Param(PATHS) Collection<String> paths,
+													   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+													   @Param(MODIFIED_MASK) long modifiedMask,
+													   @Param(NEW_MASK) long newMask);
+
+	/**
+	 * Get publishing soft dependencies from DB for list of content paths
+	 * This query is not recursive, so it will get only direct soft deps, including
+	 * the new items only.
+	 *
+	 * @param site                             site identifier
+	 * @param paths                            list of content paths
+	 * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
+	 * @return List of soft dependencies
+	 */
+	default Collection<LightItem> getPublishingSoftDependenciesForList(String site, Collection<String> paths,
+																	   List<String> itemSpecificDependenciesPatterns,
+																	   String target) {
+		Map<String, LightItem> result = new HashMap<>();
+		for (List<String> sublist : partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE)) {
+			result.putAll(getPublishingSoftDependenciesForListInternal(site, new HashSet<>(sublist),
+					itemSpecificDependenciesPatterns, ItemState.MODIFIED_MASK, ItemState.NEW_MASK, target).stream()
+					.collect(toMap(LightItem::getPath, identity())));
+		}
+
+		return result.values();
+	}
+
+	/**
+	 * Get publishing soft dependencies from DB for list of content paths
+	 * This query is not recursive, so it will get only direct soft deps, including
+	 * the new items only.
+	 *
+	 * @param site                             site identifier
+	 * @param paths                            list of content paths
+	 * @param itemSpecificDependenciesPatterns list of patterns that define item specific dependencies
+	 * @param modifiedMask                     state bit mask for modified item
+	 * @param newMask                          state bit mask for new item
+	 * @return List of soft dependencies
+	 */
+	List<LightItem> getPublishingSoftDependenciesForListInternal(@Param(SITE_ID) String site, @Param(PATHS) Set<String> paths,
+																 @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+																 @Param(MODIFIED_MASK) long modifiedMask,
+																 @Param(NEW_MASK) long newMask,
+																 @Param(TARGET) String target);
 
 	/**
 	 * Get hard dependencies from DB for list of content paths
@@ -77,13 +126,17 @@ public interface DependencyDAO {
 	 * @param isLiveTarget                     true if publishing target is live, false if staging
 	 * @return List of hard dependencies
 	 */
-	default List<LightItem> getHardDependenciesForList(final String site, final String target, final Collection<String> paths,
-													   final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
-		long newMaskOn = NEW.value;
+	default Collection<LightItem> getHardDependenciesForList(final String site, final String target, final Collection<String> paths,
+															 final List<String> itemSpecificDependenciesPatterns, boolean isLiveTarget) {
 		long newMaskOff = isLiveTarget ? LIVE.value : STAGED.value;
-		long modifiedMask = MODIFIED.value;
-		return getHardDependenciesForList(site, target, paths, itemSpecificDependenciesPatterns,
-			CONTENT_TYPE_FOLDER, newMaskOn, newMaskOff, modifiedMask, isLiveTarget);
+
+		Map<String, LightItem> result = new HashMap<>();
+		for (List<String> sublist : partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE)) {
+			result.putAll(getHardDependenciesForListInternal(site, target, sublist, itemSpecificDependenciesPatterns,
+					CONTENT_TYPE_FOLDER, NEW.value, newMaskOff, MODIFIED.value, isLiveTarget).stream()
+					.collect(toMap(LightItem::getPath, identity())));
+		}
+		return result.values();
 	}
 
 	/**
@@ -101,14 +154,14 @@ public interface DependencyDAO {
 	 * @param isLiveTarget                     true if publishing target is live, false if staging
 	 * @return List of hard dependencies
 	 */
-	List<LightItem> getHardDependenciesForList(@Param(SITE_ID) String site, @Param(TARGET) String target,
-											   @Param(PATHS) Collection<String> paths,
-											   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
-											   @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-											   @Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
-											   @Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
-											   @Param(MODIFIED_MASK) long modifiedMask,
-											   @Param(IS_LIVE_TARGET) boolean isLiveTarget);
+	List<LightItem> getHardDependenciesForListInternal(@Param(SITE_ID) String site, @Param(TARGET) String target,
+													   @Param(PATHS) Collection<String> paths,
+													   @Param(REGEX) List<String> itemSpecificDependenciesPatterns,
+													   @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+													   @Param(NEW_IN_TARGET_MASK_ON) long newInTargetMaskOn,
+													   @Param(NEW_IN_TARGET_MASK_OFF) long newInTargetMaskOff,
+													   @Param(MODIFIED_MASK) long modifiedMask,
+													   @Param(IS_LIVE_TARGET) boolean isLiveTarget);
 
 	/**
 	 * Get items depending on given paths
@@ -117,7 +170,23 @@ public interface DependencyDAO {
 	 * @param paths  list of content paths
 	 * @return List of items depending on given paths
 	 */
-	List<LightItem> getDependentItems(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
+	default Collection<LightItem> getDependentItems(String siteId, List<String> paths) {
+		Map<String, LightItem> result = new HashMap<>();
+		for (List<String> sublist : partition(paths, MY_BATIS_QUERY_BATCH_SIZE)) {
+			result.putAll(getDependentItemsInternal(siteId, sublist).stream()
+					.collect(toMap(LightItem::getPath, identity())));
+		}
+		return result.values();
+	}
+
+	/**
+	 * Get items depending on given paths
+	 *
+	 * @param siteId site identifier
+	 * @param paths  list of content paths
+	 * @return List of items depending on given paths
+	 */
+	List<LightItem> getDependentItemsInternal(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
 
 	/**
 	 * Get item specific dependencies for given paths
@@ -127,17 +196,35 @@ public interface DependencyDAO {
 	 * @param regex  list of patterns that define item specific dependencies
 	 * @return list of item specific dependencies
 	 */
-	List<LightItem> getItemSpecificDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) Collection<String> paths,
-												@Param(REGEX) List<String> regex);
+	default List<LightItem> getItemSpecificDependencies(String siteId, Collection<String> paths,
+														List<String> regex) {
+		Map<String, LightItem> result = new HashMap<>();
+		for (List<String> sublist : partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE)) {
+			result.putAll(getItemSpecificDependenciesInternal(siteId, sublist, regex).stream()
+					.collect(toMap(LightItem::getPath, identity())));
+		}
+		return new ArrayList<>(result.values());
+	}
 
 	/**
-	 * Get all valid dependencies for given paths.
+	 * Get item specific dependencies for given paths
+	 *
+	 * @param siteId site identifier
+	 * @param paths  list of content paths
+	 * @param regex  list of patterns that define item specific dependencies
+	 * @return list of item specific dependencies
+	 */
+	List<LightItem> getItemSpecificDependenciesInternal(@Param(SITE_ID) String siteId, @Param(PATHS) Collection<String> paths,
+														@Param(REGEX) List<String> regex);
+
+	/**
+	 * Get all valid dependencies for given path.
 	 *
 	 * @param siteId the site id
-	 * @param paths  the list of source content paths to get dependencies for
+	 * @param path   the content path to get dependencies for
 	 * @return a collection of {@link LightItem} representing the valid dependencies
 	 */
-	Collection<LightItem> getDependencies(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths);
+	Collection<LightItem> getDependencies(@Param(SITE_ID) String siteId, @Param(PATH) String path);
 
 	/**
 	 * Delete the dependencies of sourcePath
@@ -152,7 +239,18 @@ public interface DependencyDAO {
 	 *
 	 * @param dependencies the list of dependencies to insert
 	 */
-	void insertItemDependencies(@Param(DEPENDENCIES) List<Dependency> dependencies);
+	default void insertItemDependencies(List<Dependency> dependencies) {
+		for (List<Dependency> sublist : partition(dependencies, MY_BATIS_QUERY_BATCH_SIZE)) {
+			insertItemDependenciesInternal(sublist);
+		}
+	}
+
+	/**
+	 * Insert a list of dependency records
+	 *
+	 * @param dependencies the list of dependencies to insert
+	 */
+	void insertItemDependenciesInternal(@Param(DEPENDENCIES) List<Dependency> dependencies);
 
 	/**
 	 * Mark as invalid the dependency records with the given target path

@@ -281,7 +281,7 @@ public class ContentServiceInternalImplTest {
 
 		PublishPackage publishPackage = new PublishPackage();
 		publishPackage.setId(PUBLISH_PACKAGE_ID);
-		when(publishService.getActivePackagesForItems(any(), anyCollection(), anyBoolean()))
+		when(publishService.getActivePackagesForItems(any(), anyList(), anyBoolean()))
 				.thenReturn(List.of(publishPackage));
 
 		// Mock lifecycle execution

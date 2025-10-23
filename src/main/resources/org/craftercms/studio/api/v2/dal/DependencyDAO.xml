@@ -28,7 +28,7 @@
 		<result property="type" column="type"/>
 	</resultMap>
 
-	<select id="getSoftDependenciesForList" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+	<select id="getSoftDependenciesForListInternal" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		WITH RECURSIVE CTE AS (
 			SELECT d.target_path
 			FROM dependency d
@@ -46,7 +46,7 @@
 			AND d.site = #{siteId}
 			AND d.valid = 1
 		)
-		SELECT cte.target_path, i.label AS meta_label, i.system_type AS meta_system_type, i.mime_type AS meta_mime_type
+		SELECT cte.target_path as path, i.label AS meta_label, i.system_type AS meta_system_type, i.mime_type AS meta_mime_type
 		FROM cte
 		INNER JOIN item i ON i.path = cte.target_path
 		INNER JOIN site s ON s.id = i.site_id
@@ -61,7 +61,7 @@
 		</foreach>
 	</select>
 
-	<select id="getPublishingSoftDependenciesForList" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+	<select id="getPublishingSoftDependenciesForListInternal" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		SELECT DISTINCT d.target_path AS path, i.label AS meta_label, i.mime_type AS meta_mime_type, i.system_type AS meta_system_type
 		FROM dependency d
 		INNER JOIN site s ON s.site_id = d.site
@@ -188,7 +188,7 @@
 		) AS children_deps
 	</sql>
 
-	<select id="getHardDependenciesForList" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+	<select id="getHardDependenciesForListInternal" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		<!--
 		For each path, recursively:
 		- Get non-published ancestors
@@ -212,7 +212,7 @@
 		</foreach>
 	</select>
 
-	<select id="getDependentItems" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+	<select id="getDependentItemsInternal" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		SELECT source_path AS path, i.label AS meta_label, i.mime_type AS meta_mime_type, i.system_type AS meta_system_type
 		FROM dependency d
 		INNER JOIN site s ON d.site = s.site_id
@@ -226,7 +226,7 @@
 		</foreach>
 	</select>
 
-	<select id="getItemSpecificDependencies" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+	<select id="getItemSpecificDependenciesInternal" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		SELECT target_path as path
 		FROM dependency
 		WHERE site = #{siteId}
@@ -248,11 +248,7 @@
 		FROM dependency
 		WHERE site = #{siteId}
 		AND valid = 1
-		AND source_path IN
-		<foreach item="path" index="index" collection="paths"
-			 open="(" separator="," close=")">
-			#{path}
-		</foreach>
+		AND source_path = #{path}
 	</select>
 
 	<delete id="deleteItemDependencies" parameterType="java.util.Map">
@@ -262,7 +258,7 @@
 		  AND site = #{siteId}
 	</delete>
 
-	<insert id="insertItemDependencies" parameterType="java.util.Map">
+	<insert id="insertItemDependenciesInternal" parameterType="java.util.Map">
 		INSERT INTO dependency (site, source_path, target_path, type, valid)
 		VALUES
 		<foreach item="dependency" index="index" collection="dependencies"

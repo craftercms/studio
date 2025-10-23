@@ -45,7 +45,7 @@
 		<association property="itemMetadata" columnPrefix="meta_" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMetadataMap"/>
 	</resultMap>
 
-	<select id="getMetadata" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+	<select id="getMetadataInternal" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
 		SELECT i.path as path, i.label as meta_label, i.system_type as meta_system_type, i.mime_type as meta_mime_type
 		FROM item i INNER JOIN site s ON i.site_id = s.id
 		WHERE i.path IN
@@ -74,12 +74,11 @@
 			#{publishPackage.title},
 			#{publishPackage.schedule},
 			#{publishPackage.approvalState},
-			#{readyState},
+			${packageReadyState},
 			#{publishPackage.submitterId},
 			#{publishPackage.submitterComment},
 			#{publishPackage.packageType},
 			#{publishPackage.commitId})
-		;
 	</insert>
 
 	<insert id="insertItems">
@@ -104,7 +103,7 @@
 		</foreach>
 	</insert>
 
-	<insert id="insertInitialPublishItems">
+	<insert id="insertInitialPublishItem">
 		INSERT INTO publish_item
 		(package_id,
 		path,
@@ -115,10 +114,7 @@
 		publish_state,
 		live_error,
 		staging_error)
-		VALUES
-		<!-- TODO: review max parameters count configs and batch as necessary -->
-		<foreach collection="items" item="item" index="index" separator=",">
-			(#{packageId},
+		VALUES (#{packageId},
 			#{item.path},
 			#{item.livePreviousPath},
 			#{item.stagingPreviousPath},
@@ -127,7 +123,6 @@
 			#{item.publishState},
 			#{item.liveError},
 			#{item.stagingError})
-		</foreach>
 	</insert>
 
 	<update id="updateItemStatesForInitialPublish">
@@ -190,7 +185,7 @@
 		<foreach collection="approvalStates" item="approvalState" open="(" separator="," close=")">
 			#{approvalState}
 		</foreach>
-		AND pp.package_state = #{readyState}
+		AND pp.package_state = ${packageReadyState}
 		AND (pp.schedule IS NULL OR pp.schedule &lt; NOW())
 		<!-- NULL is the lowest value in MariaDB -->
 		ORDER BY IFNULL(pp.schedule, pp.submitted_on), pp.submitted_on
@@ -376,8 +371,7 @@
 		WHERE package_id = #{packageId}
 	</update>
 
-	<update id="updatePublishItemListState">
-		<!-- TODO: review max parameters count configs and batch as necessary -->
+	<update id="updatePublishItemListStateInternal">
 		UPDATE publish_item pi
 		INNER JOIN (
 		<foreach collection="items" item="item" index="index" separator="UNION">
@@ -439,10 +433,9 @@
 		</if>
 	</sql>
 
-	<select id="getItemPackages" resultMap="PublishPackageMap">
+	<select id="getItemPackagesInternal" resultMap="PublishPackageMap">
 		<include refid="getAllPackagesForFilters"/>
 		<include refid="packagePathsFilter"/>
-		<include refid="org.craftercms.studio.api.v2.dal.DAOUtils.paginate"/>
 	</select>
 
 	<select id="getItemPackagesCount">

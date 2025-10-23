@@ -154,7 +154,7 @@ public interface ContentService {
 	 * @param includeChildren if true, check if any children of the paths are part of a publish package
 	 * @throws ContentInPublishQueueException if the content is part of a publish package
 	 */
-	void assertNotInWorkflow(String siteId, Collection<String> paths, boolean includeChildren) throws ContentInPublishQueueException;
+	void assertNotInWorkflow(String siteId, List<String> paths, boolean includeChildren) throws ContentInPublishQueueException;
 
 
 	/**

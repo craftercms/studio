@@ -16,7 +16,9 @@
 
 package org.craftercms.studio.api.v2.dal.publish;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.studio.api.v2.utils.DalUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -126,9 +128,10 @@ public interface ItemTargetDAO {
 	 * @return the item targets grouped by path
 	 */
 	default Map<String, List<ItemTarget>> getItemTargetsByPath(final long siteId, final Collection<String> paths) {
-		Collection<ItemTargetWithPath> itemListTargets = getItemListTargets(siteId, paths);
-		return itemListTargets.stream()
-			.collect(groupingBy(ItemTargetWithPath::getPath, toList()));
+		return ListUtils.partition(List.copyOf(paths), DalUtils.MY_BATIS_QUERY_BATCH_SIZE).stream()
+				.map(partition -> getItemListTargets(siteId, partition))
+				.flatMap(Collection::stream)
+				.collect(groupingBy(ItemTargetWithPath::getPath, toList()));
 	}
 
 	/**

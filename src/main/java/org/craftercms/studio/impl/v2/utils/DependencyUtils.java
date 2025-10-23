@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.utils;
 
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -24,9 +23,10 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.Resolv
 import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.api.v2.utils.DalUtils;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -109,13 +109,8 @@ public class DependencyUtils {
 			)
 			.toList();
 
-		for (List<Dependency> batchDependencies : ListUtils.partition(newDependencies, DalUtils.MY_BATIS_QUERY_BATCH_SIZE)) {
-			dependencyDao.insertItemDependencies(batchDependencies);
-			// Flush only for full batches, but not for the last smaller chunk
-			if (batchDependencies.size() == DalUtils.MY_BATIS_QUERY_BATCH_SIZE) {
-				sqlSession.flushStatements();
-			}
-		}
+		dependencyDao.insertItemDependencies(newDependencies);
+		sqlSession.flushStatements();
 	}
 
 	/**

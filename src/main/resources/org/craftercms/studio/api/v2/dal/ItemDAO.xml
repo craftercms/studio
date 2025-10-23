@@ -225,15 +225,14 @@
 			LEFT OUTER JOIN item ichild ON i.id = ichild.parent_id
 	</sql>
 
-	<select id="getItemsByPath" resultMap="ItemMap">
+	<select id="getItemByPath" resultMap="ItemMap">
 		SELECT i.*
 		FROM item i
 		WHERE i.site_id = #{siteId}
-		AND i.path IN
-			<foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
+		AND i.path IN (
 				#{path}
 				<if test="preferContent">, CONCAT(#{path}, '/index.xml')</if>
-			</foreach>
+			)
 		AND i.ignored = 0
 		<if test="preferContent">
 			<!-- Prefer content means to get a page (if it exists) instead of its containing folder -->
@@ -250,14 +249,28 @@
 		</if>
 	</select>
 
-	<select id="getContentItemsByPath" resultMap="ContentItemMap">
+	<select id="getContentItemsByPathInternal" resultMap="ContentItemMap">
 		<include refid="detailedItemSelect"/>
 		WHERE s.id = #{siteId}
+		AND i.ignored = 0
 		AND i.path IN
 			<foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
 				#{path}
-				<if test="preferContent">, CONCAT(#{path}, '/index.xml')</if>
+				<if test="preferContent">, CONCAT(TRIM(TRAILING '/' FROM #{path}), '/index.xml')</if>
 			</foreach>
+		<if test="preferContent">
+			<!-- Prefer content means to get a page (if it exists) instead of its containing folder -->
+			AND (
+					i.system_type &lt;&gt; '${systemTypeFolder}'
+				OR
+					NOT EXISTS(SELECT *
+								FROM item page
+								WHERE page.site_id = i.site_id
+								AND page.system_type = '${systemTypePage}'
+								AND page.path = CONCAT(i.path, '/index.xml')
+					)
+			)
+		</if>
 		<include refid="filterItemChildren"/>
 		GROUP BY i.id
 	</select>
@@ -351,31 +364,13 @@
 		)
 	</delete>
 
-	<update id="setStatesBySiteAndPathBulk">
-		UPDATE item SET state = state | #{statesBitMap}
-		WHERE site_id = #{siteId} AND path IN
-		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
-			#{path}
-		</foreach>
-		AND system_type = '${systemTypeFolder}'
-	</update>
-
-	<update id="resetStatesBySiteAndPathBulk">
-		UPDATE item SET state = state &amp; ~#{statesBitMap}
-		WHERE site_id = #{siteId} AND path IN
-		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
-			#{path}
-		</foreach>
-		AND system_type = '${systemTypeFolder}'
-	</update>
-
-	<update id="updateStatesBySiteAndPathBulk">
+	<update id="updateStatesBySiteAndPathInternal">
 		UPDATE item set state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
 		WHERE site_id = #{siteId} AND path IN
 		<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 			#{path}
 		</foreach>
-		AND system_type = '${systemTypeFolder}'
+		AND system_type &lt;&gt; '${systemTypeFolder}'
 	</update>
 
 	<update id="moveItemInternal">
@@ -564,7 +559,7 @@
 		AND i.ignored = 0
 	</select>
 
-	<select id="getItemStates" resultType="org.craftercms.studio.api.v2.dal.ItemPathAndState">
+	<select id="getItemStatesInternal" resultType="org.craftercms.studio.api.v2.dal.ItemPathAndState">
 		SELECT i.path, i.state
 		FROM item i INNER JOIN site s ON i.site_id = s.id
 		WHERE s.site_id = #{siteId}
@@ -578,7 +573,7 @@
 		{CALL populateItemParentId(#{siteId, mode=IN, jdbcType=BIGINT})}
 	</update>
 
-	<update id="updateParentId">
+	<update id="updateParentIdInternal">
 		UPDATE item,
 		(SELECT id, max(potential_parent_path) as calculated_parent_path,
 		(SELECT p.id FROM item p WHERE (p.path = max(potential_parent_path)) and p.site_id = #{siteId}) AS calculated_parent_id
@@ -615,7 +610,7 @@
 		</foreach>
 	</sql>
 
-	<select id="matchItemState">
+	<select id="matchItemStateInternal">
 		SELECT COUNT(1)
 		FROM item i
 		INNER JOIN site s ON s.id = i.site_id
@@ -628,7 +623,7 @@
 		</foreach>
 	</select>
 
-	<select id="getSubtreeItems" resultMap="LightItemMap">
+	<select id="getSubtreeItemsInternal" resultMap="LightItemMap">
 		WITH RECURSIVE children AS (
 				SELECT i.id, i.path, i.label, i.system_type, i.mime_type
 				FROM item i

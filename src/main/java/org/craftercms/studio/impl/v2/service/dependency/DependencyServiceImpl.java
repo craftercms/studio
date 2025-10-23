@@ -66,7 +66,7 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-	public List<LightItem> getDependentPaths(@SiteId String siteId,
+	public Collection<LightItem> getDependentPaths(@SiteId String siteId,
 					      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
 		return dependencyServiceInternal.getDependentPaths(siteId, paths);
 	}
@@ -86,7 +86,7 @@ public class DependencyServiceImpl implements DependencyService {
 
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public List<LightItem> getDependentItems(@SiteId String siteId,
+	public Collection<LightItem> getDependentItems(@SiteId String siteId,
 						      @ContentPath String path) throws ContentNotFoundException {
 		return dependencyServiceInternal.getDependentItems(siteId, path);
 	}

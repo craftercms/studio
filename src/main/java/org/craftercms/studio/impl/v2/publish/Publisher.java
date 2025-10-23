@@ -16,7 +16,10 @@
 
 package org.craftercms.studio.impl.v2.publish;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -36,8 +39,8 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
-import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
@@ -65,7 +68,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.time.Instant.now;
 import static java.util.Collections.emptyList;
-import static org.apache.commons.collections4.CollectionUtils.union;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
@@ -93,10 +96,11 @@ public class Publisher implements ApplicationEventPublisherAware {
 	private final PlatformTransactionManager transactionManager;
 	private final ActivityStreamService activityService;
 	private final TaskManager taskManager;
+	private final SqlSessionFactory sqlSessionFactory;
 
 	@ConstructorProperties({"siteDao", "publishDao", "auditService",
 		"contentRepository", "generalLockService", "servicesConfig", "itemTargetDAO", "transactionManager",
-		"activityService", "taskManager"})
+		"activityService", "taskManager", "sqlSessionFactory"})
 	public Publisher(final SiteDAO siteDao, final PublishDAO publishDao,
 			 final AuditService auditService,
 			 final StudioBlobAwareContentRepository contentRepository,
@@ -105,7 +109,8 @@ public class Publisher implements ApplicationEventPublisherAware {
 			 final ItemTargetDAO itemTargetDAO,
 			 final PlatformTransactionManager transactionManager,
 			 final ActivityStreamService activityService,
-			 final TaskManager taskManager) {
+			 final TaskManager taskManager,
+			 final SqlSessionFactory sqlSessionFactory) {
 		this.siteDao = siteDao;
 		this.publishDao = publishDao;
 		this.auditService = auditService;
@@ -116,6 +121,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 		this.transactionManager = transactionManager;
 		this.activityService = activityService;
 		this.taskManager = taskManager;
+		this.sqlSessionFactory = sqlSessionFactory;
 	}
 
 	@Async
@@ -233,7 +239,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 		String siteId = publishPackage.getSite().getSiteId();
 		String target = publishPackage.getTarget();
 
-		boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(siteId), target);
+		boolean isLiveTarget = CS.equals(servicesConfig.getLiveEnvironment(siteId), target);
 
 		if (isLiveTarget && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
 			String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
@@ -314,7 +320,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 		TaskProgress<PublishTaskId, Long> taskProgress = taskManager.getTask(new PublishTaskId(siteId, packageId));
 
 		String liveTarget = servicesConfig.getLiveEnvironment(siteId);
-		boolean isLiveTarget = StringUtils.equals(liveTarget, target);
+		boolean isLiveTarget = CS.equals(liveTarget, target);
 		if (!isLiveTarget && !contentRepository.isTargetPublished(siteId, target)) {
 			Stage initStaging = taskProgress.startStage("Init staging");
 			itemTargetDAO.initStaging(packageTO.getSite().getId(), target, liveTarget);
@@ -358,7 +364,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 			.map(PublishItemTOImpl::getPublishItem)
 			.collect(Collectors.toSet());
 
-		Collection<PublishItem> successfulItems = publishChangeSet.successfulItems().stream()
+		List<PublishItem> successfulItems = publishChangeSet.successfulItems().stream()
 			.peek(pi -> logger.debug("Successfully published item '{}' for package '{}' to target '{}', site '{}'", pi.getPath(), packageId, target, siteId))
 			.map(PublishItemTOImpl::getPublishItem)
 			.filter(negate(failedItems::contains))
@@ -370,7 +376,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 				cancelOutstandingTargetPackages(packageTO.getSite().getId(), target);
 			}
 		} else {
-			publishDao.updatePublishItemListState(union(successfulItems, failedItems));
+			publishDao.updatePublishItemListState(ListUtils.union(successfulItems, new ArrayList<>(failedItems)));
 		}
 
 		long packageStateOnBits;
@@ -456,8 +462,12 @@ public class Publisher implements ApplicationEventPublisherAware {
 		if (failedItems.isEmpty()) {
 			cancelAllOutstandingPackages(publishPackage.getSite().getId());
 		} else {
-			// Insert failed items to publish_item table
-			publishDao.insertInitialPublishItems(packageId, failedItems.values());
+			try (SqlSession batchSqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+				PublishDAO batchPublishDao = batchSqlSession.getMapper(PublishDAO.class);
+				// Insert failed items to publish_item table
+				batchPublishDao.insertInitialPublishItems(packageId, failedItems.values());
+				batchSqlSession.commit();
+			}
 		}
 		// The items' states are updated after we have inserted the failed items into the publish_item table
 		if (stagingEnabled) {

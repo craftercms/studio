@@ -89,7 +89,7 @@ public interface DependencyService {
 	 * @param paths  list of paths to get dependent items for
 	 * @return list of paths dependent on given paths
 	 */
-	List<LightItem> getDependentPaths(String siteId, List<String> paths) throws SiteNotFoundException;
+	Collection<LightItem> getDependentPaths(String siteId, List<String> paths) throws SiteNotFoundException;
 
 	/**
 	 * Get all items that depend on this item
@@ -99,7 +99,7 @@ public interface DependencyService {
 	 * @return list of {@link LightItem} dependent on given path
 	 * @throws ContentNotFoundException if the item at the given path does not exist
 	 */
-	List<LightItem> getDependentItems(String siteId, String path) throws ContentNotFoundException;
+	Collection<LightItem> getDependentItems(String siteId, String path) throws ContentNotFoundException;
 
 	/**
 	 * Get item specific dependencies for given path

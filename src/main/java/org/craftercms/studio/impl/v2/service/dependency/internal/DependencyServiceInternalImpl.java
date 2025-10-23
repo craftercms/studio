@@ -46,8 +46,6 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
 import static org.craftercms.studio.impl.v2.utils.DependencyUtils.isValidDependencyPath;
 
@@ -67,8 +65,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	@LogExecutionTime
 	public Collection<LightItem> getSoftDependencies(String site, Set<String> paths) {
 		logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
-		return dependencyDao.getSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
-			MODIFIED_MASK, NEW_MASK);
+		return dependencyDao.getSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns());
 	}
 
 	@Override
@@ -79,7 +76,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 			return emptyList();
 		}
 		return dependencyDao.getPublishingSoftDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
-			MODIFIED_MASK, NEW_MASK, target);
+			target);
 	}
 
 	protected List<String> getItemSpecificDependenciesPatterns() {
@@ -111,7 +108,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	}
 
 	@Override
-	public List<LightItem> getDependentPaths(String siteId, List<String> paths) {
+	public Collection<LightItem> getDependentPaths(String siteId, List<String> paths) {
 		if (CollectionUtils.isEmpty(paths)) {
 			return new ArrayList<>();
 		}
@@ -119,7 +116,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	}
 
 	@Override
-	public List<LightItem> getDependentItems(String siteId, String path) {
+	public Collection<LightItem> getDependentItems(String siteId, String path) {
 		return dependencyDao.getDependentItems(siteId, List.of(path));
 	}
 
@@ -134,7 +131,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 
 	@Override
 	public Collection<LightItem> getDependencies(String siteId, String path) {
-		return dependencyDao.getDependencies(siteId, List.of(path));
+		return dependencyDao.getDependencies(siteId, path);
 	}
 
 	@Override

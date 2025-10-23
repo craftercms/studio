@@ -24,11 +24,17 @@ import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.List.copyOf;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.collections4.ListUtils.partition;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
+import static org.craftercms.studio.api.v2.utils.DalUtils.MY_BATIS_QUERY_BATCH_SIZE;
 
 public interface ItemDAO {
 
@@ -156,8 +162,11 @@ public interface ItemDAO {
 	 * @param paths        paths of items
 	 * @param statesBitMap states bit map to be set
 	 */
-	void setStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths,
-									@Param(STATES_BIT_MAP) long statesBitMap);
+	default void setStatesBySiteAndPathBulk(long siteId,
+											Collection<String> paths,
+											long statesBitMap) {
+		updateStatesBySiteAndPathBulk(siteId, paths, statesBitMap, 0L);
+	}
 
 	/**
 	 * Reset items state
@@ -166,8 +175,11 @@ public interface ItemDAO {
 	 * @param paths        paths of items
 	 * @param statesBitMap states bit map to be reset
 	 */
-	void resetStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths,
-									  @Param(STATES_BIT_MAP) long statesBitMap);
+	default void resetStatesBySiteAndPathBulk(long siteId,
+											  Collection<String> paths,
+											  long statesBitMap) {
+		updateStatesBySiteAndPathBulk(siteId, paths, 0L, statesBitMap);
+	}
 
 	/**
 	 * Update states to flip on list off states and flip off another list of states for items
@@ -177,9 +189,28 @@ public interface ItemDAO {
 	 * @param onStatesBitMap  state bitmap to flip on
 	 * @param offStatesBitMap state bitmap to flip off
 	 */
-	void updateStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths,
-									   @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
-									   @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+	@Transactional
+	default void updateStatesBySiteAndPathBulk(long siteId,
+											   Collection<String> paths,
+											   long onStatesBitMap,
+											   long offStatesBitMap) {
+		for (List<String> sublist : partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE)) {
+			updateStatesBySiteAndPathInternal(siteId, sublist, onStatesBitMap, offStatesBitMap);
+		}
+	}
+
+	/**
+	 * Update states to flip on list off states and flip off another list of states for items
+	 *
+	 * @param siteId          site identifier
+	 * @param paths           list of paths to update states for
+	 * @param onStatesBitMap  state bitmap to flip on
+	 * @param offStatesBitMap state bitmap to flip off
+	 */
+	void updateStatesBySiteAndPathInternal(@Param(SITE_ID) long siteId,
+										   @Param(PATHS) Collection<String> paths,
+										   @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+										   @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
 	/**
 	 * Copy item. Update item and item_target table to reflect an item copied from oldPath to newPath.
@@ -274,8 +305,26 @@ public interface ItemDAO {
 	 * @param preferContent indicates if pages should be returned instead of folders when available
 	 * @return list of items
 	 */
-	List<ContentItem> getContentItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) Collection<String> paths,
-											@Param(PREFER_CONTENT) boolean preferContent);
+	default List<ContentItem> getContentItemsByPath(@Param(SITE_ID) Long siteId,
+													@Param(PATHS) Collection<String> paths,
+													@Param(PREFER_CONTENT) boolean preferContent) {
+		List<ContentItem> result = partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE).stream()
+				.flatMap(sublist -> getContentItemsByPathInternal(siteId, sublist, preferContent).stream())
+				.toList();
+		return result;
+	}
+
+	/**
+	 * Get content items for given paths
+	 *
+	 * @param siteId        site identifier
+	 * @param paths         paths to get items for
+	 * @param preferContent indicates if pages should be returned instead of folders when available
+	 * @return list of items
+	 */
+	List<ContentItem> getContentItemsByPathInternal(@Param(SITE_ID) Long siteId,
+													@Param(PATHS) Collection<String> paths,
+													@Param(PREFER_CONTENT) boolean preferContent);
 
 	/**
 	 * Get an item by site and path
@@ -285,25 +334,9 @@ public interface ItemDAO {
 	 * @param preferContent if true return pages (if exist) instead of their containing folders
 	 * @return list of items
 	 */
-	default Item getItemByPath(long siteId, String path, boolean preferContent) {
-		List<Item> items = getItemsByPath(siteId, List.of(path), preferContent);
-		if (items.isEmpty()) {
-			return null;
-		}
-		return items.getFirst();
-	}
-
-	/**
-	 * Get items by site and path
-	 *
-	 * @param siteId        site identifier
-	 * @param paths         paths of the items
-	 * @param preferContent if true return pages (if exist) instead of their containing folders
-	 * @return list of items
-	 */
-	List<Item> getItemsByPath(@Param(SITE_ID) long siteId,
-							  @Param(PATHS) Collection<String> paths,
-							  @Param(PREFER_CONTENT) boolean preferContent);
+	Item getItemByPath(@Param(SITE_ID) long siteId,
+					   @Param(PATH) String path,
+					   @Param(PREFER_CONTENT) boolean preferContent);
 
 	/**
 	 * Count all content items in the system
@@ -438,8 +471,40 @@ public interface ItemDAO {
 	 * @param paths  the paths to get children for
 	 * @return list of children as {@link LightItem}
 	 */
-	Collection<LightItem> getSubtreeItems(@Param(SITE_ID) String siteId,
-										  @Param(PATHS) Collection<String> paths);
+	default Collection<LightItem> getSubtreeItems(String siteId,
+												  Collection<String> paths) {
+		Map<String, LightItem> itemsMap = new HashMap<>();
+		for (List<String> sublist : partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE)) {
+			itemsMap.putAll(getSubtreeItemsInternal(siteId, sublist).stream()
+					.collect(toMap(LightItem::getPath, identity())));
+		}
+		return itemsMap.values();
+	}
+
+	/**
+	 * Get all the non-folder children of the given paths, recursively.
+	 *
+	 * @param siteId the site id
+	 * @param paths  the paths to get children for
+	 * @return list of children as {@link LightItem}
+	 */
+	Collection<LightItem> getSubtreeItemsInternal(@Param(SITE_ID) String siteId,
+												  @Param(PATHS) Collection<String> paths);
+
+	/**
+	 * Get {@link ItemPathAndState} records for the given paths in a map by path
+	 *
+	 * @param siteId the site id
+	 * @param paths  the collection of paths to retrieve states for
+	 * @return Map of path -> {@link ItemPathAndState}
+	 */
+	default Map<String, ItemPathAndState> getItemStates(String siteId, Collection<String> paths) {
+		Map<String, ItemPathAndState> itemsMap = new HashMap<>();
+		for (List<String> sublist : partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE)) {
+			itemsMap.putAll(getItemStatesInternal(siteId, sublist));
+		}
+		return itemsMap;
+	}
 
 	/**
 	 * Get {@link ItemPathAndState} records for the given paths in a map by path
@@ -449,7 +514,7 @@ public interface ItemDAO {
 	 * @return Map of path -> {@link ItemPathAndState}
 	 */
 	@MapKey(PATH)
-	Map<String, ItemPathAndState> getItemStates(@Param(SITE_ID) String siteId, @Param(PATHS) Collection<String> paths);
+	Map<String, ItemPathAndState> getItemStatesInternal(@Param(SITE_ID) String siteId, @Param(PATHS) Collection<String> paths);
 
 	/*
 	 * Recalculate the parent id for all the items in the site
@@ -466,9 +531,28 @@ public interface ItemDAO {
 	 * @param itemStateMask the state mask to match
 	 * @return true if any of the items match the state mask, false otherwise
 	 */
-	boolean matchItemState(@Param(SITE_ID) String siteId,
-						   @Param(PATHS) Collection<String> paths,
-						   @Param(ITEM_STATE_MASK) long itemStateMask);
+	default boolean matchItemState(String siteId,
+								   Collection<String> paths,
+								   long itemStateMask) {
+		for (List<String> sublist : partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE)) {
+			if (matchItemStateInternal(siteId, sublist, itemStateMask)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Check if any of the items in the given paths match the given state mask
+	 *
+	 * @param siteId        the site id
+	 * @param paths         the paths to match states for
+	 * @param itemStateMask the state mask to match
+	 * @return true if any of the items match the state mask, false otherwise
+	 */
+	boolean matchItemStateInternal(@Param(SITE_ID) String siteId,
+								   @Param(PATHS) Collection<String> paths,
+								   @Param(ITEM_STATE_MASK) long itemStateMask);
 
 	/**
 	 * Recalculate the parent id for the given paths
@@ -476,7 +560,19 @@ public interface ItemDAO {
 	 * @param siteId the site id
 	 * @param paths  the paths to update
 	 */
-	void updateParentId(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths);
+	default void updateParentId(long siteId, Collection<String> paths) {
+		for (List<String> sublist : partition(copyOf(paths), MY_BATIS_QUERY_BATCH_SIZE)) {
+			updateParentIdInternal(siteId, sublist);
+		}
+	}
+
+	/**
+	 * Recalculate the parent id for the given paths
+	 *
+	 * @param siteId the site id
+	 * @param paths  the paths to update
+	 */
+	void updateParentIdInternal(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths);
 
 	/**
 	 * Update a deleted page children.

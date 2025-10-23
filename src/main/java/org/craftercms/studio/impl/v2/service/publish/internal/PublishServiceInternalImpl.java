@@ -51,6 +51,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
@@ -62,6 +63,7 @@ import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.*;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -84,20 +86,42 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 	private static final Logger logger = LoggerFactory.getLogger(PublishServiceInternalImpl.class);
 
-	private GitContentRepository contentRepository;
-	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+	private final GitContentRepository contentRepository;
+	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
-	protected ItemService itemService;
+	protected final ItemService itemService;
 
 	protected ApplicationContext applicationContext;
-	private ServicesConfig servicesConfig;
-	private AuditService auditService;
-	private DependencyService dependencyServiceInternal;
-	private PublishDAO publishDao;
-	private ItemTargetDAO itemTargetDao;
-	private SitesService siteService;
-	private GeneralLockService generalLockService;
-	private PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
+	private final ServicesConfig servicesConfig;
+	private final AuditService auditService;
+	private final DependencyService dependencyService;
+	private final PublishDAO publishDao;
+	private final ItemTargetDAO itemTargetDao;
+	private final SitesService siteService;
+	private final GeneralLockService generalLockService;
+	private final PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
+
+	@ConstructorProperties({"contentRepository", "retryingDatabaseOperationFacade", "itemService", "servicesConfig",
+			"auditService", "dependencyService", "publishDao", "itemTargetDao", "siteService",
+			"generalLockService", "publishPackageAvailableActionResolver"})
+	public PublishServiceInternalImpl(GitContentRepository contentRepository, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+									  ItemService itemService, ServicesConfig servicesConfig, AuditService auditService,
+									  DependencyService dependencyService, PublishDAO publishDao,
+									  ItemTargetDAO itemTargetDao,
+									  SitesService siteService, GeneralLockService generalLockService,
+									  PublishPackageAvailableActionResolver publishPackageAvailableActionResolver) {
+		this.contentRepository = contentRepository;
+		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+		this.itemService = itemService;
+		this.servicesConfig = servicesConfig;
+		this.auditService = auditService;
+		this.dependencyService = dependencyService;
+		this.publishDao = publishDao;
+		this.itemTargetDao = itemTargetDao;
+		this.siteService = siteService;
+		this.generalLockService = generalLockService;
+		this.publishPackageAvailableActionResolver = publishPackageAvailableActionResolver;
+	}
 
 	@Override
 	public long getPublishPackagesCount(final String siteId, final String target,
@@ -183,24 +207,35 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 		Collection<String> deletedPaths = filteredOperations.get(true);
 
-		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, publishingTarget);
-		// Get hard deps of them all
-		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, publishingTarget, corePackagePaths);
-		Collection<LightItem> coreItems = isNotEmpty(corePackagePaths) ? publishDao.getMetadata(siteId, corePackagePaths) : emptyList();
-		return new CalculatedPublishPackageResult(coreItems, deletedPaths, hardDependencies, softDependencies);
+		return buildCalculatedPublishPackageResult(siteId, publishingTarget, corePackagePaths, deletedPaths);
 	}
 
 	@Override
 	public CalculatedPublishPackageResult recalculatePublishPackage(String siteId, long packageId, String target)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		Map<Boolean, List<String>> publishPaths = publishDao.getUserRequestedPathMap(siteId, packageId);
 
 		Set<String> corePackagePaths = new HashSet<>(publishPaths.get(false));
 		Collection<String> deletedPaths = publishPaths.get(true);
 
-		Collection<LightItem> softDependencies = dependencyServiceInternal.getPublishingSoftDependencies(siteId, corePackagePaths, target);
+		return buildCalculatedPublishPackageResult(siteId, target, corePackagePaths, deletedPaths);
+	}
+
+	/**
+	 * Calculate the dependencies and build a CalculatedPublishPackageResult
+	 *
+	 * @param siteId           the site id
+	 * @param target           the publishing target
+	 * @param corePackagePaths the core package paths (user requested)
+	 * @param deletedPaths     the deleted paths
+	 * @return the calculated publish package result
+	 * @throws ServiceLayerException if an error occurs while calculating dependencies
+	 */
+	private CalculatedPublishPackageResult buildCalculatedPublishPackageResult(String siteId, String target, Set<String> corePackagePaths, Collection<String> deletedPaths)
+			throws ServiceLayerException {
+		Collection<LightItem> softDependencies = dependencyService.getPublishingSoftDependencies(siteId, corePackagePaths, target);
 		// Get hard deps of them all
-		Collection<LightItem> hardDependencies = dependencyServiceInternal.getHardDependencies(siteId, target, corePackagePaths);
+		Collection<LightItem> hardDependencies = dependencyService.getHardDependencies(siteId, target, corePackagePaths);
 		Collection<LightItem> coreItems = isNotEmpty(corePackagePaths) ? publishDao.getMetadata(siteId, corePackagePaths) : emptyList();
 		return new CalculatedPublishPackageResult(coreItems, deletedPaths, hardDependencies, softDependencies);
 	}
@@ -211,7 +246,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@Override
-	public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final Collection<String> paths, final boolean includeChildren) {
+	public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final List<String> paths, final boolean includeChildren) {
 		return publishDao.getItemPackages(siteId, null, paths,
 			PublishPackage.PackageState.READY.value + PublishPackage.PackageState.PROCESSING.value,
 			ACTIVE_APPROVAL_STATES, includeChildren);
@@ -289,7 +324,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 		publishItems.addAll(union(dependencies, userRequestedPaths).stream()
 			.filter(path -> path.endsWith(DmConstants.SLASH_INDEX_FILE))
-			.map(path -> StringUtils.removeEnd(path, DmConstants.SLASH_INDEX_FILE))
+			.map(path -> CS.removeEnd(path, DmConstants.SLASH_INDEX_FILE))
 			.map(path -> createPublishItem(path, DELETE, false))
 			.toList());
 
@@ -308,7 +343,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			itemTargets.stream()
 				.filter(itemTarget -> StringUtils.isNotEmpty(itemTarget.getPreviousPath()))
 				.forEach(itemTarget -> {
-					boolean isLiveTarget = StringUtils.equals(liveEnvironment, itemTarget.getTarget());
+					boolean isLiveTarget = CS.equals(liveEnvironment, itemTarget.getTarget());
 					if (isLiveTarget) {
 						item.setLivePreviousPath(itemTarget.getPreviousPath());
 					} else {
@@ -443,7 +478,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			}
 		}
 		if (!softDepsPaths.isEmpty()) {
-			allPaths.addAll(dependencyServiceInternal.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths, target).stream().map(LightItem::getPath).collect(toSet()));
+			allPaths.addAll(dependencyService.getPublishingSoftDependencies(site.getSiteId(), softDepsPaths, target).stream().map(LightItem::getPath).collect(toSet()));
 		}
 		return allPaths;
 	}
@@ -471,7 +506,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * Create publish items for hard dependencies.
 	 * For each non-delete PublishItem, get hard dependencies and add them to the publishItemsByPath map.
 	 */
-	private void createPublishItemsForHardDeps(Site site, Map<String, PublishItem> publishItemsByPath) throws SiteNotFoundException {
+	private void createPublishItemsForHardDeps(Site site, String target, Map<String, PublishItem> publishItemsByPath) throws ServiceLayerException {
 		Collection<String> paths = publishItemsByPath.keySet().stream()
 			.filter(p -> publishItemsByPath.get(p).getAction() != DELETE)
 			.collect(toList());
@@ -479,7 +514,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			return;
 		}
 		publishItemsByPath.putAll(
-			dependencyServiceInternal.getHardDependencies(site.getSiteId(), paths).stream()
+			dependencyService.getHardDependencies(site.getSiteId(), target, paths).stream()
 				.map(LightItem::getPath)
 				.filter(dep -> !publishItemsByPath.containsKey(dep))
 				.map(dep -> createPublishItem(dep, ADD, false))
@@ -534,54 +569,6 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	@Override
 	public void setApplicationContext(@NotNull final ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
-	}
-
-	public void setContentRepository(final GitContentRepository contentRepository) {
-		this.contentRepository = contentRepository;
-	}
-
-	public void setRetryingDatabaseOperationFacade(final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
-		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-	}
-
-	public void setItemService(final ItemService itemService) {
-		this.itemService = itemService;
-	}
-
-	public void setServicesConfig(final ServicesConfig servicesConfig) {
-		this.servicesConfig = servicesConfig;
-	}
-
-	@SuppressWarnings("unused")
-	public void setPublishDao(final PublishDAO publishDao) {
-		this.publishDao = publishDao;
-	}
-
-	@SuppressWarnings("unused")
-	public void setItemTargetDao(final ItemTargetDAO itemTargetDao) {
-		this.itemTargetDao = itemTargetDao;
-	}
-
-	public void setSiteService(final SitesService siteService) {
-		this.siteService = siteService;
-	}
-
-	public void setGeneralLockService(final GeneralLockService generalLockService) {
-		this.generalLockService = generalLockService;
-	}
-
-	public void setAuditService(final AuditService auditService) {
-		this.auditService = auditService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setDependencyServiceInternal(final DependencyService dependencyServiceInternal) {
-		this.dependencyServiceInternal = dependencyServiceInternal;
-	}
-
-	@SuppressWarnings("unused")
-	public void setPublishPackageAvailableActionResolver(final PublishPackageAvailableActionResolver publishPackageAvailableActionResolver) {
-		this.publishPackageAvailableActionResolver = publishPackageAvailableActionResolver;
 	}
 
 	/**
@@ -666,7 +653,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			PublishPackage publishPackage = createPackage(site, target, packageType,
 				requestApproval, schedule, title, comment);
 
-			boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site.getSiteId()), target);
+			boolean isLiveTarget = CS.equals(servicesConfig.getLiveEnvironment(site.getSiteId()), target);
 			retryingDatabaseOperationFacade.retry(() -> publishDao.insertPackageAndItems(publishPackage, publishItems, isLiveTarget));
 			return publishPackage;
 		} finally {
@@ -770,7 +757,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		Map<String, PublishItem> publishItemsByPath = new HashMap<>();
 		createPublishItemsFromCommitIds(site, commitIds, publishItemsByPath);
 		createPublishItemsFromPaths(site, paths, publishItemsByPath, target);
-		createPublishItemsForHardDeps(site, publishItemsByPath);
+		createPublishItemsForHardDeps(site, target, publishItemsByPath);
 
 		if (publishItemsByPath.isEmpty()) {
 			throw new InvalidParametersException("Failed to submit publish package: No items to publish");

@@ -42,6 +42,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
@@ -80,12 +81,6 @@ public class ItemServiceInternalImpl implements ItemService {
 			return null;
 		}
 		return itemDao.getItemByPath(site.getId(), path, preferContent);
-	}
-
-	@Override
-	public List<Item> getItems(String siteId, Collection<String> paths) {
-		Site site = siteDao.getSite(siteId);
-		return itemDao.getItemsByPath(site.getId(), paths, false);
 	}
 
 	@Override
@@ -160,7 +155,7 @@ public class ItemServiceInternalImpl implements ItemService {
 		} else if (ContentUtils.matchesPatterns(path, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
 			return null;
 		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
-			StringUtils.endsWith(path, FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+			CS.endsWith(path, FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
 			return null;
 		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
 			return null;
@@ -287,7 +282,7 @@ public class ItemServiceInternalImpl implements ItemService {
 
 	@Override
 	public void persistItemAfterRenameContent(String siteId, String path, String name, String contentType)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		throws ServiceLayerException, AuthenticationException {
 		User userObj = SecurityUtils.getCurrentUser();
 		Item item = instantiateItem(siteId, path)
 			.withPreviewUrl(CONTENT_TYPE_FOLDER.equals(contentType) ? null : getBrowserUrl(siteId, path))
