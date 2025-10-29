@@ -1033,7 +1033,7 @@
         SET path = #{newPath},
             i.state = (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
             i.preview_url = REPLACE(i.preview_url, #{oldPreviewUrl}, #{newPreviewUrl}),
-            i.previous_path = IFNULL(i.previous_path, #{oldPath})
+            i.previous_path = IF((i.state &amp; #{newMask}) > 0, NULL, IF(i.previous_path = #{newPath}, NULL, IFNULL(i.previous_path, #{oldPath})))
         <if test="label != null">
             , i.label = #{label}
         </if>
