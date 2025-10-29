@@ -151,7 +151,7 @@ public class DashboardServiceImpl implements DashboardService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DetailedItem> getContentPendingApproval(
             @SiteId String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getItemsByStates(siteId, SUBMITTED_MASK, systemTypes, sortFields, offset, limit);
+        return contentServiceInternal.getPendingApprovalItems(siteId, SUBMITTED_MASK, systemTypes, sortFields, offset, limit);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,10 +33,10 @@ public interface ItemDAO {
             "dateModified", "last_modified_on",
             "label", "label");
 
-    Map<String, String> DETAILED_ITEM_SORT_FIELD_MAP = Map.of(
+    Map<String, String> PENDING_APPROVAL_ITEM_SORT_FIELD_MAP = Map.of(
             "id", "id",
             "dateModified", "last_modified_on",
-            "dateScheduled", "IFNULL(live_scheduleddate,staging_scheduleddate)",
+            "dateScheduled", "dateScheduled",
             "label", "label");
 
     /**
@@ -250,7 +250,7 @@ public interface ItemDAO {
                                @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
-     * Get a list of {@link DetailedItem} for given site and filters (system_types, states)
+     * Get a list of {@link DetailedItem} submitted for publishing
      *
      * @param siteId             site identifier
      * @param statesBitMap       states bit map to filter by
@@ -264,7 +264,7 @@ public interface ItemDAO {
      * @param limit              number of records to return
      * @return list of filtered {@link DetailedItem}s
      */
-    List<DetailedItem> getDetailedItemsByStates(@Param(SITE_ID) long siteId,
+    List<DetailedItem> getPendingApprovalItems(@Param(SITE_ID) long siteId,
                                                 @Param(STATES_BIT_MAP) long statesBitMap,
                                                 @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                                 @Param(COMPLETED_STATE) String completedState,

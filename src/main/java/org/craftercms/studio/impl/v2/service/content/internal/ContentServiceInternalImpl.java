@@ -196,15 +196,15 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public List<DetailedItem> getItemsByStates(String siteId, long statesBitMap, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
+    public List<DetailedItem> getPendingApprovalItems(String siteId, long statesBitMap, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        List<org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(siteFeed.getId(), statesBitMap,
+        List<org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getPendingApprovalItems(siteFeed.getId(), statesBitMap,
                 CONTENT_TYPE_FOLDER, COMPLETED,
-                systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
+                systemTypes, mapSortFields(sortFields, ItemDAO.PENDING_APPROVAL_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
         List<DetailedItem> result = new ArrayList<>();
         for (org.craftercms.studio.api.v2.dal.DetailedItem item : items) {
             DetailedItem detailedItem = DetailedItem.getInstance(item);
