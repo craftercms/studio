@@ -201,7 +201,7 @@ public interface ContentServiceInternal {
      * @throws UserNotFoundException
      * @throws ServiceLayerException
      */
-    List<DetailedItem> getItemsByStates(String siteId, long statesBitMap,
+    List<DetailedItem> getPendingApprovalItems(String siteId, long statesBitMap,
                                         List<String> systemTypes, List<SortField> sortFields,
                                         int offset, int limit) throws UserNotFoundException, ServiceLayerException;
 
