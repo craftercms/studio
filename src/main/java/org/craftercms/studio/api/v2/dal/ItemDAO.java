@@ -228,6 +228,7 @@ public interface ItemDAO {
     void moveItem(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath,
                   @Param(PARENT_ID) Long parentId, @Param(OLD_PREVIEW_URL) String oldPreviewUrl,
                   @Param(NEW_PREVIEW_URL) String newPreviewUrl, @Param(LABEL) String label,
+                  @Param(NEW_MASK) long newMask,
                   @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
                   @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
