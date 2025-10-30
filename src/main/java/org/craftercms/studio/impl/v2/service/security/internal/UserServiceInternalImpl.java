@@ -75,7 +75,9 @@ import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.MapUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.joinWith;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -279,7 +281,8 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_CREATE);
 		auditLog.setSiteId(site.getId());
-		auditLog.setActorId(getCurrentUsername());
+		// No authenticated user happens during user login for externally managed users
+		auditLog.setActorId(defaultIfBlank(getCurrentUsername(), user.getUsername()));
 		auditLog.setPrimaryTargetId(user.getUsername());
 		auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
 		auditLog.setPrimaryTargetValue(user.getUsername());
@@ -337,7 +340,8 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_UPDATE);
 		auditLog.setSiteId(site.getId());
-		auditLog.setActorId(getCurrentUsername());
+		// No authenticated user happens during user login for externally managed users.
+		auditLog.setActorId(defaultIfBlank(getCurrentUsername(), username));
 		auditLog.setPrimaryTargetId(updatedUser.getUsername());
 		auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
 		auditLog.setPrimaryTargetValue(updatedUser.getUsername());
@@ -370,7 +374,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public void deleteUsers(final List<Long> userIds, final List<String> usernames)
-		throws UserNotFoundException, ServiceLayerException, AuthenticationException, UserExternallyManagedException {
+		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		User currentUser = getCurrentUser();
 
 		if (CollectionUtils.containsAny(userIds, List.of(currentUser.getId())) ||
@@ -548,7 +552,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	public UserResponse changePassword(String username, String current, String newPassword)
 		throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException, AuthenticationException, UserNotFoundException {
 		AuthenticatedUser currentUser = getCurrentUser();
-		if (currentUser == null || !StringUtils.equals(username, currentUser.getUsername())) {
+		if (currentUser == null || !CS.equals(username, currentUser.getUsername())) {
 			throw new ActionsDeniedException("Cannot change password: current logged in user does not match provided username");
 		}
 		try {
@@ -897,7 +901,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		}
 
 		String studioId = tokenElements.nextToken();
-		if (!StringUtils.equals(studioId, instanceService.getInstanceId())) {
+		if (!CS.equals(studioId, instanceService.getInstanceId())) {
 			logger.warn("Failed to validate forgot password token. Token's Studio instance ID is '{}' and " +
 					"does not match the current value '{}'",
 				studioId, instanceService.getInstanceId());
