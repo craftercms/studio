@@ -1035,6 +1035,16 @@ pipelines:
                         includedPaths:
                             -   config/studio/content-types/.*/controller\.groovy
                         commitDetails: Remove unnecessary controller.groovy files. Comment out custom scripts
+            -   currentVersion: 5.0.0.0
+                nextVersion: 5.0.0.1
+                operations:
+                    -   type: multiFindAndReplaceUpgrader
+                        includedPaths:
+                            - scripts/.*\.groovy
+                        rules:
+                            -   pattern: "\\._toQuery\\(\\)"
+                                replacement: '.toQuery()'
+                        commitDetails: Upgrade to OpenSearch 3 in site scripts
 
     # Pipeline to upgrade blueprints
     blueprint:
