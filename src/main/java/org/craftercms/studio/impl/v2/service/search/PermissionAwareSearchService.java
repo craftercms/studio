@@ -105,7 +105,7 @@ public class PermissionAwareSearchService extends AbstractOpenSearchClientWrappe
 			)
 		));
 
-		updates.setQuery(updatedQuery.build()._toQuery());
+		updates.setQuery(updatedQuery.build().toQuery());
 	}
 
 	/**
