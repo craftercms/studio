@@ -19,6 +19,7 @@ package org.craftercms.studio.model.rest.workflow;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.craftercms.studio.impl.v2.utils.SanitizerUtil;
 
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.List;
 public class ReviewPackageRequestBody {
 
 	@NotBlank
+	@Size(max = 500)
 	private String comment;
 	@NotEmpty
 	private List<@NotNull Long> packageIds;
