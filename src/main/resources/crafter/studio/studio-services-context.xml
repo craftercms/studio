@@ -551,6 +551,7 @@
 		<property name="auditService" ref="auditServiceInternal"/>
 		<property name="publishDao" ref="publishDao"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
+		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 	</bean>
 
 	<bean id="studio.activityStreamService"
