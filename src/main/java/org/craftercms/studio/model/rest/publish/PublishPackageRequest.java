@@ -43,6 +43,7 @@ public class PublishPackageRequest {
 	private boolean requestApproval;
 	private boolean publishAll;
 	@NotEmpty
+	@Size(max = 500)
 	private String comment;
 	@NotEmpty
 	@Size(max = PublishService.PACKAGE_TITLE_MAX_LENGTH)
