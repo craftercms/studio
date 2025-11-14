@@ -62,6 +62,7 @@ import java.util.stream.Collectors;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.io.FilenameUtils.normalizeNoEndSeparator;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -338,7 +339,7 @@ public class ContentController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public Result createFolder(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody CreateFolderRequestBody requestBody)
 			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
-		WriteContentResult createFolderResult = contentService.createFolder(siteId, requestBody.getPath());
+		WriteContentResult createFolderResult = contentService.createFolder(siteId, normalizeNoEndSeparator(requestBody.getPath()));
 		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(createFolderResult);
 		result.setResponse(CREATED);
 		return result;
