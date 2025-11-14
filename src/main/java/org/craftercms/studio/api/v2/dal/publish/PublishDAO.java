@@ -335,16 +335,16 @@ public interface PublishDAO {
 													@Param(PublishDAO.ITEM_SUCCESS_STATE) long itemSuccessState);
 
 	/**
-	 * Persist changes to a cancelled or rejected publish package.
+	 * Persist changes to a cancelled, approved or rejected publish package.
 	 * This will update the package in the db and update the state bits for the items in the package.
-	 * Then imte state bits will be recalculated for affected publish_items
+	 * Then item state bits will be recalculated for affected publish_items
 	 * in the package, considering that the affected items might be part of other submitted packages.
 	 *
 	 * @param publishPackage the package to cancel
 	 * @param liveTarget     the live target for this site
 	 */
 	@Transactional
-	default void cancelPackage(final PublishPackage publishPackage, final String liveTarget) {
+	default void reviewPackage(final PublishPackage publishPackage, final String liveTarget) {
 		updatePackage(publishPackage);
 		updateItemStateBits(publishPackage.getId(), 0, CANCEL_PUBLISH_PACKAGE_OFF_MASK);
 		recalculateItemStateBits(publishPackage.getId(), liveTarget);

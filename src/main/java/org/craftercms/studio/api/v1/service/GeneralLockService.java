@@ -33,16 +33,6 @@ public interface GeneralLockService {
 	void lockContentItem(String siteId, String path);
 
 	/**
-	 * Try to lock item for synchronized access. If lock obtained returns true, otherwise false. Does not block
-	 * thread if not available lock.
-	 *
-	 * @param siteId
-	 * @param path
-	 * @return
-	 */
-	boolean tryLockContentItem(String siteId, String path);
-
-	/**
 	 * Release lock on content item.
 	 *
 	 * @param siteId site identifier

@@ -122,11 +122,6 @@ public class GeneralLockServiceImpl implements GeneralLockService {
 	}
 
 	@Override
-	public boolean tryLockContentItem(String siteId, String path) {
-		return tryLock(generateContentItemKey(siteId, path));
-	}
-
-	@Override
 	public void unlockContentItem(String siteId, String path) {
 		unlock(generateContentItemKey(siteId, path));
 	}

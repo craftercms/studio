@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
@@ -54,6 +55,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalSt
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.REJECTED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.CANCELLED;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
 
@@ -69,6 +71,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 	private PublishDAO publishDao;
 	private ServicesConfig servicesConfig;
 	private ApplicationEventPublisher eventPublisher;
+	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
 	@Override
 	public int getItemStatesTotal(String siteId, String path, Long states) {
@@ -111,12 +114,18 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 
 	@Override
 	public void cancelPackages(final String siteId, Collection<Long> packageIds, String comment)
-		throws ServiceLayerException, AuthenticationException {
-		for (Long packageId : packageIds) {
-			doReviewPackage(siteId, packageId, p -> {
-				p.setPackageState(CANCELLED.value);
-				p.setReviewerComment(comment);
-			}, OPERATION_CANCEL_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.CANCEL);
+			throws ServiceLayerException, AuthenticationException {
+		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
+		generalLockService.lock(sandboxRepoLockKey);
+		try {
+			for (Long packageId : packageIds) {
+				doReviewPackage(siteId, packageId, p -> {
+					p.setPackageState(CANCELLED.value);
+					p.setReviewerComment(comment);
+				}, OPERATION_CANCEL_PUBLISH_PACKAGE, WorkflowEvent.WorkFlowEventType.CANCEL);
+			}
+		} finally {
+			generalLockService.unlock(sandboxRepoLockKey);
 		}
 	}
 
@@ -166,9 +175,14 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 			packageReview.reviewPackage(publishPackage);
 			publishPackage.setReviewedOn(now());
 			publishPackage.setReviewerId(user.getId());
-			publishDao.cancelPackage(publishPackage, servicesConfig.getLiveEnvironment(siteId));
 
-			createUpdateStatePackageAuditLogEntry(publishPackage, user.getUsername(), operation);
+			String liveTarget = servicesConfig.getLiveEnvironment(siteId);
+			final PublishPackage finalPublishPackage = publishPackage;
+			retryingDatabaseOperationFacade.retry(() ->
+					publishDao.reviewPackage(finalPublishPackage, liveTarget)
+			);
+
+			createUpdateStatePackageAuditLogEntry(finalPublishPackage, user.getUsername(), operation);
 
 			activityStreamService.insertActivity(site.getId(), user.getId(),
 				operation, DateUtils.getCurrentTime(), null, String.valueOf(packageId));
@@ -231,6 +245,10 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 	@Override
 	public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
 		this.eventPublisher = applicationEventPublisher;
+	}
+
+	public void setRetryingDatabaseOperationFacade(final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 	}
 
 	private interface PackageReview {
