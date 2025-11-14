@@ -24,13 +24,15 @@ import org.craftercms.studio.impl.v2.utils.SanitizerUtil;
 
 import java.util.List;
 
+import static org.craftercms.studio.api.v2.service.publish.PublishService.PACKAGE_COMMENT_MAX_LENGTH;
+
 /**
  * Request body for reviewing a package (reject, approve)
  */
 public class ReviewPackageRequestBody {
 
 	@NotBlank
-	@Size(max = 500)
+	@Size(max = PACKAGE_COMMENT_MAX_LENGTH)
 	private String comment;
 	@NotEmpty
 	private List<@NotNull Long> packageIds;

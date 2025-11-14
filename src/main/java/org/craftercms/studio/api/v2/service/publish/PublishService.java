@@ -46,6 +46,7 @@ import java.util.List;
 public interface PublishService {
 
 	int PACKAGE_TITLE_MAX_LENGTH = 200;
+	int PACKAGE_COMMENT_MAX_LENGTH = 500;
 
 	/**
 	 * Get total number of publish packages for given search parameters
