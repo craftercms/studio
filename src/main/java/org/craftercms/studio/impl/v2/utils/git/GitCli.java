@@ -352,7 +352,7 @@ public class GitCli {
 		executeGitCommand(readTreeCl);
 		final Path indexInfoTempFile = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
 		Stage prepareWriteTreeStage = taskProgress.startStage("Prepare write tree",
-			emptyIfNull(paths).size() + emptyIfNull(deletedPaths).size() + emptyIfNull(blacklistPathspecs).size());
+			emptyIfNull(paths).size() + emptyIfNull(deletedPaths).size());
 		try {
 			if (isNotEmpty(deletedPaths)) {
 				removePaths(directory, deletedPaths, prepareWriteTreeStage);
@@ -369,13 +369,17 @@ public class GitCli {
 					executeGitCommand(lsTreeCl);
 				}
 			}
-			removePaths(directory, blacklistPathspecs, prepareWriteTreeStage);
 			prepareWriteTreeStage.complete();
 			// Update index with correct version of published files
 			Stage updateIndexStage = taskProgress.startStage("Update index and write tree");
 			GitCommandLine updateIndexCl = new GitCommandLine(directory, "update-index", "--index-info");
 			updateIndexCl.setInput(indexInfoTempFile.toRealPath().toFile());
 			executeGitCommand(updateIndexCl);
+			if (isNotEmpty(blacklistPathspecs)) {
+				Stage blacklistStage = taskProgress.startStage("Apply blacklist", blacklistPathspecs.size());
+				removePaths(directory, blacklistPathspecs, blacklistStage);
+				blacklistStage.complete();
+			}
 
 			// git write-tree
 			GitCommandLine writeTreeCl = new GitCommandLine(directory, "write-tree");
