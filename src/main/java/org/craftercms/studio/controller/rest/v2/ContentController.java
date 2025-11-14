@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.ValidationException;
@@ -62,7 +63,7 @@ import java.util.stream.Collectors;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.io.FilenameUtils.normalizeNoEndSeparator;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -339,7 +340,12 @@ public class ContentController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public Result createFolder(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody CreateFolderRequestBody requestBody)
 			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
-		WriteContentResult createFolderResult = contentService.createFolder(siteId, normalizeNoEndSeparator(requestBody.getPath()));
+		// This clean up is added here so the permission and validation annotations on the path parameter
+		// of the service can be applied correctly
+		String folderPath = requestBody.getPath()
+				.transform(FilenameUtils::normalizeNoEndSeparator)
+				.transform(s -> CS.prependIfMissing(s, FILE_SEPARATOR));
+		WriteContentResult createFolderResult = contentService.createFolder(siteId, folderPath);
 		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(createFolderResult);
 		result.setResponse(CREATED);
 		return result;
