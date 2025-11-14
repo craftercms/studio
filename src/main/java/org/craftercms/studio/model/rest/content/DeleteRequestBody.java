@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,11 +21,12 @@ import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.studio.api.v2.service.publish.PublishService;
 
 import java.util.Set;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+import static org.craftercms.studio.api.v2.service.publish.PublishService.PACKAGE_COMMENT_MAX_LENGTH;
+import static org.craftercms.studio.api.v2.service.publish.PublishService.PACKAGE_TITLE_MAX_LENGTH;
 
 /**
  * Request body for deleting content items.
@@ -39,8 +40,9 @@ public class DeleteRequestBody {
 
 	// title and comment are used to create a publish package for the delete
 	@NotEmpty
-	@Size(max = PublishService.PACKAGE_TITLE_MAX_LENGTH)
+	@Size(max = PACKAGE_TITLE_MAX_LENGTH)
 	private String title;
+	@Size(max = PACKAGE_COMMENT_MAX_LENGTH)
 	private String comment;
 
 	public String getSiteId() {
