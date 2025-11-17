@@ -31,7 +31,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
@@ -112,7 +112,7 @@ public class ContentUtils {
 	 * @return path of the parent item
 	 */
 	public static String getParentUrl(String path) {
-		return getFullPathNoEndSeparator(removeEnd(path, SLASH_INDEX_FILE));
+		return getFullPathNoEndSeparator(CS.removeEnd(path, SLASH_INDEX_FILE));
 	}
 
 	/**

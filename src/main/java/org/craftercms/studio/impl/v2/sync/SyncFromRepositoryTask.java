@@ -20,6 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -46,6 +47,7 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.DalUtils;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.dom4j.Document;
@@ -74,8 +76,8 @@ import static java.lang.String.format;
 import static java.time.Instant.now;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
@@ -84,6 +86,7 @@ import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PATH_PATTERNS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_CANCELLED_PACKAGE_COMMENT;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
@@ -97,7 +100,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private static final Logger logger = LoggerFactory.getLogger(SyncFromRepositoryTask.class);
 	private static final String DEFAULT_CANCELLED_PACKAGE_COMMENT = "Cancelled because of conflicts with changes from repository sync process";
 
-	private static final Set<RepoOperation.Action> CREATED_PATH_ACTIONS = Set.of(RepoOperation.Action.CREATE, RepoOperation.Action.COPY, RepoOperation.Action.MOVE);
+	private static final Set<RepoOperation.Action> CREATED_PATH_ACTIONS = Set.of(RepoOperation.Action.CREATE, RepoOperation.Action.COPY, MOVE);
 	private static final String EMPTY_FILE_END = FILE_SEPARATOR + EMPTY_FILE;
 
 	private final SitesService sitesService;
@@ -399,12 +402,12 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * Get the paths for the actions that created paths in the repo, i.e.: create, copy, move
 	 * Update or delete will not affect parent id updates
 	 */
-	private List<String> getCreatedPaths(List<RepoOperation> chunk) {
-		return chunk.stream()
-			.filter(repoOperation -> CREATED_PATH_ACTIONS.contains(repoOperation.getAction()))
-			.map(RepoOperation::getPath)
-			.filter(p -> !p.endsWith(EMPTY_FILE_END))
-			.toList();
+	protected List<String> getCreatedPaths(List<RepoOperation> operations) {
+		return operations.stream()
+				.filter(op -> CREATED_PATH_ACTIONS.contains(op.getAction()))
+				.map(op -> MOVE.equals(op.getAction()) ? op.getMoveToPath() : op.getPath())
+				.filter(p -> !p.endsWith(EMPTY_FILE_END))
+				.toList();
 	}
 
 	/**
@@ -657,9 +660,11 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private void processMove(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
 							 Site site, RepoOperation repoOperation, User user,
 							 Set<String> allAncestors) throws SiteNotFoundException {
-		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
-		processAncestors(itemDao, site.getSiteId(), repoOperation.getMoveToPath(), user.getId(),
-			repoOperation.getDateTime(), allAncestors);
+		String oldPath = CS.removeEnd(repoOperation.getPath(), EMPTY_FILE_END);
+		String newPath = CS.removeEnd(repoOperation.getMoveToPath(), EMPTY_FILE_END);
+		ItemMetadata metadata = getItemMetadata(site.getSiteId(), newPath);
+		processAncestors(itemDao, site.getSiteId(), newPath, user.getId(),
+				repoOperation.getDateTime(), allAncestors);
 		long onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
 		long offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
 		if (metadata.disabled) {
@@ -667,16 +672,16 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		} else {
 			offStateBitmap = offStateBitmap | DISABLED.value;
 		}
-		if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) &&
-			!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
-			itemDao.moveItemForSyncTask(site.getSiteId(), repoOperation.getPath(), repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap);
 
+		if (!ArrayUtils.contains(IGNORE_FILES, oldPath) &&
+				!ArrayUtils.contains(IGNORE_FILES, newPath)) {
+			itemDao.moveItemForSyncTask(site.getId(), oldPath, newPath, onStateBitMap, offStateBitmap);
 			updateItemRow(itemDao, site.getId(),
-				repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
-				repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
-				contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
-				StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-				contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
+					newPath, metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
+					repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
+					contentService.getContentTypeClass(site.getSiteId(), newPath),
+					StudioUtils.getMimeType(FilenameUtils.getName(newPath)),
+				contentRepository.getContentSize(site.getSiteId(), newPath));
 
 			DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getMoveToPath(),
 				repoOperation.getPath(), dependencyServiceInternal, dependencyDao, sqlSession);
@@ -706,7 +711,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 									   Long size) {
 		Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
 		String fileName = FilenameUtils.getName(path);
-		boolean ignored = org.apache.commons.lang3.ArrayUtils.contains(IGNORE_FILES, fileName);
+		boolean ignored = contains(IGNORE_FILES, fileName);
 		itemDao.updateItemForSyncTask(siteId, path, previewUrl, onStatesBitMap, offStatesBitMap, lastModifiedBy, sqlTsLastModified.toString(), label, contentTypeId, systemType, mimeType, size, ignored);
 	}
 

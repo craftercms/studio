@@ -592,7 +592,7 @@ public interface ItemDAO {
 	 * @param onStatesBitMap  state bitmap to flip on
 	 * @param offStatesBitMap state bitmap to flip off
 	 */
-	void moveItemForSyncTask(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath,
+	void moveItemForSyncTask(@Param(SITE_ID) long siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath,
 							 @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
 							 @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
