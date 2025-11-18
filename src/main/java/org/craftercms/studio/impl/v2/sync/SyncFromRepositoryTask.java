@@ -675,13 +675,14 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 
 		if (!ArrayUtils.contains(IGNORE_FILES, oldPath) &&
 				!ArrayUtils.contains(IGNORE_FILES, newPath)) {
-			itemDao.moveItemForSyncTask(site.getId(), oldPath, newPath, onStateBitMap, offStateBitmap);
-			updateItemRow(itemDao, site.getId(),
-					newPath, metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
-					repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
+			itemDao.moveItemForSyncTask(site.getSiteId(), oldPath, newPath, null,
+					metadata.previewUrl, metadata.label, user.getId(),
+					repoOperation.getDateTime().toInstant(),onStateBitMap, offStateBitmap,
+					metadata.contentTypeId,
 					contentService.getContentTypeClass(site.getSiteId(), newPath),
 					StudioUtils.getMimeType(FilenameUtils.getName(newPath)),
-				contentRepository.getContentSize(site.getSiteId(), newPath));
+					contentRepository.getContentSize(site.getSiteId(), newPath));
+//			itemDao.moveItem(site.getSiteId(),oldPath, newPath, null, metadata.previewUrl,metadata.label, user.getId());
 
 			DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getMoveToPath(),
 				repoOperation.getPath(), dependencyServiceInternal, dependencyDao, sqlSession);
