@@ -1345,7 +1345,7 @@ public class GitRepositoryHelper implements DisposableBean {
 		logger.debug("Start git gc for {} using CGit", siteDescription);
 		try {
 			retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
-				gitCli.gc(repo.getWorkTree());
+				gitCli.gc(repo.getDirectory());
 				return null;
 			});
 			logger.debug("Completed git gc for {} using CGit", siteDescription);
