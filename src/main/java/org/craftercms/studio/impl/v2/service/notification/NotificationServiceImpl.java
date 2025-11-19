@@ -279,7 +279,7 @@ public class NotificationServiceImpl implements NotificationService {
 			if (EmailUtils.validateEmail(email)) {
 				emailList.add(email);
 			} else {
-				logger.error("Invalid email address '{}' in site '{}' in notification config '{}' element", email, site, emailListElement.getName());
+				logger.warn("Invalid email address '{}' in site '{}' in notification config '{}' element", email, site, emailListElement.getName());
 			}
 		}
 	}
@@ -289,7 +289,7 @@ public class NotificationServiceImpl implements NotificationService {
 		if (EmailUtils.validateEmail(adminEmail)) {
 			return adminEmail;
 		}
-		logger.error("Invalid admin email address '{}' configured for site '{}'", adminEmail, site);
+		logger.warn("Invalid admin email address '{}' configured for site '{}'", adminEmail, site);
 		return null;
 	}
 
