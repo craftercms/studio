@@ -18,6 +18,7 @@ package org.craftercms.studio.model.rest.publish;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.studio.api.v2.service.publish.PublishService.PublishRequestPath;
@@ -29,6 +30,7 @@ import java.util.List;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v2.service.publish.PublishService.PACKAGE_COMMENT_MAX_LENGTH;
 import static org.craftercms.studio.api.v2.service.publish.PublishService.PACKAGE_TITLE_MAX_LENGTH;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.ALPHANUMERIC_LOWERCASE_PATTERN;
 
 /**
  * Request to publish a package
@@ -37,6 +39,7 @@ public class PublishPackageRequest {
 	@NotEmpty
 	@Size(max = 20)
 	@EsapiValidatedParam(type = ALPHANUMERIC)
+	@Pattern(regexp = ALPHANUMERIC_LOWERCASE_PATTERN)
 	private String publishingTarget;
 	private List<@Valid PublishRequestPath> paths;
 	private List<@NotEmpty String> commitIds;
