@@ -18,10 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.SqlSort;
@@ -82,6 +79,7 @@ public class PublishController {
 	@GetMapping(PATH_PARAM_SITE + PACKAGES)
 	public PaginatedResultList<PublishPackage> getPublishPackages(@ValidSiteId @PathVariable String site,
 								      @EsapiValidatedParam(type = ALPHANUMERIC) @Size(max = 20)
+									  @Pattern(regexp = ALPHANUMERIC_LOWERCASE_PATTERN)
 								      @RequestParam(name = REQUEST_PARAM_TARGET, required = false)
 								      String target,
 								      @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
@@ -200,7 +198,7 @@ public class PublishController {
 	@PostMapping(PATH_PARAM_SITE + PACKAGE + PATH_PARAM_PACKAGE + RECALCULATE)
 	public ResultOne<CalculatedPublishPackageResult> recalculate(@PathVariable @NotEmpty @ValidSiteId String site,
 								     @PathVariable @Positive long packageId,
-								     @RequestBody RecalculatePublishPackageRequest request)
+								     @Valid @RequestBody RecalculatePublishPackageRequest request)
 		throws ServiceLayerException, IOException {
 		CalculatedPublishPackageResult calculatedPackage = publishService.recalculatePublishPackage(site,
 			packageId, request.getPublishingTarget());

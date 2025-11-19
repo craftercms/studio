@@ -18,6 +18,8 @@ package org.craftercms.studio.controller.rest.v2;
 
 public final class RequestConstants {
 
+	public static final String ALPHANUMERIC_LOWERCASE_PATTERN = "[a-z0-9]*";
+
 	public static final String REQUEST_PARAM_OFFSET = "offset";
 	public static final String REQUEST_PARAM_LIMIT = "limit";
 	public static final String REQUEST_PARAM_SORT = "sort";

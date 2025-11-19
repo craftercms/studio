@@ -17,10 +17,12 @@
 package org.craftercms.studio.model.rest.publish;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.ALPHANUMERIC_LOWERCASE_PATTERN;
 
 /**
  * Request for publish package recalculation
@@ -29,6 +31,7 @@ public class RecalculatePublishPackageRequest {
 	@NotEmpty
 	@Size(max = 20)
 	@EsapiValidatedParam(type = ALPHANUMERIC)
+	@Pattern(regexp = ALPHANUMERIC_LOWERCASE_PATTERN)
 	private String publishingTarget;
 
 	public String getPublishingTarget() {
