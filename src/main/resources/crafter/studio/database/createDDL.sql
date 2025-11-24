@@ -225,7 +225,7 @@ CREATE TABLE _meta (
 	PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.9', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.10', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
 	`id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -689,6 +689,18 @@ CREATE TABLE IF NOT EXISTS `item_target`
 	`published_commit_id`   VARCHAR(40)     NOT NULL,
 	PRIMARY KEY(`item_id`, `target`),
 	FOREIGN KEY `item_target_item_id`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
+)
+	ENGINE = InnoDB
+	DEFAULT CHARSET = utf8
+	ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `system_properties`
+(
+	`id`            BIGINT(20)		NOT NULL AUTO_INCREMENT,
+	`property_name`  VARCHAR(50)	NOT NULL,
+	`property_value` TEXT			NOT NULL,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `system_properties_ix_property_name` (`property_name`)
 )
 	ENGINE = InnoDB
 	DEFAULT CHARSET = utf8

@@ -103,8 +103,6 @@
 				<permission>publish_request</permission>
 				<permission>publish_approve</permission>
 				<permission>publish_reject</permission>
-				<permission>system_properties_read</permission>
-				<permission>system_properties_manage</permission>
 			</allowed-permissions>
 		</rule>
 	</role>

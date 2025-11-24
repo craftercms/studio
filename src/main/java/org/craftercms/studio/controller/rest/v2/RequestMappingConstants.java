@@ -153,6 +153,11 @@ public final class RequestMappingConstants {
 	public static final String REJECT = "/reject";
 	public static final String APPROVE = "/approve";
 
+	/**
+	 * System Controller
+	 */
+	public static final String SYSTEM = "/system";
+
 	public static final String LOG_MONITOR_ENGINE_PROXY = "/api/1/monitoring/log.json";
 
 	private RequestMappingConstants() {
