@@ -211,6 +211,10 @@
         <constructor-arg name="logService" ref="loggerService"/>
     </bean>
 
+	<bean id="systemController" class="org.craftercms.studio.controller.rest.v2.SystemController">
+		<constructor-arg name="systemPropertiesService" ref="systemPropertiesService"/>
+	</bean>
+
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
         <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
     </bean>
