@@ -9156,75 +9156,75 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-    /api/2/system/properties:
-      get:
-        tags:
-          - system
-        summary: Read system properties
-        description: Required permission "system_properties_read"
-        operationId: getSystemProperties
-        parameters:
-          -   name: properties
-              in: query
-              description: The properties to read
-              required: true
-              style: form
-              explode: true
-              schema:
-                type: array
-                items:
-                  type: string
-        responses:
-          '200':
-            description: OK
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-                    result:
-                      $ref: '#/components/schemas/SystemProperties'
-          '401':
-            $ref: '#/components/responses/Unauthorized'
-          '403':
-            $ref: '#/components/responses/Forbidden'
-          '404':
-            $ref: '#/components/responses/NotFound'
-          '500':
-            $ref: '#/components/responses/InternalServerError'
-      post:
-        tags:
-          - system
-        summary: Update system properties
-        description: Required permission "system_properties_manage"
-        operationId: updateSystemProperties
-        requestBody:
-          description: System properties to update
-          required: true
+  /api/2/system/properties:
+    get:
+      tags:
+        - system
+      summary: Read system properties
+      description: Required permission "system_properties_read"
+      operationId: getSystemProperties
+      parameters:
+        -   name: properties
+            in: query
+            description: The properties to read
+            required: true
+            style: form
+            explode: true
+            schema:
+              type: array
+              items:
+                type: string
+      responses:
+        '200':
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SystemProperties'
-        responses:
-          '200':
-            description: OK
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    response:
-                      $ref: '#/components/schemas/ApiResponse'
-          '401':
-            $ref: '#/components/responses/Unauthorized'
-          '403':
-            $ref: '#/components/responses/Forbidden'
-          '404':
-            $ref: '#/components/responses/NotFound'
-          '500':
-            $ref: '#/components/responses/InternalServerError'
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/SystemProperties'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - system
+      summary: Update system properties
+      description: Required permission "system_properties_manage"
+      operationId: updateSystemProperties
+      requestBody:
+        description: System properties to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemProperties'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:
@@ -11767,21 +11767,26 @@ components:
           type: string
           description: The language display name
 
-        SystemProperties:
-          type: object
-          description: system properties
-          properties:
+    SystemProperties:
+      type: object
+      description: system properties
+      properties:
+        properties:
+          type: array
+          items:
+            type: object
             properties:
-              type: array
-              items:
-                type: object
-                properties:
-                  name:
-                    type: string
-                    description: property name
-                  value:
-                    type: string
-                    description: property value
+              name:
+                type: string
+                description: property name
+              value:
+                type: string
+                description: property value
+              required:
+                - name
+                - value
+        required:
+          - properties
 
   responses:
     NotFound:
