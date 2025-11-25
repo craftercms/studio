@@ -10899,6 +10899,11 @@ components:
                             value:
                                 type: string
                                 description: property value
+                        required:
+                            - name
+                            - value
+                required:
+                    - properties
 
     responses:
         NotFound:
