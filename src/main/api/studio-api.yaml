@@ -8328,12 +8328,14 @@ paths:
             parameters:
                 -   name: properties
                     in: query
-                    description: The properties to read
+                    description: The property names to read. Repeat parameter to request multiple.
                     required: true
                     style: form
                     explode: true
                     schema:
                         type: array
+                        minItems: 1
+                        uniqueItems: true
                         items:
                             type: string
             responses:
@@ -8350,6 +8352,8 @@ paths:
                                         type: object
                                         additionalProperties:
                                             type: string
+                '400':
+                    $ref: '#/components/responses/BadRequest'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '403':
