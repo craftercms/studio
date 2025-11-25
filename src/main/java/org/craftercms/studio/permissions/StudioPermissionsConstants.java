@@ -87,6 +87,9 @@ public final class StudioPermissionsConstants {
 
 	public static final String PERMISSION_SET_ITEM_STATES = "set_item_states";
 
+	public static final String PERMISSION_MANAGE_SYSTEM_PROPERTIES = "system_properties_manage";
+	public static final String PERMISSION_READ_SYSTEM_PROPERTIES = "system_properties_read";
+
 	public static final String SITE_ID_RESOURCE_ID = "siteId";
 	public static final String PATH_RESOURCE_ID = "path";
 	public static final String DEFAULT_PATH_RESOURCE_VALUE = "/";

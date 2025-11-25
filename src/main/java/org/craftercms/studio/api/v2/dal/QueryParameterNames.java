@@ -264,6 +264,11 @@ public final class QueryParameterNames {
 	public static final String ITEM = "item";
 	public static final String DEPENDENCIES = "dependencies";
 
+	/**
+	 * System properties
+	 */
+	public static final String PROPERTY_NAMES = "propertyNames";
+
 	private QueryParameterNames() {
 	}
 }

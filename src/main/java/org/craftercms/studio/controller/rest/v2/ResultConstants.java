@@ -106,6 +106,11 @@ public final class ResultConstants {
 	public static final String RESULT_KEY_PUBLISHING_STATS = "publishingStats";
 
 	/**
+	 * System Controller
+	 */
+	public static final String RESULT_KEY_PROPERTIES = "properties";
+
+	/**
 	 * Exception Handler
 	 */
 	public static final String RESULT_KEY_PERSON = "person";
