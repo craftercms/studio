@@ -20,8 +20,8 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.system.SystemPropertiesDAO">
 
-    <select id="getProperties">
-        SELECT property_name, property_value
+    <select id="getProperties" resultType="org.craftercms.studio.api.v2.dal.system.SystemProperty">
+        SELECT property_name AS name, property_value AS value
         FROM system_properties
         WHERE property_name IN
         <foreach item="propertyName" collection="propertyNames" open="(" separator="," close=")">
