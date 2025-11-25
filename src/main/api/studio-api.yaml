@@ -64,6 +64,8 @@ tags:
         description: Logger configuration operations
     -   name: server
         description: Server operations
+    -   name: system
+        description: System operations
 
 paths:
 
@@ -8322,6 +8324,7 @@ paths:
                 - system
             summary: Read system properties
             description: Required permission "system_properties_read"
+            operationId: getSystemProperties
             parameters:
                 -   name: properties
                     in: query
@@ -8358,6 +8361,7 @@ paths:
                 - system
             summary: Update system properties
             description: Required permission "system_properties_manage"
+            operationId: updateSystemProperties
             requestBody:
                 description: System properties to update
                 required: true
