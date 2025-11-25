@@ -9207,7 +9207,7 @@ paths:
       description: Required permission "system_properties_manage"
       operationId: updateSystemProperties
       requestBody:
-        description: System properties to update
+        description: System properties to update. Setting a property value to null will remove the property.
         required: true
         content:
           application/json:
@@ -9215,6 +9215,10 @@ paths:
               type: object
               additionalProperties:
                 type: string
+            example:
+              property1: "value1"
+              property2: "value2"
+              removedProperty: null
       responses:
         '200':
           description: OK

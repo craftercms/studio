@@ -39,6 +39,7 @@ public interface SystemPropertiesService {
 
 	/**
 	 * Set system properties.
+	 * The non-null property value will be set/updated, while properties with null values will be deleted.
 	 *
 	 * @param properties a map with the property names and their corresponding values
 	 */
