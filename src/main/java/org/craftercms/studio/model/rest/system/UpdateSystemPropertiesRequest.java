@@ -16,12 +16,14 @@
 
 package org.craftercms.studio.model.rest.system;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
-import java.util.List;
+import java.util.Map;
+
+import static org.craftercms.studio.api.v2.service.system.SystemPropertiesService.PROPERTY_NAME_ALLOWED_PATTERN;
 
 /**
  * Request object for setting system properties.
@@ -29,40 +31,13 @@ import java.util.List;
 public class UpdateSystemPropertiesRequest {
 
 	@NotEmpty
-	protected List<@Valid SystemProperty> properties;
+	protected Map<@Size(max = 50) @ValidateNoTagsParam @ValidateStringParam(whitelistedPatterns = PROPERTY_NAME_ALLOWED_PATTERN) String, @Size(max = 4000) String> properties;
 
-	public List<SystemProperty> getProperties() {
+	public Map<String, String> getProperties() {
 		return properties;
 	}
 
-	public void setProperties(final List<SystemProperty> properties) {
+	public void setProperties(final Map<String, String> properties) {
 		this.properties = properties;
-	}
-
-	/**
-	 * Represents a single system property.
-	 */
-	public static class SystemProperty {
-		@Size(max = 50)
-		@ValidateNoTagsParam
-		private String name;
-		@Size(max = 4000)
-		private String value;
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(final String name) {
-			this.name = name;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-		public void setValue(final String value) {
-			this.value = value;
-		}
 	}
 }

@@ -17,8 +17,10 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import jakarta.validation.Valid;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.studio.api.v2.dal.system.SystemProperty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v2.service.system.SystemPropertiesService;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -27,12 +29,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
+import static org.craftercms.studio.api.v2.service.system.SystemPropertiesService.PROPERTY_NAME_ALLOWED_PATTERN;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
@@ -52,9 +52,9 @@ public class SystemController {
 	}
 
 	@GetMapping(PROPERTIES)
-	public ResultOne<Collection<SystemProperty>> getSystemProperties(@RequestParam
-																	 List<@EsapiValidatedParam(type = ALPHANUMERIC) String> properties) {
-		ResultOne<Collection<SystemProperty>> result = new ResultOne<>();
+	public ResultOne<Map<String, String>> getSystemProperties(@RequestParam @NotEmpty
+															  List<@Size(max = 50) @ValidateNoTagsParam @ValidateStringParam(whitelistedPatterns = PROPERTY_NAME_ALLOWED_PATTERN) String> properties) {
+		ResultOne<Map<String, String>> result = new ResultOne<>();
 		result.setEntity(ResultConstants.RESULT_KEY_PROPERTIES, systemPropertiesService.getSystemProperties(properties));
 		result.setResponse(OK);
 		return result;
@@ -62,11 +62,7 @@ public class SystemController {
 
 	@PostMapping(PROPERTIES)
 	public Result setSystemProperties(@Valid @RequestBody UpdateSystemPropertiesRequest request) {
-		Map<String, String> propertiesMap = new HashMap<>();
-		for (UpdateSystemPropertiesRequest.SystemProperty property : request.getProperties()) {
-			propertiesMap.put(property.getName(), property.getValue());
-		}
-		systemPropertiesService.setSystemProperties(propertiesMap);
+		systemPropertiesService.setSystemProperties(request.getProperties());
 		Result result = new Result();
 		result.setResponse(OK);
 		return result;

@@ -16,9 +16,6 @@
 
 package org.craftercms.studio.api.v2.service.system;
 
-import org.craftercms.studio.api.v2.dal.system.SystemProperty;
-
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -28,12 +25,17 @@ import java.util.Map;
 public interface SystemPropertiesService {
 
 	/**
+	 * Allowed pattern for property names.
+	 */
+	String PROPERTY_NAME_ALLOWED_PATTERN = "[a-zA-Z0-9_.]+";
+
+	/**
 	 * Get system properties for the given keys.
 	 *
 	 * @param propertyNames the property names
-	 * @return a collection with the property names and their corresponding values (if they exist)
+	 * @return a map with the requested properties
 	 */
-	Collection<SystemProperty> getSystemProperties(List<String> propertyNames);
+	Map<String, String> getSystemProperties(List<String> propertyNames);
 
 	/**
 	 * Set system properties.
