@@ -18,11 +18,9 @@ package org.craftercms.studio.impl.v2.service.system;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.studio.api.v2.dal.system.SystemProperty;
 import org.craftercms.studio.api.v2.service.system.SystemPropertiesService;
 
 import java.beans.ConstructorProperties;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -42,13 +40,13 @@ public class SystemPropertiesServiceImpl implements SystemPropertiesService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_SYSTEM_PROPERTIES)
-	public Collection<SystemProperty> getSystemProperties(List<String> propertyNames) {
+	public Map<String, String> getSystemProperties(final List<String> propertyNames) {
 		return systemPropertiesServiceInternal.getSystemProperties(propertyNames);
 	}
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_SYSTEM_PROPERTIES)
-	public void setSystemProperties(Map<String, String> properties) {
+	public void setSystemProperties(final Map<String, String> properties) {
 		systemPropertiesServiceInternal.setSystemProperties(properties);
 	}
 }

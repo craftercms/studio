@@ -8347,7 +8347,9 @@ paths:
                                     response:
                                         $ref: '#/components/schemas/ApiResponse'
                                     result:
-                                        $ref: '#/components/schemas/SystemProperties'
+                                        type: object
+                                        additionalProperties:
+                                            type: string
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '403':
@@ -8368,7 +8370,9 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/SystemProperties'
+                            type: object
+                            additionalProperties:
+                                type: string
             responses:
                 '200':
                     description: OK
@@ -10884,26 +10888,6 @@ components:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
-        SystemProperties:
-            type: object
-            description: system properties
-            properties:
-                properties:
-                    type: array
-                    items:
-                        type: object
-                        properties:
-                            name:
-                                type: string
-                                description: property name
-                            value:
-                                type: string
-                                description: property value
-                        required:
-                            - name
-                            - value
-                required:
-                    - properties
 
     responses:
         NotFound:

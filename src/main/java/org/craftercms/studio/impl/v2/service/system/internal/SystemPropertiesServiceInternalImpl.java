@@ -22,9 +22,9 @@ import org.craftercms.studio.api.v2.dal.system.SystemProperty;
 import org.craftercms.studio.api.v2.service.system.SystemPropertiesService;
 
 import java.beans.ConstructorProperties;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Internal implementation of {@link SystemPropertiesService}.
@@ -42,8 +42,9 @@ public class SystemPropertiesServiceInternalImpl implements SystemPropertiesServ
 	}
 
 	@Override
-	public Collection<SystemProperty> getSystemProperties(final List<String> propertyNames) {
-		return systemPropertiesDAO.getProperties(propertyNames);
+	public Map<String, String> getSystemProperties(final List<String> propertyNames) {
+		return systemPropertiesDAO.getProperties(propertyNames).stream()
+				.collect(Collectors.toMap(SystemProperty::name, SystemProperty::value));
 	}
 
 	@Override
