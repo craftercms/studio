@@ -1567,34 +1567,34 @@
 		<constructor-arg name="userService" ref="userServiceInternal"/>
 		<property name="audience" value="#{studioConfiguration.getProperty('studio.security.token.audience')}"/>
 		<property name="refreshTokenCookieGenerator">
-			<bean class="org.springframework.web.util.CookieGenerator">
-				<property name="cookieName"
+			<bean class="org.craftercms.commons.http.NamedCookieManager">
+				<constructor-arg name="name"
 					  value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
-				<property name="cookieMaxAge"
+				<constructor-arg name="maxAge"
 					  value="#{studioConfiguration.getProperty('studio.security.token.cookie.maxAge')}"/>
-				<property name="cookiePath"
+				<constructor-arg name="path"
 					  value="#{studioConfiguration.getProperty('studio.security.token.cookie.path')}"/>
-				<property name="cookieSecure"
+				<constructor-arg name="secure"
 					  value="#{studioConfiguration.getProperty('studio.security.token.cookie.secure')}"/>
-				<property name="cookieHttpOnly"
-					  value="#{studioConfiguration.getProperty('studio.security.token.cookie.httpOnly')}"/>
-				<property name="cookieDomain"
+				<constructor-arg name="httpOnly"
+					  value="true"/>
+				<constructor-arg name="domain"
 					  value="#{studioConfiguration.getProperty('studio.security.token.cookie.domain')}"/>
 			</bean>
 		</property>
 		<property name="previewCookieGenerator">
-			<bean class="org.springframework.web.util.CookieGenerator">
-				<property name="cookieName"
+			<bean class="org.craftercms.commons.http.NamedCookieManager">
+				<constructor-arg name="name"
 					  value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.name')}"/>
-				<property name="cookieMaxAge"
+				<constructor-arg name="maxAge"
 					  value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.maxAge')}"/>
-				<property name="cookiePath"
+				<constructor-arg name="path"
 					  value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.path')}"/>
-				<property name="cookieSecure"
+				<constructor-arg name="secure"
 					  value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.secure')}"/>
-				<property name="cookieHttpOnly"
-					  value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.httpOnly')}"/>
-				<property name="cookieDomain"
+				<constructor-arg name="httpOnly"
+					  value="true"/>
+				<constructor-arg name="domain"
 					  value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.domain')}"/>
 			</bean>
 		</property>

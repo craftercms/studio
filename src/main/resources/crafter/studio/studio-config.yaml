@@ -448,8 +448,6 @@ studio.security.token.cookie.path: /studio
 studio.security.token.cookie.domain: null
 # Indicates if the refresh token cookie should be secure (should be true for production environments behind HTTPS)
 studio.security.token.cookie.secure: false
-# Indicates if the refresh token cookie should be HTTPOnly
-studio.security.token.cookie.httpOnly: true
 
 ##############################################################
 ##                      Preview Cookie                      ##
@@ -464,8 +462,6 @@ studio.security.token.previewCookie.path: /
 studio.security.token.previewCookie.domain: null
 # Indicates if the preview cookie should be secure (should be true for production environments behind HTTPS)
 studio.security.token.previewCookie.secure: false
-# Indicates if the preview cookie should be HTTPOnly
-studio.security.token.previewCookie.httpOnly: true
 
 # Use base domain instead of subdomain for the crafterSite cookie
 studio.cookie.useBaseDomain: false

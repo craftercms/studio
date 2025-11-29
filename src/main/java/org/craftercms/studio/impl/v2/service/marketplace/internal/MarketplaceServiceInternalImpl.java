@@ -380,7 +380,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 		throws MarketplaceException {
 
 		validate();
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
 			.path(Paths.PLUGIN_SEARCH)
 			.queryParam(Constants.PARAM_VERSION, version)
 			.queryParam(Constants.PARAM_EDITION, edition)
@@ -423,7 +423,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 		validate();
 
 		logger.debug("Load plugin descriptor for plugin '{}' version '{}'", id, version);
-		UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url)
 			.path(Paths.GET_PLUGIN)
 			.pathSegment(id, version.toString())
 			.queryParam(Constants.PARAM_SHOW_PENDING, showPending);
