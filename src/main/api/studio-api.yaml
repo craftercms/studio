@@ -9215,6 +9215,7 @@ paths:
               type: object
               additionalProperties:
                 type: string
+                nullable: true
             example:
               property1: "value1"
               property2: "value2"
