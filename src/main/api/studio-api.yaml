@@ -8377,6 +8377,7 @@ paths:
                             type: object
                             additionalProperties:
                                 type: string
+                                nullable: true
                         example:
                             property1: "value1"
                             property2: "value2"
@@ -8391,6 +8392,8 @@ paths:
                                 properties:
                                     response:
                                         $ref: '#/components/schemas/ApiResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '403':
