@@ -8391,6 +8391,8 @@ paths:
                                 properties:
                                     response:
                                         $ref: '#/components/schemas/ApiResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '403':
