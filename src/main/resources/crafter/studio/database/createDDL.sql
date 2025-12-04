@@ -215,7 +215,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.3.0.1', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.5.0.1', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -651,6 +651,18 @@ CREATE TABLE IF NOT EXISTS `access_token`
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
     ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `system_properties`
+(
+	`id`            BIGINT(20)		NOT NULL AUTO_INCREMENT,
+	`property_name`  VARCHAR(50)	NOT NULL,
+	`property_value` TEXT			NOT NULL,
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX `system_properties_ix_property_name` (`property_name`)
+)
+	ENGINE = InnoDB
+	DEFAULT CHARSET = utf8
+	ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO site (site_id, name, description, system, state)
 VALUES ('studio_root', 'Studio Root', 'Studio Root for global permissions', 1, 'READY') ;

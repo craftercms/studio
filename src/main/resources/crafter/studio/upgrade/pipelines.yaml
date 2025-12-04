@@ -765,6 +765,15 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
                 dest: /configuration/samples/sample-studio-config-override.yaml
             commitDetails: Update sample studio override config file with new SEARCH_KEYWORDS regex
+      - currentVersion: 4.5.0.0
+        nextVersion: 4.5.0.1
+        operations:
+            - type: dbScriptUpgrader
+              filename: upgrade/4.5.x/4.5.0.0-to-4.5.0.1.sql
+            - type: xsltFileUpgrader
+              path: /configuration/global-permission-mappings-config.xml
+              template: crafter/studio/upgrade/4.5.x/system/global-permission-mappings-config-v4.5.0.1.xslt
+              commitDetails: Add new permission for system properties API
 
   # Pipeline to upgrade site repositories
   site:

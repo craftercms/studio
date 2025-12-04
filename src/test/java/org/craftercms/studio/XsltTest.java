@@ -359,6 +359,23 @@ public class XsltTest {
         };
     }
 
+	@DataProvider(name = "globalPermissions4501TestData")
+	public Object[][] globalPermissions4501TestData() {
+		return new Object[][]{
+				new Object[] {
+						new ClassPathResource("crafter/studio/upgrade/4.5.x/system/global-permission-mappings-config-v4.5.0.1.xslt"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/4.5.0.1/input.xml"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/4.5.0.1/expected.xml"),
+						emptyMap()
+				}
+		};
+	}
+
+	@Test(dataProvider = "globalPermissions4501TestData")
+	public void globalPermissions4501Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
     @Test(dataProvider = "xsltData")
     public void testXsltTemplate(Resource template, Resource content, Resource expected, Map<String, Object> params)
             throws IOException, TransformerException {

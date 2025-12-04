@@ -64,6 +64,8 @@ tags:
     description: Logger configuration operations
   - name: server
     description: Server operations
+  - name: system
+    description: System operations
 
 paths:
 
@@ -9145,6 +9147,91 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   result:
                     $ref: '#/components/schemas/LoggerConfig'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/2/system/properties:
+    get:
+      tags:
+        - system
+      summary: Read system properties
+      description: Required permission "system_properties_read"
+      operationId: getSystemProperties
+      parameters:
+        -   name: properties
+            in: query
+            description: The property names to read. Repeat parameter to request multiple.
+            required: true
+            style: form
+            explode: true
+            schema:
+              type: array
+              minItems: 1
+              uniqueItems: true
+              items:
+                type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    type: object
+                    additionalProperties:
+                      type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - system
+      summary: Update system properties
+      description: Required permission "system_properties_manage"
+      operationId: updateSystemProperties
+      requestBody:
+        description: System properties to update. Setting a property value to null will remove the property.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+                nullable: true
+            example:
+              property1: "value1"
+              property2: "value2"
+              removedProperty: null
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
