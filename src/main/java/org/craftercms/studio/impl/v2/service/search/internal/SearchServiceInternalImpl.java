@@ -345,9 +345,9 @@ public class SearchServiceInternalImpl implements SearchService {
                     }
 
                     if (params.isOrOperator()) {
-                        builder.should(rangeQuery.build()._toQuery());
+                        builder.should(rangeQuery.build().toQuery());
                     } else {
-                        builder.filter(rangeQuery.build()._toQuery());
+                        builder.filter(rangeQuery.build().toQuery());
                     }
                 } else if (facetConfig.isMultiple() && value instanceof List) {
                     List<Object> values = (List<Object>) value;
@@ -360,11 +360,11 @@ public class SearchServiceInternalImpl implements SearchService {
                             )
                         )
                     ));
-                    BoolQuery.Builder qb = new BoolQuery.Builder().must(orQuery.build()._toQuery());
+                    BoolQuery.Builder qb = new BoolQuery.Builder().must(orQuery.build().toQuery());
                     if (params.isOrOperator()) {
-                        builder.should(qb.build()._toQuery());
+                        builder.should(qb.build().toQuery());
                     } else {
-                        builder.filter(qb.build()._toQuery());
+                        builder.filter(qb.build().toQuery());
                     }
                 } else {
                     MatchQuery qb = MatchQuery.of(m -> m
@@ -374,16 +374,16 @@ public class SearchServiceInternalImpl implements SearchService {
                         )
                     );
                     if (params.isOrOperator()) {
-                        builder.should(qb._toQuery());
+                        builder.should(qb.toQuery());
                     } else {
-                        builder.filter(qb._toQuery());
+                        builder.filter(qb.toQuery());
                     }
                 }
             }
         });
         if (params.isOrOperator()) {
             query.filter(BoolQuery.of(b -> b
-                .must(builder.build()._toQuery()))._toQuery()
+                .must(builder.build().toQuery())).toQuery()
             );
         }
     }
@@ -547,7 +547,7 @@ public class SearchServiceInternalImpl implements SearchService {
         }
 
         SearchRequest.Builder builder = new SearchRequest.Builder()
-            .query(finalBuilder.build()._toQuery())
+            .query(finalBuilder.build().toQuery())
             .from(params.getOffset())
             .size(params.getLimit())
             .sort(s -> s
@@ -607,7 +607,7 @@ public class SearchServiceInternalImpl implements SearchService {
                     });
                 }
 
-                builder.aggregations(name, aggregation.build()._toAggregation());
+                builder.aggregations(name, aggregation.build().toAggregation());
             } else if (facet.isRange()) {
                 RangeAggregation.Builder aggregation = new RangeAggregation.Builder()
                     .field(facet.getField())
@@ -616,16 +616,16 @@ public class SearchServiceInternalImpl implements SearchService {
                     aggregation.ranges(r -> {
                         r.key(range.getLabel());
                         if (range.getFrom() != null) {
-                            r.from(range.getFrom());
+                            r.from(JsonData.of(range.getFrom()));
                         }
                         if (range.getTo() != null) {
-                            r.to(range.getTo());
+                            r.to(JsonData.of(range.getTo()));
                         }
                         return  r;
                     });
                 }
 
-                builder.aggregations(name, aggregation.build()._toAggregation());
+                builder.aggregations(name, aggregation.build().toAggregation());
             } else {
                 builder.aggregations(name, a -> a
                     .terms(t -> t
