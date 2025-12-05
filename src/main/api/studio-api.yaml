@@ -9241,6 +9241,68 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/2/system/maintenance:
+    get:
+      tags:
+        - system
+      summary: Get system maintenance mode status. This API is available for EE only
+      security: []  # public endpoint (overrides global security)
+      operationId: getMaintenanceMode
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  maintenanceMode:
+                    type: boolean
+                    description: true if system is in maintenance mode, otherwise false
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - system
+      summary: Set system maintenance mode status. This API is available for EE only
+      description: Required permission "system_properties_manage".
+      operationId: setMaintenanceMode
+      requestBody:
+        description: Maintenance mode status to set
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                maintenanceMode:
+                  type: boolean
+                  description: true to set system in maintenance mode, false to disable maintenance mode
+                required:
+                  - maintenanceMode
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -9290,6 +9352,8 @@ components:
           * `CODE:` 50003, `MESSAGE:` Target path does not exist in site repository, `REMEDIAL ACTION:` Check if you sent in the right Studio Path
           * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
           * `CODE:` 53000, `MESSAGE:` Logger not found, `REMEDIAL ACTION:` Check if you sent in the right logger name or add 'createIfAbsent=true' parameter to create the logger if it does not exist
+          * `CODE:` 55000, `MESSAGE:` System is in maintenance mode, `REMEDIAL ACTION:` "Please wait for the maintenance window to complete or contact your system administrator for more information."
+
       properties:
         code:
           type: integer
