@@ -176,6 +176,10 @@ public class ApiResponse {
                     "add 'createIfAbsent=true' parameter to create the logger if it does not exist", StringUtils.EMPTY);
     public static final ApiResponse CONFIGURATION_PROFILE_NOT_FOUND = new ApiResponse(54000, "The profile was not found",
         "Check if you sent in the right profileId name", StringUtils.EMPTY);
+    
+    // 55000 - 56000
+    public static final ApiResponse MAINTENANCE_MODE = new ApiResponse(55000, "System is in maintenance mode",
+            "Please wait for the maintenance window to complete or contact your system administrator for more information.", StringUtils.EMPTY);
 
     private int code;
     private String message;
