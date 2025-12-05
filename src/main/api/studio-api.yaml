@@ -8402,6 +8402,71 @@ paths:
                     $ref: '#/components/responses/NotFound'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+
+    /api/2/system/maintenance:
+        get:
+            tags:
+                - system
+            summary: Get system maintenance mode status. This API is available for EE only
+            security: []  # public endpoint (overrides global security)
+            operationId: getMaintenanceMode
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    maintenanceMode:
+                                        type: boolean
+                                        description: true if system is in maintenance mode, otherwise false
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /api/2/system/set-maintenance:
+        post:
+            tags:
+                - system
+            summary: Set system maintenance mode status. This API is available for EE only
+            description: Required permission "system_properties_manage".
+            operationId: setMaintenanceMode
+            requestBody:
+                description: Maintenance mode status to set
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                maintenanceMode:
+                                    type: boolean
+                                    description: true to set system in maintenance mode, false to disable maintenance mode
+                            required:
+                                - maintenanceMode
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
 components:
     schemas:
         ApiResponse:
