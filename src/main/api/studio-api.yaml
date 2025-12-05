@@ -9263,6 +9263,8 @@ paths:
                     description: true if system is in maintenance mode, otherwise false
         '500':
           $ref: '#/components/responses/InternalServerError'
+
+  /api/2/system/set-maintenance:
     post:
       tags:
         - system
@@ -9280,8 +9282,8 @@ paths:
                 maintenanceMode:
                   type: boolean
                   description: true to set system in maintenance mode, false to disable maintenance mode
-                required:
-                  - maintenanceMode
+              required:
+                - maintenanceMode
       responses:
         '200':
           description: OK
