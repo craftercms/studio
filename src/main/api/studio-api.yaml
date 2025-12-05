@@ -9264,7 +9264,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/2/system/set-maintenance:
+  /api/2/system/set_maintenance:
     post:
       tags:
         - system
