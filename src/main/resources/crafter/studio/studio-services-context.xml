@@ -1451,6 +1451,11 @@
 		<constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
 	</bean>
 
+	<bean id="crafter.suffixStrippingFilter" class="org.craftercms.commons.http.SuffixStrippingFilter">
+		<constructor-arg name="suffixes" value="#{studioConfiguration.getProperty('studio.api.stripSuffixes.suffixes')}"/>
+		<constructor-arg name="includedUrls" value="#{studioConfiguration.getProperty('studio.api.stripSuffixes.includedUrls')}"/>
+	</bean>
+
 	<util:list id="sitePolicyValidators">
 		<bean class="org.craftercms.studio.impl.v2.service.policy.validators.FileSizePolicyValidator"/>
 		<bean class="org.craftercms.studio.impl.v2.service.policy.validators.MimeTypePolicyValidator"/>
