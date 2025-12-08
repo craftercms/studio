@@ -1571,7 +1571,7 @@
 		<constructor-arg name="previewTokenEncryptor" ref="crafter.textEncryptor"/>
 		<constructor-arg name="userService" ref="userServiceInternal"/>
 		<property name="audience" value="#{studioConfiguration.getProperty('studio.security.token.audience')}"/>
-		<property name="refreshTokenCookieGenerator">
+		<property name="refreshTokenCookieManager">
 			<bean class="org.craftercms.commons.http.NamedCookieManager">
 				<constructor-arg name="name"
 					  value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
@@ -1587,7 +1587,7 @@
 					  value="#{studioConfiguration.getProperty('studio.security.token.cookie.domain')}"/>
 			</bean>
 		</property>
-		<property name="previewCookieGenerator">
+		<property name="previewCookieManager">
 			<bean class="org.craftercms.commons.http.NamedCookieManager">
 				<constructor-arg name="name"
 					  value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.name')}"/>

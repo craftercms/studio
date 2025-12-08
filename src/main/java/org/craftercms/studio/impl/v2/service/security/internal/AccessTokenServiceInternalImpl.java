@@ -135,8 +135,8 @@ public class AccessTokenServiceInternalImpl implements AccessTokenService, Initi
 	 */
 	protected final int inactivityTimeout;
 
-	private NamedCookieManager refreshTokenCookieGenerator;
-	private NamedCookieManager previewCookieGenerator;
+	private NamedCookieManager refreshTokenCookieManager;
+	private NamedCookieManager previewCookieManager;
 
 	/**
 	 * Cache used to track the activity of the users
@@ -199,7 +199,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenService, Initi
 
 	@Override
 	public boolean hasValidRefreshToken(Authentication auth, HttpServletRequest request, HttpServletResponse response) {
-		var cookie = getCookie(request, refreshTokenCookieGenerator.getName());
+		var cookie = getCookie(request, refreshTokenCookieManager.getName());
 		var refreshToken = cookie != null ? cookie.getValue() : null;
 		var userId = getUserId(auth);
 
@@ -209,7 +209,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenService, Initi
 		if (!valid) {
 			SecurityContextHolder.clearContext();
 			request.getSession().invalidate();
-			refreshTokenCookieGenerator.deleteCookie(response);
+			refreshTokenCookieManager.deleteCookie(response);
 		}
 
 		return valid;
@@ -221,7 +221,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenService, Initi
 		var userId = getUserId(auth);
 
 		retryingDatabaseOperationFacade.retry(() -> securityDao.upsertRefreshToken(userId, refreshToken));
-		refreshTokenCookieGenerator.addCookie(refreshToken, response);
+		refreshTokenCookieManager.addCookie(refreshToken, response);
 	}
 
 	@Override
@@ -229,16 +229,16 @@ public class AccessTokenServiceInternalImpl implements AccessTokenService, Initi
 		String siteName = getCookieValue(CRAFTER_SITE_COOKIE_NAME, request);
 		if (isEmpty(siteName)) {
 			logger.debug("No site name found in '{}' cookie, removing preview cookie", CRAFTER_SITE_COOKIE_NAME);
-			previewCookieGenerator.deleteCookie(response);
+			previewCookieManager.deleteCookie(response);
 		} else if (!userService.isSiteMember(auth.getName(), siteName)) {
 			logger.debug("User '{}' is not a member of site '{}', removing preview cookie", auth.getName(), siteName);
-			previewCookieGenerator.deleteCookie(response);
+			previewCookieManager.deleteCookie(response);
 			if (!silent) {
 				throw new SiteNotFoundException(siteName);
 			}
 		} else {
 			String previewCookie = createPreviewCookie(siteName);
-			previewCookieGenerator.addCookie(previewCookie, response);
+			previewCookieManager.addCookie(previewCookie, response);
 			logger.debug("Refreshed preview cookie for user '{}'", auth.getName());
 		}
 	}
@@ -251,7 +251,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenService, Initi
 	 * @throws ServiceLayerException if the cookie cannot be encrypted
 	 */
 	private String createPreviewCookie(final String siteName) throws ServiceLayerException {
-		long timestamp = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(previewCookieGenerator.getMaxAge());
+		long timestamp = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(previewCookieManager.getMaxAge());
 
 		String token = format("%s|%s", siteName, timestamp);
 		try {
@@ -263,7 +263,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenService, Initi
 
 	@Override
 	public void deletePreviewCookie(HttpServletResponse response) {
-		previewCookieGenerator.deleteCookie(response);
+		previewCookieManager.deleteCookie(response);
 	}
 
 	@Override
@@ -496,11 +496,11 @@ public class AccessTokenServiceInternalImpl implements AccessTokenService, Initi
 		userActivity.put(getUserId(authentication), now());
 	}
 
-	public void setRefreshTokenCookieGenerator(final NamedCookieManager refreshTokenCookieGenerator) {
-		this.refreshTokenCookieGenerator = refreshTokenCookieGenerator;
+	public void setRefreshTokenCookieManager(final NamedCookieManager refreshTokenCookieManager) {
+		this.refreshTokenCookieManager = refreshTokenCookieManager;
 	}
 
-	public void setPreviewCookieGenerator(final NamedCookieManager previewCookieGenerator) {
-		this.previewCookieGenerator = previewCookieGenerator;
+	public void setPreviewCookieManager(final NamedCookieManager previewCookieManager) {
+		this.previewCookieManager = previewCookieManager;
 	}
 }
