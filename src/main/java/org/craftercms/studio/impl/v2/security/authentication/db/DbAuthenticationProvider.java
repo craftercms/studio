@@ -21,6 +21,7 @@ import org.craftercms.studio.model.AuthenticationType;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
  * Extension of {@link DaoAuthenticationProvider} that returns an instance of {@link AuthenticatedUser}
@@ -29,6 +30,10 @@ import org.springframework.security.core.userdetails.UserDetails;
  * @since 4.0
  */
 public class DbAuthenticationProvider extends DaoAuthenticationProvider {
+
+	public DbAuthenticationProvider(final UserDetailsService userDetailsService) {
+		super(userDetailsService);
+	}
 
 	@Override
 	protected Authentication createSuccessAuthentication(Object principal, Authentication authentication,

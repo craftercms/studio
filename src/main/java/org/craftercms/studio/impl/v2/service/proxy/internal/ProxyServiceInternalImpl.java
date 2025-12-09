@@ -77,7 +77,7 @@ public class ProxyServiceInternalImpl implements ProxyService {
 			ResponseEntity response = restTemplate.exchange(uri, HttpMethod.valueOf(request.getMethod()), httpEntity, Object.class);
 			return new ResponseEntity<>(response.getBody(), getProxyResponseHeaders(response), response.getStatusCode());
 		} catch (HttpStatusCodeException e) {
-			return ResponseEntity.status(e.getRawStatusCode())
+			return ResponseEntity.status(e.getStatusCode())
 				.headers(e.getResponseHeaders())
 				.body(e.getResponseBodyAsString());
 		}

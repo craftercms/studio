@@ -78,7 +78,7 @@
 	</util:map>
 
 	<mvc:annotation-driven validator="commonValidator">
-		<mvc:path-matching registered-suffixes-only="true"/>
+		<mvc:path-matching/>
 	</mvc:annotation-driven>
 
 	<!--
@@ -218,7 +218,6 @@
 		<property name="order" value="0"/>
 		<property name="contentNegotiationManager">
 			<bean class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
-				<property name="favorPathExtension" value="true"/>
 				<!-- We ignore accept header since most of the time views that can't be resolved will be resolved as application/xml -->
 				<property name="ignoreAcceptHeader" value="true"/>
 				<property name="defaultContentType" value="text/html"/>
