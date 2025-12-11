@@ -99,11 +99,44 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     @Override
     @Valid
-    public void deploy(@ValidateStringParam String site,
-                       @ValidateStringParam String environment, List<String> paths,
-                       ZonedDateTime scheduledDate, @ValidateStringParam String approver,
-                       @ValidateStringParam String submissionComment,
+    public void deploy(String site,
+                       String environment, List<String> paths,
+                       ZonedDateTime scheduledDate, String approver,
+                       String submissionComment,
                        final boolean scheduleDateNow)
+            throws DeploymentException, ServiceLayerException, UserNotFoundException {
+        deploy(site, environment, paths, scheduledDate, approver,
+                submissionComment, scheduleDateNow, true);
+    }
+
+    @Override
+    public void approveAndDeploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver, String submissionComment, boolean scheduleDateNow) throws DeploymentException, ServiceLayerException, UserNotFoundException {
+        deploy(site, environment, paths, scheduledDate, approver,
+                submissionComment, scheduleDateNow, false);
+    }
+
+    /**
+     * @param site                     the site identifier
+     * @param environment              the publish environment
+     * @param paths                    the list of paths to deploy
+     * @param scheduledDate            the scheduled date to execute deployment
+     * @param approver                 user that approved deployment
+     * @param submissionComment        submission comment
+     * @param scheduleDateNow          true if the items are meant to be deployed immediately
+     * @param createNewWorkflowEntries flag to indicate whether to create new workflow entries. This is meant
+     *                                 to be true when publishing directly, false when approving a previously
+     *                                 submitted workflow entry.
+     * @throws DeploymentException   general deployment error
+     * @throws ServiceLayerException service layer error
+     * @throws UserNotFoundException if approver user does not exist
+     */
+
+    protected void deploy(String site,
+                          String environment, List<String> paths,
+                          ZonedDateTime scheduledDate, String approver,
+                          String submissionComment,
+                          final boolean scheduleDateNow,
+                          boolean createNewWorkflowEntries)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
             itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
@@ -157,7 +190,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         groupedPaths.put(PublishRequest.Action.UPDATE, updatedPaths);
 
         List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
-                submissionComment);
+                submissionComment, createNewWorkflowEntries);
         for (PublishRequest item : items) {
             retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
         }
@@ -205,8 +238,25 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         return paths;
     }
 
+    /**
+     * Create publish request items
+     *
+     * @param site                     the site
+     * @param environment              the publishing environment
+     * @param paths                    map of action to list of paths
+     * @param scheduledDate            the scheduled date
+     * @param approver                 the approver
+     * @param submissionComment        the submission comment
+     * @param createNewWorkflowEntries flag to indicate whether to create new workflow entries. This is meant
+     *                                 to be true when publishing directly, false when approving a previously
+     *                                 submitted workflow entry.
+     * @return list of publish request items
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
+     */
     private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths,
-                                             ZonedDateTime scheduledDate, String approver, String submissionComment)
+                                             ZonedDateTime scheduledDate, String approver, String submissionComment,
+                                             boolean createNewWorkflowEntries)
             throws ServiceLayerException, UserNotFoundException {
         List<PublishRequest> newItems = new ArrayList<>();
 
@@ -243,10 +293,17 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     publishRequest.setPackageId(packageId);
                     newItems.add(publishRequest);
 
-
                     User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
-                    Workflow workflow = new Workflow();
-                    workflow.setItemId(it.getId());
+                    Workflow workflow = null;
+                    if (!createNewWorkflowEntries) {
+                        workflow = workflowServiceInternal.getWorkflowEntryForApproval(it.getId());
+                    }
+                    boolean insert = false;
+                    if (Objects.isNull(workflow)) {
+                        workflow = new Workflow();
+                        workflow.setItemId(it.getId());
+                        insert = true;
+                    }
                     workflow.setState(STATE_APPROVED);
                     workflow.setTargetEnvironment(environment);
                     if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
@@ -256,9 +313,13 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     workflow.setReviewerId(reviewer.getId());
                     workflow.setPublishingPackageId(packageId);
 
-                    // The submitter is the current user as well
-                    workflow.setSubmitterId(reviewer.getId());
-                    workflowServiceInternal.insertWorkflow(workflow);
+                    if (insert) {
+                        // If new, the submitter is the current user as well
+                        workflow.setSubmitterId(reviewer.getId());
+                        workflowServiceInternal.insertWorkflow(workflow);
+                    } else {
+                        workflowServiceInternal.updateWorkflow(workflow);
+                    }
                 }
             }
         }
