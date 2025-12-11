@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,18 +17,8 @@ package org.craftercms.studio.api.v1.service.deployment;
 
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
-
-import java.time.ZonedDateTime;
-import java.util.List;
 
 public interface DmPublishService {
-
-    void publish(String site, List<String> paths, ZonedDateTime launchDate, MultiChannelPublishingContext mcpContext);
-
-    void unpublish(String site, List<String> paths, String approver);
-
-    void unpublish(String site, List<String> paths, String approver, ZonedDateTime scheduleDate);
 
     /**
      * Start executing bulk publish for given site, path on given environment

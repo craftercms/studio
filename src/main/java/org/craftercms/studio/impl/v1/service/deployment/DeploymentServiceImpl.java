@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -36,12 +36,10 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -83,8 +81,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
-    protected DependencyService dependencyService;
-    protected DmFilterWrapper dmFilterWrapper;
     protected SiteService siteService;
     protected ContentRepository contentRepository;
     protected DmPublishService dmPublishService;
@@ -98,17 +94,49 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     protected WorkflowServiceInternal workflowServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected PublishingManager publishingManager;
-    protected PublishRequestDAO publishRequestDAO;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     protected ApplicationContext applicationContext;
 
     @Override
     @Valid
-    public void deploy(@ValidateStringParam String site,
-                       @ValidateStringParam String environment, List<String> paths,
-                       ZonedDateTime scheduledDate, @ValidateStringParam String approver,
-                       @ValidateStringParam String submissionComment,
+    public void deploy(String site,
+                       String environment, List<String> paths,
+                       ZonedDateTime scheduledDate, String approver,
+                       String submissionComment,
                        final boolean scheduleDateNow)
+            throws DeploymentException, ServiceLayerException, UserNotFoundException {
+        deploy(site, environment, paths, scheduledDate, approver,
+                submissionComment, scheduleDateNow, true);
+    }
+
+    @Override
+    public void approveAndDeploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver, String submissionComment, boolean scheduleDateNow) throws DeploymentException, ServiceLayerException, UserNotFoundException {
+        deploy(site, environment, paths, scheduledDate, approver,
+                submissionComment, scheduleDateNow, false);
+    }
+
+    /**
+     * @param site                     the site identifier
+     * @param environment              the publish environment
+     * @param paths                    the list of paths to deploy
+     * @param scheduledDate            the scheduled date to execute deployment
+     * @param approver                 user that approved deployment
+     * @param submissionComment        submission comment
+     * @param scheduleDateNow          true if the items are meant to be deployed immediately
+     * @param createNewWorkflowEntries flag to indicate whether to create new workflow entries. This is meant
+     *                                 to be true when publishing directly, false when approving a previously
+     *                                 submitted workflow entry.
+     * @throws DeploymentException   general deployment error
+     * @throws ServiceLayerException service layer error
+     * @throws UserNotFoundException if approver user does not exist
+     */
+
+    protected void deploy(String site,
+                          String environment, List<String> paths,
+                          ZonedDateTime scheduledDate, String approver,
+                          String submissionComment,
+                          final boolean scheduleDateNow,
+                          boolean createNewWorkflowEntries)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
             itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
@@ -162,7 +190,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         groupedPaths.put(PublishRequest.Action.UPDATE, updatedPaths);
 
         List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
-                submissionComment);
+                submissionComment, createNewWorkflowEntries);
         for (PublishRequest item : items) {
             retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
         }
@@ -210,8 +238,25 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         return paths;
     }
 
+    /**
+     * Create publish request items
+     *
+     * @param site                     the site
+     * @param environment              the publishing environment
+     * @param paths                    map of action to list of paths
+     * @param scheduledDate            the scheduled date
+     * @param approver                 the approver
+     * @param submissionComment        the submission comment
+     * @param createNewWorkflowEntries flag to indicate whether to create new workflow entries. This is meant
+     *                                 to be true when publishing directly, false when approving a previously
+     *                                 submitted workflow entry.
+     * @return list of publish request items
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found
+     */
     private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths,
-                                             ZonedDateTime scheduledDate, String approver, String submissionComment)
+                                             ZonedDateTime scheduledDate, String approver, String submissionComment,
+                                             boolean createNewWorkflowEntries)
             throws ServiceLayerException, UserNotFoundException {
         List<PublishRequest> newItems = new ArrayList<>();
 
@@ -248,10 +293,17 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     publishRequest.setPackageId(packageId);
                     newItems.add(publishRequest);
 
-
                     User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
-                    Workflow workflow = new Workflow();
-                    workflow.setItemId(it.getId());
+                    Workflow workflow = null;
+                    if (!createNewWorkflowEntries) {
+                        workflow = workflowServiceInternal.getWorkflowEntryForApproval(it.getId());
+                    }
+                    boolean insert = false;
+                    if (Objects.isNull(workflow)) {
+                        workflow = new Workflow();
+                        workflow.setItemId(it.getId());
+                        insert = true;
+                    }
                     workflow.setState(STATE_APPROVED);
                     workflow.setTargetEnvironment(environment);
                     if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
@@ -261,9 +313,13 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     workflow.setReviewerId(reviewer.getId());
                     workflow.setPublishingPackageId(packageId);
 
-                    // The submitter is the current user as well
-                    workflow.setSubmitterId(reviewer.getId());
-                    workflowServiceInternal.insertWorkflow(workflow);
+                    if (insert) {
+                        // If new, the submitter is the current user as well
+                        workflow.setSubmitterId(reviewer.getId());
+                        workflowServiceInternal.insertWorkflow(workflow);
+                    } else {
+                        workflowServiceInternal.updateWorkflow(workflow);
+                    }
                 }
             }
         }
@@ -594,14 +650,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         this.contentService = contentService;
     }
 
-    public void setDependencyService(DependencyService dependencyService) {
-        this.dependencyService = dependencyService;
-    }
-
-    public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
-        this.dmFilterWrapper = dmFilterWrapper;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
@@ -656,10 +704,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     public void setPublishingManager(PublishingManager publishingManager) {
         this.publishingManager = publishingManager;
-    }
-
-    public void setPublishRequestDAO(PublishRequestDAO publishRequestDAO) {
-        this.publishRequestDAO = publishRequestDAO;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,17 +15,8 @@
  */
 package org.craftercms.studio.api.v1.service.workflow;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
-import org.craftercms.studio.api.v1.to.DmDependencyTO;
-import org.craftercms.studio.api.v1.to.GoLiveQueue;
-import org.craftercms.studio.api.v1.to.ResultTO;
 
 public interface WorkflowService {
 
@@ -41,12 +32,6 @@ public interface WorkflowService {
 	 * @throws ServiceLayerException general service error
 	 */
 	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceLayerException, UserNotFoundException;
-
-    void preScheduleDelete(Set<String> uris, ZonedDateTime _date,
-                           GoLiveContext context);
-
-    List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris) throws
-			ServiceLayerException, UserNotFoundException;
 
     boolean cleanWorkflow(final String url, final String site) throws
 			ServiceLayerException, UserNotFoundException;

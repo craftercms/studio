@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.api.v1.util.filter;
 
-import org.craftercms.studio.api.v1.service.ServicesManager;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
@@ -41,11 +40,6 @@ public class DmFilterWrapperImpl implements DmFilterWrapper {
     }
     public void setDefaultFilter(Filter defaultFilter) {
         this._defaultFilter = defaultFilter;
-    }
-
-    protected ServicesManager servicesManager;
-    public void setServicesManager(ServicesManager servicesManager) {
-        this.servicesManager = servicesManager;
     }
 
     protected ServicesConfig servicesConfig;

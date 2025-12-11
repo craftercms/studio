@@ -423,7 +423,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     scheduledDateIsNow = true;
                     schedule = getCurrentTime();
                 }
-                deploymentService.deploy(siteId, publishingTarget, pathsToPublish, schedule, publishedBy, comment, scheduledDateIsNow);
+                deploymentService.approveAndDeploy(siteId, publishingTarget, pathsToPublish, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
                 createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy, comment);
                 // Trigger event

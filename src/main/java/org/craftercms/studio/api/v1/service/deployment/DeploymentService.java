@@ -32,9 +32,40 @@ import java.util.Set;
  */
 public interface DeploymentService {
 
-    // document
+    /**
+     * Deploy content
+     *
+     * @param site              the site identifier
+     * @param environment       the publish environment
+     * @param paths             the list of paths to deploy
+     * @param scheduledDate     the scheduled date to execute deployment
+     * @param approver          user that approved deployment
+     * @param submissionComment submission comment
+     * @param scheduleDateNow   true if the items are meant to be deployed immediately
+     * @throws DeploymentException   general deployment error
+     * @throws ServiceLayerException service layer error
+     * @throws UserNotFoundException if approver user does not exist
+     */
     void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver,
                 String submissionComment, final boolean scheduleDateNow)
+            throws DeploymentException, ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Approve existing workflow and deploy content
+     *
+     * @param site              the site identifier
+     * @param environment       the publish environment
+     * @param paths             the list of paths to deploy
+     * @param scheduledDate     the scheduled date to execute deployment
+     * @param approver          user that approved deployment
+     * @param submissionComment submission comment
+     * @param scheduleDateNow   true if the items are meant to be deployed immediately
+     * @throws DeploymentException   general deployment error
+     * @throws ServiceLayerException service layer error
+     * @throws UserNotFoundException if approver user does not exist
+     */
+    void approveAndDeploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver,
+                          String submissionComment, final boolean scheduleDateNow)
             throws DeploymentException, ServiceLayerException, UserNotFoundException;
 
     /**
