@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
+import jakarta.validation.Valid;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -22,22 +23,17 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.validation.Valid;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,55 +49,12 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
 
     protected DeploymentService deploymentService;
     protected SecurityService securityService;
-    protected SiteService siteService;
-    protected ContentService contentService;
-    protected ContentRepository contentRepository;
     protected DependencyService dependencyService;
     protected ItemServiceInternal itemServiceInternal;
 
     @Override
     public void register() {
         this._servicesManager.registerService(DmPublishService.class, this);
-    }
-
-    @Override
-    @Valid
-    public void publish(@ValidateStringParam final String site, List<String> paths,
-                        ZonedDateTime launchDate, final MultiChannelPublishingContext mcpContext) {
-        boolean scheduledDateIsNow = false;
-        if (launchDate == null) {
-            scheduledDateIsNow=true;
-            launchDate = DateUtils.getCurrentTime();
-        }
-        final String approver = securityService.getCurrentUser();
-        final ZonedDateTime ld = launchDate;
-
-        try {
-            deploymentService.deploy(site, mcpContext.getPublishingChannelGroup(), paths, ld, approver,
-                        mcpContext.getSubmissionComment(),scheduledDateIsNow );
-        } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to submit items for publishing in site '{}'", site, e);
-        }
-    }
-
-    @Override
-    @Valid
-    public void unpublish(@ValidateStringParam String site, List<String> paths, String approver) {
-        unpublish(site, paths, approver, null);
-    }
-
-    @Override
-    @Valid
-    public void unpublish(@ValidateStringParam String site, List<String> paths,
-                          @ValidateStringParam String approver, ZonedDateTime scheduleDate) {
-        if (scheduleDate == null) {
-            scheduleDate = DateUtils.getCurrentTime();
-        }
-        try {
-            deploymentService.delete(site, paths, approver, scheduleDate, null);
-        } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to delete files during publishing site '{}'", site, e);
-        }
     }
 
     @Override
@@ -158,48 +111,12 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         this.deploymentService = deploymentService;
     }
 
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public ContentService getContentService() {
-        return contentService;
-    }
-
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    public DependencyService getDependencyService() {
-        return dependencyService;
-    }
-
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {

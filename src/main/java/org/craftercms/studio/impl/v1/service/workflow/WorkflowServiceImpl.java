@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,36 +22,25 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
-import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.DalUtils;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -69,24 +58,13 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         REJECT,
     }
 
-    protected ServicesConfig servicesConfig;
-    protected DeploymentService deploymentService;
-    protected ContentService contentService;
-    protected DependencyService dependencyService;
-    protected DmPublishService dmPublishService;
     protected SecurityService securityService;
-    protected SiteService siteService;
-    protected WorkflowProcessor workflowProcessor;
     protected NotificationService notificationService;
-    protected StudioConfiguration studioConfiguration;
-    protected AuditServiceInternal auditServiceInternal;
     protected ItemServiceInternal itemServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
-    protected ContentServiceInternal contentServiceInternal;
     protected PublishServiceInternal publishServiceInternal;
     protected ApplicationContext applicationContext;
-    protected ActivityStreamServiceInternal activityStreamServiceInternal;
 
     private List<String> getDeploymentPaths(final List<DmDependencyTO> submittedItems) {
         List<String> paths=new ArrayList<>(submittedItems.size());
@@ -146,39 +124,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     }
 
     @Override
-    public void preScheduleDelete(Set<String> urisToDelete, final ZonedDateTime scheduleDate,
-                                  final GoLiveContext context) {
-        final String site = context.getSite();
-        final List<String> itemsToDelete = new ArrayList<>(urisToDelete);
-        dmPublishService.unpublish(site, itemsToDelete, context.getApprover(), scheduleDate);
-    }
-
-    @Override
-    public List<String> preDelete(Set<String> urisToDelete, GoLiveContext context, Set<String> rescheduledUris)
-            throws ServiceLayerException, UserNotFoundException {
-        cleanUrisFromWorkflow(urisToDelete, context.getSite());
-        cleanUrisFromWorkflow(rescheduledUris, context.getSite());
-        return deleteInTransaction(context.getSite(), new ArrayList<>(urisToDelete),
-                context.getApprover());
-    }
-
-    protected List<String> deleteInTransaction(final String site, final List<String> itemsToDelete,
-                                               final String approver) {
-        dmPublishService.unpublish(site, itemsToDelete, approver);
-        return null;
-        //return contentService.deleteContents(site, itemsToDelete, generateActivity, approver);
-    }
-
-    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site)
-            throws ServiceLayerException, UserNotFoundException {
-        if (uris != null && !uris.isEmpty()) {
-            for (String uri : uris) {
-                cleanWorkflow(uri, site);
-            }
-        }
-    }
-
-    @Override
     @Valid
     public boolean cleanWorkflow(@ValidateSecurePathParam final String url,
                                  @ValidateStringParam final String site)
@@ -221,53 +166,17 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
      /* ================ */
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
+    public void setApplicationContext(@NotNull ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
-    }
-
-    public void setServicesConfig(ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
-
-    public void setDependencyService(DependencyService dependencyService) {
-        this.dependencyService = dependencyService;
-    }
-
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
-
-    public void setDeploymentService(DeploymentService deploymentService) {
-        this.deploymentService = deploymentService;
-    }
-
-    public void setDmPublishService(DmPublishService dmPublishService) {
-        this.dmPublishService = dmPublishService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public void setWorkflowProcessor(WorkflowProcessor workflowProcessor) {
-        this.workflowProcessor = workflowProcessor;
-    }
-
     public void setNotificationService(
             final org.craftercms.studio.api.v2.service.notification.NotificationService notificationService) {
         this.notificationService = notificationService;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-        this.auditServiceInternal = auditServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
@@ -282,15 +191,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         this.workflowServiceInternal = workflowServiceInternal;
     }
 
-    public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
-        this.contentServiceInternal = contentServiceInternal;
-    }
-
     public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
-    }
-
-    public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
-        this.activityStreamServiceInternal = activityStreamServiceInternal;
     }
 }

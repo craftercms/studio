@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -36,12 +36,10 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -83,8 +81,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
-    protected DependencyService dependencyService;
-    protected DmFilterWrapper dmFilterWrapper;
     protected SiteService siteService;
     protected ContentRepository contentRepository;
     protected DmPublishService dmPublishService;
@@ -98,7 +94,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     protected WorkflowServiceInternal workflowServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected PublishingManager publishingManager;
-    protected PublishRequestDAO publishRequestDAO;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     protected ApplicationContext applicationContext;
 
@@ -594,14 +589,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         this.contentService = contentService;
     }
 
-    public void setDependencyService(DependencyService dependencyService) {
-        this.dependencyService = dependencyService;
-    }
-
-    public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
-        this.dmFilterWrapper = dmFilterWrapper;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
@@ -656,10 +643,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     public void setPublishingManager(PublishingManager publishingManager) {
         this.publishingManager = publishingManager;
-    }
-
-    public void setPublishRequestDAO(PublishRequestDAO publishRequestDAO) {
-        this.publishRequestDAO = publishRequestDAO;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

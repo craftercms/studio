@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -26,9 +27,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -42,7 +41,6 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.validation.Valid;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,11 +66,9 @@ public class PublishingManagerImpl implements PublishingManager {
     private static final String PRODUCTION_ENVIRONMENT = "Production";
 
     protected ContentService contentService;
-    protected DeploymentService deploymentService;
     protected ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
     protected StudioConfiguration studioConfiguration;
-    protected DependencyService dependencyService;
     protected PublishRequestMapper publishRequestMapper;
     protected ItemServiceInternal itemServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
@@ -386,10 +382,6 @@ public class PublishingManagerImpl implements PublishingManager {
         this.contentService = contentService;
     }
 
-    public void setDeploymentService(DeploymentService deploymentService) {
-        this.deploymentService = deploymentService;
-    }
-
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
@@ -400,10 +392,6 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public void setDependencyService(DependencyService dependencyService) {
-        this.dependencyService = dependencyService;
     }
 
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
