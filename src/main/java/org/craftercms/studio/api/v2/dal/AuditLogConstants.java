@@ -51,6 +51,7 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_CANCEL_PUBLISHING_PACKAGE = "CANCEL_PUBLISHING_PACKAGE";
     public static final String OPERATION_PUBLISH = "PUBLISH";
     public static final String OPERATION_INITIAL_PUBLISH = "INITIAL_PUBLISH";
+    public static final String OPERATION_SYSTEM_PROPERTY_UPDATE = "SYSTEM_PROPERTY_UPDATE";
 
     public static final String OPERATION_PUBLISH_ALL = "PUBLISH_ALL";
     public static final String OPERATION_GIT_CHANGES = "GIT_SYNC";
@@ -77,6 +78,7 @@ public abstract class AuditLogConstants {
     public static final String TARGET_TYPE_SUBMISSION_COMMENT = "Submission Comment";
     public static final String TARGET_TYPE_REJECTION_COMMENT = "Rejection Comment";
     public static final String TARGET_TYPE_SYNCED_COMMIT = "Synced Commit";
+    public static final String TARGET_TYPE_SYSTEM_PROPERTY = "System Property";
     public static final String TARGET_TYPE_UNKNOWN = "unknown";
 
     public static final List<String> ACTIVITY_STREAM_OPERATIONS = List.of(

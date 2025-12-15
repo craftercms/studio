@@ -456,7 +456,6 @@
     </bean>
 
     <bean id="systemPropertiesServiceInternal" class="org.craftercms.studio.impl.v2.service.system.internal.SystemPropertiesServiceInternalImpl">
-        <constructor-arg name="systemPropertiesDao" ref="systemPropertiesDao"/>
     </bean>
 
     <bean id="sitesService" class="org.craftercms.studio.impl.v2.service.site.SitesServiceImpl">
