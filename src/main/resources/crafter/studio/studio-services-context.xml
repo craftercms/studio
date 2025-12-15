@@ -380,7 +380,6 @@
 	</bean>
 
 	<bean id="systemPropertiesService" class="org.craftercms.studio.impl.v2.service.system.SystemPropertiesServiceImpl">
-		<constructor-arg name="systemPropertiesServiceInternal" ref="systemPropertiesServiceInternal"/>
 	</bean>
 
 	<bean id="systemPropertiesServiceInternal" class="org.craftercms.studio.impl.v2.service.system.internal.SystemPropertiesServiceInternalImpl">
