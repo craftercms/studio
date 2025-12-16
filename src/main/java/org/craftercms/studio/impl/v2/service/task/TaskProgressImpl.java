@@ -112,12 +112,12 @@ class TaskProgressImpl<K extends TaskId, R> implements TaskProgress<K, R>, Appli
 
 	@Override
 	public Instant getEndTime() {
-		return startTime;
+		return endTime;
 	}
 
 	@Override
 	public Instant getStartTime() {
-		return endTime;
+		return startTime;
 	}
 
 	@Override
