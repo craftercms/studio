@@ -774,6 +774,15 @@ pipelines:
               path: /configuration/global-permission-mappings-config.xml
               template: crafter/studio/upgrade/4.5.x/system/global-permission-mappings-config-v4.5.0.1.xslt
               commitDetails: Add new permission for system properties API
+      - currentVersion: 4.5.0.1
+        # The gap is intentional to account for ee-only versions
+        nextVersion: 4.5.0.4
+        operations:
+            - type: globalRepoUpgrader
+              files:
+                - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                  dest: configuration/samples/sample-ui.xml
+              commitDetails: Add sample file for ui.xml
 
   # Pipeline to upgrade site repositories
   site:
@@ -1585,3 +1594,9 @@ configurations:
             pattern: "formatselect"
             replacement: "blocks"
             commitDetails: Update the RTE configuration to work with TinyMCE 7
+      - currentVersion: 4.2.0.3
+        nextVersion: 4.5.0.0
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.5.x/config/ui/ui-v4.5.0.0.xslt
+            commitDetails: Add i18n to PathNavigator/PathNavigatorTree

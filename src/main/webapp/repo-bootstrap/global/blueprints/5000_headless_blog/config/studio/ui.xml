@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
@@ -15,7 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
-	<version>4.2.0.3</version>
+	<version>4.5.0.0</version>
 	<widget
 		id="craftercms.components.Preview"
 		initialEditModeOn="true"
@@ -34,7 +34,7 @@
 				<widget id="craftercms.components.PathNavigatorTree">
 					<configuration>
 						<id>Pages</id>
-						<label>Pages</label>
+						<label id="pathNavigatorTree.pages" defaultMessage="Pages"/>
 						<icon id="@mui/icons-material/DescriptionOutlined"/>
 						<rootPath>/site/website/index.xml</rootPath>
 						<locale>en</locale>
@@ -42,17 +42,17 @@
 				</widget>
 				<widget id="craftercms.components.PathNavigatorTree">
 					<configuration>
-						<id>Items</id>
-						<label>Items</label>
+						<id>Components</id>
+						<label id="pathNavigatorTree.components" defaultMessage="Components"/>
 						<icon id="craftercms.icons.Component"/>
-						<rootPath>/site/items</rootPath>
+						<rootPath>/site/components</rootPath>
 						<locale>en</locale>
 					</configuration>
 				</widget>
 				<widget id="craftercms.components.PathNavigatorTree">
 					<configuration>
 						<id>Taxonomy</id>
-						<label>Taxonomy</label>
+						<label id="pathNavigatorTree.taxonomy" defaultMessage="Taxonomy"/>
 						<icon id="@mui/icons-material/LocalOfferOutlined"/>
 						<rootPath>/site/taxonomy</rootPath>
 						<locale>en</locale>
@@ -61,7 +61,7 @@
 				<widget id="craftercms.components.PathNavigatorTree">
 					<configuration>
 						<id>StaticAssets</id>
-						<label>Static Assets</label>
+						<label id="pathNavigatorTree.staticAssets" defaultMessage="Static Assets"/>
 						<icon id="@mui/icons-material/ImageOutlined"/>
 						<rootPath>/static-assets</rootPath>
 						<locale>en</locale>
@@ -69,9 +69,17 @@
 				</widget>
 				<widget id="craftercms.components.PathNavigatorTree">
 					<configuration>
-						<label>Templates</label>
+						<label id="pathNavigatorTree.templates" defaultMessage="Templates"/>
 						<icon id="@mui/icons-material/InsertDriveFileOutlined"/>
 						<rootPath>/templates</rootPath>
+						<locale>en</locale>
+					</configuration>
+				</widget>
+				<widget id="craftercms.components.PathNavigatorTree">
+					<configuration>
+						<label id="pathNavigatorTree.scripts" defaultMessage="Scripts"/>
+						<icon id="@mui/icons-material/CodeRounded"/>
+						<rootPath>/scripts</rootPath>
 						<locale>en</locale>
 					</configuration>
 				</widget>
@@ -158,40 +166,34 @@
 									<fields>
 										<segment>
 											<id>segment</id>
-											<name>Segment</name>
+											<name id="previewAudiencesPanel.segmentLabel" defaultMessage="Segment"/>
 											<description>User segment.</description>
 											<type>dropdown</type>
 											<defaultValue>anonymous</defaultValue>
 											<values>
 												<value>
-													<label>Guy</label>
+													<label id="previewAudiencesPanel.guyValueLabel" defaultMessage="Guy"/>
 													<value>guy</value>
 												</value>
 												<value>
-													<label>Gal</label>
+													<label id="previewAudiencesPanel.galValueLabel" defaultMessage="Gal"/>
 													<value>gal</value>
 												</value>
 												<value>
-													<label>Anonymous</label>
+													<label id="previewAudiencesPanel.anonymousValueLabel" defaultMessage="Anonymous"/>
 													<value>anonymous</value>
 												</value>
 											</values>
-											<helpText>Setting the segment
-												will change content
-												targeting to the
-												audience selected.
-											</helpText>
+											<helpText id="previewAudiencesPanel.segmentHelpText" defaultMessage="Setting the segment will change content targeting to the audience selected"/>
 										</segment>
 										<name>
 											<id>name</id>
-											<name>Name</name>
+											<name id="previewAudiencesPanel.nameLabel" defaultMessage="Name"/>
 											<description>
 												User's first and last name.
 											</description>
 											<type>input</type>
-											<helpText>
-												Enter user's first and last name.
-											</helpText>
+											<helpText id="previewAudiencesPanel.nameHelpText" defaultMessage="Enter user's first and last name"/>
 										</name>
 									</fields>
 								</configuration>
@@ -354,35 +356,35 @@
 					<!-- Plugins: https://www.tiny.cloud/docs/plugins/opensource/ -->
 					<tinymceOptions>
 						<![CDATA[
-              {
-                "menubar": true,
-                "theme": "silver",
-                "plugins": "preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help acecode",
-                "extended_valid_elements": "",
-                "valid_children": "",
-                "toolbar1": "blocks | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
-                "code_editor_wrap": false,
-                "toolbar_sticky": true,
-                "image_advtab": true,
-                "encoding": "xml",
-                "relative_urls": false,
-                "remove_script_host": false,
-                "convert_urls": false,
-                "remove_trailing_brs": false,
-                "media_live_embeds": true,
-                "autoresize_on_init": false,
-                "autoresize_bottom_margin": 0,
-                "menu": {
-                    "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
-                },
-                "automatic_uploads": true,
-                "file_picker_types":  "image media file",
-                "paste_data_images": true,
-                "templates": [],
-                "content_css": [],
-                "content_style": "body {}",
-                "contextmenu": false
-              }
+                {
+                    "menubar": true,
+                    "theme": "silver",
+                    "plugins": "preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help acecode",
+                    "extended_valid_elements": "",
+                    "valid_children": "",
+                    "toolbar1": "blocks | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
+                    "code_editor_wrap": false,
+                    "toolbar_sticky": true,
+                    "image_advtab": true,
+                    "encoding": "xml",
+                    "relative_urls": false,
+                    "remove_script_host": false,
+                    "convert_urls": false,
+                    "remove_trailing_brs": false,
+                    "media_live_embeds": true,
+                    "autoresize_on_init": false,
+                    "autoresize_bottom_margin": 0,
+                    "menu": {
+                        "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
+                    },
+                    "automatic_uploads": true,
+                    "file_picker_types":  "image media file",
+                    "paste_data_images": true,
+                    "templates": [],
+                    "content_css": [],
+                    "content_style": "body {}",
+                    "contextmenu": false
+                }
             ]]>
 					</tinymceOptions>
 				</setup>
@@ -469,23 +471,22 @@
 				<value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />]]></value>
 			</crafterSupportMacros>
 			<transformPathToUrl label="Transform PATH to URL">
-				<value>
-					<![CDATA[${urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)}]]></value>
+				<value><![CDATA[${urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)}]]></value>
 			</transformPathToUrl>
 			<renderComponentsList label="Render list of components">
 				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as module>
-	<@renderComponent component=module />
+        <@renderComponent component=module />
 </#list>]]></value>
 			</renderComponentsList>
 			<iterateItemsListLoadContentItem label="Iterate over a list of items and load content item">
 				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as myItem>
-	<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
-	${myContentItem.variableName}
+        <#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
+        ${myContentItem.variableName}
 </#list>]]></value>
 			</iterateItemsListLoadContentItem>
 			<iterateRepeatGroup label="Iterate over repeat group">
 				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as row>
-	${row.VARIABLE_NAME}
+        ${row.VARIABLE_NAME}
 </#list>]]></value>
 			</iterateRepeatGroup>
 			<fremarkerValueAssignment label="Freemarker value assignment">
@@ -493,12 +494,12 @@
 			</fremarkerValueAssignment>
 			<freemarkerIf label="Freemarker value IF">
 				<value><![CDATA[<#if CONDITION>
-	...
+        ...
 </#if>]]></value>
 			</freemarkerIf>
 			<freemarkerLoop label="Freemarker value LOOP">
 				<value><![CDATA[<#list ARRAY as value>
-	${value_index}: ${value}
+        ${value_index}: ${value}
 </#list>]]></value>
 			</freemarkerLoop>
 			<freemarkerFragmentInclude label="Freemarker Fragment include">
@@ -522,49 +523,6 @@
   </body>
 </html>]]></value>
 			</htmlPage>
-			<specificHTMLTag label="Field (Specific HTML Tag)">
-				<value>
-					<![CDATA[<@crafter.DESIRED_TAG $field="FIELD_ID">${contentModel.FIELD_ID}</@crafter.DESIRED_TAG>]]></value>
-			</specificHTMLTag>
-			<renderComponentCollection label="Render Component Collection">
-				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=renderComponentCollection&check_keywords=yes&area=default -->
-<@crafter.renderComponentCollection $field="features_o" $containerAttributes={ "class": "features-container" } $itemAttributes={ "data-custom-attribute": "true" } />]]></value>
-			</renderComponentCollection>
-			<renderRepeatGroup label="Render Repeat Group">
-				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=renderRepeatCollection&check_keywords=yes&area=default -->
-<@crafter.renderRepeatGroup
-  $field="VARIABLE_NAME"
-  $containerAttributes={'attr': 'value'};
-  item, index
->
-  <@crafter.div
-    $field="sections_o.section_html"
-    $index=index
-  >
-    ${item.itemField}
-  </@crafter.div>
-</@crafter.renderRepeatGroup>]]></value>
-			</renderRepeatGroup>
-			<navigation label="Navigation">
-				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=crafter.navigation&check_keywords=yes&area=default -->
-<@crafter.navigation
-  showNavElement=false
-  url="NAVIGATION_URL"
-  containerElementClass="container-class"
-  itemWrapperClass="item-wrapper-class"
-  itemClass="item-class"
-  depth=2
-/>]]></value>
-			</navigation>
-			<breadcrumb label="Breadcrumb">
-				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=crafter.breadcrumb&check_keywords=yes&area=default -->
-<@crafter.breadcrumb
-  url=contentModel.storeUrl
-  containerElementClass="container-element-class"
-  itemWrapperClass="item-wrapper-class"
-  navElementAttributes={ "data-custom-attribute": "true" }
-/>]]></value>
-			</breadcrumb>
 		</reference>
 		<reference id="craftercms.groovyCodeSnippets">
 			<accessContentModel label="Access Content variable">
@@ -592,8 +550,7 @@
 				<value><![CDATA[session]]></value>
 			</session>
 			<transformPathToUrl label="Transform PATH to URL">
-				<value>
-					<![CDATA[urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)]]></value>
+				<value><![CDATA[urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)]]></value>
 			</transformPathToUrl>
 			<userProfile label="User Profile">
 				<value><![CDATA[profile]]></value>
