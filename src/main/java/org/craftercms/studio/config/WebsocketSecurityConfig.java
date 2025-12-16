@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.config;
 
+import org.apache.commons.collections.MapUtils;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,6 +55,7 @@ public class WebsocketSecurityConfig {
 	}
 
 	@Bean
+	@SuppressWarnings("unused")
 	AuthorizationManager<Message<?>> authorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
 		return messages
 				// Require authentication for CONNECT messages
@@ -60,14 +63,10 @@ public class WebsocketSecurityConfig {
 				// Allow users to subscribe to global topic if they are authenticated
 				.simpSubscribeDestMatchers("/topic/studio").authenticated()
 				// Only allow users to subscribe if they are site members
-				.simpSubscribeDestMatchers("/topic/studio/{siteId}").access(getAuthorizationManager("isSiteMember(#siteId)"))
+				.simpSubscribeDestMatchers("/topic/studio/{siteId}").access(new MessageExpressionAuthorizationManager("isSiteMember(#siteId)"))
 				// Reject any other incoming message from users
 				.anyMessage().denyAll()
 				.build();
-	}
-
-	private AuthorizationManager<MessageAuthorizationContext<?>> getAuthorizationManager(String expressionString) {
-		return new MessageExpressionAuthorizationManager(expressionString);
 	}
 
 	private class MessageExpressionAuthorizationManager implements AuthorizationManager<MessageAuthorizationContext<?>> {
@@ -79,8 +78,11 @@ public class WebsocketSecurityConfig {
 		}
 
 		@Override
-		public AuthorizationResult authorize(Supplier<? extends Authentication> authentication, MessageAuthorizationContext<?> context) {
+		public AuthorizationResult authorize(@NonNull Supplier<? extends Authentication> authentication, MessageAuthorizationContext<?> context) {
 			EvaluationContext ctx = expressionHandler.createEvaluationContext(authentication, context.getMessage());
+			if (MapUtils.isNotEmpty(context.getVariables())) {
+				context.getVariables().forEach(ctx::setVariable);
+			}
 			boolean granted = ExpressionUtils.evaluateAsBoolean(this.expression, ctx);
 			return new ExpressionAuthorizationDecision(granted, this.expression);
 		}
