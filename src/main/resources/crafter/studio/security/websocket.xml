@@ -22,11 +22,13 @@
 
 	<!-- Custom expression handler -->
 	<bean id="studioMessagingSecurityExpressionHandler"
-	      class="org.craftercms.studio.impl.v2.utils.spring.security.messaging.StudioSecurityExpressionHandler">
+	      class="org.craftercms.studio.impl.v2.utils.spring.security.messaging.StudioMessageSecurityExpressionHandler">
 		<constructor-arg name="userService" ref="userServiceInternal"/>
 	</bean>
 
 	<!-- Main configuration -->
-	<bean class="org.craftercms.studio.config.WebsocketSecurityConfig"/>
+	<bean class="org.craftercms.studio.config.WebsocketSecurityConfig">
+		<constructor-arg ref="studioMessagingSecurityExpressionHandler"/>
+	</bean>
 
 </beans>
