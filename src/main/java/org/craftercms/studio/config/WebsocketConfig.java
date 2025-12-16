@@ -17,8 +17,10 @@ package org.craftercms.studio.config;
 
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.security.messaging.web.csrf.CsrfChannelInterceptor;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -64,4 +66,14 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 			.enableSimpleBroker("/topic");
 	}
 
+	/**
+	 * CSRF interceptor for WebSocket messages
+	 * This needs to be declared so the {@link org.springframework.security.config.websocket.WebSocketMessageBrokerSecurityBeanDefinitionParser} picks it up
+	 *
+	 * @see <a href="https://github.com/spring-projects/spring-security/issues/17260"><websocket-message-broker> should use XorCsrfChannelInterceptor by default</a>
+	 */
+	@Bean
+	public CsrfChannelInterceptor csrfChannelInterceptor() {
+		return new CsrfChannelInterceptor();
+	}
 }

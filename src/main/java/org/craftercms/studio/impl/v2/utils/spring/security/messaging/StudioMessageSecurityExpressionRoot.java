@@ -22,18 +22,20 @@ import org.springframework.messaging.Message;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.messaging.access.expression.MessageSecurityExpressionRoot;
 
+import java.util.function.Supplier;
+
 /**
  * Extension of {@link MessageSecurityExpressionRoot} that adds Studio specific security expressions.
  *
  * @author joseross
  * @since 4.0.0
  */
-public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressionRoot {
+public class StudioMessageSecurityExpressionRoot<T> extends MessageSecurityExpressionRoot<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(StudioMessageSecurityExpressionRoot.class);
 	protected final UserService userService;
 
-	public StudioMessageSecurityExpressionRoot(Authentication authentication, Message<?> message,
+	public StudioMessageSecurityExpressionRoot(Supplier<? extends Authentication> authentication, Message<T> message,
 											   UserService userService) {
 		super(authentication, message);
 		this.userService = userService;
