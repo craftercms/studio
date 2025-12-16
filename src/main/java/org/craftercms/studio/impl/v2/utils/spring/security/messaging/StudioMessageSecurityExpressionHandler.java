@@ -51,9 +51,7 @@ public class StudioMessageSecurityExpressionHandler<T> extends DefaultMessageSec
 																		@NotNull Message<T> invocation) {
 		StudioMessageSecurityExpressionRoot<T> root = createSecurityExpressionRoot(() -> authentication, invocation);
 		root.setPermissionEvaluator(getPermissionEvaluator());
-		// A new instance needs to be created because it is private in the super class
-		root.setTrustResolver(new AuthenticationTrustResolverImpl());
-		root.setRoleHierarchy(getRoleHierarchy());
+		root.setAuthorizationManagerFactory(getAuthorizationManagerFactory());
 		return root;
 	}
 
