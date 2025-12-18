@@ -16,12 +16,13 @@
 
 package org.craftercms.studio.impl.v2.service.system.internal;
 
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.system.SystemPropertiesDAO;
 import org.craftercms.studio.api.v2.dal.system.SystemProperty;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.system.SystemPropertiesService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.slf4j.Logger;
 
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_SYSTEM_PROPERTY_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SYSTEM_PROPERTY;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -44,14 +46,21 @@ public class SystemPropertiesServiceInternalImpl implements SystemPropertiesServ
 	protected final SystemPropertiesDAO systemPropertiesDAO;
 	protected final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	protected final AuditService auditService;
+	protected final SiteDAO siteDao;
+	protected final StudioConfiguration studioConfiguration;
 
-	@ConstructorProperties({"retryingDatabaseOperationFacade", "systemPropertiesDAO", "auditService"})
+	@ConstructorProperties({"retryingDatabaseOperationFacade", "systemPropertiesDAO", "auditService",
+			"siteDao", "studioConfiguration"})
 	public SystemPropertiesServiceInternalImpl(final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 											   final SystemPropertiesDAO systemPropertiesDAO,
-											   final AuditService auditService) {
+											   final AuditService auditService,
+											   final SiteDAO siteDao,
+											   final StudioConfiguration studioConfiguration) {
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.systemPropertiesDAO = systemPropertiesDAO;
 		this.auditService = auditService;
+		this.siteDao = siteDao;
+		this.studioConfiguration = studioConfiguration;
 	}
 
 	@Override
@@ -75,15 +84,22 @@ public class SystemPropertiesServiceInternalImpl implements SystemPropertiesServ
 	 * @param properties updated properties
 	 */
 	private void auditPropertiesUpdate(final Map<String, String> properties) {
+		Site globalSite = siteDao.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
 		String username = SecurityUtils.getCurrentUsername();
 		properties.forEach((name, value) -> {
 			logger.info("System property update: '{}'='{}' by user '{}'", name, value, username);
 			AuditLog auditLogEntry = AuditLog.createAuditLogEntry();
+			auditLogEntry.setSiteId(globalSite.getId());
 			auditLogEntry.setOperation(OPERATION_SYSTEM_PROPERTY_UPDATE);
 			auditLogEntry.setPrimaryTargetId(name);
 			auditLogEntry.setPrimaryTargetType(TARGET_TYPE_SYSTEM_PROPERTY);
-			auditLogEntry.setPrimaryTargetValue(value);
+			auditLogEntry.setPrimaryTargetValue(name);
 			auditLogEntry.setActorId(username);
+			AuditLogParameter newValueParam = new AuditLogParameter();
+			newValueParam.setTargetType(TARGET_TYPE_SYSTEM_PROPERTY);
+			newValueParam.setTargetId(name);
+			newValueParam.setTargetValue(value);
+			auditLogEntry.setParameters(List.of(newValueParam));
 			auditService.insertAuditLog(auditLogEntry);
 		});
 	}
