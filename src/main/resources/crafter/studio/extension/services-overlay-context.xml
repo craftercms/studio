@@ -57,6 +57,7 @@
 		<constructor-arg name="watcherIgnorePaths" value="${crafter.engine.watcher.ignorePaths}"/>
 		<constructor-arg name="watcherCounterLimit" value="${crafter.engine.watcher.counter.limit}"/>
 		<constructor-arg name="watcherIntervalPeriod" value="${crafter.engine.watcher.interval.period}"/>
+		<constructor-arg name="lockByKey" ref="crafter.lockByKey"/>
 		<property name="entitlementValidator" ref="crafter.entitlementValidator"/>
 	</bean>
 
