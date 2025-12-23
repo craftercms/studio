@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -43,7 +43,7 @@ public class DBUtils {
 	public static void runInTransaction(final PlatformTransactionManager transactionManager,
 										final String transactionName,
 										final ThrowingRunnable runnable) throws Exception {
-		runInTransaction(transactionManager, transactionName, () -> {
+		runInTransaction(transactionManager, transactionName, null, () -> {
 			runnable.run();
 			return null; // Return null since we are not expecting a result
 		});
@@ -65,9 +65,33 @@ public class DBUtils {
 	public static <T> T runInTransaction(final PlatformTransactionManager transactionManager,
 										 final String transactionName,
 										 final ThrowingSupplier<T> supplier) throws Exception {
+		return runInTransaction(transactionManager, transactionName, null, supplier);
+	}
+
+	/**
+	 * Execute a runnable in a transaction.
+	 * This method will use the provided transactionManager to run the given supplier in a transaction. It will
+	 * be automatically committed (or rolled back if an exception is thrown).
+	 * After transaction is complete, this method will rethrow any exception thrown by the runnable.
+	 * If no exception is thrown, the result of the runnable will be returned.
+	 *
+	 * @param transactionManager The transaction manager
+	 * @param transactionName    The name of the transaction
+	 * @param isolationLevel     The isolation level for the transaction
+	 * @param supplier           The supplier to execute
+	 * @return the result of the supplier
+	 * @throws Exception any exception thrown by the runnable
+	 */
+	public static <T> T runInTransaction(final PlatformTransactionManager transactionManager,
+										 final String transactionName,
+										 final Integer isolationLevel,
+										 final ThrowingSupplier<T> supplier) throws Exception {
 		Wrapper<Exception> exception = new Wrapper<>();
 		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 		transactionTemplate.setName(transactionName);
+		if (isolationLevel != null) {
+			transactionTemplate.setIsolationLevel(isolationLevel);
+		}
 		T result = transactionTemplate.execute(status -> {
 			logger.trace("Starting transaction '{}'", status.getTransactionName());
 			try {
