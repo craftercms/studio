@@ -120,10 +120,13 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 			}
 		}
 
-		if (itemService.isSystemProcessing(siteId, List.of(sourcePath, targetPath))) {
+		List<String> pathsToCheck = operation == CUT
+				? List.of(sourcePath, targetPath)
+				: List.of(targetPath);
+		if (itemService.isSystemProcessing(siteId, pathsToCheck)) {
 			throw new ServiceLayerException(format("Failed to paste items at site '%s' paths '%s' " +
 							"because some items are being processed  (Object State is system processing)",
-					siteId, List.of(sourcePath, targetPath)));
+					siteId, pathsToCheck));
 		}
 	}
 
