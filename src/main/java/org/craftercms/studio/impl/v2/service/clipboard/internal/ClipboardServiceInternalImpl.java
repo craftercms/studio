@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueExcep
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -44,7 +45,7 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.isPageDescriptor;
@@ -66,25 +67,25 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 	protected final PublishService publishService;
 	protected final ItemService itemService;
 	protected final GeneralLockService generalLockService;
-	protected final org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
+	protected final ContentService contentService;
 	protected final GitContentRepository contentRepository;
 
 	@ConstructorProperties({"contentRepository",
 			"publishService", "itemService",
-			"generalLockService", "contentServiceV2"})
+			"generalLockService", "contentService"})
 	public ClipboardServiceInternalImpl(GitContentRepository contentRepository,
 										PublishService publishService, ItemService itemService,
-										GeneralLockService generalLockService, org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+										GeneralLockService generalLockService, ContentService contentService) {
 		this.contentRepository = contentRepository;
 		this.publishService = publishService;
 		this.itemService = itemService;
 		this.generalLockService = generalLockService;
-		this.contentServiceV2 = contentServiceV2;
+		this.contentService = contentService;
 	}
 
 	protected void validatePasteItemsAction(final String siteId, Operation operation, final String sourcePath, final String targetPath)
 			throws ServiceLayerException {
-		if (!contentServiceV2.contentExists(siteId, targetPath)) {
+		if (!contentService.contentExists(siteId, targetPath)) {
 			throw new ContentNotFoundException(targetPath, siteId, format("Target path '%s' does not exist. " +
 					"Unable to perform paste operation", targetPath));
 		}
@@ -92,7 +93,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 			throw new InvalidParametersException(format("Invalid paste target '%s' in site '%s'. " +
 					"Only pages and folders can contain children", targetPath, siteId));
 		}
-		if (!contentServiceV2.contentExists(siteId, sourcePath)) {
+		if (!contentService.contentExists(siteId, sourcePath)) {
 			throw new ContentNotFoundException(sourcePath, siteId, format("No content found at path '%s' " +
 					"Unable to perform paste operation", sourcePath));
 		}
@@ -108,7 +109,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 
 		if (CUT == operation) {
 			String sourceDirectory = getParentUrl(sourcePath);
-			String targetDirectory = removeEnd(targetPath, SLASH_INDEX_FILE);
+			String targetDirectory = CS.removeEnd(targetPath, SLASH_INDEX_FILE);
 			if (sourceDirectory.equals(targetDirectory)) {
 				throw new ContentMoveInvalidLocation(format("Cannot perform cut-paste operation from '%s' to the same location '%s' for site '%s'",
 						sourcePath, targetPath, siteId));
@@ -145,7 +146,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 					pastedItems.addAll(copyPasteItems(siteId, targetPath, item));
 					break;
 				case CUT:
-					PasteContentResult moveResult = contentServiceV2.moveToParentPath(siteId, item.getPath(), targetPath);
+					PasteContentResult moveResult = contentService.moveToParentPath(siteId, item.getPath(), targetPath);
 					pastedItems.add(moveResult.getTargetPath());
 					break;
 			}
@@ -183,7 +184,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 			}
 		}
 
-		PasteContentResult copyResult = contentServiceV2.copy(siteId, item.getPath(), targetPath, copyPaths);
+		PasteContentResult copyResult = contentService.copy(siteId, item.getPath(), targetPath, copyPaths);
 		return copyResult.getItems().stream()
 				.map(WriteContentResult.WriteContentResultItem::path)
 				.toList();
@@ -191,7 +192,7 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 
 	@RequireContentExists
 	public String duplicateItem(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-		PasteContentResult pasteContentResult = contentServiceV2.duplicate(siteId, path);
+		PasteContentResult pasteContentResult = contentService.duplicate(siteId, path);
 		String pastedTargetPath = pasteContentResult.getTargetPath();
 		if (isPageDescriptor(path)) {
 			pastedTargetPath += SLASH_INDEX_FILE;
