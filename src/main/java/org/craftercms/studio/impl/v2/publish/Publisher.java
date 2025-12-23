@@ -71,7 +71,6 @@ import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.*;
 import static org.springframework.data.util.Predicates.negate;
@@ -187,8 +186,6 @@ public class Publisher implements ApplicationEventPublisherAware {
 			Stage itemLoadStage = taskProgress.startStage("Loading items list");
 			publishDao.updatePublishItemsState(packageId, PublishItem.PublishState.PROCESSING.value, PublishItem.PublishState.PENDING.value);
 			Collection<PublishItem> publishItems = publishDao.getPublishItems(publishPackage.getSite().getSiteId(), packageId);
-			// Set all affected items to system processing
-			publishDao.updateItemStateBits(packageId, SYSTEM_PROCESSING.value, 0);
 			auditPublishOperation(publishPackage, OPERATION_PUBLISH_START);
 			itemLoadStage.complete();
 
@@ -222,8 +219,6 @@ public class Publisher implements ApplicationEventPublisherAware {
 			publishPackage.setPublishedOn(now());
 			publishPackage.updatePackageState(COMPLETED.value, PROCESSING.value);
 			publishDao.updatePackage(publishPackage);
-			// Clear system processing bit for all affected items
-			publishDao.updateItemStateBits(packageId, 0, SYSTEM_PROCESSING.value);
 			publishDao.updatePublishItemsState(packageId, 0, PublishItem.PublishState.PROCESSING.value);
 			completeStage.complete();
 			taskProgress.complete(publishPackage.getPackageState());
