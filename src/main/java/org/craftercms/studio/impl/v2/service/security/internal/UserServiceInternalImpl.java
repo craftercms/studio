@@ -51,14 +51,13 @@ import org.craftercms.studio.impl.v2.security.password.ForgotPasswordTaskFactory
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.UserResponse;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.lang.NonNull;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 
@@ -1002,7 +1001,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	}
 
 	@Override
-	public void setApplicationEventPublisher(@NotNull ApplicationEventPublisher applicationEventPublisher) {
+	public void setApplicationEventPublisher(@NonNull ApplicationEventPublisher applicationEventPublisher) {
 		this.eventPublisher = applicationEventPublisher;
 	}
 }

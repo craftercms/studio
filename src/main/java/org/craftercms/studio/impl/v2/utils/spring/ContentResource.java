@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,15 +16,15 @@
 
 package org.craftercms.studio.impl.v2.utils.spring;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.AbstractResource;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Implementation of {@link org.springframework.core.io.Resource} that wraps site content
@@ -81,7 +81,7 @@ public class ContentResource extends AbstractResource {
 		return null;
 	}
 
-	@NotNull
+	@NonNull
 	@Override
 	public InputStream getInputStream() throws IOException {
 		try {

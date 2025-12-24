@@ -38,7 +38,7 @@ import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -243,7 +243,7 @@ public class WorkflowServiceInternalImpl implements WorkflowService, Application
 	}
 
 	@Override
-	public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+	public void setApplicationEventPublisher(@NonNull final ApplicationEventPublisher applicationEventPublisher) {
 		this.eventPublisher = applicationEventPublisher;
 	}
 

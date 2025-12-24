@@ -24,7 +24,7 @@ import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.model.task.PublishTask;
 import org.craftercms.studio.model.task.SiteTask;
 import org.craftercms.studio.model.task.Task;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,12 +65,12 @@ public class TaskManagerImplTest {
 	public void setUp() throws SiteNotFoundException {
 
 		when(applicationContext.getBean(eq(TaskProgressImpl.class), any(Object[].class)))
-			.thenAnswer(invocation -> {
-				TaskProgressImpl<?, ?> taskProgress = new TaskProgressImpl<TaskId, Object>(invocation.getArgument(1, Task.class), invocation.getArgument(2, TaskManager.class));
-				taskProgress.setApplicationEventPublisher(applicationContext);
+				.thenAnswer(invocation -> {
+					TaskProgressImpl<?, ?> taskProgress = new TaskProgressImpl<TaskId, Object>(invocation.getArgument(1, Task.class), invocation.getArgument(2, TaskManager.class));
+					taskProgress.setApplicationEventPublisher(applicationContext);
 
-				return taskProgress;
-			});
+					return taskProgress;
+				});
 
 		PublishTask publishTaskSite1 = new PublishTask(SITE_1_ID, 123);
 		PublishTask publishTaskSite1_2 = new PublishTask(SITE_1_ID, 456);
@@ -136,8 +136,8 @@ public class TaskManagerImplTest {
 			super(TYPE, new TestTaskId(siteId, taskId));
 		}
 
-		@NotNull
 		@Override
+		@NonNull
 		public String getType() {
 			return TYPE;
 		}

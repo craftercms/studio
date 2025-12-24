@@ -53,7 +53,7 @@ import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.*;
 import org.dom4j.io.SAXReader;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -834,7 +834,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	// --- end of copied code ---
 
 	@Override
-	public void setApplicationEventPublisher(@NotNull ApplicationEventPublisher applicationEventPublisher) {
+	public void setApplicationEventPublisher(@NonNull ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 

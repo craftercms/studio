@@ -50,13 +50,12 @@ import org.craftercms.studio.impl.v2.utils.PublishUtils;
 import org.craftercms.studio.impl.v2.utils.db.DBUtils;
 import org.craftercms.studio.model.task.PublishTask;
 import org.craftercms.studio.model.task.PublishTask.PublishTaskId;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.event.EventListener;
-import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -288,7 +287,6 @@ public class Publisher implements ApplicationEventPublisherAware {
 	 * @param target         the target to publish to
 	 * @param publishItems   the list of items to publish
 	 */
-	@NonNull
 	private void doPublishItemListTarget(final PublishPackageTO publishPackage,
 					     final String target, final Collection<PublishItem> publishItems) throws ServiceLayerException, IOException {
 		doPublishTarget(publishPackage, target, publishItems, contentRepository::publish);
@@ -309,7 +307,6 @@ public class Publisher implements ApplicationEventPublisherAware {
 	 * Notice that for packages with target 'live', this method should
 	 * be called twice, once for the staging target and once for the live target
 	 */
-	@NonNull
 	private void doPublishTarget(final PublishPackageTO packageTO,
 				     final String target,
 				     final Collection<PublishItem> publishItems,
@@ -403,7 +400,6 @@ public class Publisher implements ApplicationEventPublisherAware {
 	 * @param target         the target to publish to
 	 * @param publishItems   the list of items to publish
 	 */
-	@NonNull
 	private void doPublishAllTarget(final PublishPackageTO publishPackage,
 					final String target,
 					final Collection<PublishItem> publishItems) throws ServiceLayerException, IOException {
@@ -566,7 +562,7 @@ public class Publisher implements ApplicationEventPublisherAware {
 	}
 
 	@Override
-	public void setApplicationEventPublisher(@NotNull final ApplicationEventPublisher applicationEventPublisher) {
+	public void setApplicationEventPublisher(@NonNull final ApplicationEventPublisher applicationEventPublisher) {
 		this.eventPublisher = applicationEventPublisher;
 	}
 }

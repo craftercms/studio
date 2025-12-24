@@ -71,14 +71,13 @@ import org.craftercms.studio.model.site.SiteDetails;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.NonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -825,7 +824,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	 * @param xmlConfiguration the blob-stores-config.xml configuration
 	 * @return a list of BlobStoreDetails
 	 */
-	@NotNull
+	@NonNull
 	private static List<BlobStoreDetails> getBlobStoreDetails(HierarchicalConfiguration<?> xmlConfiguration) {
 		if (xmlConfiguration == null) {
 			return Collections.emptyList();
