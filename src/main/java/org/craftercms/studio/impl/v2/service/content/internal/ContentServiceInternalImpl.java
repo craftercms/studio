@@ -138,6 +138,7 @@ import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
+import static org.springframework.transaction.TransactionDefinition.ISOLATION_READ_COMMITTED;
 
 /**
  * Internal implementation of {@link ContentService}
@@ -588,8 +589,28 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected <T> T runWriteInTransaction(String transactionId, ThrowingSupplier<T> supplier)
 			throws ServiceLayerException, ActionDeniedException, AuthenticationException, UserNotFoundException {
+		return runWriteInTransaction(transactionId, null, supplier);
+	}
+
+	/**
+	 * Run a write operation in a transaction.
+	 * This method will re-throw any exception of type ServiceLayerException, ActionDeniedException,AuthenticationException, UserNotFoundException,
+	 * and wrap any other exception in a ServiceLayerException
+	 *
+	 * @param transactionId  the transaction id
+	 * @param isolationLevel the isolation level for the transaction, defaults to {@link org.springframework.transaction.TransactionDefinition#ISOLATION_DEFAULT} if null
+	 * @param supplier       the operation to run
+	 * @param <T>            the type of the result
+	 * @return the result of the operation
+	 * @throws ServiceLayerException   if an error occurs
+	 * @throws ActionDeniedException   if the user does not have permission
+	 * @throws AuthenticationException if the user is not authenticated
+	 * @throws UserNotFoundException   if the user is not found
+	 */
+	protected <T> T runWriteInTransaction(String transactionId, Integer isolationLevel, ThrowingSupplier<T> supplier)
+			throws ServiceLayerException, ActionDeniedException, AuthenticationException, UserNotFoundException {
 		try {
-			return DBUtils.runInTransaction(transactionManager, transactionId, supplier);
+			return DBUtils.runInTransaction(transactionManager, transactionId, isolationLevel, supplier);
 		} catch (ServiceLayerException | ActionDeniedException | AuthenticationException | UserNotFoundException e) {
 			throw e;
 		} catch (Exception e) {
@@ -696,7 +717,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				}
 
 				String transactionId = format(COPY_TRANSACTION_FORMAT, siteId);
-				pasteResult = runWriteInTransaction(transactionId,
+				pasteResult = runWriteInTransaction(transactionId, ISOLATION_READ_COMMITTED,
 						() -> copyInternal(site, sourcePath, targetPath, lifecycleContents, itemPaths, pastedPath.newLabel, operation));
 			} finally {
 				closeCollection(lifecycleContents);

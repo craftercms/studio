@@ -208,7 +208,7 @@
 	<bean id="clipboardServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.clipboard.internal.ClipboardServiceInternalImpl">
 		<constructor-arg name="publishService" ref="publishServiceInternal"/>
-		<constructor-arg name="contentServiceV2" ref="contentServiceInternal"/>
+		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="contentRepository" ref="contentRepository"/>
 	</bean>
 

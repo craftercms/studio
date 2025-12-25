@@ -75,6 +75,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalSt
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
@@ -545,7 +546,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 										final boolean requestApproval, final boolean publishAll)
 		throws ServiceLayerException, AuthenticationException {
 		Site site = siteService.getSite(siteId);
-		String lockKey = org.craftercms.studio.api.v2.utils.StudioUtils.getSandboxRepoLockKey(site.getSiteId());
+		String lockKey = getSandboxRepoLockKey(site.getSiteId());
 		generalLockService.lock(lockKey);
 		try {
 			if (!site.isSitePublishedRepoCreated()) {
