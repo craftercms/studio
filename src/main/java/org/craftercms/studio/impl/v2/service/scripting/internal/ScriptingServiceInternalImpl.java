@@ -34,7 +34,7 @@ import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.scripting.ScriptingService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SandboxInterceptor;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -121,7 +121,7 @@ public class ScriptingServiceInternalImpl implements ScriptingService, Applicati
 	}
 
 	@Override
-	public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
+	public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 

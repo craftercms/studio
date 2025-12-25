@@ -83,7 +83,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -1423,7 +1423,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @param resultItems the result items of the write operation
 	 * @return a list of audit log parameters
 	 */
-	protected @NotNull List<AuditLogParameter> getAuditParameters(String siteId, String sourcePath, String path,
+	protected @NonNull List<AuditLogParameter> getAuditParameters(String siteId, String sourcePath, String path,
 																  Collection<WriteContentResultItem> resultItems) {
 		List<AuditLogParameter> auditLogParameters = new ArrayList<>();
 		if (sourcePath != null) {
@@ -1887,7 +1887,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @return a map of path to {@link ContentLifecycleItem} containing all items from the lifecycle contents,
 	 * using the path as the key.
 	 */
-	protected static @NotNull Map<String, ContentLifecycleItem> mergeLifecycleContents(Collection<LifecycleContent> lifecycleContents) {
+	protected static @NonNull Map<String, ContentLifecycleItem> mergeLifecycleContents(Collection<LifecycleContent> lifecycleContents) {
 		return lifecycleContents.stream()
 				.map(LifecycleContent::getItems)
 				.flatMap(m -> m.entrySet().stream())
@@ -2267,7 +2267,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void setApplicationEventPublisher(final @NotNull ApplicationEventPublisher eventPublisher) {
+	public void setApplicationEventPublisher(final @NonNull ApplicationEventPublisher eventPublisher) {
 		this.eventPublisher = eventPublisher;
 	}
 

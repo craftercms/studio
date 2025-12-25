@@ -30,7 +30,7 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -146,7 +146,7 @@ public class GlobalRepoBootstrap implements ServletContextAware {
 	}
 
 	@Override
-	public void setServletContext(@NotNull final ServletContext servletContext) {
+	public void setServletContext(@NonNull final ServletContext servletContext) {
 		this.servletContext = servletContext;
 	}
 }

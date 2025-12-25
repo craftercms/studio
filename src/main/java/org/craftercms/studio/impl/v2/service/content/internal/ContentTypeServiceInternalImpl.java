@@ -42,7 +42,7 @@ import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
 import org.dom4j.Node;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -266,7 +266,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 		return modelDefinitions;
 	}
 
-	@NotNull
+	@NonNull
 	private FileVisitResult visitContentTypeFile(final Path file, final List<String> contentTypes) throws IOException {
 		if (!file.getFileName().toString().equals(contentTypeDefinitionFilename)) {
 			return FileVisitResult.CONTINUE;

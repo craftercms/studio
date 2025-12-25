@@ -24,7 +24,7 @@ import org.craftercms.studio.api.v2.content.ContentLifecycle;
 import org.craftercms.studio.api.v2.content.ContentLoader;
 import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -182,7 +182,7 @@ public class ContentLifecycleImpl implements ContentLifecycle, ApplicationContex
 	}
 
 	@Override
-	public void setApplicationContext(@NotNull final ApplicationContext applicationContext) throws BeansException {
+	public void setApplicationContext(@NonNull final ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 }

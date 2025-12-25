@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import jakarta.validation.Valid;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -79,7 +78,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -458,7 +457,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	 * @param path the path
 	 * @return the content chain ID
 	 */
-	@NotNull
+	@NonNull
 	private static String getContentChainID(final String path) {
 		// TODO: SJ: Item processing pipeline needs to be configurable without hardcoded paths
 		// TODO: SJ: We need to consider various mechanics for pipeline choice other than path
@@ -2095,7 +2094,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	}
 
 	@Override
-	public void setApplicationContext(@NotNull ApplicationContext applicationContext) {
+	public void setApplicationContext(@NonNull ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 	}
 

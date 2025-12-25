@@ -44,7 +44,7 @@ import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -568,7 +568,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@Override
-	public void setApplicationContext(@NotNull final ApplicationContext applicationContext) throws BeansException {
+	public void setApplicationContext(@NonNull final ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 
@@ -710,7 +710,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * @param site the site
 	 * @return the collection of publish items
 	 */
-	@NotNull
+	@NonNull
 	protected Collection<PublishItem> getPublishAllItems(final Site site)
 		throws InvalidParametersException {
 		Collection<String> unpublishedPaths = itemService.getUnpublishedPaths(site.getId()).stream()
@@ -751,7 +751,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * @param commitIds the commit ids
 	 * @return the collection of publish items
 	 */
-	@NotNull
+	@NonNull
 	protected Collection<PublishItem> getItemListPackageItems(final Site site, final Collection<PublishRequestPath> paths,
 															  final Collection<String> commitIds, final String target) throws ServiceLayerException, IOException {
 		// Combine list of paths and list of commit changes

@@ -53,7 +53,7 @@ import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.task.PublishTask;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -692,7 +692,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	 * This method will iterate over all the site paths and will filter out the blob paths, then
 	 * it will match them with the blob stores and return a map with the paths grouped by the blob store
 	 */
-	private @NotNull MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> scanRepoForBlobPaths(final TaskProgress<PublishTask.PublishTaskId, ?> taskProgress,
+	private @NonNull MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> scanRepoForBlobPaths(final TaskProgress<PublishTask.PublishTaskId, ?> taskProgress,
 																										final String siteId, final List<StudioBlobStore> blobStores)
 			throws ServiceLayerException {
 		MultiValueMap<StudioBlobStore, BlobAwareInitialPublishItemTO> pathsByBlobStore = new LinkedMultiValueMap<>();

@@ -20,11 +20,10 @@ import org.craftercms.studio.api.v2.task.TaskId;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.model.task.Task;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -95,7 +94,7 @@ public class TaskManagerImpl implements TaskManager, ApplicationContextAware {
 	}
 
 	@Override
-	public void setApplicationContext(@NotNull final ApplicationContext applicationContext) throws BeansException {
+	public void setApplicationContext(@NonNull final ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 }

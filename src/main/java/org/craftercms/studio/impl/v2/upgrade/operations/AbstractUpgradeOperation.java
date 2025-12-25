@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,19 +16,18 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations;
 
+import jakarta.servlet.ServletContext;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
+import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
-
-import jakarta.servlet.ServletContext;
 
 import java.beans.ConstructorProperties;
 import java.util.Arrays;
@@ -82,7 +81,7 @@ public abstract class AbstractUpgradeOperation extends
 		this.studioConfiguration = studioConfiguration;
 	}
 
-	public void setServletContext(@NotNull final ServletContext servletContext) {
+	public void setServletContext(@NonNull final ServletContext servletContext) {
 		this.servletContext = servletContext;
 	}
 
