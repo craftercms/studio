@@ -106,8 +106,6 @@
 	</bean>
 
 	<bean id="crafter.studioPermissionResolver" class="org.craftercms.studio.permissions.PermissionResolverImpl">
-		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
-		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 	</bean>
 
 	<bean id="crafter.studioCompositePermissionResolver"

@@ -26,6 +26,9 @@ import static java.util.Objects.requireNonNullElse;
  * @param name the name of the role
  */
 public record NormalizedRole(String name) {
+
+	public static final NormalizedRole WILDCARD_ROLE = new NormalizedRole("*");
+
 	public NormalizedRole(String name) {
 		this.name = requireNonNullElse(name, StringUtils.EMPTY).toLowerCase();
 	}

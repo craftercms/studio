@@ -73,6 +73,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.collections4.MapUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.joinWith;
@@ -408,17 +409,17 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 			Group g = groupService.getGroupByName(SYSTEM_ADMIN_GROUP);
 			List<User> members =
 				groupService.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE, StringUtils.EMPTY);
-			if (!CollectionUtils.isNotEmpty(members)) {
+			if (!isNotEmpty(members)) {
 				return;
 			}
 			List<User> membersAfterRemove = new LinkedList<>(members);
 			members.forEach(m -> {
-				if (CollectionUtils.isNotEmpty(userIds)) {
+				if (isNotEmpty(userIds)) {
 					if (userIds.contains(m.getId())) {
 						membersAfterRemove.remove(m);
 					}
 				}
-				if (CollectionUtils.isNotEmpty(usernames)) {
+				if (isNotEmpty(usernames)) {
 					if (usernames.contains(m.getUsername())) {
 						membersAfterRemove.remove(m);
 					}
@@ -710,7 +711,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		}
 
 		boolean toRet = false;
-		if (CollectionUtils.isNotEmpty(roles)) {
+		if (isNotEmpty(roles)) {
 			for (NormalizedRole role : roles) {
 				if (role.equals(SYSTEM_ADMIN_NORMALIZED_ROLE)) {
 					toRet = true;
@@ -795,12 +796,15 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		} else {
 			for (Group group : groups) {
 				List<NormalizedRole> roles = roleMappings.get(new NormalizedGroup(group.getGroupName()));
-				if (CollectionUtils.isNotEmpty(roles)) {
+				if (isNotEmpty(roles)) {
 					userRoles.addAll(roles);
 				}
 			}
 		}
 
+		if (isNotEmpty(userRoles)) {
+			userRoles.add(NormalizedRole.WILDCARD_ROLE);
+		}
 		return new ArrayList<>(userRoles);
 	}
 

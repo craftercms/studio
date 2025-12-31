@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
+import java.beans.ConstructorProperties;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +46,8 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
 	private final SecurityService securityService;
 	private final StudioConfiguration studioConfiguration;
 
-	public PermissionResolverImpl(SecurityService securityService, StudioConfiguration studioConfiguration) {
+	@ConstructorProperties({"securityService", "studioConfiguration"})
+	public PermissionResolverImpl(final SecurityService securityService, final StudioConfiguration studioConfiguration) {
 		this.securityService = securityService;
 		this.studioConfiguration = studioConfiguration;
 	}
