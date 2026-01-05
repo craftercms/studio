@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -373,10 +373,11 @@ public class ContentServiceInternalImplTest {
 			dbUtilsMock.when(() -> DBUtils.runInTransaction(
 					any(PlatformTransactionManager.class),
 					anyString(),
+					any(),
 					any(ThrowingSupplier.class)
 			)).thenAnswer(invocation -> {
 				// Simulate transaction behavior
-				ThrowingSupplier<String> supplier = invocation.getArgument(2);
+				ThrowingSupplier<String> supplier = invocation.getArgument(3);
 				return supplier.getWithException();
 			});
 			studioUtilsMock.when(() -> createTempFile(anyString(), any(Document.class))).thenReturn(mock(Path.class));
@@ -579,10 +580,11 @@ public class ContentServiceInternalImplTest {
 			dbUtilsMock.when(() -> DBUtils.runInTransaction(
 					any(PlatformTransactionManager.class),
 					anyString(),
+					any(),
 					any(ThrowingSupplier.class)
 			)).thenAnswer(invocation -> {
 				// Simulate transaction behavior
-				ThrowingSupplier<String> supplier = invocation.getArgument(2);
+				ThrowingSupplier<String> supplier = invocation.getArgument(3);
 				return supplier.getWithException();
 			});
 			secUtilsMock.when(SecurityUtils::getCurrentUser).thenReturn(mock(AuthenticatedUser.class));
@@ -884,10 +886,11 @@ public class ContentServiceInternalImplTest {
 			dbUtilsMock.when(() -> DBUtils.runInTransaction(
 					any(PlatformTransactionManager.class),
 					anyString(),
+					any(),
 					any(ThrowingSupplier.class)
 			)).thenAnswer(invocation -> {
 				// Simulate transaction behavior
-				ThrowingSupplier<String> supplier = invocation.getArgument(2);
+				ThrowingSupplier<String> supplier = invocation.getArgument(3);
 				return supplier.getWithException();
 			});
 			secUtilsMock.when(SecurityUtils::getCurrentUser).thenReturn(mock(AuthenticatedUser.class));
