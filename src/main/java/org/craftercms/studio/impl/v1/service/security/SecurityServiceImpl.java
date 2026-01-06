@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.dal.security.NormalizedRole.WILDCARD_ROLE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
@@ -179,7 +180,7 @@ public class SecurityServiceImpl implements SecurityService {
 				if (siteRoles != null && !siteRoles.isEmpty()) {
 					List<Node> ruleNodes = siteRoles.get(role);
 					if (ruleNodes == null || ruleNodes.isEmpty()) {
-						ruleNodes = siteRoles.get(new NormalizedRole("*"));
+						ruleNodes = siteRoles.get(WILDCARD_ROLE);
 					}
 					if (ruleNodes != null && !ruleNodes.isEmpty()) {
 						for (Node ruleNode : ruleNodes) {
@@ -272,7 +273,7 @@ public class SecurityServiceImpl implements SecurityService {
 			return permissions;
 		}
 		for (NormalizedRole role : roles) {
-			List<Node> ruleNodes = siteRoles.getOrDefault(role, siteRoles.get(new NormalizedRole("*")));
+			List<Node> ruleNodes = siteRoles.getOrDefault(role, siteRoles.get(WILDCARD_ROLE));
 			if (CollectionUtils.isEmpty(ruleNodes)) {
 				logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
 					site, path, PERMISSION_CONTENT_READ);

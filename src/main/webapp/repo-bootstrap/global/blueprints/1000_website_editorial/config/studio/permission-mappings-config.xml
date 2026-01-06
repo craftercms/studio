@@ -29,7 +29,7 @@
   View the sample for a good starting point.
 -->
 <permissions>
-	<version>5.0.0.0</version>
+	<version>5.0.0.1</version>
 	<role name="author">
 		<rule regex="/site/website/.*|/site/components(/.*)?|/static-assets(/.*)?">
 			<allowed-permissions>
@@ -41,15 +41,8 @@
 		</rule>
 		<rule regex=".*">
 			<allowed-permissions>
-				<permission>s3_read</permission>
 				<permission>s3_write</permission>
-				<permission>webdav_read</permission>
 				<permission>webdav_write</permission>
-				<permission>list_plugins</permission>
-				<permission>get_children</permission>
-				<permission>publish_status</permission>
-				<permission>content_read</permission>
-				<permission>content_search</permission>
 				<permission>read_configuration</permission>
 				<permission>publish_get_queue</permission>
 				<permission>publish_cancel</permission>
@@ -73,15 +66,8 @@
 		</rule>
 		<rule regex=".*">
 			<allowed-permissions>
-				<permission>s3_read</permission>
 				<permission>s3_write</permission>
-				<permission>webdav_read</permission>
 				<permission>webdav_write</permission>
-				<permission>list_plugins</permission>
-				<permission>get_children</permission>
-				<permission>publish_status</permission>
-				<permission>content_read</permission>
-				<permission>content_search</permission>
 				<permission>read_configuration</permission>
 				<permission>publish_get_queue</permission>
 				<permission>publish_cancel</permission>
@@ -115,17 +101,10 @@
 				<permission>cancel_failed_pull</permission>
 				<permission>encryption_tool</permission>
 				<permission>content_copy</permission>
-				<permission>s3_read</permission>
 				<permission>s3_write</permission>
-				<permission>webdav_read</permission>
 				<permission>webdav_write</permission>
-				<permission>list_plugins</permission>
 				<permission>install_plugins</permission>
-				<permission>get_children</permission>
-				<permission>publish_status</permission>
 				<permission>remove_plugins</permission>
-				<permission>content_read</permission>
-				<permission>content_search</permission>
 				<permission>view_logs</permission>
 				<permission>audit_log</permission>
 				<permission>read_configuration</permission>
@@ -162,19 +141,12 @@
 				<permission>unlock_repository</permission>
 				<permission>content_copy</permission>
 				<permission>repair_repository</permission>
-				<permission>s3_read</permission>
 				<permission>s3_write</permission>
-				<permission>webdav_read</permission>
 				<permission>webdav_write</permission>
 				<permission>edit_site</permission>
-				<permission>list_plugins</permission>
 				<permission>install_plugins</permission>
-				<permission>get_children</permission>
-				<permission>publish_status</permission>
 				<permission>item_unlock</permission>
 				<permission>remove_plugins</permission>
-				<permission>content_read</permission>
-				<permission>content_search</permission>
 				<permission>view_logs</permission>
 				<permission>start_stop_publisher</permission>
 				<permission>read_configuration</permission>
@@ -190,13 +162,6 @@
 	<role name="reviewer">
 		<rule regex=".*">
 			<allowed-permissions>
-				<permission>s3_read</permission>
-				<permission>webdav_read</permission>
-				<permission>list_plugins</permission>
-				<permission>get_children</permission>
-				<permission>publish_status</permission>
-				<permission>content_read</permission>
-				<permission>content_search</permission>
 				<permission>read_configuration</permission>
 				<permission>publish_get_queue</permission>
 				<permission>publish_approve</permission>
