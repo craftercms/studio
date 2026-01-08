@@ -34,6 +34,11 @@
         <label id="pathNavigatorTree.components" defaultMessage="Components"/>
     </xsl:template>
 
+    <!-- Replace <label>Items</label> -->
+    <xsl:template match="label[normalize-space(text())='Items']">
+        <label id="pathNavigatorTree.items" defaultMessage="Items"/>
+    </xsl:template>
+
     <!-- Replace <label>Taxonomy</label> -->
     <xsl:template match="label[normalize-space(text())='Taxonomy']">
         <label id="pathNavigatorTree.taxonomy" defaultMessage="Taxonomy"/>

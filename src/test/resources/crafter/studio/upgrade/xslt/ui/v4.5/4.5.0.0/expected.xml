@@ -50,6 +50,15 @@
                 </widget>
                 <widget id="craftercms.components.PathNavigatorTree">
                     <configuration>
+                        <id>Items</id>
+                        <label id="pathNavigatorTree.items" defaultMessage="Items"/>
+                        <icon id="craftercms.icons.Components"/>
+                        <rootPath>/site/items</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
                         <id>Taxonomy</id>
                         <label id="pathNavigatorTree.taxonomy" defaultMessage="Taxonomy"/>
                         <icon id="@mui/icons-material/LocalOfferOutlined"/>
