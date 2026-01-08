@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -439,6 +439,23 @@ public class XsltTest {
 
 	@Test(dataProvider = "globalPermissions50010TestData")
 	public void globalPermissions50010Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
+	@DataProvider(name = "ui5000TestData")
+	public Object[][] ui5000TestData() {
+		return new Object[][]{
+				new Object[] {
+						new ClassPathResource("crafter/studio/upgrade/5.0.x/config/ui/ui-v5.0.0.0.xslt"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/ui/v5.0/5.0.0.0/input.xml"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/ui/v5.0/5.0.0.0/expected.xml"),
+						emptyMap()
+				}
+		};
+	}
+
+	@Test(dataProvider = "ui5000TestData")
+	public void ui5000Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
 		testXsltTemplate(template, content, expected, params);
 	}
 
