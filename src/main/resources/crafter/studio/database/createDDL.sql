@@ -10,8 +10,7 @@ BEGIN
 		(SELECT id, max(potential_parent_path) as calculated_parent_path,
 						(SELECT p.id FROM item p WHERE (p.path = max(potential_parent_path)) and p.site_id = siteId) AS calculated_parent_id
 		FROM
-			(SELECT candidates.id, candidates.path, candidates.parent_id,
-					(SELECT p.id FROM item p WHERE (p.path = candidates.parent_path) AND p.site_id = siteId) AS potential_parent_id,
+            (SELECT candidates.id, candidates.path, candidates.parent_id, i.id as potential_parent_id,
 					candidates.parent_path as potential_parent_path
 			FROM (
 					SELECT id, parent_id, path,
@@ -23,9 +22,9 @@ BEGIN
 							concat(reverse(substr(reverse(trim('/index.xml' from path)), locate('/', reverse(trim('/index.xml' from path)))+1)), '/index.xml') AS parent_path
 					FROM item
 					WHERE site_id = siteId
-				) AS candidates
+				) AS candidates INNER JOIN item i ON candidates.parent_path = i.path AND i.site_id = siteId
+				WHERE i.site_id = siteId
 			) AS mapped
-		WHERE potential_parent_id IS NOT NULL
 		GROUP BY id
 		) AS updates
 	SET item.parent_id = updates.calculated_parent_id
@@ -225,7 +224,7 @@ CREATE TABLE _meta (
 	PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.13', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.14', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
 	`id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
