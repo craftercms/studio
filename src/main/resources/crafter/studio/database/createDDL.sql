@@ -22,7 +22,7 @@ BEGIN
 							concat(reverse(substr(reverse(trim('/index.xml' from path)), locate('/', reverse(trim('/index.xml' from path)))+1)), '/index.xml') AS parent_path
 					FROM item
 					WHERE site_id = siteId
-				) AS candidates inner join item i ON candidates.parent_path = i.path
+				) AS candidates INNER JOIN item i ON candidates.parent_path = i.path AND i.site_id = siteId
 				WHERE i.site_id = siteId
 			) AS mapped
         GROUP BY id
