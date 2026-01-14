@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.dom4j.Document;
@@ -315,6 +316,17 @@ public interface ContentService {
 	 * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
 	 */
 	List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
+
+	/**
+	 * Get the repository version history.
+	 *
+	 * @param siteId the site id
+	 * @param start  commit id to start from (e.g.: HEAD)
+	 * @param limit  maximum number of versions to return
+	 * @return the collection of repository versions
+	 * @throws ServiceLayerException if an error occurs while creating the list of {@link RepositoryVersion}s
+	 */
+	Collection<RepositoryVersion> getHistory(String siteId, String start, int limit) throws ServiceLayerException;
 
 	/**
 	 * Write content to the given path

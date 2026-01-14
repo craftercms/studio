@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
@@ -242,6 +243,13 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<ItemVersion> getContentVersionHistory(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException {
 		return contentServiceInternal.getContentVersionHistory(siteId, path);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<RepositoryVersion> getHistory(@SiteId String siteId, String start, int limit) throws ServiceLayerException{
+		return contentServiceInternal.getHistory(siteId, start, limit);
 	}
 
 	@Override

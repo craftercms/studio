@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 
-import java.io.IOException;
 import java.util.List;
 
 /**

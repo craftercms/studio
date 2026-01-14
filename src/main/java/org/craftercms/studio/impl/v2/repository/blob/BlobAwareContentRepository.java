@@ -51,6 +51,7 @@ import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.task.PublishTask;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jspecify.annotations.NonNull;
@@ -813,6 +814,11 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	@Override
 	public List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException {
 		return localRepository.getCommitIdsBetween(siteId, commitFrom, commitTo);
+	}
+
+	@Override
+	public List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws IOException {
+		return localRepository.getHistory(siteId, commitFrom, limit);
 	}
 
 	@Override

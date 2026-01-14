@@ -54,6 +54,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.task.PublishTask.PublishTaskId;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -101,8 +102,7 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.lib.Constants.*;
-import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
-import static org.eclipse.jgit.revwalk.RevSort.TOPO_KEEP_BRANCH_TOGETHER;
+import static org.eclipse.jgit.revwalk.RevSort.*;
 
 /**
  * Implementation of the GitContentRepositoryImpl interface.
@@ -662,9 +662,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 		List<String> resultCommits = new LinkedList<>();
 
-		try (Git git = Git.wrap(repo)) {
+		try (Git git = Git.wrap(repo); RevWalk revWalk = new RevWalk(git.getRepository())) {
 			// git log --first-parent --reverse commitFrom..commitTo
-			RevWalk revWalk = new RevWalk(git.getRepository());
 			revWalk.setFirstParent(true);
 			revWalk.markStart(revWalk.parseCommit(repo.resolve(repoLastCommitId)));
 			revWalk.setRevFilter(new RevFilter() {
@@ -1338,23 +1337,17 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String repoLockKey = helper.getSandboxRepoLockKey(site);
 		Repository repo = helper.getRepository(site, SANDBOX);
 		generalLockService.lock(repoLockKey);
-		try (Git git = Git.wrap(repo)) {
+		try (Git git = Git.wrap(repo); final RevWalk revWalk = new RevWalk(git.getRepository())) {
 			DiffConfig diffConfig = repo.getConfig().get(DiffConfig.KEY);
-			final RevWalk revWalk = new RevWalk(git.getRepository());
 			revWalk.setTreeFilter(FollowFilter.create(gitPath, diffConfig));
 			revWalk.markStart(revWalk.parseCommit(repo.resolve(HEAD)));
 			revWalk.sort(RevSort.TOPO);
 			String currentPath = gitPath;
 			boolean revertible = true;
 			for (RevCommit revCommit : revWalk) {
-				ItemVersion version = new ItemVersion();
+				ItemVersion version = new ItemVersion(new RepositoryVersion(revCommit));
 				version.setRevertible(revertible);
 				version.setPath(CS.prependIfMissing(currentPath, FILE_SEPARATOR));
-				version.setVersionNumber(revCommit.getName());
-				version.setCommitter(revCommit.getAuthorIdent().getName());
-				version.setModifiedDate(
-					Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
-				version.setComment(revCommit.getFullMessage());
 				try {
 					DiffEntry diffEntry = helper.getDiffEntry(repo, revCommit, currentPath);
 					if (!CS.equals(currentPath, diffEntry.getOldPath())) {
@@ -1388,9 +1381,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String repoLockKey = helper.getSandboxRepoLockKey(site);
 		Repository repo = helper.getRepository(site, SANDBOX);
 		generalLockService.lock(repoLockKey);
-		try (Git git = Git.wrap(repo)) {
+		try (Git git = Git.wrap(repo); RevWalk revWalk = new RevWalk(git.getRepository());) {
 			// git log --first-parent --reverse commitFrom..commitTo
-			RevWalk revWalk = new RevWalk(git.getRepository());
 			revWalk.setFirstParent(true);
 			revWalk.markStart(revWalk.parseCommit(repo.resolve(commitTo)));
 			revWalk.setRevFilter(new RevFilter() {
@@ -1417,6 +1409,41 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			generalLockService.unlock(repoLockKey);
 		}
 		return result;
+	}
+
+	@Override
+	public List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws IOException {
+		List<RepositoryVersion> versionHistory = new ArrayList<>();
+		String repoLockKey = helper.getSandboxRepoLockKey(siteId);
+		Repository repo = helper.getRepository(siteId, SANDBOX);
+		generalLockService.lock(repoLockKey);
+		try (Git git = Git.wrap(repo); RevWalk revWalk = new RevWalk(git.getRepository())) {
+			revWalk.setFirstParent(true);
+			revWalk.setRevFilter(new RevFilter() {
+				private int count = 0;
+
+				@Override
+				public boolean include(RevWalk revWalk, RevCommit revCommit) throws StopWalkException {
+					if (count++ < limit) {
+						return true;
+					}
+					throw StopWalkException.INSTANCE;
+				}
+
+				@Override
+				public RevFilter clone() {
+					return this;
+				}
+			});
+			revWalk.markStart(revWalk.parseCommit(repo.resolve(commitFrom)));
+			revWalk.sort(TOPO);
+			for (RevCommit revCommit : revWalk) {
+				versionHistory.add(new RepositoryVersion(revCommit));
+			}
+		} finally {
+			generalLockService.unlock(repoLockKey);
+		}
+		return versionHistory;
 	}
 
 	@Override

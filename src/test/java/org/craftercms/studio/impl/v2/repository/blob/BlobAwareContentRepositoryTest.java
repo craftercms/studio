@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -477,8 +477,8 @@ public class BlobAwareContentRepositoryTest {
 
 	@Test
 	public void getContentVersionHistoryTest() throws GitAPIException, ServiceLayerException, IOException {
-		ItemVersion version1 = new ItemVersion();
-		ItemVersion version2 = new ItemVersion();
+		ItemVersion version1 = new ItemVersion(null);
+		ItemVersion version2 = new ItemVersion(null);
 
 		when(localRepositoryV2.getContentItemHistory(eq(SITE), eq(POINTER_PATH)))
 			.thenReturn(List.of(version1, version2));

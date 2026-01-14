@@ -3990,48 +3990,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/repository/log:
-        get:
-            tags:
-                - repository
-            summary: Get the git log for a site repository. The result will be equivalent to `git log --first-parent` command.
-            description: 'Required permission "read_git_log"'
-            operationId: getRepositoryLog
-            parameters:
-                -   name: siteId
-                    in: query
-                    description: Site ID
-                    required: true
-                    schema:
-                        type: string
-                -   name: start
-                    in: query
-                    description: commit id to start from
-                    required: false
-                    schema:
-                        type: string
-                        default: HEAD
-                -   name: limit
-                    in: query
-                    description: Number of records to return
-                    required: false
-                    schema:
-                        type: integer
-                        format: int32
-                        default: 10
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    response:
-                                        $ref: '#/components/schemas/ApiResponse'
-                                allOf:
-                                    -   $ref: '#/components/schemas/GitLog'
-
     /api/2/model/{siteId}/definitions:
         post:
             tags:
@@ -5793,6 +5751,60 @@ paths:
                                             $ref: '#/components/schemas/ItemVersion'
                 '400':
                     $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /api/2/content/{siteId}/history:
+        get:
+            tags:
+                - content
+            summary: Get the git log for a site repository. The result will be equivalent to `git log --first-parent` command.
+            description: 'Required permission "content_read"'
+            operationId: getRepositoryLog
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: Site ID
+                    required: true
+                    schema:
+                        type: string
+                -   name: start
+                    in: query
+                    description: commit id (or refspec) to start from
+                    required: false
+                    schema:
+                        type: string
+                        default: HEAD
+                -   name: limit
+                    in: query
+                    description: Maximum number of records to return
+                    required: false
+                    schema:
+                        type: integer
+                        format: int32
+                        default: 10
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    items:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/RepositoryVersion'
+                '400':
+                    $ref: '#/components/responses/api1BadRequest'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '403':
@@ -10535,32 +10547,20 @@ components:
 
         ItemVersion:
             type: object
-            properties:
-                versionNumber:
-                    type: string
-                    description: the commit id
-                path:
-                    type: string
-                    description: the path of the item
-                oldPath:
-                    type: string
-                    description: the old path of the item (will be the same as path if the item has not been renamed)
-                committer:
-                    type: string
-                    description: the committer of the commit according to git log
-                author:
-                    $ref: '#/components/schemas/Person'
-                    description: corresponds to the Studio user author of the commit (if any)
-                comment:
-                    type: string
-                    description: the comment of the commit
-                revertible:
-                    type: boolean
-                    description: true if a revert to this version will be allowed
-                modifiedDate:
-                    type: string
-                    format: date-time
-                    description: the date of the commit
+            description: represents a version of a content item in the repository
+            allOf:
+                -  $ref: '#/components/schemas/RepositoryVersion'
+                -   type: object
+                    properties:
+                        path:
+                            type: string
+                            description: the path of the item
+                        oldPath:
+                            type: string
+                            description: the old path of the item (will be the same as path if the item has not been renamed)
+                        revertible:
+                            type: boolean
+                            description: true if a revert to this version will be allowed
 
         DuplicateSiteRequest:
             type: object
@@ -10879,27 +10879,25 @@ components:
                     type: string
                     description: The language display name
 
-        GitLog:
+        RepositoryVersion:
             type: object
             properties:
-                log:
-                    type: array
-                    items:
-                        type: object
-                        properties:
-                            commit:
-                                type: string
-                                description: The commit id
-                            author:
-                                type: string
-                                description: The author of the commit
-                            timestamp:
-                                type: string
-                                format: date-time
-                                description: The commit timestamp
-                            comment:
-                                type: string
-                                description: The commit comment
+                versionNumber:
+                    type: string
+                    description: the commit id
+                committer:
+                    type: string
+                    description: the committer of the commit according to git log
+                author:
+                    $ref: '#/components/schemas/Person'
+                    description: corresponds to the Studio user author of the commit (if any)
+                modifiedDate:
+                    type: string
+                    format: date-time
+                    description: the date of the commit
+                comment:
+                    type: string
+                    description: the comment of the commit
 
         WriteContentResponse:
             type: object
