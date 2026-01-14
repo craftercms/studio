@@ -27,8 +27,10 @@ import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
+import org.craftercms.studio.model.history.RepositoryVersion;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -184,5 +186,4 @@ public interface RepositoryManagementService {
 	 * @throws ServiceLayerException if there is any error repairing the repository
 	 */
 	void repairCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException;
-
 }

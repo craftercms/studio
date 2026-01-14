@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.history.RepositoryVersion;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
@@ -195,6 +196,20 @@ public interface GitContentRepository extends ContentRepository {
 	 * @throws IOException if there is any error reading the git log
 	 */
 	List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException;
+
+	/**
+	 * Get the repository history for the given site
+	 * This method starts in the commitFrom and goes back until the limit is reached or there are no more commits.
+	 * <p>
+	 * This method must return the equivalent to <code>git log --first-parent --max-count=limit commitFrom</code>
+	 *
+	 * @param siteId     the site id
+	 * @param commitFrom the commit id to start from
+	 * @param limit      maximum number of versions to return
+	 * @return list of repository versions
+	 * @throws IOException if there is any error reading the git log
+	 */
+	List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws IOException;
 
 	/**
 	 * Get the new commits introduced by <code>commitId</code> into <code>baseCommit</code>.<br/>

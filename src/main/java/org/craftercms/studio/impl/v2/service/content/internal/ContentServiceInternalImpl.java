@@ -73,6 +73,7 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.db.DBUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.rest.Person;
 import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
@@ -420,25 +421,48 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			Site site = siteService.getSite(siteId);
 
 			List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
-
-			for (List<ItemVersion> batch : Lists.partition(history, FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE)) {
-				List<String> commitIds = batch.stream()
-						.map(ItemVersion::getVersionNumber)
-						.filter(Objects::nonNull)
-						.collect(toList());
-				List<CommitAuthor> commitAuthors = auditService.getCommitAuthors(site.getId(), commitIds, path);
-				Map<String, Person> authorsMap = commitAuthors.stream()
-						.collect(toMap(CommitAuthor::getCommitId, CommitAuthor::getAuthor));
-				for (ItemVersion itemVersion : batch) {
-					String versionNumber = itemVersion.getVersionNumber();
-					if (authorsMap.containsKey(versionNumber)) {
-						itemVersion.setAuthor(authorsMap.get(versionNumber));
-					}
-				}
-			}
+			populateAuthor(site, history.stream().map(ItemVersion::getRepositoryVersion).toList(), path);
 			return history;
 		} catch (IOException | GitAPIException e) {
 			throw new ServiceLayerException(format("Error getting content version history for site '%s' path '%s'", siteId, path), e);
+		}
+	}
+
+	/**
+	 * Populate author information in the given history versions.
+	 * This method extract the Studio user from the audit data in the DB.
+	 *
+	 * @param site    the site
+	 * @param history the list of versions to populate author info
+	 * @param path    the content path (null for repository history)
+	 */
+	private void populateAuthor(final Site site, final List<RepositoryVersion> history, final String path) {
+		for (List<RepositoryVersion> batch : Lists.partition(history, FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE)) {
+			List<String> commitIds = batch.stream()
+					.map(RepositoryVersion::getVersionNumber)
+					.filter(Objects::nonNull)
+					.collect(toList());
+			List<CommitAuthor> commitAuthors = auditService.getCommitAuthors(site.getId(), commitIds, path);
+			Map<String, Person> authorsMap = commitAuthors.stream()
+					.collect(toMap(CommitAuthor::getCommitId, CommitAuthor::getAuthor));
+			for (RepositoryVersion version : batch) {
+				String versionNumber = version.getVersionNumber();
+				if (authorsMap.containsKey(versionNumber)) {
+					version.setAuthor(authorsMap.get(versionNumber));
+				}
+			}
+		}
+	}
+
+	@Override
+	public Collection<RepositoryVersion> getHistory(String siteId, String start, int limit) throws ServiceLayerException {
+		try {
+			Site site = siteService.getSite(siteId);
+			List<RepositoryVersion> history = contentRepository.getHistory(siteId, start, limit);
+			populateAuthor(site, history, null);
+			return history;
+		} catch (IOException e) {
+			throw new ServiceLayerException(format("Error getting repository history for site '%s'", siteId), e);
 		}
 	}
 

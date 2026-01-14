@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Positive;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -39,6 +40,7 @@ import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
@@ -324,6 +326,16 @@ public class ContentController {
 		result.setResponse(OK);
 		result.setEntities(RESULT_KEY_ITEMS, contentService.getContentVersionHistory(siteId, path));
 
+		return result;
+	}
+
+	@GetMapping(SITE_HISTORY)
+	public ResultList<RepositoryVersion> log(@PathVariable String siteId,
+											 @NotEmpty @RequestParam(defaultValue = "HEAD") String start,
+											 @Positive @RequestParam(defaultValue = "10") int limit) throws ServiceLayerException {
+		ResultList<RepositoryVersion> result = new ResultList<>();
+		result.setEntities(RESULT_KEY_HISTORY, contentService.getHistory(siteId, start, limit));
+		result.setResponse(OK);
 		return result;
 	}
 

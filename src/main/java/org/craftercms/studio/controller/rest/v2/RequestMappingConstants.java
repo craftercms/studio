@@ -48,7 +48,6 @@ public final class RequestMappingConstants {
 	public static final String LIST_QUICK_CREATE_CONTENT = "/list_quick_create_content";
 	public static final String GET_DELETE_PACKAGE = "/get_delete_package";
 	public static final String DELETE = "/delete";
-	public static final String GET_CHILDREN_BY_PATH = "/children_by_path";
 	public static final String SITE_ID = "/{siteId}";
 	public static final String GET_CHILDREN_BY_PATHS = SITE_ID + "/children";
 	public static final String GET_DESCRIPTOR = "/descriptor";
@@ -66,6 +65,7 @@ public final class RequestMappingConstants {
 	public static final String REVERT = SITE_ID + "/revert";
 	public static final String FOLDER = SITE_ID + "/folder";
 	public static final String ITEM_HISTORY = "/item_history";
+	public static final String SITE_HISTORY = SITE_ID + "/history";
 
 	/**
 	 * Groups controller
@@ -111,15 +111,13 @@ public final class RequestMappingConstants {
 	public static final String COMMIT_RESOLUTION = "/commit_resolution";
 	public static final String CANCEL_FAILED_PULL = "/cancel_failed_pull";
 	public static final String UNLOCK = "/unlock";
+	public static final String CORRUPTED = "/corrupted";
+	public static final String REPAIR = "/repair";
 
 	/**
 	 * Audit controller
 	 */
 	public static final String AUDIT = "/audit";
-
-	public static final String CORRUPTED = "/corrupted";
-
-	public static final String REPAIR = "/repair";
 
 	/**
 	 * Publish Controller

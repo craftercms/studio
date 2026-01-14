@@ -51,6 +51,7 @@ import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
+import org.craftercms.studio.model.history.RepositoryVersion;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;

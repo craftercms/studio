@@ -36,8 +36,10 @@ import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.service.repository.ConflictResolution;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
+import org.craftercms.studio.model.history.RepositoryVersion;
 
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;

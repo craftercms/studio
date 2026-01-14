@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
@@ -242,6 +243,12 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<ItemVersion> getContentVersionHistory(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException {
 		return contentServiceInternal.getContentVersionHistory(siteId, path);
+	}
+
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<RepositoryVersion> getHistory(String siteId, String start, int limit) throws ServiceLayerException{
+		return contentServiceInternal.getHistory(siteId, start, limit);
 	}
 
 	@Override
