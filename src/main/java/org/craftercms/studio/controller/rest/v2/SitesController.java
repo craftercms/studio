@@ -37,6 +37,7 @@ import org.craftercms.studio.model.policy.ValidationResult;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.DuplicateSiteRequest;
 import org.craftercms.studio.model.rest.sites.UpdateSiteRequest;
@@ -49,13 +50,14 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.List;
 
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_BLUEPRINTS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULTS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @Validated
 @RestController
-@RequestMapping("/api/2/sites")
+@RequestMapping(API_2 + SITES)
 public class SitesController {
 
 	private final SitesService sitesService;
@@ -145,6 +147,15 @@ public class SitesController {
 			request.getSandboxBranch(), request.isReadOnlyBlobStores());
 
 		Result result = new Result();
+		result.setResponse(OK);
+		return result;
+	}
+
+	@GetMapping(SITE_ID + EXISTS)
+	public ResultOne<Boolean> siteExists(@ValidSiteId @PathVariable String siteId) {
+		boolean exists = sitesService.exists(siteId);
+		var result = new ResultOne<Boolean>();
+		result.setEntity(ResultConstants.RESULT_KEY_EXISTS, exists);
 		result.setResponse(OK);
 		return result;
 	}

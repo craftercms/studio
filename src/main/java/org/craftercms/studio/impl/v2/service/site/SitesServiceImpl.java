@@ -93,7 +93,8 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	public boolean exists(String siteId) {
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public boolean exists(@SiteId String siteId) {
 		return sitesServiceInternal.exists(siteId);
 	}
 

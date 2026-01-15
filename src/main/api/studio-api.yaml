@@ -2031,6 +2031,39 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
+    /api/2/sites/{siteId}/exists:
+        get:
+            summary: Check if a site exists
+            description: 'Required permission "site_member"'
+            operationId: siteExists
+            tags:
+                - sites
+            parameters:
+                -   name: siteId
+                    in: path
+                    schema:
+                        type: string
+                    required: true
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    exists:
+                                        type: boolean
+                                        example: true
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
     /api/2/sites/{siteId}/unlock:
         post:
             tags:
