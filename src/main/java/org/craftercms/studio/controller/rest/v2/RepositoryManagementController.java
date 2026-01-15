@@ -39,7 +39,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
-import java.io.IOException;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;

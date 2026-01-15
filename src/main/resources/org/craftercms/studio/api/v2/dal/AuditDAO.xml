@@ -186,7 +186,9 @@
 		<foreach item="commitId" collection="commitIds" open="(" separator="," close=")">
 			#{commitId}
 		</foreach>
-		AND a.primary_target_value = #{path}
+		<if test="path != null and path != '' ">
+			AND a.primary_target_value = #{path}
+		</if>
 		AND origin = 'API'
 	</select>
 </mapper>
