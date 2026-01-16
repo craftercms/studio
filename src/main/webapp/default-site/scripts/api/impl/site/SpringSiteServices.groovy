@@ -30,11 +30,6 @@ class SpringSiteServices {
 		this.context = context
 	}
 
-	def getAllAvailableSites() {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.getAllAvailableSites()
-	}
-
 	def createSiteFromBlueprint(blueprintName, siteId, siteName, sandboxBranch, desc, params, createAsOrphan) {
 		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
 		return springBackedService.createSiteFromBlueprint(blueprintName, siteId, siteName, sandboxBranch, desc,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -146,16 +146,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	protected UserDAO userDao;
 
 	protected SqlSessionFactory sqlSessionFactory;
-
-	@Override
-	public Set<String> getAllAvailableSites() {
-		List<SiteFeed> sites = siteFeedMapper.getSites();
-		Set<String> toRet = new HashSet<>();
-		for (SiteFeed site : sites) {
-			toRet.add(site.getSiteId());
-		}
-		return toRet;
-	}
 
 	@Override
 	public int countSites() {

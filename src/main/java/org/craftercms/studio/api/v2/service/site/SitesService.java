@@ -89,7 +89,7 @@ public interface SitesService {
 	 * @throws SiteNotFoundException if the site doesn't exist
 	 */
 	void updateSite(String siteId, String name, String description)
-		throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
+			throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
 
 	/**
 	 * Unlock a site which is locked with state `LOCKED`
@@ -190,7 +190,7 @@ public interface SitesService {
 	 * @throws ServiceLayerException if there is an error duplicating the site
 	 */
 	void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
-		throws ServiceLayerException;
+			throws ServiceLayerException;
 
 	/**
 	 * Get the sites matching a given state
@@ -214,4 +214,9 @@ public interface SitesService {
 	 * @param status publisher status
 	 */
 	void updatePublishingStatus(String siteId, String status);
+
+	/**
+	 * Git Garbage collect global repository all site repositories (sandbox and published)
+	 */
+	void garbageCollectRepositories();
 }

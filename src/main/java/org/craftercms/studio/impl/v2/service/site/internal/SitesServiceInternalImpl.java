@@ -63,12 +63,14 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
@@ -554,6 +556,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Override
 	public void updatePublishingStatus(String siteId, String status) {
 		retryingDatabaseOperationFacade.retry(() -> siteDao.updatePublishingStatus(siteId, status));
+	}
+
+	@Override
+	public void garbageCollectRepositories() {
+		blobAwareRepository.garbageCollectGitRepositories(EMPTY);
+		getSitesByState(READY).forEach(site -> {
+			String siteId = site.getSiteId();
+			blobAwareRepository.garbageCollectGitRepositories(siteId);
+		});
 	}
 
 	/**
