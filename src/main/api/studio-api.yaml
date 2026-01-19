@@ -1954,6 +1954,40 @@ paths:
                     $ref: '#/components/responses/InternalServerError'
 
     /api/2/sites/{siteId}:
+        get:
+            tags:
+                - sites
+            summary: Get site details
+            description: 'Required Permission: "content_read"'
+            operationId: getSite
+            parameters:
+                -   name: siteId
+                    in: path
+                    required: true
+                    description: The site ID
+                    schema:
+                        type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    site:
+                                        $ref: '#/components/schemas/SiteDetails'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
         post:
             tags:
                 - sites
@@ -2052,6 +2086,8 @@ paths:
                             schema:
                                 type: object
                                 properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
                                     exists:
                                         type: boolean
                                         example: true
@@ -2318,7 +2354,7 @@ paths:
                 - sites
             summary: Get a Crafter Studio project/site
             description: No required role
-            operationId: getSite
+            operationId: getSiteV1
             parameters:
                 -   name: site_id
                     in: query
@@ -8770,6 +8806,66 @@ components:
                     description: Site description
             required:
                 - siteId
+
+        SiteDetails:
+            type: object
+            properties:
+                siteUuid:
+                    type: string
+                    description: Unique identifier for the site (UUID)
+                siteId:
+                    type: string
+                    description: Site ID
+                name:
+                    type: string
+                    description: Human-readable name of the site
+                description:
+                    type: string
+                    nullable: true
+                    description: Optional description of the site
+                liveUrl:
+                    type: string
+                    nullable: true
+                    description: URL where the site is published/live
+                lastCommitId:
+                    type: string
+                    description: Identifier of the last commit made to the site repository
+                publishingEnabled:
+                    type: boolean
+                    description: Indicates if publishing is enabled for the site
+                publishingStatus:
+                    type: string
+                    description: Current publishing status
+                sandboxBranch:
+                    type: string
+                    description: Name of the branch used for sandbox/development
+                publishedRepoCreated:
+                    type: boolean
+                    description: Indicates if the published repository has been created
+                state:
+                    type: string
+                    description: Current state of the site
+                blobStores:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            id:
+                                type: string
+                                description: the blobStore id
+                            readOnly:
+                                type: boolean
+                                description: if the blobStore is read-only
+            required:
+                - siteUuid
+                - siteId
+                - name
+                - publishingEnabled
+                - publishingStatus
+                - sandboxBranch
+                - publishedRepoCreated
+                - state
+
 
         MenuItem:
             type: object

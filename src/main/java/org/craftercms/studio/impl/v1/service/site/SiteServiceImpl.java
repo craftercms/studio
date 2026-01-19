@@ -67,7 +67,7 @@ import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.blobstore.BlobStoreDetails;
-import org.craftercms.studio.model.site.SiteDetails;
+import org.craftercms.studio.model.site.SiteDetailsV1;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -795,7 +795,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	@Override
 	@RequireSiteExists
-	public SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException {
+	@Deprecated
+	public SiteDetailsV1 getSiteDetails(@SiteId String siteId) throws ServiceLayerException {
 		Map<String, Object> params = new HashMap<>();
 		params.put("siteId", siteId);
 
@@ -805,7 +806,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			HierarchicalConfiguration<?> xmlConfiguration = configurationService.getXmlConfiguration(siteId, MODULE_STUDIO, configLocation);
 			storeDetails = getBlobStoreDetails(xmlConfiguration);
 		}
-		return new SiteDetails(siteFeedMapper.getSite(params), storeDetails);
+		return new SiteDetailsV1(siteFeedMapper.getSite(params), storeDetails);
 	}
 
 	/**

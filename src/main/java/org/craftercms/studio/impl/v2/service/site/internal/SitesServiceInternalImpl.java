@@ -35,12 +35,15 @@ import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,22 +91,25 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final ConfigurationService configurationService;
 	private final AuditService auditService;
 	private final TaskManager taskManager;
+	private final StudioBlobStoreResolver blobStoreResolver;
 	private ApplicationContext applicationContext;
 
 	@ConstructorProperties({"descriptorReader",
-		"blobAwareRepository",
-		"studioConfiguration", "siteFeedMapper",
-		"siteDao",
-		"retryingDatabaseOperationFacade",
-		"deployer", "configurationService",
-		"auditService", "taskManager"})
+			"blobAwareRepository",
+			"studioConfiguration", "siteFeedMapper",
+			"siteDao",
+			"retryingDatabaseOperationFacade",
+			"deployer", "configurationService",
+			"auditService", "taskManager",
+			"blobStoreResolver"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
-					StudioBlobAwareContentRepository blobAwareRepository,
-					StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
-					SiteDAO siteDao,
-					RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-					Deployer deployer, ConfigurationService configurationService,
-					AuditService auditService, TaskManager taskManager) {
+									StudioBlobAwareContentRepository blobAwareRepository,
+									StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
+									SiteDAO siteDao,
+									RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+									Deployer deployer, ConfigurationService configurationService,
+									AuditService auditService, TaskManager taskManager,
+									StudioBlobStoreResolver blobStoreResolver) {
 		this.descriptorReader = descriptorReader;
 		this.blobAwareRepository = blobAwareRepository;
 		this.studioConfiguration = studioConfiguration;
@@ -114,6 +120,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		this.configurationService = configurationService;
 		this.auditService = auditService;
 		this.taskManager = taskManager;
+		this.blobStoreResolver = blobStoreResolver;
 	}
 
 	@Override
@@ -287,6 +294,13 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Override
 	public Site getSite(String siteId) {
 		return siteDao.getSite(siteId);
+	}
+
+	@Override
+	public SiteDetails getSiteDetails(String siteId) throws ServiceLayerException {
+		Site site = getSite(siteId);
+		List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+		return new SiteDetails(site, blobStores);
 	}
 
 	@Override

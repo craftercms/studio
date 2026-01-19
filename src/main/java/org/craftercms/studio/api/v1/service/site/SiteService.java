@@ -25,11 +25,10 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
-import org.craftercms.studio.model.site.SiteDetails;
+import org.craftercms.studio.model.site.SiteDetailsV1;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Note: consider renaming
@@ -199,7 +198,7 @@ public interface SiteService {
 	 * @return SiteDetails object for the requested site
 	 * @throws ServiceLayerException if an error occurs while retrieving the site details
 	 */
-	SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
+	SiteDetailsV1 getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
 
 	/**
 	 * Get deleted sites

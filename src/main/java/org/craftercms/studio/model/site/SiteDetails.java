@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,9 +16,8 @@
 
 package org.craftercms.studio.model.site;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.model.blobstore.BlobStoreDetails;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 
 import java.util.List;
 
@@ -27,21 +26,85 @@ import java.util.List;
  * Extra information (blob stores config) is meant to be used by the UI during duplicate site operations.
  */
 public class SiteDetails {
-	@JsonUnwrapped
-	private final SiteFeed siteFeed;
+	private final long id;
+	private final String siteId;
+	private final String siteUuid;
+	private final String name;
+	private final String description;
+	private final String liveUrl;
+	private final String lastCommitId;
+	private final boolean publishingEnabled;
+	private final String publishingStatus;
+	private final String sandboxBranch;
+	private final boolean publishedRepoCreated;
+	private final String state;
+	private final List<StudioBlobStore> blobStores;
 
-	private final List<BlobStoreDetails> blobStores;
-
-	public SiteDetails(SiteFeed siteFeed, List<BlobStoreDetails> blobStores) {
-		this.siteFeed = siteFeed;
+	public SiteDetails(Site site, List<StudioBlobStore> blobStores) {
 		this.blobStores = blobStores;
+		this.id = site.getId();
+		this.siteId = site.getSiteId();
+		this.siteUuid = site.getSiteUuid();
+		this.name = site.getName();
+		this.description = site.getDescription();
+		this.liveUrl = site.getLiveUrl();
+		this.lastCommitId = site.getLastCommitId();
+		this.publishingEnabled = site.getPublishingEnabled();
+		this.publishingStatus = site.getPublishingStatus();
+		this.sandboxBranch = site.getSandboxBranch();
+		this.publishedRepoCreated = site.getPublishedRepoCreated();
+		this.state = site.getState();
 	}
 
-	public SiteFeed getSiteFeed() {
-		return siteFeed;
-	}
-
-	public List<BlobStoreDetails> getBlobStores() {
+	public List<StudioBlobStore> getBlobStores() {
 		return blobStores;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public long getId() {
+		return id;
+	}
+
+	public String getLastCommitId() {
+		return lastCommitId;
+	}
+
+	public String getLiveUrl() {
+		return liveUrl;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public boolean isPublishedRepoCreated() {
+		return publishedRepoCreated;
+	}
+
+	public boolean isPublishingEnabled() {
+		return publishingEnabled;
+	}
+
+	public String getPublishingStatus() {
+		return publishingStatus;
+	}
+
+	public String getSandboxBranch() {
+		return sandboxBranch;
+	}
+
+	public String getSiteId() {
+		return siteId;
+	}
+
+	public String getSiteUuid() {
+		return siteUuid;
+	}
+
+	public String getState() {
+		return state;
 	}
 }

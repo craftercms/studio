@@ -24,7 +24,9 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
 
 import java.util.List;
@@ -160,6 +162,16 @@ public interface SitesService {
 	 * @return site object
 	 */
 	Site getSite(String siteId) throws SiteNotFoundException;
+
+	/**
+	 * Site details.
+	 * Contains site info and blob store details.
+	 *
+	 * @param siteId the site id
+	 * @return site details object
+	 * @throws SiteNotFoundException if the site doesn't exist
+	 */
+	SiteDetails getSiteDetails(String siteId) throws ServiceLayerException;
 
 	/**
 	 * Update a site's last commit id

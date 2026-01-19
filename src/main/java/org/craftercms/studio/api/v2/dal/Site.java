@@ -123,20 +123,12 @@ public class Site {
 		this.deleted = deleted;
 	}
 
-	public boolean isSiteDeleted() {
-		return deleted;
-	}
-
 	public boolean getPublishedRepoCreated() {
 		return publishedRepoCreated;
 	}
 
 	public void setPublishedRepoCreated(boolean publishedRepoCreated) {
 		this.publishedRepoCreated = publishedRepoCreated;
-	}
-
-	public boolean isSitePublishedRepoCreated() {
-		return publishedRepoCreated;
 	}
 
 	public String getState() {

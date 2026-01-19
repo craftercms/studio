@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
 
 import java.beans.ConstructorProperties;
@@ -41,7 +42,6 @@ import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_LOCKED;
-import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {
@@ -125,11 +125,20 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	public Site getSite(String siteId) throws SiteNotFoundException {
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Site getSite(@SiteId String siteId) throws SiteNotFoundException {
 		if (exists(siteId)) {
 			return sitesServiceInternal.getSite(siteId);
 		}
 		throw new SiteNotFoundException(siteId);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException {
+		return sitesServiceInternal.getSiteDetails(siteId);
 	}
 
 	@Override

@@ -42,6 +42,7 @@ import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.DuplicateSiteRequest;
 import org.craftercms.studio.model.rest.sites.UpdateSiteRequest;
 import org.craftercms.studio.model.rest.sites.ValidatePolicyRequest;
+import org.craftercms.studio.model.site.SiteDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -68,7 +69,7 @@ public class SitesController {
 
 	@ConstructorProperties({"sitesService", "marketplaceService", "policyService"})
 	public SitesController(final SitesService sitesService, final MarketplaceService marketplaceService,
-			       final PolicyService policyService) {
+						   final PolicyService policyService) {
 		this.sitesService = sitesService;
 		this.marketplaceService = marketplaceService;
 		this.policyService = policyService;
@@ -86,8 +87,8 @@ public class SitesController {
 	@PostMapping("/create_site_from_marketplace")
 	@ResponseStatus(code = HttpStatus.CREATED)
 	public Result createSite(@Valid @RequestBody CreateSiteRequest request)
-		throws RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException, ServiceLayerException,
-		InvalidRemoteRepositoryCredentialsException, InvalidRemoteUrlException {
+			throws RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException, ServiceLayerException,
+			InvalidRemoteRepositoryCredentialsException, InvalidRemoteUrlException {
 
 		marketplaceService.createSite(request);
 
@@ -99,7 +100,7 @@ public class SitesController {
 	@PostMapping("/{siteId}")
 	public Result updateSite(@ValidSiteId @PathVariable String siteId,
 							 @Valid @RequestBody UpdateSiteRequest request)
-		throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
+			throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
 		sitesService.updateSite(siteId, request.getName(), request.getDescription());
 
 		var result = new Result();
@@ -118,7 +119,7 @@ public class SitesController {
 
 	@DeleteMapping("/{siteId}")
 	public Result deleteSite(@ValidSiteId @PathVariable String siteId)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		sitesService.deleteSite(siteId);
 
 		var result = new Result();
@@ -129,7 +130,7 @@ public class SitesController {
 	@PostMapping("/{siteId}/policy/validate")
 	public ResultList<ValidationResult> validatePolicy(@ValidSiteId @PathVariable String siteId,
 													   @Valid @RequestBody ValidatePolicyRequest request)
-		throws ConfigurationException, IOException, ContentNotFoundException {
+			throws ConfigurationException, IOException, ContentNotFoundException {
 		List<ValidationResult> results = policyService.validate(siteId, request.getActions());
 
 		var result = new ResultList<ValidationResult>();
@@ -141,10 +142,10 @@ public class SitesController {
 	@PostMapping("/{siteId}/duplicate")
 	@ResponseStatus(code = HttpStatus.CREATED)
 	public Result duplicateSite(@ValidSiteId @PathVariable("siteId") String sourceSiteId, @Valid @RequestBody DuplicateSiteRequest request)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		sitesService.duplicate(sourceSiteId, request.getSiteId(),
-			request.getSiteName(), request.getDescription(),
-			request.getSandboxBranch(), request.isReadOnlyBlobStores());
+				request.getSiteName(), request.getDescription(),
+				request.getSandboxBranch(), request.isReadOnlyBlobStores());
 
 		Result result = new Result();
 		result.setResponse(OK);
@@ -156,6 +157,15 @@ public class SitesController {
 		boolean exists = sitesService.exists(siteId);
 		var result = new ResultOne<Boolean>();
 		result.setEntity(ResultConstants.RESULT_KEY_EXISTS, exists);
+		result.setResponse(OK);
+		return result;
+	}
+
+	@GetMapping(SITE_ID)
+	public ResultOne<SiteDetails> getSite(@ValidSiteId @PathVariable String siteId) throws ServiceLayerException {
+		SiteDetails site = sitesService.getSiteDetails(siteId);
+		var result = new ResultOne<SiteDetails>();
+		result.setEntity(ResultConstants.RESULT_KEY_SITE, site);
 		result.setResponse(OK);
 		return result;
 	}
