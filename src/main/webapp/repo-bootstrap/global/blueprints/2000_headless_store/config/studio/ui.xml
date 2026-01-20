@@ -534,7 +534,7 @@
 <@crafter.renderComponentCollection $field="features_o" $containerAttributes={ "class": "features-container" } $itemAttributes={ "data-custom-attribute": "true" } />]]></value>
 			</renderComponentCollection>
 			<renderRepeatGroup label="Render Repeat Group">
-				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=renderRepeatCollection&check_keywords=yes&area=default -->
+				<value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=renderRepeatGroup&check_keywords=yes&area=default -->
 <@crafter.renderRepeatGroup
   $field="VARIABLE_NAME"
   $containerAttributes={'attr': 'value'};
