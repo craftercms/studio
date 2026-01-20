@@ -9245,7 +9245,7 @@ paths:
     get:
       tags:
         - system
-      summary: Get system maintenance mode status. This API is available for EE only
+      summary: Get system maintenance mode status. This API is available for Enterprise only
       security: []  # public endpoint (overrides global security)
       operationId: getMaintenanceMode
       responses:
@@ -9268,7 +9268,7 @@ paths:
     post:
       tags:
         - system
-      summary: Set system maintenance mode status. This API is available for EE only
+      summary: Set system maintenance mode status. This API is available for Enterprise only
       description: Required permission "system_properties_manage".
       operationId: setMaintenanceMode
       requestBody:
