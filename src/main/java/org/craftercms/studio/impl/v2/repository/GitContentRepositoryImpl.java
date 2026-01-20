@@ -60,6 +60,7 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.RenameDetector;
 import org.eclipse.jgit.errors.StopWalkException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
@@ -290,7 +291,11 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		long startMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
 		List<RepoOperation> toReturn = new ArrayList<>();
 
-		for (DiffEntry diffEntry : diffEntries) {
+		RenameDetector renameDetector = new RenameDetector(git.getRepository());
+		renameDetector.addAll(diffEntries);
+		renameDetector.setRenameScore(10);
+//		Note that this rename score needs to be configured in history and any git diff'ing command
+		for (DiffEntry diffEntry : renameDetector.compute()) {
 			// Update the paths to have a preceding separator
 			String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
 			String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();

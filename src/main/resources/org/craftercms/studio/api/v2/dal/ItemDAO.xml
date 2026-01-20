@@ -379,7 +379,19 @@
 		i.state = CASE WHEN i.system_type = '${systemTypeFolder}' THEN 0 ELSE (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap} END,
 		i.preview_url = IF(i.system_type = '${systemTypeFolder}', NULL, #{newPreviewUrl}),
 		i.last_modified_by = #{userId},
-		i.last_modified_on = NOW()
+		i.last_modified_on = #{lastModifiedOn}
+		<if test="contentTypeId != null">
+			, i.content_type_id = #{contentTypeId}
+		</if>
+		<if test="systemType != null">
+			, i.system_type = #{systemType},
+		</if>
+		<if test="mimeType != null">
+			, i.mime_type = #{mimeType},
+		</if>
+		<if test="size != null">
+			, i.size = #{size}
+		</if>
 		<if test="label != null">
 			, i.label = #{label}
 		</if>
@@ -666,19 +678,19 @@
 		WHERE item.id = updates.childId;
 	</update>
 
-	<update id="moveItemForSyncTask">
-		UPDATE item
-		SET
-			path = REPLACE(path, #{previousPath}, #{newPath}),
-			locked_by = NULL,
-			state = CASE
-					WHEN system_type = '${systemTypeFolder}' THEN 0
-					ELSE (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
-				END
-		WHERE
-			site_id = #{siteId}
-			AND (path = #{previousPath} OR path LIKE CONCAT(#{previousPath}, '/%'));
-	</update>
+<!--	<update id="moveItemForSyncTask">-->
+<!--		UPDATE item-->
+<!--		SET-->
+<!--			path = REPLACE(path, #{previousPath}, #{newPath}),-->
+<!--			locked_by = NULL,-->
+<!--			state = CASE-->
+<!--					WHEN system_type = '${systemTypeFolder}' THEN 0-->
+<!--					ELSE (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}-->
+<!--				END-->
+<!--		WHERE-->
+<!--			site_id = #{siteId}-->
+<!--			AND (path = #{previousPath} OR path LIKE CONCAT(#{previousPath}, '/%'));-->
+<!--	</update>-->
 
 	<update id="updateItemForSyncTask">
 		UPDATE item

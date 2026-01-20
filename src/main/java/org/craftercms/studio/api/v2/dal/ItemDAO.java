@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -261,7 +262,8 @@ public interface ItemDAO {
 						  Long parentId, String newPreviewUrl,
 						  String label, long userId) {
 		moveItemInternal(siteId, previousPath, newPath, parentId,
-				newPreviewUrl, label, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK, userId);
+				newPreviewUrl, label, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK,
+				Instant.now(), userId, null, null, null, null);
 		updatePreviousPath(siteId, previousPath, newPath);
 	}
 
@@ -290,12 +292,20 @@ public interface ItemDAO {
 	 * @param offStatesBitMap state bitmap to flip off
 	 * @param userId          user id of the user performing the move operation
 	 */
-	void moveItemInternal(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath,
+	void moveItemInternal(@Param(SITE_ID) String siteId,
+						  @Param(PREVIOUS_PATH) String previousPath,
+						  @Param(NEW_PATH) String newPath,
 						  @Param(PARENT_ID) Long parentId,
-						  @Param(NEW_PREVIEW_URL) String newPreviewUrl, @Param(LABEL) String label,
+						  @Param(NEW_PREVIEW_URL) String newPreviewUrl,
+						  @Param(LABEL) String label,
 						  @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
 						  @Param(OFF_STATES_BIT_MAP) long offStatesBitMap,
-						  @Param(USER_ID) long userId);
+						  @Param(LAST_MODIFIED_ON) Instant lastModifiedOn,
+						  @Param(USER_ID) long userId,
+						  @Param(CONTENT_TYPE_ID) String contentTypeId,
+						  @Param(SYSTEM_TYPE) String contentTypeClass,
+						  @Param(MIME_TYPE)  String mimeType,
+						  @Param(SIZE) Long contentSize);
 
 	/**
 	 * Get content items for given paths
@@ -586,15 +596,33 @@ public interface ItemDAO {
 	/**
 	 * Move item query for sync task
 	 *
-	 * @param siteId          site identifier
-	 * @param previousPath    previous path
-	 * @param newPath         new path
-	 * @param onStatesBitMap  state bitmap to flip on
-	 * @param offStatesBitMap state bitmap to flip off
+	 * @param siteId           site identifier
+	 * @param previousPath     previous path
+	 * @param newPath          new path
+	 * @param onStatesBitMap   state bitmap to flip on
+	 * @param offStatesBitMap  state bitmap to flip off
+	 * @param contentTypeId
+	 * @param contentTypeClass
+	 * @param mimeType
+	 * @param contentSize
 	 */
-	void moveItemForSyncTask(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath,
-							 @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
-							 @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+//	void moveItemForSyncTask(@Param(SITE_ID) long siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_PATH) String newPath,
+//							 @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+//							 @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+
+	default void moveItemForSyncTask(String siteId, String previousPath, String newPath,
+									 Long parentId, String newPreviewUrl,
+									 String label, long userId, Instant lastModifiedOn,
+									 long onStatesBitMap, long offStatesBitMap,
+									 String contentTypeId, String contentTypeClass,
+									 String mimeType, long contentSize) {
+		moveItemInternal(siteId, previousPath, newPath, parentId,
+				newPreviewUrl, label, onStatesBitMap, offStatesBitMap,
+				lastModifiedOn, userId,
+				contentTypeId, contentTypeClass, mimeType, contentSize);
+		updatePreviousPath(siteId, previousPath, newPath);
+	}
+
 
 	/**
 	 * Update item query for sync task
