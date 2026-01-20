@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,30 +18,29 @@ package org.craftercms.studio.controller.rest.v2;
 
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.scripting.ScriptingService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.ApiResponse;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.HandlerMapping;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
 import java.beans.ConstructorProperties;
 
 import static org.apache.commons.io.FilenameUtils.removeExtension;
@@ -51,6 +50,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 /**
  * Controller that executes Rest scripts from plugins
+ *
  * @author joseross
  * @since 3.1.1
  */
@@ -59,128 +59,119 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 @RequestMapping("/api/2/plugin")
 public class PluginController extends ManagementTokenAware {
 
-    protected final ScriptingService scriptingService;
+	protected final ScriptingService scriptingService;
 
-    protected final MarketplaceService marketplaceService;
+	protected final MarketplaceService marketplaceService;
 
-    @ConstructorProperties({"studioConfiguration", "securityService", "scriptingService", "marketplaceService"})
-    public PluginController(StudioConfiguration studioConfiguration, SecurityService securityService,
-                            ScriptingService scriptingService, MarketplaceService marketplaceService) {
-        super(studioConfiguration, securityService);
-        this.scriptingService = scriptingService;
-        this.marketplaceService = marketplaceService;
-    }
+	@ConstructorProperties({"studioConfiguration", "scriptingService", "marketplaceService"})
+	public PluginController(StudioConfiguration studioConfiguration,
+				ScriptingService scriptingService, MarketplaceService marketplaceService) {
+		super(studioConfiguration);
+		this.scriptingService = scriptingService;
+		this.marketplaceService = marketplaceService;
+	}
 
-    @GetMapping("/get_configuration")
-    public ResponseBody getPluginConfiguration(@ValidSiteId String siteId, String pluginId) throws ContentNotFoundException {
-        String content = marketplaceService.getPluginConfigurationAsString(siteId, pluginId);
+	@GetMapping("/get_configuration")
+	public ResultOne<String> getPluginConfiguration(@ValidSiteId String siteId, String pluginId) throws ContentNotFoundException {
+		String content = marketplaceService.getPluginConfigurationAsString(siteId, pluginId);
 
-        ResponseBody responseBody = new ResponseBody();
-        ResultOne<String> result = new ResultOne<>();
-        result.setEntity("content", content);
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
+		ResultOne<String> result = new ResultOne<>();
+		result.setEntity("content", content);
+		result.setResponse(OK);
+		return result;
+	}
 
-    @PostMapping("/write_configuration")
-    public ResponseBody writeConfiguration(@Valid @RequestBody WriteConfigurationRequest request)
-            throws UserNotFoundException, ServiceLayerException {
-        marketplaceService.writePluginConfiguration(request.getSiteId(), request.getPluginId(), request.getContent());
+	@PostMapping("/write_configuration")
+	public Result writeConfiguration(@Valid @RequestBody WriteConfigurationRequest request)
+		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
+		marketplaceService.writePluginConfiguration(request.getSiteId(), request.getPluginId(), request.getContent());
 
-        ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
+		Result result = new Result();
+		result.setResponse(OK);
+		return result;
+	}
 
-    /**
-     * Reloads the groovy classes for the given site
-     */
-    @GetMapping("/script/reload")
-    public ResponseBody reloadClasses(@ValidSiteId @RequestParam String siteId, @RequestParam String token)
-            throws InvalidParametersException, InvalidManagementTokenException {
-        validateToken(token);
+	/**
+	 * Reloads the groovy classes for the given site
+	 */
+	@GetMapping("/script/reload")
+	public Result reloadClasses(@ValidSiteId @RequestParam String siteId, @RequestParam String token)
+		throws InvalidParametersException, InvalidManagementTokenException {
+		validateToken(token);
 
-        scriptingService.reload(siteId);
+		scriptingService.reload(siteId);
 
-        var result = new Result();
-        result.setResponse(ApiResponse.OK);
+		var result = new Result();
+		result.setResponse(ApiResponse.OK);
 
-        var response = new ResponseBody();
-        response.setResult(result);
-        return response;
-    }
+		return result;
+	}
 
-    /**
-     *  Executes a rest script for the given site
-     */
-    @RequestMapping("/script/**")
-    public ResponseBody runScript(@ValidSiteId @RequestParam String siteId, HttpServletRequest request, HttpServletResponse response)
-            throws ResourceException, ScriptException, ConfigurationException {
-        // No better way to do this for now, later can be replaced by "/script/{*scriptUrl}"
-        var scriptUrl = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-        scriptUrl = removeStart(removeExtension(scriptUrl), "/api/2/plugin/script");
+	/**
+	 * Executes a rest script for the given site
+	 */
+	@RequestMapping("/script/**")
+	public ResultOne<Object> runScript(@ValidSiteId @RequestParam String siteId, HttpServletRequest request, HttpServletResponse response)
+		throws ResourceException, ScriptException, ConfigurationException {
+		// No better way to do this for now, later can be replaced by "/script/{*scriptUrl}"
+		var scriptUrl = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+		scriptUrl = removeStart(removeExtension(scriptUrl), "/api/2/plugin/script");
 
-        // Add the binding with the right values
-        // Execute the script
-        var object = scriptingService.executeRestScript(siteId, scriptUrl, request, response);
+		// Add the binding with the right values
+		// Execute the script
+		var object = scriptingService.executeRestScript(siteId, scriptUrl, request, response);
 
-        // Check if the script already committed the response
-        if (response.isCommitted()) {
-            // Stop the execution
-            return null;
-        }
+		// Check if the script already committed the response
+		if (response.isCommitted()) {
+			// Stop the execution
+			return null;
+		}
 
-        // Wrap the response in a proper result
-        var result = new ResultOne<>();
-        result.setEntity(RESULT_KEY_RESULT, object);
-        result.setResponse(ApiResponse.OK);
+		// Wrap the response in a proper result
+		var result = new ResultOne<>();
+		result.setEntity(RESULT_KEY_RESULT, object);
+		result.setResponse(ApiResponse.OK);
 
-        var body = new ResponseBody();
-        body.setResult(result);
+		return result;
+	}
 
-        return body;
-    }
+	public static class WriteConfigurationRequest {
 
-    public static class WriteConfigurationRequest {
+		@NotEmpty
+		@Size(max = 50)
+		@ValidSiteId
+		private String siteId;
 
-        @NotEmpty
-        @Size(max = 50)
-        @ValidSiteId
-        private String siteId;
+		@NotEmpty
+		private String pluginId;
 
-        @NotEmpty
-        private String pluginId;
+		@NotEmpty
+		private String content;
 
-        @NotEmpty
-        private String content;
+		public String getSiteId() {
+			return siteId;
+		}
 
-        public String getSiteId() {
-            return siteId;
-        }
+		public void setSiteId(String siteId) {
+			this.siteId = siteId;
+		}
 
-        public void setSiteId(String siteId) {
-            this.siteId = siteId;
-        }
+		public String getPluginId() {
+			return pluginId;
+		}
 
-        public String getPluginId() {
-            return pluginId;
-        }
+		public void setPluginId(String pluginId) {
+			this.pluginId = pluginId;
+		}
 
-        public void setPluginId(String pluginId) {
-            this.pluginId = pluginId;
-        }
+		public String getContent() {
+			return content;
+		}
 
-        public String getContent() {
-            return content;
-        }
+		public void setContent(String content) {
+			this.content = content;
+		}
 
-        public void setContent(String content) {
-            this.content = content;
-        }
-
-    }
+	}
 
 }

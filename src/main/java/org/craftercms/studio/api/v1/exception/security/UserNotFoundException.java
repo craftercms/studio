@@ -17,24 +17,24 @@
 package org.craftercms.studio.api.v1.exception.security;
 
 public class UserNotFoundException extends Exception {
-    private static final long serialVersionUID = 3057034888405716974L;
+	private static final long serialVersionUID = 3057034888405716974L;
 
-    public UserNotFoundException() {
-    }
+	public UserNotFoundException() {
+	}
 
-    public UserNotFoundException(String message) {
-        super(message);
-    }
+	public UserNotFoundException(String message) {
+		super(message);
+	}
 
-    public UserNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public UserNotFoundException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public UserNotFoundException(Throwable cause) {
-        super(cause);
-    }
+	public UserNotFoundException(Throwable cause) {
+		super(cause);
+	}
 
-    public UserNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public UserNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

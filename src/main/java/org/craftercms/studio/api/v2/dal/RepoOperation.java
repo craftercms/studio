@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,7 +29,7 @@ public class RepoOperation {
 	protected String commitId;
 
 	public RepoOperation(final Action action, final String path, final ZonedDateTime dateTime, final String moveToPath,
-						 final String commitId) {
+			     final String commitId) {
 		this.action = action;
 		this.path = path;
 		this.dateTime = dateTime;
@@ -69,41 +69,41 @@ public class RepoOperation {
 		this.moveToPath = moveToPath;
 	}
 
-    public String getAuthor() {
-        return author;
-    }
+	public String getAuthor() {
+		return author;
+	}
 
-    public void setAuthor(String author) {
-        this.author = author;
-    }
+	public void setAuthor(String author) {
+		this.author = author;
+	}
 
-    public String getPublisher() {
-        return publisher;
-    }
+	public String getPublisher() {
+		return publisher;
+	}
 
-    public void setPublisher(String publisher) {
-        this.publisher = publisher;
-    }
+	public void setPublisher(String publisher) {
+		this.publisher = publisher;
+	}
 
-    public String getComment() {
-        return comment;
-    }
+	public String getComment() {
+		return comment;
+	}
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
 
-    public String getCommitId() {
-        return commitId;
-    }
+	public String getCommitId() {
+		return commitId;
+	}
 
-    public void setCommitId(String commitId) {
-        this.commitId = commitId;
-    }
+	public void setCommitId(String commitId) {
+		this.commitId = commitId;
+	}
 
 	public enum Action {
-		CREATE,
 		DELETE,
+		CREATE,
 		MOVE,
 		UPDATE,
 		COPY

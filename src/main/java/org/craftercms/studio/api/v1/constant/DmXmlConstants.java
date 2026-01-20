@@ -21,16 +21,17 @@ package org.craftercms.studio.api.v1.constant;
  */
 public final class DmXmlConstants {
 
-    public static final String ELM_FILE_NAME = StudioXmlConstants.DOCUMENT_ELM_FILE_NAME;
-    public static final String ELM_INTERNAL_NAME = StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
-    public static final String ELM_FOLDER_NAME = "folder-name";
-    public static final String ELM_ORDER_DEFAULT = "orderDefault_f";
-    public static final String ELM_PAGE_ID = "objectId";
-    public static final String ELM_GROUP_ID= "objectGroupId";
-    public final static String ELM_CREATED_DATE = "createdDate";
-    public final static String ELM_CREATED_DATE_DT = "createdDate_dt";
-    public final static String ELM_LAST_MODIFIED_DATE = "lastModifiedDate";
-    public final static String ELM_LAST_MODIFIED_DATE_DT = "lastModifiedDate_dt";
+	public static final String ELM_FILE_NAME = StudioXmlConstants.DOCUMENT_ELM_FILE_NAME;
+	public static final String ELM_INTERNAL_NAME = StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
+	public static final String ELM_FOLDER_NAME = "folder-name";
+	public static final String ELM_ORDER_DEFAULT = "orderDefault_f";
+	public static final String ELM_OBJECT_ID = "objectId";
+	public static final String ELM_GROUP_ID = "objectGroupId";
+	public final static String ELM_CREATED_DATE = "createdDate";
+	public final static String ELM_CREATED_DATE_DT = "createdDate_dt";
+	public final static String ELM_LAST_MODIFIED_DATE = "lastModifiedDate";
+	public final static String ELM_LAST_MODIFIED_DATE_DT = "lastModifiedDate_dt";
 
-    private DmXmlConstants() { }
+	private DmXmlConstants() {
+	}
 }

@@ -17,35 +17,35 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <xsl:template match="//field[(type='date-time' or type='time') and not(additionalFields)]">
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
+	<xsl:template match="//field[(type='date-time' or type='time') and not(additionalFields)]">
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
 
-            <xsl:element name="additionalFields">
-                <xsl:element name="id">
-                    <xsl:value-of select="id"/><xsl:text>_tz</xsl:text>
-                </xsl:element>
-            </xsl:element>
-        </xsl:copy>
-    </xsl:template>
+			<xsl:element name="additionalFields">
+				<xsl:element name="id">
+					<xsl:value-of select="id"/><xsl:text>_tz</xsl:text>
+				</xsl:element>
+			</xsl:element>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

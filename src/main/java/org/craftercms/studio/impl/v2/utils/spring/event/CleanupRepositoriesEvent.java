@@ -25,8 +25,8 @@ import org.springframework.context.ApplicationEvent;
  */
 public class CleanupRepositoriesEvent extends ApplicationEvent {
 
-    public CleanupRepositoriesEvent(Object source) {
-        super(source);
-    }
+	public CleanupRepositoriesEvent(Object source) {
+		super(source);
+	}
 
 }

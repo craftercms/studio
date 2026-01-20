@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,11 +21,13 @@ import org.craftercms.commons.config.ConfigurationMapper;
 import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.config.profiles.ConfigurationProfile;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
+import org.craftercms.core.service.Context;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.springframework.beans.factory.annotation.Required;
+import org.craftercms.studio.api.v2.core.ContextManager;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -36,69 +38,65 @@ import static java.lang.String.format;
  */
 public class SiteAwareConfigProfileLoader<T extends ConfigurationProfile> {
 
-    private String profilesModule;
-    private String profilesPath;
-    private ConfigurationMapper<T> profileMapper;
-    private ContentService contentService;
+	private final String profilesModule;
+	private final String profilesPath;
+	private final ConfigurationMapper<T> profileMapper;
+	private final ContentService contentService;
+	private final ContextManager contextManager;
 
-    @Required
-    public void setProfilesModule(String profilesModule) {
-        this.profilesModule = profilesModule;
-    }
+	public SiteAwareConfigProfileLoader(String profilesModule, String profilesPath, ConfigurationMapper<T> profileMapper,
+					    ContentService contentService, final ContextManager contextManager) {
+		this.profilesModule = profilesModule;
+		this.profilesPath = profilesPath;
+		this.profileMapper = profileMapper;
+		this.contentService = contentService;
+		this.contextManager = contextManager;
+	}
 
-    @Required
-    public void setProfilesPath(String profilesPath) {
-        this.profilesPath = profilesPath;
-    }
+	public T loadProfile(String site, String profileId) throws ConfigurationException, ConfigurationProfileNotFoundException {
+		try {
+			return profileMapper.readConfig(new ConfigurationProviderImpl(site), profilesModule,
+				profilesPath, null, profileId);
+		} catch (ConfigurationProfileNotFoundException e) {
+			throw new ConfigurationProfileNotFoundException(format("Profile '%s' not found from configuration at '%s'",
+				profileId, profilesPath), e);
+		} catch (Exception e) {
+			throw new ConfigurationException(format("Error while loading profile '%s' from configuration at '%s'",
+				profileId, profilesPath), e);
+		}
+	}
 
-    @Required
-    public void setProfileMapper(ConfigurationMapper<T> profileMapper) {
-        this.profileMapper = profileMapper;
-    }
+	/**
+	 * Internal class to provide access to configuration files
+	 */
+	private class ConfigurationProviderImpl implements ConfigurationProvider {
 
-    @Required
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
+		private final String site;
+		private final Context context;
 
-    public T loadProfile(String site, String profileId) throws ConfigurationException, ConfigurationProfileNotFoundException {
-        try (InputStream is = contentService.getContent(site, profilesPath)) {
-            return profileMapper.readConfig(new ConfigurationProviderImpl(site), profilesModule,
-                    profilesPath, null, profileId);
-        } catch (ConfigurationProfileNotFoundException e) {
-            throw new ConfigurationProfileNotFoundException(format("Profile '%s' not found from configuration at '%s'",
-                    profileId, profilesPath), e);
-        } catch (Exception e) {
-            throw new ConfigurationException(format("Error while loading profile '%s' from configuration at '%s'",
-                    profileId, profilesPath), e);
-        }
-    }
+		public ConfigurationProviderImpl(String site) {
+			this.site = site;
+			context = contextManager.getContext(site);
+		}
 
-    /**
-     *  Internal class to provide access to configuration files
-     */
-    private class ConfigurationProviderImpl implements ConfigurationProvider {
+		@Override
+		public boolean configExists(String path) {
+			return SiteAwareConfigProfileLoader.this.contentService.contentExists(site, path);
+		}
 
-        private String site;
+		@Override
+		public InputStream getConfig(String path) throws IOException {
+			try {
+				return SiteAwareConfigProfileLoader.this.contentService.getContent(site, path);
+			} catch (Exception e) {
+				throw new IOException("Error reading file", e);
+			}
+		}
 
-        public ConfigurationProviderImpl(String site) {
-            this.site = site;
-        }
-
-        @Override
-        public boolean configExists(String path) {
-            return SiteAwareConfigProfileLoader.this.contentService.contentExists(site, path);
-        }
-
-        @Override
-        public InputStream getConfig(String path) throws IOException {
-            try {
-                return SiteAwareConfigProfileLoader.this.contentService.getContent(site, path);
-            } catch (Exception e) {
-                throw new IOException("Error reading file", e);
-            }
-        }
-
-    }
+		@Override
+		public Map<String, String> getLookupVariables() {
+			return context.getConfigLookupVariables();
+		}
+	}
 
 }

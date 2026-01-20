@@ -20,19 +20,19 @@ import org.craftercms.commons.security.exception.PermissionException;
 
 public class ActionsDeniedException extends PermissionException {
 
-    public ActionsDeniedException() {
-        super();
-    }
+	public ActionsDeniedException() {
+		super();
+	}
 
-    public ActionsDeniedException(Throwable e) {
-        super(e);
-    }
+	public ActionsDeniedException(Throwable e) {
+		super(e);
+	}
 
-    public ActionsDeniedException(String message) {
-        super(message);
-    }
+	public ActionsDeniedException(String message) {
+		super(message);
+	}
 
-    public ActionsDeniedException(String message, Exception e) {
-        super(message, e);
-    }
+	public ActionsDeniedException(String message, Exception e) {
+		super(message, e);
+	}
 }

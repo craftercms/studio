@@ -15,16 +15,16 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <ui>
-    <tool>
-        <title id="words.publishing" defaultMessage="Publishing"/>
-        <icon id="@mui/icons-material/CloudUploadOutlined"/>
-        <url>publishing</url>
-        <widget id="craftercms.components.PublishingDashboard"/>
-    </tool>
-    <tool>
-        <title id="remoteRepositories.title" defaultMessage="Remote Repositories"/>
-        <icon id="@mui/icons-material/StorageRounded"/>
-        <url>remote-repositories</url>
-        <widget id="craftercms.components.RemoteRepositoriesManagement"/>
-    </tool>
+	<tool>
+		<title id="words.publishing" defaultMessage="Publishing"/>
+		<icon id="@mui/icons-material/CloudUploadOutlined"/>
+		<url>publishing</url>
+		<widget id="craftercms.components.PublishingDashboard"/>
+	</tool>
+	<tool>
+		<title id="remoteRepositories.title" defaultMessage="Remote Repositories"/>
+		<icon id="@mui/icons-material/StorageRounded"/>
+		<url>remote-repositories</url>
+		<widget id="craftercms.components.RemoteRepositoriesManagement"/>
+	</tool>
 </ui>

@@ -20,9 +20,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -35,49 +36,49 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class InstallPluginRequest {
 
-    @NotBlank
-    @ValidSiteId
-    private String siteId;
+	@NotBlank
+	@ValidSiteId
+	private String siteId;
 
-    @NotBlank
-    private String pluginId;
+	@NotBlank
+	private String pluginId;
 
-    @Valid
-    @NotNull
-    private Version pluginVersion;
+	@Valid
+	@NotNull
+	private Version pluginVersion;
 
-    private Map<String, String> parameters = Collections.emptyMap();
+	private Map<String, String> parameters = Collections.emptyMap();
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(final String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(final String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getPluginId() {
-        return pluginId;
-    }
+	public String getPluginId() {
+		return pluginId;
+	}
 
-    public void setPluginId(final String pluginId) {
-        this.pluginId = pluginId;
-    }
+	public void setPluginId(final String pluginId) {
+		this.pluginId = pluginId;
+	}
 
-    public Version getPluginVersion() {
-        return pluginVersion;
-    }
+	public Version getPluginVersion() {
+		return pluginVersion;
+	}
 
-    public void setPluginVersion(final Version pluginVersion) {
-        this.pluginVersion = pluginVersion;
-    }
+	public void setPluginVersion(final Version pluginVersion) {
+		this.pluginVersion = pluginVersion;
+	}
 
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
+	public Map<String, String> getParameters() {
+		return parameters;
+	}
 
-    public void setParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
-    }
+	public void setParameters(Map<String, String> parameters) {
+		this.parameters = parameters;
+	}
 
 }

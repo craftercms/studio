@@ -15,7 +15,7 @@
  */
 package org.craftercms.studio.model.rest.dashboard;
 
-import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 
 import java.time.ZonedDateTime;
 
@@ -27,47 +27,47 @@ import java.time.ZonedDateTime;
  */
 public class ExpiringContentItem {
 
-    /**
-     * The name of the item
-     */
-    protected String itemName;
+	/**
+	 * The name of the item
+	 */
+	protected String itemName;
 
-    /**
-     * The path of the item
-     */
-    protected String itemPath;
+	/**
+	 * The path of the item
+	 */
+	protected String itemPath;
 
-    /**
-     * The expiry data of the item
-     */
-    protected ZonedDateTime expiredDateTime;
+	/**
+	 * The expiry data of the item
+	 */
+	protected ZonedDateTime expiredDateTime;
 
-    /**
-     * The sandbox item
-     */
-    protected SandboxItem sandboxItem;
+	/**
+	 * The sandbox item
+	 */
+	protected ContentItem sandboxItem;
 
-    public ExpiringContentItem(String itemName, String itemPath, ZonedDateTime expiredDateTime, SandboxItem sandboxItem) {
-        this.itemName = itemName;
-        this.itemPath = itemPath;
-        this.expiredDateTime = expiredDateTime;
-        this.sandboxItem = sandboxItem;
-    }
+	public ExpiringContentItem(String itemName, String itemPath, ZonedDateTime expiredDateTime, ContentItem sandboxItem) {
+		this.itemName = itemName;
+		this.itemPath = itemPath;
+		this.expiredDateTime = expiredDateTime;
+		this.sandboxItem = sandboxItem;
+	}
 
-    public String getItemName() {
-        return itemName;
-    }
+	public String getItemName() {
+		return itemName;
+	}
 
-    public String getItemPath() {
-        return itemPath;
-    }
+	public String getItemPath() {
+		return itemPath;
+	}
 
-    public ZonedDateTime getExpiredDateTime() {
-        return expiredDateTime;
-    }
+	public ZonedDateTime getExpiredDateTime() {
+		return expiredDateTime;
+	}
 
-    public SandboxItem getSandboxItem() {
-        return sandboxItem;
-    }
+	public ContentItem getSandboxItem() {
+		return sandboxItem;
+	}
 
 }

@@ -20,8 +20,8 @@ import org.craftercms.studio.api.v2.service.security.internal.OrganizationServic
 
 public class OrganizationServiceInternalImpl implements OrganizationServiceInternal {
 
-    @Override
-    public boolean organizationExists(long orgId) {
-        return true;
-    }
+	@Override
+	public boolean organizationExists(long orgId) {
+		return true;
+	}
 }

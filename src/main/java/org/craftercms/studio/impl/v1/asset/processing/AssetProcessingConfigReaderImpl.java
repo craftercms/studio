@@ -41,109 +41,109 @@ import org.craftercms.studio.impl.v1.util.ConfigUtils;
  */
 public class AssetProcessingConfigReaderImpl implements AssetProcessingConfigReader {
 
-    public static final String PIPELINES_CONFIG_KEY = "pipelines.pipeline";
-    public static final String INPUT_PATH_PATTERN_CONFIG_KEY = "inputPathPattern";
-    public static final String KEEP_ORIGINAL_CONFIG_KEY = "keepOriginal";
-    public static final String PROCESSORS_CONFIG_KEY = "processors.processor";
-    public static final String PROCESSOR_TYPE_CONFIG_KEY = "type";
-    public static final String PROCESSOR_PARAMS_CONFIG_KEY = "params";
-    public static final String PROCESSOR_OUTPUT_PATH_FORMAT_CONFIG_KEY = "outputPathFormat";
+	public static final String PIPELINES_CONFIG_KEY = "pipelines.pipeline";
+	public static final String INPUT_PATH_PATTERN_CONFIG_KEY = "inputPathPattern";
+	public static final String KEEP_ORIGINAL_CONFIG_KEY = "keepOriginal";
+	public static final String PROCESSORS_CONFIG_KEY = "processors.processor";
+	public static final String PROCESSOR_TYPE_CONFIG_KEY = "type";
+	public static final String PROCESSOR_PARAMS_CONFIG_KEY = "params";
+	public static final String PROCESSOR_OUTPUT_PATH_FORMAT_CONFIG_KEY = "outputPathFormat";
 
-    @Override
-    public List<ProcessorPipelineConfiguration> readConfig(InputStream in) throws AssetProcessingConfigurationException {
-        HierarchicalConfiguration config;
-        try {
-            config = ConfigUtils.readXmlConfiguration(in);
-        } catch (ConfigurationException e) {
-            throw new AssetProcessingConfigurationException("Unable to read XML configuration file", e);
-        }
+	@Override
+	public List<ProcessorPipelineConfiguration> readConfig(InputStream in) throws AssetProcessingConfigurationException {
+		HierarchicalConfiguration config;
+		try {
+			config = ConfigUtils.readXmlConfiguration(in);
+		} catch (ConfigurationException e) {
+			throw new AssetProcessingConfigurationException("Unable to read XML configuration file", e);
+		}
 
-        return readConfig(config);
-    }
+		return readConfig(config);
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<ProcessorPipelineConfiguration> readConfig(HierarchicalConfiguration config) throws AssetProcessingConfigurationException {
-        List<HierarchicalConfiguration> pipelinesConfig = config.configurationsAt(PIPELINES_CONFIG_KEY);
-        if (CollectionUtils.isNotEmpty(pipelinesConfig)) {
-            List<ProcessorPipelineConfiguration> mappedPipelinesConfig = new ArrayList<>(pipelinesConfig.size());
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<ProcessorPipelineConfiguration> readConfig(HierarchicalConfiguration config) throws AssetProcessingConfigurationException {
+		List<HierarchicalConfiguration> pipelinesConfig = config.configurationsAt(PIPELINES_CONFIG_KEY);
+		if (CollectionUtils.isNotEmpty(pipelinesConfig)) {
+			List<ProcessorPipelineConfiguration> mappedPipelinesConfig = new ArrayList<>(pipelinesConfig.size());
 
-            for (HierarchicalConfiguration pipelineConfig : pipelinesConfig) {
-                mappedPipelinesConfig.add(readPipelineConfig(pipelineConfig));
-            }
+			for (HierarchicalConfiguration pipelineConfig : pipelinesConfig) {
+				mappedPipelinesConfig.add(readPipelineConfig(pipelineConfig));
+			}
 
-            return mappedPipelinesConfig;
-        } else {
-            return Collections.emptyList();
-        }
-    }
+			return mappedPipelinesConfig;
+		} else {
+			return Collections.emptyList();
+		}
+	}
 
-    @SuppressWarnings("unchecked")
-    private ProcessorPipelineConfiguration readPipelineConfig(HierarchicalConfiguration pipelineConfig)
-        throws AssetProcessingConfigurationException {
-        ProcessorPipelineConfiguration mappedPipelineConfig = new ProcessorPipelineConfiguration();
-        mappedPipelineConfig.setInputPathPattern(getRequiredStringProperty(pipelineConfig, INPUT_PATH_PATTERN_CONFIG_KEY));
-        mappedPipelineConfig.setKeepOriginal(pipelineConfig.getBoolean(KEEP_ORIGINAL_CONFIG_KEY, false));
+	@SuppressWarnings("unchecked")
+	private ProcessorPipelineConfiguration readPipelineConfig(HierarchicalConfiguration pipelineConfig)
+		throws AssetProcessingConfigurationException {
+		ProcessorPipelineConfiguration mappedPipelineConfig = new ProcessorPipelineConfiguration();
+		mappedPipelineConfig.setInputPathPattern(getRequiredStringProperty(pipelineConfig, INPUT_PATH_PATTERN_CONFIG_KEY));
+		mappedPipelineConfig.setKeepOriginal(pipelineConfig.getBoolean(KEEP_ORIGINAL_CONFIG_KEY, false));
 
-        List<HierarchicalConfiguration> processorsConfig = getRequiredConfigurationsAt(pipelineConfig, PROCESSORS_CONFIG_KEY);
-        List<ProcessorConfiguration> mappedProcessorsConfig = new ArrayList<>(processorsConfig.size());
+		List<HierarchicalConfiguration> processorsConfig = getRequiredConfigurationsAt(pipelineConfig, PROCESSORS_CONFIG_KEY);
+		List<ProcessorConfiguration> mappedProcessorsConfig = new ArrayList<>(processorsConfig.size());
 
-        for (HierarchicalConfiguration processorConfig : processorsConfig) {
-            mappedProcessorsConfig.add(readProcessorConfig(processorConfig));
-        }
+		for (HierarchicalConfiguration processorConfig : processorsConfig) {
+			mappedProcessorsConfig.add(readProcessorConfig(processorConfig));
+		}
 
-        mappedPipelineConfig.setProcessorsConfig(mappedProcessorsConfig);
+		mappedPipelineConfig.setProcessorsConfig(mappedProcessorsConfig);
 
-        return mappedPipelineConfig;
-    }
+		return mappedPipelineConfig;
+	}
 
-    private ProcessorConfiguration readProcessorConfig(HierarchicalConfiguration processorConfig)
-        throws AssetProcessingConfigurationException {
-        ProcessorConfiguration mappedProcessorConfig = new ProcessorConfiguration();
-        mappedProcessorConfig.setType(getRequiredStringProperty(processorConfig, PROCESSOR_TYPE_CONFIG_KEY));
-        mappedProcessorConfig.setParams(getProcessorParams(processorConfig));
-        mappedProcessorConfig.setOutputPathFormat(processorConfig.getString(PROCESSOR_OUTPUT_PATH_FORMAT_CONFIG_KEY));
+	private ProcessorConfiguration readProcessorConfig(HierarchicalConfiguration processorConfig)
+		throws AssetProcessingConfigurationException {
+		ProcessorConfiguration mappedProcessorConfig = new ProcessorConfiguration();
+		mappedProcessorConfig.setType(getRequiredStringProperty(processorConfig, PROCESSOR_TYPE_CONFIG_KEY));
+		mappedProcessorConfig.setParams(getProcessorParams(processorConfig));
+		mappedProcessorConfig.setOutputPathFormat(processorConfig.getString(PROCESSOR_OUTPUT_PATH_FORMAT_CONFIG_KEY));
 
-        return mappedProcessorConfig;
-    }
+		return mappedProcessorConfig;
+	}
 
-    private Map<String, String > getProcessorParams(HierarchicalConfiguration processorConfig) {
-        Map<String, String> params = new HashMap<>();
-        Iterator<String> keysIter = processorConfig.getKeys();
-        String paramsPrefix = PROCESSOR_PARAMS_CONFIG_KEY + ".";
+	private Map<String, String> getProcessorParams(HierarchicalConfiguration processorConfig) {
+		Map<String, String> params = new HashMap<>();
+		Iterator<String> keysIter = processorConfig.getKeys();
+		String paramsPrefix = PROCESSOR_PARAMS_CONFIG_KEY + ".";
 
-        while (keysIter.hasNext()) {
-            String key = keysIter.next();
+		while (keysIter.hasNext()) {
+			String key = keysIter.next();
 
-            if (key.startsWith(paramsPrefix)) {
-                String paramName = StringUtils.substringAfter(key, paramsPrefix);
-                String paramValue = processorConfig.getString(key);
+			if (key.startsWith(paramsPrefix)) {
+				String paramName = StringUtils.substringAfter(key, paramsPrefix);
+				String paramValue = processorConfig.getString(key);
 
-                params.put(paramName, paramValue);
-            }
-        }
+				params.put(paramName, paramValue);
+			}
+		}
 
-        return params;
-    }
+		return params;
+	}
 
-    @SuppressWarnings("unchecked")
-    private List<HierarchicalConfiguration> getRequiredConfigurationsAt(HierarchicalConfiguration config,
-                                                                        String key) throws AssetProcessingConfigurationException {
-        List<HierarchicalConfiguration> configs = config.configurationsAt(key);
-        if (CollectionUtils.isEmpty(configs)) {
-            throw new AssetProcessingConfigurationException("Missing required property '" + key + "'");
-        } else {
-            return configs;
-        }
-    }
+	@SuppressWarnings("unchecked")
+	private List<HierarchicalConfiguration> getRequiredConfigurationsAt(HierarchicalConfiguration config,
+									    String key) throws AssetProcessingConfigurationException {
+		List<HierarchicalConfiguration> configs = config.configurationsAt(key);
+		if (CollectionUtils.isEmpty(configs)) {
+			throw new AssetProcessingConfigurationException("Missing required property '" + key + "'");
+		} else {
+			return configs;
+		}
+	}
 
-    private String getRequiredStringProperty(Configuration config, String key) throws AssetProcessingConfigurationException {
-        String property = config.getString(key);
-        if (StringUtils.isEmpty(property)) {
-            throw new AssetProcessingConfigurationException("Missing required property '" + key + "'");
-        } else {
-            return property;
-        }
-    }
+	private String getRequiredStringProperty(Configuration config, String key) throws AssetProcessingConfigurationException {
+		String property = config.getString(key);
+		if (StringUtils.isEmpty(property)) {
+			throw new AssetProcessingConfigurationException("Missing required property '" + key + "'");
+		} else {
+			return property;
+		}
+	}
 
 }

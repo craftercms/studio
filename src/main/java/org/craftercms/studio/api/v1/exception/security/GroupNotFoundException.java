@@ -17,24 +17,24 @@
 package org.craftercms.studio.api.v1.exception.security;
 
 public class GroupNotFoundException extends Exception {
-    private static final long serialVersionUID = 3057034888405716974L;
+	private static final long serialVersionUID = 3057034888405716974L;
 
-    public GroupNotFoundException() {
-    }
+	public GroupNotFoundException() {
+	}
 
-    public GroupNotFoundException(String message) {
-        super(message);
-    }
+	public GroupNotFoundException(String message) {
+		super(message);
+	}
 
-    public GroupNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public GroupNotFoundException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    public GroupNotFoundException(Throwable cause) {
-        super(cause);
-    }
+	public GroupNotFoundException(Throwable cause) {
+		super(cause);
+	}
 
-    public GroupNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+	public GroupNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+		super(message, cause, enableSuppression, writableStackTrace);
+	}
 }

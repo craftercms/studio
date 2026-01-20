@@ -19,44 +19,45 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 
 /**
- *  Extension of {@link BasicAuthenticationFilter} that can be disabled
+ * Extension of {@link BasicAuthenticationFilter} that can be disabled
  *
  * @author joseross
  * @since 4.0
  */
 public class ConditionalBasicAuthenticationFilter extends BasicAuthenticationFilter {
 
-    protected boolean enabled;
+	protected boolean enabled;
 
-    @ConstructorProperties({"authenticationManager", "enabled"})
-    public ConditionalBasicAuthenticationFilter(AuthenticationManager authenticationManager, boolean enabled) {
-        super(authenticationManager);
-        this.enabled = enabled;
-    }
+	@ConstructorProperties({"authenticationManager", "enabled"})
+	public ConditionalBasicAuthenticationFilter(AuthenticationManager authenticationManager, boolean enabled) {
+		super(authenticationManager);
+		this.enabled = enabled;
+	}
 
-    @ConstructorProperties({"authenticationManager", "authenticationEntryPoint", "enabled"})
-    public ConditionalBasicAuthenticationFilter(AuthenticationManager authenticationManager,
-                                                AuthenticationEntryPoint authenticationEntryPoint, boolean enabled) {
-        super(authenticationManager, authenticationEntryPoint);
-        this.enabled = enabled;
-    }
+	@ConstructorProperties({"authenticationManager", "authenticationEntryPoint", "enabled"})
+	public ConditionalBasicAuthenticationFilter(AuthenticationManager authenticationManager,
+						    AuthenticationEntryPoint authenticationEntryPoint, boolean enabled) {
+		super(authenticationManager, authenticationEntryPoint);
+		this.enabled = enabled;
+	}
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-        if (enabled) {
-            super.doFilterInternal(request, response, chain);
-        } else {
-            chain.doFilter(request, response);
-        }
-    }
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+		throws IOException, ServletException {
+		if (enabled) {
+			super.doFilterInternal(request, response, chain);
+		} else {
+			chain.doFilter(request, response);
+		}
+	}
 
 }

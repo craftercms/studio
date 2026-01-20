@@ -21,13 +21,13 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 /**
  * Exception thrown when a content move to an invalid location is attempted.
  * e.g.: trying to move /scripts/rest/search.get.groovy into
- *                      /scripts/rest
+ * /scripts/rest
  *
  * @since 4.0.3
  */
 public class ContentMoveInvalidLocation extends ServiceLayerException {
 
-    public ContentMoveInvalidLocation(String message) {
-        super(message);
-    }
+	public ContentMoveInvalidLocation(String message) {
+		super(message);
+	}
 }

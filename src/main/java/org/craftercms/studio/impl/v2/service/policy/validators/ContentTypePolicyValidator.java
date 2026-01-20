@@ -35,67 +35,67 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  */
 public class ContentTypePolicyValidator implements PolicyValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(ContentTypePolicyValidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(ContentTypePolicyValidator.class);
 
-    public static final String CONFIG_KEY_CONTENT_TYPES = "content-types";
+	public static final String CONFIG_KEY_CONTENT_TYPES = "content-types";
 
-    @Override
-    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
-        if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            logger.debug("Skipping folder '{}'", action.getTarget());
-            return;
-        }
-        String contentType = action.getMetadata(Action.METADATA_CONTENT_TYPE);
+	@Override
+	public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
+		if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
+			logger.debug("Skipping folder '{}'", action.getTarget());
+			return;
+		}
+		String contentType = action.getMetadata(Action.METADATA_CONTENT_TYPE);
 
-        if (permittedConfig != null) {
-            validatePermitted(permittedConfig, contentType, result);
-        }
+		if (permittedConfig != null) {
+			validatePermitted(permittedConfig, contentType, result);
+		}
 
-        if (deniedConfig != null) {
-            validateDenied(deniedConfig, contentType, result);
-        }
-    }
+		if (deniedConfig != null) {
+			validateDenied(deniedConfig, contentType, result);
+		}
+	}
 
-    private void validatePermitted(HierarchicalConfiguration<?> permittedConfig, String contentType, ValidationResult result) {
-        if (!permittedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES)) {
-            logger.debug("Skipping action because there are no content-type permitted restrictions");
-            return;
-        }
+	private void validatePermitted(HierarchicalConfiguration<?> permittedConfig, String contentType, ValidationResult result) {
+		if (!permittedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES)) {
+			logger.debug("Skipping action because there are no content-type permitted restrictions");
+			return;
+		}
 
-        if (isEmpty(contentType)) {
-            logger.debug("Skipping action because there is no Content-Type from action metadata");
-            result.setAllowed(false);
-            result.setMessage("There is no Content-Type from action metadata");
-            return;
-        }
+		if (isEmpty(contentType)) {
+			logger.debug("ValidatePermitted: Skipping action because there is no Content-Type from action metadata");
+			result.setAllowed(false);
+			result.setMessage("There is no Content-Type from action metadata");
+			return;
+		}
 
-        var allowedTypes = permittedConfig.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
+		var allowedTypes = permittedConfig.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
 
-        if (!allowedTypes.contains(contentType)) {
-            String message = format("Content-Type '%s' not allowed", contentType);
-            logger.error(message);
-            result.setAllowed(false);
-            result.setMessage(message);
-        }
-    }
+		if (!allowedTypes.contains(contentType)) {
+			String message = format("Content-Type '%s' not allowed", contentType);
+			logger.error(message);
+			result.setAllowed(false);
+			result.setMessage(message);
+		}
+	}
 
-    private void validateDenied(HierarchicalConfiguration<?> deniedConfig, String contentType, ValidationResult result) {
-        if (!deniedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES)) {
-            logger.debug("Skipping action because there are no content-types denied restrictions");
-            return;
-        }
+	private void validateDenied(HierarchicalConfiguration<?> deniedConfig, String contentType, ValidationResult result) {
+		if (!deniedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES)) {
+			logger.debug("Skipping action because there are no content-types denied restrictions");
+			return;
+		}
 
-        if (isEmpty(contentType)) {
-            logger.debug("Skipping action because there is no Content-Type from action metadata");
-            return;
-        }
+		if (isEmpty(contentType)) {
+			logger.debug("ValidateDenied: Skipping action because there is no Content-Type from action metadata");
+			return;
+		}
 
-        var deniedTypes = deniedConfig.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
-        if (deniedTypes.contains(contentType)) {
-            String message = format("Content-Type '%s' not allowed", contentType);
-            logger.error(message);
-            result.setAllowed(false);
-            result.setMessage(message);
-        }
-    }
+		var deniedTypes = deniedConfig.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
+		if (deniedTypes.contains(contentType)) {
+			String message = format("Content-Type '%s' not allowed", contentType);
+			logger.error(message);
+			result.setAllowed(false);
+			result.setMessage(message);
+		}
+	}
 }

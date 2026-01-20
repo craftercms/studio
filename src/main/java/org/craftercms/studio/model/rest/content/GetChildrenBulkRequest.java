@@ -21,11 +21,11 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+
 import java.util.List;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Holds the parameters  for the getChildrenByPaths request
@@ -34,113 +34,102 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  */
 @JsonIgnoreProperties
 public class GetChildrenBulkRequest {
+	private List<@Valid PathParams> paths;
 
-    @EsapiValidatedParam(type = SITE_ID)
-    private String siteId;
-    private List<@Valid PathParams> paths;
+	public List<PathParams> getPaths() {
+		return paths;
+	}
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public void setPaths(List<PathParams> paths) {
+		this.paths = paths;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public static class PathParams {
+		@ValidExistingContentPath
+		private String path;
+		@ValidateNoTagsParam
+		private String localeCode;
+		@ValidateNoTagsParam
+		private String keyword;
+		private List<@EsapiValidatedParam(type = ALPHANUMERIC) String> systemTypes;
+		private List<@ValidExistingContentPath String> excludes;
+		@ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst|lastUpdate")
+		private String sortStrategy;
+		@ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")
+		private String order = "ASC";
+		private int offset = 0;
+		private int limit = 10;
 
-    public List<PathParams> getPaths() {
-        return paths;
-    }
+		public String getPath() {
+			return path;
+		}
 
-    public void setPaths(List<PathParams> paths) {
-        this.paths = paths;
-    }
+		public void setPath(String path) {
+			this.path = path;
+		}
 
-    public static class PathParams {
-        @ValidExistingContentPath
-        private String path;
-        @ValidateNoTagsParam
-        private String localeCode;
-        @ValidateNoTagsParam
-        private String keyword;
-        private List<@EsapiValidatedParam(type = ALPHANUMERIC) String> systemTypes;
-        private List<@ValidExistingContentPath String> excludes;
-        @ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst")
-        private String sortStrategy;
-        @ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")
-        private String order = "ASC";
-        private int offset = 0;
-        private int limit = 10;
+		public String getLocaleCode() {
+			return localeCode;
+		}
 
-        public String getPath() {
-            return path;
-        }
+		public void setLocaleCode(String localeCode) {
+			this.localeCode = localeCode;
+		}
 
-        public void setPath(String path) {
-            this.path = path;
-        }
+		public String getKeyword() {
+			return keyword;
+		}
 
-        public String getLocaleCode() {
-            return localeCode;
-        }
+		public void setKeyword(String keyword) {
+			this.keyword = keyword;
+		}
 
-        public void setLocaleCode(String localeCode) {
-            this.localeCode = localeCode;
-        }
+		public List<String> getSystemTypes() {
+			return systemTypes;
+		}
 
-        public String getKeyword() {
-            return keyword;
-        }
+		public void setSystemTypes(List<String> systemTypes) {
+			this.systemTypes = systemTypes;
+		}
 
-        public void setKeyword(String keyword) {
-            this.keyword = keyword;
-        }
+		public List<String> getExcludes() {
+			return excludes;
+		}
 
-        public List<String> getSystemTypes() {
-            return systemTypes;
-        }
+		public void setExcludes(List<String> excludes) {
+			this.excludes = excludes;
+		}
 
-        public void setSystemTypes(List<String> systemTypes) {
-            this.systemTypes = systemTypes;
-        }
+		public String getSortStrategy() {
+			return sortStrategy;
+		}
 
-        public List<String> getExcludes() {
-            return excludes;
-        }
+		public void setSortStrategy(String sortStrategy) {
+			this.sortStrategy = sortStrategy;
+		}
 
-        public void setExcludes(List<String> excludes) {
-            this.excludes = excludes;
-        }
+		public String getOrder() {
+			return order;
+		}
 
-        public String getSortStrategy() {
-            return sortStrategy;
-        }
+		public void setOrder(String order) {
+			this.order = order;
+		}
 
-        public void setSortStrategy(String sortStrategy) {
-            this.sortStrategy = sortStrategy;
-        }
+		public int getOffset() {
+			return offset;
+		}
 
-        public String getOrder() {
-            return order;
-        }
+		public void setOffset(int offset) {
+			this.offset = offset;
+		}
 
-        public void setOrder(String order) {
-            this.order = order;
-        }
+		public int getLimit() {
+			return limit;
+		}
 
-        public int getOffset() {
-            return offset;
-        }
-
-        public void setOffset(int offset) {
-            this.offset = offset;
-        }
-
-        public int getLimit() {
-            return limit;
-        }
-
-        public void setLimit(int limit) {
-            this.limit = limit;
-        }
-    }
+		public void setLimit(int limit) {
+			this.limit = limit;
+		}
+	}
 }

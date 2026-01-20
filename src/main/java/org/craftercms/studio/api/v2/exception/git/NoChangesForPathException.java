@@ -23,18 +23,18 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public class NoChangesForPathException extends ServiceLayerException {
 
-    public NoChangesForPathException() {
-    }
+	public NoChangesForPathException() {
+	}
 
-    public NoChangesForPathException(Throwable e) {
-        super(e);
-    }
+	public NoChangesForPathException(Throwable e) {
+		super(e);
+	}
 
-    public NoChangesForPathException(String message) {
-        super(message);
-    }
+	public NoChangesForPathException(String message) {
+		super(message);
+	}
 
-    public NoChangesForPathException(String message, Exception e) {
-        super(message, e);
-    }
+	public NoChangesForPathException(String message, Exception e) {
+		super(message, e);
+	}
 }

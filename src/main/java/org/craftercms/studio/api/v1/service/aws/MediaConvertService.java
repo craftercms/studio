@@ -27,21 +27,22 @@ import org.craftercms.studio.api.v1.exception.AwsException;
  *
  * @author joseross
  * @deprecated This service has been replaced with
- *              {@link org.craftercms.studio.api.v2.service.aws.mediaconvert.AwsMediaConvertService}
+ * {@link org.craftercms.studio.api.v2.service.aws.mediaconvert.AwsMediaConvertService}
  */
 @Deprecated
 public interface MediaConvertService {
 
-    /**
-     * Uploads a file to S3 and creates a transcoding job using the specified profile.
-     * @param site name of the site
-     * @param profileId id of the profile
-     * @param filename name of the file
-     * @param content content of the file
-     * @return information of the transcoding job
-     * @throws AwsException if the upload or transcoding job creation fails
-     * @throws ConfigurationProfileNotFoundException if the profile is not found
-     */
-    MediaConvertJob startJob(String site, String profileId, String filename, InputStream content) throws AwsException, ConfigurationProfileNotFoundException;
+	/**
+	 * Uploads a file to S3 and creates a transcoding job using the specified profile.
+	 *
+	 * @param site      name of the site
+	 * @param profileId id of the profile
+	 * @param filename  name of the file
+	 * @param content   content of the file
+	 * @return information of the transcoding job
+	 * @throws AwsException                          if the upload or transcoding job creation fails
+	 * @throws ConfigurationProfileNotFoundException if the profile is not found
+	 */
+	MediaConvertJob startJob(String site, String profileId, String filename, InputStream content) throws AwsException, ConfigurationProfileNotFoundException;
 
 }

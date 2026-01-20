@@ -16,9 +16,8 @@
 
 package org.craftercms.studio.impl.v2.service.dependency;
 
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl;
 import org.junit.Before;
@@ -36,41 +35,38 @@ import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DependencyServiceImplTest {
-    private static final String SITE_ID = "sample-site";
-    private static final String PATH = "/sample/path";
-    private static final String NON_EXIST_SITE_ID = "non-exist-site-id";
-    private static final String NON_EXIST_CONTENT_PATH = "/sample/non-exist-content-path";
+	private static final String SITE_ID = "sample-site";
+	private static final String PATH = "/sample/path";
+	private static final String NON_EXIST_CONTENT_PATH = "/sample/non-exist-content-path";
 
-    @Mock
-    protected DependencyServiceInternalImpl serviceInternal;
+	@Mock
+	protected DependencyServiceInternalImpl serviceInternal;
 
-    @Mock
-    protected ContentRepository contentRepository;
+	@Mock
+	protected ContentRepository contentRepository;
 
-    @InjectMocks
-    protected DependencyServiceImpl dependencyService;
+	@InjectMocks
+	protected DependencyServiceImpl dependencyService;
 
-    @Before
-    public void setUp() throws ServiceLayerException {
-        doThrow(new ContentNotFoundException()).when(contentRepository).checkContentExists(SITE_ID, NON_EXIST_CONTENT_PATH);
-        doNothing().when(contentRepository).checkContentExists(SITE_ID, PATH);
-    }
+	@Before
+	public void setUp() throws ServiceLayerException {
+	}
 
-    @Test
-    public void getDependentItems() throws ServiceLayerException {
-        dependencyService.getDependentItems(SITE_ID, PATH);
-        verify(serviceInternal).getDependentItems(SITE_ID, PATH);
-    }
+	@Test
+	public void getDependentItems() throws ServiceLayerException {
+		dependencyService.getDependentItems(SITE_ID, PATH);
+		verify(serviceInternal).getDependentItems(SITE_ID, PATH);
+	}
 
-    @Test
-    public void nonExistSiteIdGetDependentItems() throws NoSuchMethodException {
-        Method method = DependencyServiceImpl.class.getMethod("getDependentItems", String.class, String.class);
-        assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
-    }
+	@Test
+	public void nonExistSiteIdGetDependentItems() throws NoSuchMethodException {
+		Method method = DependencyServiceImpl.class.getMethod("getDependentItems", String.class, String.class);
+		assertTrue(method.isAnnotationPresent(RequireContentExists.class));
+	}
 
-    @Test
-    public void setNonExistContentPathGetDependentItems() {
-        assertThrows(ContentNotFoundException.class, () ->
-                dependencyService.getDependentItems(SITE_ID, NON_EXIST_CONTENT_PATH));
-    }
+	@Test
+	public void setNonExistContentPathGetDependentItems() throws NoSuchMethodException {
+		Method method = DependencyServiceImpl.class.getMethod("getDependentItems", String.class, String.class);
+		assertTrue(method.isAnnotationPresent(RequireContentExists.class));
+	}
 }

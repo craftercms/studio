@@ -18,8 +18,8 @@ package org.craftercms.studio.model.rest;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.EMAIL;
 
@@ -28,53 +28,53 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  */
 public class UpdateUserRequest {
 
-    @NotNull
-    private Long id;
-    @Size(max = 32)
-    private String firstName;
-    @Size(max = 32)
-    private String lastName;
-    @EsapiValidatedParam(type = EMAIL)
-    private String email;
-    private boolean enabled;
+	@NotNull
+	private Long id;
+	@Size(max = 32)
+	private String firstName;
+	@Size(max = 32)
+	private String lastName;
+	@EsapiValidatedParam(type = EMAIL)
+	private String email;
+	private boolean enabled;
 
-    public Long getId() {
-        return id;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public void setId(final Long id) {
-        this.id = id;
-    }
+	public void setId(final Long id) {
+		this.id = id;
+	}
 
-    public String getFirstName() {
-        return firstName;
-    }
+	public String getFirstName() {
+		return firstName;
+	}
 
-    public void setFirstName(final String firstName) {
-        this.firstName = firstName;
-    }
+	public void setFirstName(final String firstName) {
+		this.firstName = firstName;
+	}
 
-    public String getLastName() {
-        return lastName;
-    }
+	public String getLastName() {
+		return lastName;
+	}
 
-    public void setLastName(final String lastName) {
-        this.lastName = lastName;
-    }
+	public void setLastName(final String lastName) {
+		this.lastName = lastName;
+	}
 
-    public String getEmail() {
-        return email;
-    }
+	public String getEmail() {
+		return email;
+	}
 
-    public void setEmail(final String email) {
-        this.email = email;
-    }
+	public void setEmail(final String email) {
+		this.email = email;
+	}
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+	public boolean isEnabled() {
+		return enabled;
+	}
 
-    public void setEnabled(final boolean enabled) {
-        this.enabled = enabled;
-    }
+	public void setEnabled(final boolean enabled) {
+		this.enabled = enabled;
+	}
 }

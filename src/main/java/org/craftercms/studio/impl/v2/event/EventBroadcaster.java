@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,12 +18,20 @@ package org.craftercms.studio.impl.v2.event;
 import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.GlobalBroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
+import org.craftercms.studio.api.v2.event.task.TaskEvent;
+import org.craftercms.studio.impl.v2.utils.TimeUtils;
+import org.craftercms.studio.model.task.SiteTask;
+import org.craftercms.studio.model.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import java.util.Arrays;
+
+import static java.lang.String.format;
 
 /**
  * Implementation of {@link EventListener} that broadcasts events to the message broker
@@ -33,36 +41,39 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
  */
 public class EventBroadcaster {
 
-    public static final String DESTINATION_ROOT = "/topic/studio";
+	public static final String DESTINATION_ROOT = "/topic/studio";
 
-    private static final Logger logger = LoggerFactory.getLogger(EventBroadcaster.class);
+	private static final Logger logger = LoggerFactory.getLogger(EventBroadcaster.class);
 
-    @Autowired
-    protected SimpMessagingTemplate messagingTemplate;
+	@Autowired
+	protected SimpMessagingTemplate messagingTemplate;
 
-    @Order
-    @EventListener
-    public void publishSiteEvent(final SiteBroadcastEvent event) {
-        publishEvent(event, DESTINATION_ROOT + "/" + event.getSiteId());
-    }
+	@Order
+	@EventListener
+	public void publishSiteEvent(final SiteBroadcastEvent event) {
+		publishEvent(event, DESTINATION_ROOT + "/" + event.getSiteId());
+	}
 
-    @Order
-    @EventListener
-    public void publishGlobalEvent(final GlobalBroadcastEvent event) {
-        publishEvent(event, DESTINATION_ROOT);
-    }
+	@Order
+	@EventListener
+	public void publishGlobalEvent(final GlobalBroadcastEvent event) {
+		publishEvent(event, DESTINATION_ROOT);
+	}
 
-    private void publishEvent(final BroadcastEvent event, final String destination) {
-        logger.debug("Broadcast event '{}'", event);
-        long startTime = 0;
-        if (logger.isTraceEnabled()) {
-            startTime = System.currentTimeMillis();
-        }
-        messagingTemplate.convertAndSend(destination, event);
-        if (logger.isTraceEnabled()) {
-            long total = System.currentTimeMillis() - startTime;
-            logger.trace("Broadcast of event '{}' took '{}' milliseconds", event, total);
-        }
-    }
+	@Order
+	@EventListener
+	public void publishTaskEvent(final TaskEvent taskEvent) {
+		switch (taskEvent.getProgress().getTask()) {
+			case SiteTask<?> siteTask -> publishEvent(taskEvent, DESTINATION_ROOT + "/" + siteTask.getSiteId());
+			case Task<?> __ -> publishEvent(taskEvent, DESTINATION_ROOT);
+		}
+	}
+
+	private void publishEvent(final BroadcastEvent event, final String destination) {
+		TimeUtils.logExecutionTime(() -> {
+			logger.debug("Broadcast event '{}'", event);
+			messagingTemplate.convertAndSend(destination, event);
+		}, logger, format("Method 'EventBroadcaster.publishEvent(..)' with parameters %s", Arrays.asList(event, destination)));
+	}
 
 }

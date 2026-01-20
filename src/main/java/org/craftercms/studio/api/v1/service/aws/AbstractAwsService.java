@@ -21,32 +21,30 @@ import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundExcept
 import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Provides common profile operations used by all services.
- * @param <T> The type of {@link AbstractAwsProfile} that will be used.
  *
+ * @param <T> The type of {@link AbstractAwsProfile} that will be used.
  * @author joseross
  */
 public abstract class AbstractAwsService<T extends AbstractAwsProfile> {
 
-    /**
-     * Instance of {@link SiteAwareConfigProfileLoader} used to load the configuration file.
-     */
-    protected SiteAwareConfigProfileLoader<T> profileLoader;
+	/**
+	 * Instance of {@link SiteAwareConfigProfileLoader} used to load the configuration file.
+	 */
+	protected SiteAwareConfigProfileLoader<T> profileLoader;
 
-    @Required
-    public void setProfileLoader(SiteAwareConfigProfileLoader<T> profileLoader) {
-        this.profileLoader = profileLoader;
-    }
+	public AbstractAwsService(SiteAwareConfigProfileLoader<T> profileLoader) {
+		this.profileLoader = profileLoader;
+	}
 
-    protected T getProfile(String site, String profileId) throws AwsException, ConfigurationProfileNotFoundException {
-        try {
-            return profileLoader.loadProfile(site, profileId);
-        } catch (ConfigurationException e) {
-            throw new AwsException("Unable to load AWS profile", e);
-        }
-    }
+	protected T getProfile(String site, String profileId) throws AwsException, ConfigurationProfileNotFoundException {
+		try {
+			return profileLoader.loadProfile(site, profileId);
+		} catch (ConfigurationException e) {
+			throw new AwsException("Unable to load AWS profile", e);
+		}
+	}
 
 }

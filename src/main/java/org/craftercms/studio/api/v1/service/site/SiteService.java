@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.api.v1.service.site;
 
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -24,8 +23,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.model.site.SiteDetails;
@@ -43,265 +40,185 @@ import java.util.Set;
  */
 public interface SiteService {
 
-    Set<String> getAllAvailableSites();
+	Set<String> getAllAvailableSites();
 
-    int countSites();
+	int countSites();
 
-    /**
-     * Create a new site based on an existing blueprint
-     *
-     * @param blueprintName  blueprint name to create site
-     * @param siteId         site identifier
-     * @param siteName       site name
-     * @param sandboxBranch  sandbox branch name
-     * @param desc           description
-     * @param params         site parameters
-     * @param createAsOrphan create the site from a remote repository as orphan (no git history)
-     * @throws SiteAlreadyExistsException      site already exists
-     * @throws SiteCreationException           error during site creation process
-     * @throws DeployerTargetException         error creating deployer targets
-     * @throws BlueprintNotFoundException      blueprint not found
-     * @throws MissingPluginParameterException missing mandatory blueprint parameters
-     */
-    void createSiteFromBlueprint(String blueprintName, String siteId, String siteName, String sandboxBranch,
-                                 String desc, Map<String, String> params, boolean createAsOrphan)
-            throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
-            BlueprintNotFoundException, MissingPluginParameterException;
+	/**
+	 * Create a new site based on an existing blueprint
+	 *
+	 * @param blueprintName  blueprint name to create site
+	 * @param siteId         site identifier
+	 * @param siteName       site name
+	 * @param sandboxBranch  sandbox branch name
+	 * @param desc           description
+	 * @param params         site parameters
+	 * @param createAsOrphan create the site from a remote repository as orphan (no git history)
+	 * @throws SiteAlreadyExistsException      site already exists
+	 * @throws SiteCreationException           error during site creation process
+	 * @throws DeployerTargetException         error creating deployer targets
+	 * @throws BlueprintNotFoundException      blueprint not found
+	 * @throws MissingPluginParameterException missing mandatory blueprint parameters
+	 */
+	void createSiteFromBlueprint(String blueprintName, String siteId, String siteName, String sandboxBranch,
+				     String desc, Map<String, String> params, boolean createAsOrphan)
+		throws ServiceLayerException;
 
-    /**
-     * Create a new site with remote option (clone from remote or push to remote repository)
-     *
-     * @param siteId             site identifier
-     * @param siteName           the name of the site
-     * @param sandboxBranch      sandbox branch name
-     * @param description        description
-     * @param blueprintName      name of the blueprint to create site
-     * @param remoteName         remote repository name
-     * @param remoteUrl          remote repository url
-     * @param remoteBranch       remote repository branch to create site from
-     * @param singleBranch       clone single branch if true, otherwise clone whole repo
-     * @param authenticationType remote repository authentication type
-     * @param remoteUsername     remote repository username to use for authentication
-     * @param remotePassword     remote repository username to use for authentication
-     * @param remoteToken        remote repository username to use for authentication
-     * @param remotePrivateKey   remote repository username to use for authentication
-     * @param createOption       remote repository username to use for authentication
-     * @param params             site parameters
-     * @param createAsOrphan     create the site from a remote repository as orphan (no git history)
-     * @throws ServiceLayerException                       general service error
-     * @throws InvalidRemoteRepositoryException            invalid remote repository
-     * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
-     * @throws RemoteRepositoryNotFoundException           remote repository not found
-     * @throws InvalidRemoteUrlException                   invalid remote url
-     */
-    void createSiteWithRemoteOption(String siteId, String siteName, String sandboxBranch, String description,
-                                    String blueprintName, String remoteName, String remoteUrl, String remoteBranch,
-                                    boolean singleBranch, String authenticationType, String remoteUsername,
-                                    String remotePassword, String remoteToken, String remotePrivateKey,
-                                    String createOption, Map<String, String> params, boolean createAsOrphan)
-            throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, InvalidRemoteUrlException;
+	/**
+	 * Create a new site with remote option (clone from remote or push to remote repository)
+	 *
+	 * @param siteId             site identifier
+	 * @param siteName           the name of the site
+	 * @param sandboxBranch      sandbox branch name
+	 * @param description        description
+	 * @param blueprintName      name of the blueprint to create site
+	 * @param remoteName         remote repository name
+	 * @param remoteUrl          remote repository url
+	 * @param remoteBranch       remote repository branch to create site from
+	 * @param singleBranch       clone single branch if true, otherwise clone whole repo
+	 * @param authenticationType remote repository authentication type
+	 * @param remoteUsername     remote repository username to use for authentication
+	 * @param remotePassword     remote repository username to use for authentication
+	 * @param remoteToken        remote repository username to use for authentication
+	 * @param remotePrivateKey   remote repository username to use for authentication
+	 * @param createOption       remote repository username to use for authentication
+	 * @param params             site parameters
+	 * @param createAsOrphan     create the site from a remote repository as orphan (no git history)
+	 * @throws ServiceLayerException                       general service error
+	 * @throws InvalidRemoteRepositoryException            invalid remote repository
+	 * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
+	 * @throws RemoteRepositoryNotFoundException           remote repository not found
+	 * @throws InvalidRemoteUrlException                   invalid remote url
+	 */
+	void createSiteWithRemoteOption(String siteId, String siteName, String sandboxBranch, String description,
+					String blueprintName, String remoteName, String remoteUrl, String remoteBranch,
+					boolean singleBranch, String authenticationType, String remoteUsername,
+					String remotePassword, String remoteToken, String remotePrivateKey,
+					String createOption, Map<String, String> params, boolean createAsOrphan)
+		throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+		RemoteRepositoryNotFoundException, InvalidRemoteUrlException;
 
-    /**
-     * remove a site from the system
-     *
-     * @param siteId site identifier
-     * @return true if successfully deleted, otherwise false
-     * @deprecated use {@link org.craftercms.studio.api.v2.service.site.SitesService#deleteSite(String)} instead
-     */
-    @Deprecated
-    boolean deleteSite(String siteId);
+	/**
+	 * remove a site from the system
+	 *
+	 * @param siteId site identifier
+	 * @return true if successfully deleted, otherwise false
+	 * @deprecated use {@link org.craftercms.studio.api.v2.service.site.SitesService#deleteSite(String)} instead
+	 */
+	@Deprecated
+	boolean deleteSite(String siteId);
 
-    /**
-     * get a list of available blueprints
-     *
-     * @return list of blueprints
-     */
-    SiteBlueprintTO[] getAvailableBlueprints();
+	void updateLastCommitId(String site, String commitId);
 
-    void updateLastCommitId(String site, String commitId);
+	/**
+	 * Check if site already exists
+	 *
+	 * @param site site ID
+	 * @return true if site exists, false otherwise
+	 */
+	boolean exists(String site);
 
-    /**
-     * Check if site already exists
-     *
-     * @param site site ID
-     * @return true if site exists, false otherwise
-     */
-    boolean exists(String site);
+	/**
+	 * Checks if a site exists. If it does not, it throws a {@link SiteNotFoundException}
+	 *
+	 * @param site site ID
+	 * @throws SiteNotFoundException if no site is found for the given site ID
+	 */
+	void checkSiteExists(String site) throws SiteNotFoundException;
 
-    /**
-     * Checks if a site exists. If it does not, it throws a {@link SiteNotFoundException}
-     *
-     * @param site site ID
-     * @throws SiteNotFoundException if no site is found for the given site ID
-     */
-    void checkSiteExists(String site) throws SiteNotFoundException;
+	/**
+	 * Check if site already exists
+	 *
+	 * @param id site ID in DB
+	 * @return true if site exists, false otherwise
+	 */
+	boolean existsById(String id);
 
-    /**
-     * Check if site already exists
-     *
-     * @param id site ID in DB
-     * @return true if site exists, false otherwise
-     */
-    boolean existsById(String id);
+	/**
+	 * Check if site already exists
+	 *
+	 * @param name site name in DB
+	 * @return true if site exists, false otherwise
+	 */
+	boolean existsByName(String name);
 
-    /**
-     * Check if site already exists
-     *
-     * @param name site name in DB
-     * @return true if site exists, false otherwise
-     */
-    boolean existsByName(String name);
+	/**
+	 * Get total number of sites that user is allowed access to for current user
+	 *
+	 * @return number of sites
+	 * @throws UserNotFoundException
+	 */
+	int getSitesPerUserTotal() throws UserNotFoundException, ServiceLayerException;
 
-    /**
-     * Get total number of sites that user is allowed access to for current user
-     *
-     * @return number of sites
-     * @throws UserNotFoundException
-     */
-    int getSitesPerUserTotal() throws UserNotFoundException, ServiceLayerException;
+	/**
+	 * Get total number of sites that user is allowed access to for given username
+	 *
+	 * @param username username
+	 * @return number of sites
+	 * @throws UserNotFoundException user not found
+	 * @throws ServiceLayerException general service error
+	 */
+	int getSitesPerUserTotal(String username) throws UserNotFoundException, ServiceLayerException;
 
-    /**
-     * Get total number of sites that user is allowed access to for given username
-     *
-     * @param username username
-     * @return number of sites
-     * @throws UserNotFoundException user not found
-     * @throws ServiceLayerException general service error
-     */
-    int getSitesPerUserTotal(String username) throws UserNotFoundException, ServiceLayerException;
+	/**
+	 * Get sites that user is allowed access to for current user
+	 *
+	 * @param start  start position for pagination
+	 * @param number number of sites per page
+	 * @return number of sites
+	 * @throws UserNotFoundException
+	 */
+	List<SiteFeed> getSitesPerUser(int start, int number) throws UserNotFoundException,
+		ServiceLayerException;
 
-    /**
-     * Get sites that user is allowed access to for current user
-     *
-     * @param start  start position for pagination
-     * @param number number of sites per page
-     * @return number of sites
-     * @throws UserNotFoundException
-     */
-    List<SiteFeed> getSitesPerUser(int start, int number) throws UserNotFoundException,
-            ServiceLayerException;
+	/**
+	 * Get sites that user is allowed access to for given username
+	 *
+	 * @param username username
+	 * @param start    start position for pagination
+	 * @param number   number of sites per page
+	 * @return number of sites
+	 * @throws UserNotFoundException user not found
+	 * @throws ServiceLayerException general service error
+	 */
+	List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException,
+		ServiceLayerException;
 
-    /**
-     * Get sites that user is allowed access to for given username
-     *
-     * @param username username
-     * @param start    start position for pagination
-     * @param number   number of sites per page
-     * @return number of sites
-     * @throws UserNotFoundException user not found
-     * @throws ServiceLayerException general service error
-     */
-    List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException,
-            ServiceLayerException;
+	/**
+	 * Get site feed for given site
+	 *
+	 * @param siteId site id
+	 * @return SiteFeed object for the requested site
+	 * @throws SiteNotFoundException site not found
+	 */
+	SiteFeed getSite(String siteId) throws SiteNotFoundException;
 
-    /**
-     * Get site feed for given site
-     *
-     * @param siteId site id
-     * @return SiteFeed object for the requested site
-     * @throws SiteNotFoundException site not found
-     */
-    SiteFeed getSite(String siteId) throws SiteNotFoundException;
+	/**
+	 * Get site details.
+	 * This will include the site feed info and the blob store configuration details
+	 *
+	 * @param siteId site id
+	 * @return SiteDetails object for the requested site
+	 * @throws ServiceLayerException if an error occurs while retrieving the site details
+	 */
+	SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
 
-    /**
-     * Get site details.
-     * This will include the site feed info and the blob store configuration details
-     *
-     * @param siteId site id
-     * @return SiteDetails object for the requested site
-     * @throws ServiceLayerException if an error occurs while retrieving the site details
-     */
-    SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
+	/**
+	 * Get deleted sites
+	 *
+	 * @return List of deleted sites from DB
+	 */
+	List<SiteFeed> getDeletedSites();
 
-    /**
-     * Check if publishing is enabled for given site
-     *
-     * @param siteId site id
-     * @return true if publishing is enabled for given site, otherwise false
-     */
-    boolean isPublishingEnabled(String siteId);
+	String getSiteState(String siteId);
 
-    /**
-     * Enable/Disable publishing for given site
-     *
-     * @param siteId  site id
-     * @param enabled true to enable publishing, false to disable publishing
-     * @return true if operation was successful, otherwise false
-     * @throws SiteNotFoundException site not found
-     */
-    boolean enablePublishing(String siteId, boolean enabled) throws SiteNotFoundException;
+	/**
+	 * Get list of all sites with state = CREATED
+	 *
+	 * @return list of sites
+	 */
+	List<String> getAllCreatedSites();
 
-    /**
-     * Update publishing status message for given site
-     *
-     * @param siteId site id
-     * @param status status
-     * @return true if publishing status message is successfully updated
-     * @throws SiteNotFoundException site not found
-     */
-    boolean updatePublishingStatus(String siteId, String status) throws SiteNotFoundException;
-
-    /**
-     * Add remote repository for site content repository
-     *
-     * @param siteId             site identifier
-     * @param remoteName         remote name
-     * @param remoteUrl          remote url
-     * @param authenticationType authentication type
-     * @param remoteUsername     remote username
-     * @param remotePassword     remote password
-     * @param remoteToken        remote token
-     * @param remotePrivateKey   remote private key
-     * @return true if operation was successful
-     * @throws InvalidRemoteUrlException invalid remote url
-     * @throws ServiceLayerException     general service error
-     */
-    boolean addRemote(String siteId, String remoteName, String remoteUrl,
-                      String authenticationType, String remoteUsername, String remotePassword, String remoteToken,
-                      String remotePrivateKey)
-            throws InvalidRemoteUrlException, ServiceLayerException;
-
-    /**
-     * Remove remote with given name for site
-     *
-     * @param siteId     site identifier
-     * @param remoteName remote name
-     * @return true if operation was successful
-     * @throws SiteNotFoundException site not found
-     */
-    boolean removeRemote(String siteId, String remoteName) throws SiteNotFoundException;
-
-    /**
-     * List remote repositories for given site
-     *
-     * @param siteId site identifier
-     * @return list of names of remote repositories
-     * @throws SiteNotFoundException site not found
-     * @throws CryptoException       git repository helper error
-     */
-    List<RemoteRepositoryInfoTO> listRemote(String siteId) throws ServiceLayerException, CryptoException;
-
-    /**
-     * Get deleted sites
-     *
-     * @return List of deleted sites from DB
-     */
-    List<SiteFeed> getDeletedSites();
-
-    String getSiteState(String siteId);
-
-    /**
-     * Get list of all sites with state = CREATED
-     *
-     * @return list of sites
-     */
-    List<String> getAllCreatedSites();
-
-    void setSiteState(String siteId, String state);
-
-    boolean isPublishedRepoCreated(String siteId);
-
-    void setPublishedRepoCreated(String siteId);
+	void setSiteState(String siteId, String state);
 
 }

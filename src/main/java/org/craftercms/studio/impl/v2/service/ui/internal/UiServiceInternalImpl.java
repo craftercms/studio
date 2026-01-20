@@ -41,81 +41,81 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  */
 public class UiServiceInternalImpl implements UiServiceInternal {
 
-    private static final String MENU_ITEMS_CONFIG_KEY = "items.item";
-    private static final String PERMISSION_CONFIG_KEY = "permission";
-    private static final String ID_CONFIG_KEY = "id";
-    private static final String LABEL_CONFIG_KEY = "label";
-    private static final String ICON_CONFIG_KEY = "icon";
+	private static final String MENU_ITEMS_CONFIG_KEY = "items.item";
+	private static final String PERMISSION_CONFIG_KEY = "permission";
+	private static final String ID_CONFIG_KEY = "id";
+	private static final String LABEL_CONFIG_KEY = "label";
+	private static final String ICON_CONFIG_KEY = "icon";
 
-    private static final String ANY_PERMISSION_WILDCARD = "*";
+	private static final String ANY_PERMISSION_WILDCARD = "*";
 
-    private StudioConfiguration studioConfiguration;
-    private ConfigurationService configurationService;
+	private StudioConfiguration studioConfiguration;
+	private ConfigurationService configurationService;
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
+	public void setConfigurationService(ConfigurationService configurationService) {
+		this.configurationService = configurationService;
+	}
 
-    @Override
-    public List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException {
-        if (CollectionUtils.isNotEmpty(permissions)) {
-            var menuConfig = getGlobalMenuConfig();
-            List<MenuItem> menuItems = new ArrayList<>();
+	@Override
+	public List<MenuItem> getGlobalMenu(Set<String> permissions) throws ServiceLayerException {
+		if (CollectionUtils.isNotEmpty(permissions)) {
+			var menuConfig = getGlobalMenuConfig();
+			List<MenuItem> menuItems = new ArrayList<>();
 
-            // TODO: Move this config to ConfigurationService
-            var itemsConfig = menuConfig.configurationsAt(MENU_ITEMS_CONFIG_KEY);
-            if (CollectionUtils.isNotEmpty(itemsConfig)) {
-                for (var itemConfig : itemsConfig) {
-                    String requiredPermission = getRequiredStringProperty(itemConfig, PERMISSION_CONFIG_KEY);
-                    if (requiredPermission.equals(ANY_PERMISSION_WILDCARD) ||
-                        permissions.contains(requiredPermission)) {
-                        MenuItem item = new MenuItem();
-                        item.setId(getRequiredStringProperty(itemConfig, ID_CONFIG_KEY));
-                        item.setLabel(getRequiredStringProperty(itemConfig, LABEL_CONFIG_KEY));
-                        item.setIcon(getRequiredStringProperty(itemConfig, ICON_CONFIG_KEY));
+			// TODO: Move this config to ConfigurationService
+			var itemsConfig = menuConfig.configurationsAt(MENU_ITEMS_CONFIG_KEY);
+			if (CollectionUtils.isNotEmpty(itemsConfig)) {
+				for (var itemConfig : itemsConfig) {
+					String requiredPermission = getRequiredStringProperty(itemConfig, PERMISSION_CONFIG_KEY);
+					if (requiredPermission.equals(ANY_PERMISSION_WILDCARD) ||
+						permissions.contains(requiredPermission)) {
+						MenuItem item = new MenuItem();
+						item.setId(getRequiredStringProperty(itemConfig, ID_CONFIG_KEY));
+						item.setLabel(getRequiredStringProperty(itemConfig, LABEL_CONFIG_KEY));
+						item.setIcon(getRequiredStringProperty(itemConfig, ICON_CONFIG_KEY));
 
-                        menuItems.add(item);
-                    }
-                }
-            } else {
-                throw new ConfigurationException("No menu items found in global menu config");
-            }
+						menuItems.add(item);
+					}
+				}
+			} else {
+				throw new ConfigurationException("No menu items found in global menu config");
+			}
 
-            return menuItems;
-        } else {
-            return null;
-        }
-    }
+			return menuItems;
+		} else {
+			return null;
+		}
+	}
 
-    protected HierarchicalConfiguration<?> getGlobalMenuConfig() throws ConfigurationException {
-        String configPath = getGlobalMenuConfigPath();
+	protected HierarchicalConfiguration<?> getGlobalMenuConfig() throws ConfigurationException {
+		String configPath = getGlobalMenuConfigPath();
 
-        return configurationService.getGlobalXmlConfiguration(configPath);
-    }
+		return configurationService.getGlobalXmlConfiguration(configPath);
+	}
 
-    protected String getRequiredStringProperty(Configuration config, String key) throws ConfigurationException {
-        String property = config.getString(key);
-        if (StringUtils.isEmpty(property)) {
-            throw new ConfigurationException("Missing required property '" + key + "'");
-        } else {
-            return property;
-        }
-    }
+	protected String getRequiredStringProperty(Configuration config, String key) throws ConfigurationException {
+		String property = config.getString(key);
+		if (StringUtils.isEmpty(property)) {
+			throw new ConfigurationException("Missing required property '" + key + "'");
+		} else {
+			return property;
+		}
+	}
 
-    protected String getGlobalMenuConfigPath() {
-        return UrlUtils.concat(getGlobalConfigPath(), getGlobalMenuFileName());
-    }
+	protected String getGlobalMenuConfigPath() {
+		return UrlUtils.concat(getGlobalConfigPath(), getGlobalMenuFileName());
+	}
 
-    protected String getGlobalConfigPath() {
-        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
-    }
+	protected String getGlobalConfigPath() {
+		return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH);
+	}
 
-    protected String getGlobalMenuFileName() {
-        return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_MENU_FILE_NAME);
-    }
+	protected String getGlobalMenuFileName() {
+		return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_MENU_FILE_NAME);
+	}
 
 }

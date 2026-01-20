@@ -31,35 +31,35 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  */
 public class CacheControlFactory extends AbstractFactoryBean<CacheControl> {
 
-    /**
-     * Indicates if the browser should cache responses
-     */
-    boolean enabled;
+	/**
+	 * Indicates if the browser should cache responses
+	 */
+	boolean enabled;
 
-    /**
-     * The max age in seconds that the browser should cache responses
-     */
-    long maxAge;
+	/**
+	 * The max age in seconds that the browser should cache responses
+	 */
+	long maxAge;
 
-    @ConstructorProperties({"enabled", "maxAge"})
-    public CacheControlFactory(boolean enabled, long maxAge) {
-        this.enabled = enabled;
-        this.maxAge = maxAge;
-    }
+	@ConstructorProperties({"enabled", "maxAge"})
+	public CacheControlFactory(boolean enabled, long maxAge) {
+		this.enabled = enabled;
+		this.maxAge = maxAge;
+	}
 
-    @Override
-    public Class<?> getObjectType() {
-        return CacheControl.class;
-    }
+	@Override
+	public Class<?> getObjectType() {
+		return CacheControl.class;
+	}
 
-    @Override
-    @NonNull
-    protected CacheControl createInstance() throws Exception {
-        if (enabled) {
-            return CacheControl.maxAge(maxAge, SECONDS).mustRevalidate();
-        } else {
-            return CacheControl.noStore();
-        }
-    }
+	@Override
+	@NonNull
+	protected CacheControl createInstance() throws Exception {
+		if (enabled) {
+			return CacheControl.maxAge(maxAge, SECONDS).mustRevalidate();
+		} else {
+			return CacheControl.noStore();
+		}
+	}
 
 }

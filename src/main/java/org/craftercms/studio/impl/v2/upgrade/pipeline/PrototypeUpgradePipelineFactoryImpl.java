@@ -37,21 +37,21 @@ import org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineImpl;
  */
 public class PrototypeUpgradePipelineFactoryImpl extends DefaultUpgradePipelineFactoryImpl<String> {
 
-    /**
-     * Name of the pipeline to instantiate.
-     */
-    protected String pipelinePrototype;
+	/**
+	 * Name of the pipeline to instantiate.
+	 */
+	protected String pipelinePrototype;
 
-    @ConstructorProperties({"pipelineName", "configurationFile", "versionProvider", "pipelinePrototype"})
-    public PrototypeUpgradePipelineFactoryImpl(String pipelineName, UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider,
-                                               VersionProvider<String> versionProvider, String pipelinePrototype) {
-        super(pipelineName, configurationProvider, versionProvider);
-        this.pipelinePrototype = pipelinePrototype;
-    }
+	@ConstructorProperties({"pipelineName", "configurationFile", "versionProvider", "pipelinePrototype"})
+	public PrototypeUpgradePipelineFactoryImpl(String pipelineName, UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider,
+						   VersionProvider<String> versionProvider, String pipelinePrototype) {
+		super(pipelineName, configurationProvider, versionProvider);
+		this.pipelinePrototype = pipelinePrototype;
+	}
 
-    @SuppressWarnings("unchecked")
-    protected UpgradePipeline<String> createPipeline(String name, List<UpgradeOperation<String>> operations) {
-        return (DefaultUpgradePipelineImpl<String>) applicationContext.getBean(pipelinePrototype, name, operations);
-    }
+	@SuppressWarnings("unchecked")
+	protected UpgradePipeline<String> createPipeline(String name, List<UpgradeOperation<String>> operations) {
+		return (DefaultUpgradePipelineImpl<String>) applicationContext.getBean(pipelinePrototype, name, operations);
+	}
 
 }

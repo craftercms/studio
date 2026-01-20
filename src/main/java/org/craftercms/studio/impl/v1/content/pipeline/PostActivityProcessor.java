@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -27,121 +27,111 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
+import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 
-public class PostActivityProcessor extends BaseContentProcessor implements ApplicationContextAware {
+public class PostActivityProcessor extends BaseContentProcessor {
 
-    public static final String NAME = "PostActivityProcessor";
+	public static final String NAME = "PostActivityProcessor";
 
-    protected AuditServiceInternal auditServiceInternal;
-    protected SiteService siteService;
-    protected ContentService contentService;
-    protected ContentRepository contentRepository;
-    protected ActivityStreamServiceInternal activityStreamServiceInternal;
-    protected UserServiceInternal userServiceInternal;
-    protected ItemServiceInternal itemServiceInternal;
-    private ApplicationContext applicationContext;
+	protected AuditService auditService;
+	protected SiteService siteService;
+	protected ContentService contentService;
+	protected ContentRepository contentRepository;
+	protected ActivityStreamService activityStreamService;
+	protected UserService userService;
+	protected ItemService itemService;
 
-    /**
-     * default constructor
-     */
-    public PostActivityProcessor() {
-        super(NAME);
-    }
+	/**
+	 * default constructor
+	 */
+	public PostActivityProcessor() {
+		super(NAME);
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public PostActivityProcessor(String name) {
-        super(name);
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public PostActivityProcessor(String name) {
+		super(name);
+	}
 
-    public void process(PipelineContent content, ResultTO result) throws ServiceLayerException, UserNotFoundException {
-        if (result.getCommitId() != null) {
-            String site = content.getProperty(DmConstants.KEY_SITE);
-            boolean skipAuditLogInsert =
-                    ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SKIP_AUDIT_LOG_INSERT));
-            if (!skipAuditLogInsert) {
-                String type = content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
-                String user = content.getProperty(DmConstants.KEY_USER);
-                String activityType = OPERATION_CREATE.equals(type) ? OPERATION_CREATE : OPERATION_UPDATE;
-                String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
-                String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-                boolean isSystemAsset =
-                        ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SYSTEM_ASSET));
-                if (isSystemAsset) {
-                    ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO) result.getItem();
-                    fileName = assetInfoTO.getFileName();
-                }
-                String uri = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR
-                        + fileName;
-                SiteFeed siteFeed = siteService.getSite(site);
-                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-                auditLog.setOperation(activityType);
-                auditLog.setActorId(user);
-                auditLog.setSiteId(siteFeed.getId());
-                auditLog.setPrimaryTargetId(site + ":" + uri);
-                auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-                auditLog.setPrimaryTargetValue(uri);
-                auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site, uri));
-                auditLog.setCommitId(result.getCommitId());
-                auditServiceInternal.insertAuditLog(auditLog);
+	public void process(PipelineContent content, ResultTO result) throws ServiceLayerException, UserNotFoundException {
+		if (result.getCommitId() != null) {
+			String site = content.getProperty(DmConstants.KEY_SITE);
+			boolean skipAuditLogInsert =
+				ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SKIP_AUDIT_LOG_INSERT));
+			if (!skipAuditLogInsert) {
+				String type = content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
+				String user = content.getProperty(DmConstants.KEY_USER);
+				String activityType = OPERATION_CREATE.equals(type) ? OPERATION_CREATE : OPERATION_UPDATE;
+				String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
+				String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
+				boolean isSystemAsset =
+					ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SYSTEM_ASSET));
+				if (isSystemAsset) {
+					ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO) result.getItem();
+					fileName = assetInfoTO.getFileName();
+				}
+				String uri = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR
+					+ fileName;
+				SiteFeed siteFeed = siteService.getSite(site);
+				AuditLog auditLog = createAuditLogEntry();
+				auditLog.setOperation(activityType);
+				auditLog.setActorId(user);
+				auditLog.setSiteId(siteFeed.getId());
+				auditLog.setPrimaryTargetId(site + ":" + uri);
+				auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+				auditLog.setPrimaryTargetValue(uri);
+				auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site, uri));
+				auditLog.setCommitId(result.getCommitId());
+				auditService.insertAuditLog(auditLog);
 
-                User u = userServiceInternal.getUserByIdOrUsername(-1, user);
-                Item item = itemServiceInternal.getItem(site, uri);
-                activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), activityType,
-                        DateUtils.getCurrentTime(), item, null);
-            }
-            applicationContext.publishEvent(new SyncFromRepoEvent(site));
-        }
-    }
+				User u = userService.getUserByIdOrUsername(-1, user);
+				Item item = itemService.getItem(site, uri);
+				activityStreamService.insertActivity(siteFeed.getId(), u.getId(), activityType,
+					DateUtils.getCurrentTime(), item, null);
+			}
+		}
+	}
 
-    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-        this.auditServiceInternal = auditServiceInternal;
-    }
+	public void setAuditService(AuditService auditService) {
+		this.auditService = auditService;
+	}
 
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
+	public void setSiteService(SiteService siteService) {
+		this.siteService = siteService;
+	}
 
-    public void setContentService(ContentService contentService) {
-        this.contentService = contentService;
-    }
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
+	}
 
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
+	public void setContentRepository(ContentRepository contentRepository) {
+		this.contentRepository = contentRepository;
+	}
 
-    public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
-        this.activityStreamServiceInternal = activityStreamServiceInternal;
-    }
+	public void setActivityStreamService(ActivityStreamService activityStreamService) {
+		this.activityStreamService = activityStreamService;
+	}
 
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
 
-    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-        this.itemServiceInternal = itemServiceInternal;
-    }
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
+	}
 
-    @Override
-    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 }

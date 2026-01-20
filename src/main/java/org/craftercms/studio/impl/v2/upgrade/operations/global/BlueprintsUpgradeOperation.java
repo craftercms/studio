@@ -60,112 +60,110 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that syncs the blueprints in the
  * global repository from the bootstrap repo.
+ *
  * @author joseross
  */
 public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
 
-    private static final Logger logger = LoggerFactory.getLogger(BlueprintsUpgradeOperation.class);
+	private static final Logger logger = LoggerFactory.getLogger(BlueprintsUpgradeOperation.class);
 
-    private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
+	private static final String STUDIO_MANIFEST_LOCATION = "/META-INF/MANIFEST.MF";
 
-    protected GeneralLockService generalLockService;
-    protected GitRepositoryHelper gitRepositoryHelper;
-    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+	protected GeneralLockService generalLockService;
+	protected GitRepositoryHelper gitRepositoryHelper;
+	protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
-    @ConstructorProperties({"studioConfiguration", "generalLockService", "gitRepositoryHelper",
-            "retryingRepositoryOperationFacade"})
-    public BlueprintsUpgradeOperation(StudioConfiguration studioConfiguration,
-                                      GeneralLockService generalLockService,
-                                      GitRepositoryHelper gitRepositoryHelper,
-                                      RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
-        super(studioConfiguration);
-        this.generalLockService = generalLockService;
-        this.gitRepositoryHelper = gitRepositoryHelper;
-        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
-    }
+	@ConstructorProperties({"studioConfiguration", "generalLockService", "gitRepositoryHelper",
+		"retryingRepositoryOperationFacade"})
+	public BlueprintsUpgradeOperation(StudioConfiguration studioConfiguration,
+					  GeneralLockService generalLockService,
+					  GitRepositoryHelper gitRepositoryHelper,
+					  RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+		super(studioConfiguration);
+		this.generalLockService = generalLockService;
+		this.gitRepositoryHelper = gitRepositoryHelper;
+		this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+	}
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
+	@SuppressWarnings("unused")
+	public void setGeneralLockService(GeneralLockService generalLockService) {
+		this.generalLockService = generalLockService;
+	}
 
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
+	@Override
+	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
+		var site = context.getTarget();
+		String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+		generalLockService.lock(gitLockKey);
+		try {
+			Path globalConfigPath = gitRepositoryHelper.buildGlobalRepoPath();
+			Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
+				studioConfiguration.getProperty(BLUE_PRINTS_PATH));
 
-    @Override
-    public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        var site = context.getTarget();
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
-        generalLockService.lock(gitLockKey);
-        try {
-            Path globalConfigPath = gitRepositoryHelper.buildRepoPath(GitRepositories.GLOBAL);
-            Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
-                studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+			String studioManifestLocation = servletContext.getRealPath(STUDIO_MANIFEST_LOCATION);
+			String blueprintsManifestLocation =
+				Paths.get(blueprintsPath.toAbsolutePath().toString(), "BLUEPRINTS.MF").toAbsolutePath().toString();
+			boolean blueprintManifestExists = Files.exists(Paths.get(blueprintsManifestLocation));
+			InputStream studioManifestStream = FileUtils.openInputStream(new File(studioManifestLocation));
+			Manifest studioManifest = new Manifest(studioManifestStream);
+			VersionInfo studioVersion = VersionInfo.getVersion(studioManifest);
+			InputStream blueprintsManifestStream = null;
+			Manifest blueprintsManifest = null;
+			VersionInfo blueprintsVersion = null;
+			if (blueprintManifestExists) {
+				blueprintsManifestStream = FileUtils.openInputStream(new File(blueprintsManifestLocation));
+				blueprintsManifest = new Manifest(blueprintsManifestStream);
+				blueprintsVersion = VersionInfo.getVersion(blueprintsManifest);
+			}
 
-            String studioManifestLocation = servletContext.getRealPath(STUDIO_MANIFEST_LOCATION);
-            String blueprintsManifestLocation =
-                Paths.get(blueprintsPath.toAbsolutePath().toString(), "BLUEPRINTS.MF").toAbsolutePath().toString();
-            boolean blueprintManifestExists = Files.exists(Paths.get(blueprintsManifestLocation));
-            InputStream studioManifestStream = FileUtils.openInputStream(new File(studioManifestLocation));
-            Manifest studioManifest = new Manifest(studioManifestStream);
-            VersionInfo studioVersion = VersionInfo.getVersion(studioManifest);
-            InputStream blueprintsManifestStream = null;
-            Manifest blueprintsManifest = null;
-            VersionInfo blueprintsVersion = null;
-            if (blueprintManifestExists) {
-                blueprintsManifestStream = FileUtils.openInputStream(new File(blueprintsManifestLocation));
-                blueprintsManifest = new Manifest(blueprintsManifestStream);
-                blueprintsVersion = VersionInfo.getVersion(blueprintsManifest);
-            }
+			if (!blueprintManifestExists || !StringUtils.equals(studioVersion.getPackageBuild(),
+				blueprintsVersion.getPackageBuild())
+				|| (StringUtils.equals(studioVersion.getPackageBuild(), blueprintsVersion.getPackageBuild()) &&
+				!StringUtils.equals(studioVersion.getPackageBuildDate(), blueprintsVersion.getPackageBuildDate()))) {
+				String bootstrapBlueprintsFolderPath =
+					servletContext.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH +
+						FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR +
+						studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+				File bootstrapBlueprintsFolder = new File(bootstrapBlueprintsFolderPath);
+				File[] blueprintFolders = bootstrapBlueprintsFolder.listFiles(File::isDirectory);
+				for (File blueprintFolder : blueprintFolders) {
+					String blueprintName = blueprintFolder.getName();
+					FileUtils.deleteDirectory(
+						Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName).toFile());
+					TreeCopier tc = new TreeCopier(Paths.get(blueprintFolder.getAbsolutePath()),
+						Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName));
+					EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+					Files.walkFileTree(Paths.get(blueprintFolder.getAbsolutePath()), opts, Integer.MAX_VALUE, tc);
+				}
 
-            if (!blueprintManifestExists || !StringUtils.equals(studioVersion.getPackageBuild(),
-                blueprintsVersion.getPackageBuild())
-                || (StringUtils.equals(studioVersion.getPackageBuild(), blueprintsVersion.getPackageBuild()) &&
-                !StringUtils.equals(studioVersion.getPackageBuildDate(), blueprintsVersion.getPackageBuildDate()))) {
-                String bootstrapBlueprintsFolderPath =
-                    servletContext.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH +
-                        FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH + FILE_SEPARATOR +
-                        studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-                File bootstrapBlueprintsFolder = new File(bootstrapBlueprintsFolderPath);
-                File[] blueprintFolders = bootstrapBlueprintsFolder.listFiles(File::isDirectory);
-                for (File blueprintFolder : blueprintFolders) {
-                    String blueprintName = blueprintFolder.getName();
-                    FileUtils.deleteDirectory(
-                        Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName).toFile());
-                    TreeCopier tc = new TreeCopier(Paths.get(blueprintFolder.getAbsolutePath()),
-                        Paths.get(blueprintsPath.toAbsolutePath().toString(), blueprintName));
-                    EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-                    Files.walkFileTree(Paths.get(blueprintFolder.getAbsolutePath()), opts, Integer.MAX_VALUE, tc);
-                }
+				FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
+					Paths.get(globalConfigPath.toAbsolutePath().toString(),
+						studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
+			}
 
-                FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
-                    Paths.get(globalConfigPath.toAbsolutePath().toString(),
-                        studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
-            }
+			Repository globalRepo = gitRepositoryHelper.getRepository(site, GitRepositories.GLOBAL);
+			try (Git git = new Git(globalRepo)) {
+				StatusCommand statusCommand = git.status();
+				Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
-            Repository globalRepo = gitRepositoryHelper.getRepository(site, GitRepositories.GLOBAL);
-            try (Git git = new Git(globalRepo)) {
-                StatusCommand statusCommand = git.status();
-                Status status = retryingRepositoryOperationFacade.call(statusCommand);
-
-                if (status.hasUncommittedChanges() || !status.isClean()) {
-                    // Commit everything
-                    // TODO: Consider what to do with the commitId in the future
-                    AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
-                    retryingRepositoryOperationFacade.call(addCommand);
-                    CommitCommand commitCommand = git.commit()
-                            .setAll(true)
-                            .setMessage(studioConfiguration.getProperty(REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE));
-                    retryingRepositoryOperationFacade.call(commitCommand);
-                }
-            } catch (GitAPIException e) {
-                logger.error("Failed to create the initial commit for the global repository", e);
-            }
-        } catch (Exception e) {
-            throw new UpgradeException("Failed to upgrade the blueprints in the global repository", e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
-    }
+				if (status.hasUncommittedChanges() || !status.isClean()) {
+					// Commit everything
+					// TODO: Consider what to do with the commitId in the future
+					AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
+					retryingRepositoryOperationFacade.call(addCommand);
+					CommitCommand commitCommand = git.commit()
+						.setAll(true)
+						.setMessage(studioConfiguration.getProperty(REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE));
+					retryingRepositoryOperationFacade.call(commitCommand);
+				}
+			} catch (GitAPIException e) {
+				logger.error("Failed to create the initial commit for the global repository", e);
+			}
+		} catch (Exception e) {
+			throw new UpgradeException("Failed to upgrade the blueprints in the global repository", e);
+		} finally {
+			generalLockService.unlock(gitLockKey);
+		}
+	}
 
 }

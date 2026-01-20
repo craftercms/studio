@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+<!-- permission-mappings-config.xml
+
+  This files contains the permissions mappings for the roles defined in
+  role-mappings-config.xml.
+
+  Permissions are defined per:
+  site > role > rule
+
+  Rules have a regex expression that govern the scope of the permissions assigned.
+
+  Absence of permissions means the permission is denied.
+
+  View the sample for a good starting point.
+-->
+<permissions>
+    <role name="author">
+        <rule regex="/site/website/.*|/site/components(/.*)?|/static-assets(/.*)?">
+            <allowed-permissions>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
+                <permission>content_copy</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>s3_read</permission>
+                <permission>s3_write</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
+                <permission>content_search</permission>
+                <permission>read_configuration</permission>
+                <permission>publish_get_queue</permission>
+                <permission>publish_cancel</permission>
+                <permission>publish_request</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="publisher">
+        <rule regex="/site/.*|/static-assets.*">
+            <allowed-permissions>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
+                <permission>content_copy</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="^/site/(?!website/index\.xml)(.*)|/static-assets.*">
+            <allowed-permissions>
+                <permission>content_delete</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>s3_read</permission>
+                <permission>s3_write</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
+                <permission>content_search</permission>
+                <permission>read_configuration</permission>
+                <permission>publish_get_queue</permission>
+                <permission>publish_cancel</permission>
+                <permission>publish_request</permission>
+                <permission>publish_approve</permission>
+                <permission>publish_reject</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="developer">
+        <rule regex="^/(?!site/website/index\.xml)(.*)">
+            <allowed-permissions>
+                <permission>content_delete</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_write</permission>
+                <permission>publish_cancel</permission>
+                <permission>folder_create</permission>
+                <permission>content_create</permission>
+                <permission>change_content_type</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>remove_remote</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
+                <permission>content_copy</permission>
+                <permission>s3_read</permission>
+                <permission>s3_write</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
+                <permission>install_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>remove_plugins</permission>
+                <permission>content_read</permission>
+                <permission>content_search</permission>
+                <permission>view_logs</permission>
+                <permission>audit_log</permission>
+                <permission>read_configuration</permission>
+                <permission>write_configuration</permission>
+                <permission>set_item_states</permission>
+                <permission>publish_get_queue</permission>
+                <permission>publish_request</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="admin">
+        <rule regex="^/(?!site/website/index\.xml)(.*)">
+            <allowed-permissions>
+                <permission>content_delete</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_write</permission>
+                <permission>publish_cancel</permission>
+                <permission>folder_create</permission>
+                <permission>content_create</permission>
+                <permission>change_content_type</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>remove_remote</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
+                <permission>unlock_repository</permission>
+                <permission>content_copy</permission>
+                <permission>repair_repository</permission>
+                <permission>s3_read</permission>
+                <permission>s3_write</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
+                <permission>edit_site</permission>
+                <permission>list_plugins</permission>
+                <permission>install_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>item_unlock</permission>
+                <permission>remove_plugins</permission>
+                <permission>content_read</permission>
+                <permission>content_search</permission>
+                <permission>view_logs</permission>
+                <permission>start_stop_publisher</permission>
+                <permission>read_configuration</permission>
+                <permission>write_configuration</permission>
+                <permission>set_item_states</permission>
+                <permission>publish_get_queue</permission>
+                <permission>publish_request</permission>
+                <permission>publish_approve</permission>
+                <permission>publish_reject</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="reviewer">
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>s3_read</permission>
+                <permission>webdav_read</permission>
+                <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
+                <permission>content_search</permission>
+                <permission>read_configuration</permission>
+                <permission>publish_get_queue</permission>
+                <permission>publish_approve</permission>
+                <permission>publish_reject</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="*">
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>s3_read</permission>
+                <permission>webdav_read</permission>
+                <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>content_read</permission>
+                <permission>content_search</permission>
+                <permission>publish_get_queue</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="testing">
+        <rule regex="/site/website/.*">
+            <allowed-permissions>
+                <permission>content_write</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_search</permission>
+                <permission>read_configuration</permission>
+                <permission>publish_get_queue</permission>
+                <permission>publish_cancel</permission>
+                <permission>publish_request</permission>
+                <permission>publish_approve</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="testing2">
+        <rule regex="/site/website/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_delete</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_search</permission>
+                <permission>read_configuration</permission>
+                <permission>publish_get_queue</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="testing3">
+        <rule regex="/static-assets/images/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_delete</permission>
+                <permission>content_write</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>publish_cancel</permission>
+                <permission>publish_get_queue</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="testing4">
+        <rule regex="/static-assets/images/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_delete</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>publish_cancel</permission>
+                <permission>publish_get_queue</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+</permissions>

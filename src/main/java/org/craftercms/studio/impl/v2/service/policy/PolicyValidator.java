@@ -27,13 +27,13 @@ import org.craftercms.studio.model.policy.ValidationResult;
  */
 public interface PolicyValidator {
 
-    /**
-     * Performs the validation of an action
-     *
-     * @param permittedConfig the permitted policy configuration
-     * @param deniedConfig the denied policy configuration
-     * @param action the action to validate
-     * @param result result of the validation. Implementing methods should update status accordingly
-     */
-    void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result);
+	/**
+	 * Performs the validation of an action
+	 *
+	 * @param permittedConfig the permitted policy configuration
+	 * @param deniedConfig    the denied policy configuration
+	 * @param action          the action to validate
+	 * @param result          result of the validation. Implementing methods should update status accordingly
+	 */
+	void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result);
 }

@@ -17,8 +17,9 @@ package org.craftercms.studio.model.rest.sites;
 
 import org.craftercms.studio.model.policy.Action;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+
 import java.util.List;
 
 /**
@@ -29,18 +30,18 @@ import java.util.List;
  */
 public class ValidatePolicyRequest {
 
-    /**
-     * List of actions to validate
-     */
-    @NotEmpty
-    protected List<@Valid Action> actions;
+	/**
+	 * List of actions to validate
+	 */
+	@NotEmpty
+	protected List<@Valid Action> actions;
 
-    public List<Action> getActions() {
-        return actions;
-    }
+	public List<Action> getActions() {
+		return actions;
+	}
 
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
-    }
+	public void setActions(List<Action> actions) {
+		this.actions = actions;
+	}
 
 }

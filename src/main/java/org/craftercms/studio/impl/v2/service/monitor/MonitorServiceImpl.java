@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.monitor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v2.service.monitor.MonitorService;
+import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -32,16 +33,21 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class MonitorServiceImpl implements MonitorService {
 
-    protected final MonitorService monitorServiceInternal;
+	protected final MonitorService monitorServiceInternal;
 
-    @ConstructorProperties({"monitorServiceInternal"})
-    public MonitorServiceImpl(final MonitorService monitorServiceInternal) {
-        this.monitorServiceInternal = monitorServiceInternal;
-    }
+	@ConstructorProperties({"monitorServiceInternal"})
+	public MonitorServiceImpl(final MonitorService monitorServiceInternal) {
+		this.monitorServiceInternal = monitorServiceInternal;
+	}
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_VIEW_LOGS, acceptManagementToken = true)
-    public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
-        return monitorServiceInternal.getLogEvents(siteId, since);
-    }
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_VIEW_LOGS, acceptManagementToken = true)
+	public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
+		return monitorServiceInternal.getLogEvents(siteId, since);
+	}
+
+	@Override
+	public DiskStatus getDiskUsage() {
+		return monitorServiceInternal.getDiskUsage();
+	}
 }

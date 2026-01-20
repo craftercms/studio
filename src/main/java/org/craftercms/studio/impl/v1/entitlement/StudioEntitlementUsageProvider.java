@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,17 +16,17 @@
 
 package org.craftercms.studio.impl.v1.entitlement;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.craftercms.commons.entitlements.exception.UnsupportedEntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.usage.EntitlementUsageProvider;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.security.UserService;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.craftercms.commons.entitlements.model.Module.STUDIO;
 
@@ -37,80 +37,64 @@ import static org.craftercms.commons.entitlements.model.Module.STUDIO;
  */
 public class StudioEntitlementUsageProvider implements EntitlementUsageProvider {
 
-    /**
-     * Current instance of {@link SiteService}.
-     */
-    protected SiteService siteService;
-    protected UserServiceInternal userServiceInternal;
-    protected ItemServiceInternal itemServiceInternal;
+	/**
+	 * Current instance of {@link SiteService}.
+	 */
+	protected SiteService siteService;
+	protected UserService userService;
+	protected ItemService itemService;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Module getModule() {
-        return STUDIO;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Module getModule() {
+		return STUDIO;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<EntitlementType> getSupportedEntitlements() {
-        return Arrays.asList(EntitlementType.SITE, EntitlementType.USER, EntitlementType.ITEM);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public List<EntitlementType> getSupportedEntitlements() {
+		return Arrays.asList(EntitlementType.SITE, EntitlementType.USER, EntitlementType.ITEM);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public int doGetEntitlementUsage(final EntitlementType type) throws UnsupportedEntitlementException,
-        ServiceLayerException {
-        switch (type) {
-            case SITE:
-                return countSites();
-            case USER:
-                return countUsers();
-            case ITEM:
-                return countItems();
-            default:
-                throw new UnsupportedEntitlementException(STUDIO, type);
-        }
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int doGetEntitlementUsage(final EntitlementType type) throws UnsupportedEntitlementException,
+		ServiceLayerException {
+		return switch (type) {
+			case SITE -> countSites();
+			case USER -> countUsers();
+			case ITEM -> countItems();
+			default -> throw new UnsupportedEntitlementException(STUDIO, type);
+		};
+	}
 
-    protected int countSites() {
-        return siteService.countSites();
-    }
+	protected int countSites() {
+		return siteService.countSites();
+	}
 
-    protected int countUsers() throws ServiceLayerException {
-        return userServiceInternal.getAllUsersTotal(null);
-    }
+	protected int countUsers() throws ServiceLayerException {
+		return userService.getAllUsersTotal(null);
+	}
 
-    protected int countItems() {
-        return itemServiceInternal.countAllContentItems();
-    }
+	protected int countItems() {
+		return itemService.countAllContentItems();
+	}
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
+	public void setSiteService(SiteService siteService) {
+		this.siteService = siteService;
+	}
 
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
+	public void setUserService(UserService userService) {
+		this.userService = userService;
+	}
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
-    }
-
-    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-        this.itemServiceInternal = itemServiceInternal;
-    }
+	public void setItemService(ItemService itemService) {
+		this.itemService = itemService;
+	}
 }

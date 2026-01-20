@@ -29,17 +29,17 @@ def paramsList = []
 // site_id
 
 if (StringUtils.isEmpty(site)) {
-    site = params.site
+	site = params.site
 }
 
 if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
+	response.setStatus(400)
+	result.message = "Invalid parameter(s): " + paramsList
 } else {
-    def context = ContentServices.createContext(applicationContext, request)
+	def context = ContentServices.createContext(applicationContext, request)
 
-    result.contentStream = ContentServices.getContentAtPath(context, site, path)
-    result.contentPath = path
+	result.contentStream = ContentServices.getContentAtPath(context, site, path)
+	result.contentPath = path
 
 }
 return result

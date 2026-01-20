@@ -25,54 +25,54 @@ import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
  */
 public class MediaConvertProfile extends AbstractAwsProfile {
 
-    /**
-     * ARN of the AWS Role used to create the transcoding jobs.
-     */
-    protected String role;
-    /**
-     * ARN of the Queue used to create the trancoding jobs.
-     */
-    protected String queue;
-    /**
-     * Name of the job template to use.
-     */
-    protected String template;
+	/**
+	 * ARN of the AWS Role used to create the transcoding jobs.
+	 */
+	protected String role;
+	/**
+	 * ARN of the Queue used to create the trancoding jobs.
+	 */
+	protected String queue;
+	/**
+	 * Name of the job template to use.
+	 */
+	protected String template;
 
-    /**
-     * S3 URL to upload the files.
-     */
-    protected String inputPath;
+	/**
+	 * S3 URL to upload the files.
+	 */
+	protected String inputPath;
 
-    public String getRole() {
-        return role;
-    }
+	public String getRole() {
+		return role;
+	}
 
-    public void setRole(final String role) {
-        this.role = role;
-    }
+	public void setRole(final String role) {
+		this.role = role;
+	}
 
-    public String getQueue() {
-        return queue;
-    }
+	public String getQueue() {
+		return queue;
+	}
 
-    public void setQueue(final String queue) {
-        this.queue = queue;
-    }
+	public void setQueue(final String queue) {
+		this.queue = queue;
+	}
 
-    public String getTemplate() {
-        return template;
-    }
+	public String getTemplate() {
+		return template;
+	}
 
-    public void setTemplate(final String template) {
-        this.template = template;
-    }
+	public void setTemplate(final String template) {
+		this.template = template;
+	}
 
-    public String getInputPath() {
-        return inputPath;
-    }
+	public String getInputPath() {
+		return inputPath;
+	}
 
-    public void setInputPath(final String inputPath) {
-        this.inputPath = inputPath;
-    }
+	public void setInputPath(final String inputPath) {
+		this.inputPath = inputPath;
+	}
 
 }

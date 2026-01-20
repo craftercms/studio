@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,53 +16,64 @@
 
 package org.craftercms.studio.model.rest.content;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
-import javax.validation.constraints.NotEmpty;
-import java.util.List;
+import java.util.Set;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+import static org.craftercms.studio.api.v2.service.publish.PublishService.PACKAGE_COMMENT_MAX_LENGTH;
+import static org.craftercms.studio.api.v2.service.publish.PublishService.PACKAGE_TITLE_MAX_LENGTH;
 
+/**
+ * Request body for deleting content items.
+ */
 public class DeleteRequestBody {
 
-    @EsapiValidatedParam(type = SITE_ID)
-    private String siteId;
-    @NotEmpty
-    private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> items;
-    private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> optionalDependencies;
-    private String comment;
+	@EsapiValidatedParam(type = SITE_ID)
+	private String siteId;
+	@NotEmpty
+	private Set<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> items;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	// title and comment are used to create a publish package for the delete
+	@NotEmpty
+	@Size(max = PACKAGE_TITLE_MAX_LENGTH)
+	private String title;
+	@Size(max = PACKAGE_COMMENT_MAX_LENGTH)
+	private String comment;
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public List<String> getItems() {
-        return items;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public void setItems(List<String> items) {
-        this.items = items;
-    }
+	public Set<String> getItems() {
+		return items;
+	}
 
-    public List<String> getOptionalDependencies() {
-        return optionalDependencies;
-    }
+	public void setItems(Set<String> items) {
+		this.items = items;
+	}
 
-    public void setOptionalDependencies(List<String> optionalDependencies) {
-        this.optionalDependencies = optionalDependencies;
-    }
+	public String getTitle() {
+		return title;
+	}
 
-    public String getComment() {
-        return comment;
-    }
+	public void setTitle(final String title) {
+		this.title = title;
+	}
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
 }

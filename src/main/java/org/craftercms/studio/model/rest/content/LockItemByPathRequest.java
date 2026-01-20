@@ -19,30 +19,30 @@ package org.craftercms.studio.model.rest.content;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 public class LockItemByPathRequest {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
-    @ValidExistingContentPath
-    private String path;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	@NotEmpty
+	@ValidExistingContentPath
+	private String path;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPaths(String path) {
-        this.path = path;
-    }
+	public void setPaths(String path) {
+		this.path = path;
+	}
 }

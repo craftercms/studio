@@ -22,11 +22,10 @@ import java.util.Map;
 
 public interface ContentItemIdGenerator {
 
-    /**
-     * Return unique ids required by content
-     *
-     * @return pair of id and value
-     *
-     */
-    public Map<String,String> getIds() throws ServiceLayerException;
+	/**
+	 * Return unique ids required by content
+	 *
+	 * @return pair of id and value
+	 */
+	public Map<String, String> getIds() throws ServiceLayerException;
 }

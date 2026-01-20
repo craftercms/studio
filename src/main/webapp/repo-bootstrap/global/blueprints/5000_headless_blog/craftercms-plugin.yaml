@@ -5,52 +5,52 @@ descriptorVersion: 2
 
 # Describe the plugin
 plugin:
-  type: blueprint
-  id: org.craftercms.blueprint.headless_blog
-  name: Headless Blog Blueprint
-  tags:
-    - blueprint
-    - website
-    - headless
-    - blog
-  version:
-    major: 1
-    minor: 0
-    patch: 0
-  description: |
-    Headless blog blueprint
-  website:
+    type: blueprint
+    id: org.craftercms.blueprint.headless_blog
     name: Headless Blog Blueprint
-    url: https://craftercms.org
-  media:
-    screenshots:
-      - title: Author
-        description: Screenshot of the author item
-        url: /studio/static-assets/images/blueprints/headless_blog/bp_blog_author.png
-      - title: Post
-        description: Screenshot of the post item
-        url: /studio/static-assets/images/blueprints/headless_blog/bp_blog_post.png
-  developer:
-    company:
-      name: CrafterCMS
-      email: info@craftercms.com
-      url: https://craftercms.com/
-  license:
-      name: MIT
-      url: https://opensource.org/licenses/MIT
-  crafterCmsVersions:
-    - major: 4
-      minor: 0
-      patch: 0
-    - major: 4
-      minor: 0
-      patch: 1
-    - major: 4
-      minor: 0
-      patch: 2
-    - major: 4
-      minor: 0
-      patch: 3
-  crafterCmsEditions:
-    - community
-    - enterprise
+    tags:
+        - blueprint
+        - website
+        - headless
+        - blog
+    version:
+        major: 1
+        minor: 0
+        patch: 0
+    description: |
+        Headless blog blueprint
+    website:
+        name: Headless Blog Blueprint
+        url: https://craftercms.com
+    media:
+        screenshots:
+            -   title: Author
+                description: Screenshot of the author item
+                url: /studio/static-assets/images/blueprints/headless_blog/bp_blog_author.png
+            -   title: Post
+                description: Screenshot of the post item
+                url: /studio/static-assets/images/blueprints/headless_blog/bp_blog_post.png
+    developer:
+        company:
+            name: CrafterCMS
+            email: info@craftercms.com
+            url: https://craftercms.com/
+    license:
+        name: MIT
+        url: https://opensource.org/licenses/MIT
+    crafterCmsVersions:
+        -   major: 4
+            minor: 0
+            patch: 0
+        -   major: 4
+            minor: 0
+            patch: 1
+        -   major: 4
+            minor: 0
+            patch: 2
+        -   major: 4
+            minor: 0
+            patch: 3
+    crafterCmsEditions:
+        - community
+        - enterprise

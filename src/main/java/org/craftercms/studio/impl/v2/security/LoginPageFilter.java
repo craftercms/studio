@@ -18,12 +18,13 @@ package org.craftercms.studio.impl.v2.security;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 
 /**
@@ -33,13 +34,13 @@ import java.io.IOException;
  */
 
 public class LoginPageFilter extends GenericFilterBean {
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        if (SecurityContextHolder.getContext().getAuthentication() != null
-              && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
-              && ((HttpServletRequest) request).getRequestURI().equals("/studio/login")) {
-            ((HttpServletResponse)response).sendRedirect("/studio");
-        }
-        chain.doFilter(request, response);
-    }
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		if (SecurityContextHolder.getContext().getAuthentication() != null
+			&& SecurityContextHolder.getContext().getAuthentication().isAuthenticated()
+			&& ((HttpServletRequest) request).getRequestURI().equals("/studio/login")) {
+			((HttpServletResponse) response).sendRedirect("/studio");
+		}
+		chain.doFilter(request, response);
+	}
 }

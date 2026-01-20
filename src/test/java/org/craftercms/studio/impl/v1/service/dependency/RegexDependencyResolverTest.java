@@ -48,86 +48,86 @@ import static org.testng.Assert.*;
  */
 public class RegexDependencyResolverTest {
 
-    public static final String SITE_ID = "mySite";
+	public static final String SITE_ID = "mySite";
 
-    public static final String FORM_DEFINITION_PATH = "/config/studio/content-types/page/test/form-definition.xml";
+	public static final String FORM_DEFINITION_PATH = "/config/studio/content-types/page/test/form-definition.xml";
 
-    public static final String PAGE_A_PATH = "/config/studio/content-types/page/a/form-definition.xml";
+	public static final String PAGE_A_PATH = "/config/studio/content-types/page/a/form-definition.xml";
 
-    public static final String COMPONENT_A_PATH = "/config/studio/content-types/component/a/form-definition.xml";
+	public static final String COMPONENT_A_PATH = "/config/studio/content-types/component/a/form-definition.xml";
 
-    public static final String COMPONENT_B_PATH = "/config/studio/content-types/component/b/form-definition.xml";
+	public static final String COMPONENT_B_PATH = "/config/studio/content-types/component/b/form-definition.xml";
 
-    public static final Resource CONFIG_CONTENT = new ClassPathResource("crafter/studio/config/dependency/config.xml");
+	public static final Resource CONFIG_CONTENT = new ClassPathResource("crafter/studio/config/dependency/config.xml");
 
-    public static final Resource FORM_CONTENT = new ClassPathResource("crafter/studio/config/dependency/form-definition.xml");
+	public static final Resource FORM_CONTENT = new ClassPathResource("crafter/studio/config/dependency/form-definition.xml");
 
-    public static final String SITE_CONFIG_FILE_NAME = "dependency/resolver-config.xml";
+	public static final String SITE_CONFIG_FILE_NAME = "dependency/resolver-config.xml";
 
-    public static final String CONFIG_BASE_PATH = "/configuration/dependency";
+	public static final String CONFIG_BASE_PATH = "/configuration/dependency";
 
-    public static final String DEFAULT_CONFIG_FILE_NAME = "resolver-config.xml";
+	public static final String DEFAULT_CONFIG_FILE_NAME = "resolver-config.xml";
 
-    @Mock
-    private StudioConfiguration studioConfiguration;
+	@Mock
+	private StudioConfiguration studioConfiguration;
 
-    @Mock
-    private ConfigurationService configurationService;
+	@Mock
+	private ConfigurationService configurationService;
 
-    @Mock
-    private ContentService contentService;
+	@Mock
+	private ContentService contentService;
 
-    @InjectMocks
-    private RegexDependencyResolver dependencyResolver;
+	@InjectMocks
+	private RegexDependencyResolver dependencyResolver;
 
-    @BeforeTest
-    public void setUp() throws IOException, DocumentException, ServiceLayerException {
-        initMocks(this);
+	@BeforeTest
+	public void setUp() throws IOException, DocumentException, ServiceLayerException {
+		initMocks(this);
 
-        when(studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME))
-                .thenReturn(SITE_CONFIG_FILE_NAME);
-        when(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH))
-                .thenReturn(CONFIG_BASE_PATH);
-        when(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME))
-                .thenReturn(DEFAULT_CONFIG_FILE_NAME);
+		when(studioConfiguration.getProperty(CONFIGURATION_SITE_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME))
+			.thenReturn(SITE_CONFIG_FILE_NAME);
+		when(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_BASE_PATH))
+			.thenReturn(CONFIG_BASE_PATH);
+		when(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_DEPENDENCY_RESOLVER_CONFIG_FILE_NAME))
+			.thenReturn(DEFAULT_CONFIG_FILE_NAME);
 
-        try (InputStream is = CONFIG_CONTENT.getInputStream()) {
-            Document doc = DocumentHelper.parseText(IOUtils.toString(is, UTF_8));
+		try (InputStream is = CONFIG_CONTENT.getInputStream()) {
+			Document doc = DocumentHelper.parseText(IOUtils.toString(is, UTF_8));
 
-            when(configurationService.getConfigurationAsDocument(SITE_ID, MODULE_STUDIO, SITE_CONFIG_FILE_NAME, null))
-                    .thenReturn(doc);
-        }
+			when(configurationService.getConfigurationAsDocument(SITE_ID, MODULE_STUDIO, SITE_CONFIG_FILE_NAME, null))
+				.thenReturn(doc);
+		}
 
-        try (InputStream is = FORM_CONTENT.getInputStream()) {
-            String form = IOUtils.toString(is, UTF_8);
+		try (InputStream is = FORM_CONTENT.getInputStream()) {
+			String form = IOUtils.toString(is, UTF_8);
 
-            when(contentService.getContentAsString(SITE_ID, FORM_DEFINITION_PATH)).thenReturn(form);
-        }
+			when(contentService.getContentAsString(SITE_ID, FORM_DEFINITION_PATH)).thenReturn(form);
+		}
 
-        when(contentService.shallowContentExists(SITE_ID, PAGE_A_PATH)).thenReturn(true);
-        when(contentService.shallowContentExists(SITE_ID, COMPONENT_A_PATH)).thenReturn(true);
-        when(contentService.shallowContentExists(SITE_ID, COMPONENT_B_PATH)).thenReturn(true);
+		when(contentService.shallowContentExists(SITE_ID, PAGE_A_PATH)).thenReturn(true);
+		when(contentService.shallowContentExists(SITE_ID, COMPONENT_A_PATH)).thenReturn(true);
+		when(contentService.shallowContentExists(SITE_ID, COMPONENT_B_PATH)).thenReturn(true);
 
-    }
+	}
 
-    @Test
-    public void testDependencyExtraction() {
-        Map<String, Set<ResolvedDependency>> deps = dependencyResolver.resolve(SITE_ID, FORM_DEFINITION_PATH);
+	@Test
+	public void testDependencyExtraction() {
+		Map<String, Set<ResolvedDependency>> deps = dependencyResolver.resolve(SITE_ID, FORM_DEFINITION_PATH);
 
-        assertNotNull(deps);
-        assertFalse(deps.isEmpty());
+		assertNotNull(deps);
+		assertFalse(deps.isEmpty());
 
-        // check that dependencies without transforms continue to work as usual
-        assertTrue(deps.containsKey("direct"));
-        assertEquals(deps.get("direct"), Set.of(new ResolvedDependency(PAGE_A_PATH, true)));
+		// check that dependencies without transforms continue to work as usual
+		assertTrue(deps.containsKey("direct"));
+		assertEquals(deps.get("direct"), Set.of(new ResolvedDependency(PAGE_A_PATH, true)));
 
-        // check that single dependencies continue to work as usual
-        assertTrue(deps.containsKey("single"));
-        assertEquals(deps.get("single"), Set.of(new ResolvedDependency(PAGE_A_PATH, true)));
+		// check that single dependencies continue to work as usual
+		assertTrue(deps.containsKey("single"));
+		assertEquals(deps.get("single"), Set.of(new ResolvedDependency(PAGE_A_PATH, true)));
 
-        // check that new multi-value dependencies work as expected
-        assertTrue(deps.containsKey("multiple"));
-        assertEquals(deps.get("multiple"), Set.of(new ResolvedDependency(COMPONENT_A_PATH, true), new ResolvedDependency(COMPONENT_B_PATH, true)));
-    }
+		// check that new multi-value dependencies work as expected
+		assertTrue(deps.containsKey("multiple"));
+		assertEquals(deps.get("multiple"), Set.of(new ResolvedDependency(COMPONENT_A_PATH, true), new ResolvedDependency(COMPONENT_B_PATH, true)));
+	}
 
 }

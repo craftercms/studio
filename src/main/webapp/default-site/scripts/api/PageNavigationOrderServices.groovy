@@ -19,17 +19,17 @@ import scripts.api.ServiceFactory;
 
 class PageNavigationOrderServices {
 
-    /**
-     * create the context object
-     * @param applicationContext - studio application's contect (spring container etc)
-     * @param request - web request if in web request context
-     */
-    static createContext(applicationContext, request) {
-        return ServiceFactory.createContext(applicationContext, request)
-    }
+	/**
+	 * create the context object
+	 * @param applicationContext - studio application's contect (spring container etc)
+	 * @param request - web request if in web request context
+	 */
+	static createContext(applicationContext, request) {
+		return ServiceFactory.createContext(applicationContext, request)
+	}
 
-    static getNextItemOrder(context, site, path) {
-        def pageNavigationOrderServicesImpl = ServiceFactory.getPageNavigationOrderServices(context);
-        return pageNavigationOrderServicesImpl.getNewNavOrder(site, path);
-    }
+	static getNextItemOrder(context, site, path) {
+		def pageNavigationOrderServicesImpl = ServiceFactory.getPageNavigationOrderServices(context);
+		return pageNavigationOrderServicesImpl.getNewNavOrder(site, path);
+	}
 }

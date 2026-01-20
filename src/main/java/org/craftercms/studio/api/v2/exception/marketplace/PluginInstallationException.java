@@ -24,12 +24,12 @@ package org.craftercms.studio.api.v2.exception.marketplace;
  */
 public class PluginInstallationException extends MarketplaceException {
 
-    public PluginInstallationException(final String message) {
-        super(message);
-    }
+	public PluginInstallationException(final String message) {
+		super(message);
+	}
 
-    public PluginInstallationException(final String message, final Exception e) {
-        super(message, e);
-    }
+	public PluginInstallationException(final String message, final Exception e) {
+		super(message, e);
+	}
 
 }

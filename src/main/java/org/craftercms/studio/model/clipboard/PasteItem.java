@@ -18,8 +18,9 @@ package org.craftercms.studio.model.clipboard;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.ValidNewContentPath;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+
 import java.util.List;
 
 /**
@@ -31,33 +32,33 @@ import java.util.List;
 @JsonIgnoreProperties
 public class PasteItem {
 
-    /**
-     * The path of the item
-     */
-    @NotEmpty
-    @ValidNewContentPath
-    protected String path;
+	/**
+	 * The path of the item
+	 */
+	@NotEmpty
+	@ValidNewContentPath
+	protected String path;
 
-    /**
-     * The list of child items to include
-     */
-    @Valid
-    protected List<PasteItem> children;
+	/**
+	 * The list of child items to include
+	 */
+	@Valid
+	protected List<PasteItem> children;
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public List<PasteItem> getChildren() {
-        return children;
-    }
+	public List<PasteItem> getChildren() {
+		return children;
+	}
 
-    public void setChildren(List<PasteItem> children) {
-        this.children = children;
-    }
+	public void setChildren(List<PasteItem> children) {
+		this.children = children;
+	}
 
 }

@@ -28,35 +28,35 @@ import static org.craftercms.commons.lang.RegexUtils.matchesAny;
 /**
  * Implementation of {@link CacheInvalidator} that only performs the invalidation if the key matches a pattern
  *
- * @author joseross
- * @since 4.0
  * @param <K> the type for the keys
  * @param <V> the type for the values
+ * @author joseross
+ * @since 4.0
  */
 public class ConditionalCacheInvalidator<K extends String, V> implements CacheInvalidator<K, V> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConditionalCacheInvalidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(ConditionalCacheInvalidator.class);
 
-    /**
-     * The list of patterns to match the key
-     */
-    protected List<String> patterns;
+	/**
+	 * The list of patterns to match the key
+	 */
+	protected List<String> patterns;
 
-    protected CacheInvalidator<K, V> actualCacheInvalidator;
+	protected CacheInvalidator<K, V> actualCacheInvalidator;
 
-    @ConstructorProperties({"patterns", "actualCacheInvalidator"})
-    public ConditionalCacheInvalidator(List<String> patterns, CacheInvalidator<K, V> actualCacheInvalidator) {
-        this.patterns = patterns;
-        this.actualCacheInvalidator = actualCacheInvalidator;
-    }
+	@ConstructorProperties({"patterns", "actualCacheInvalidator"})
+	public ConditionalCacheInvalidator(List<String> patterns, CacheInvalidator<K, V> actualCacheInvalidator) {
+		this.patterns = patterns;
+		this.actualCacheInvalidator = actualCacheInvalidator;
+	}
 
-    @Override
-    public void invalidate(Cache<K, V> cache, K key) {
-        logger.debug("Check if the key '{}' matches the patterns '{}'", key, patterns);
-        if (matchesAny(key, patterns)) {
-            logger.debug("Invalidate the cache for key '{}'", key);
-            actualCacheInvalidator.invalidate(cache, key);
-        }
-    }
+	@Override
+	public void invalidate(Cache<K, V> cache, K key) {
+		logger.debug("Check if the key '{}' matches the patterns '{}'", key, patterns);
+		if (matchesAny(key, patterns)) {
+			logger.debug("Invalidate the cache for key '{}'", key);
+			actualCacheInvalidator.invalidate(cache, key);
+		}
+	}
 
 }

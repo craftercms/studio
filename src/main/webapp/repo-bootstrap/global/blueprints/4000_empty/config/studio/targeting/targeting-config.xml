@@ -27,7 +27,7 @@
     the Crafter Engine's session and are made accessible using the Profile APIs.
 
     You can learn more about personalization and targeting here:
-    http://docs.craftercms.org/en/3.0/developers/targeting.html
+    http://craftercms.com/docs/current/by-role/developer/common/targeting.html
 
     <property>
         <name />
@@ -40,12 +40,12 @@
     Please note that valid types are limited to: dropdown, checkboxes, input.
 -->
 <targeting>
-    <property>
-        <name>name</name>
-        <label>Name</label>
-        <description>User's first and last name.</description>
-        <type>input</type> <!-- valid types: dropdown, checkboxes, input -->
-        <default_value>Joe Bloggs</default_value>
-        <hint>Enter user's first and last name.</hint>
-    </property>
+	<property>
+		<name>name</name>
+		<label>Name</label>
+		<description>User's first and last name.</description>
+		<type>input</type> <!-- valid types: dropdown, checkboxes, input -->
+		<default_value>Joe Bloggs</default_value>
+		<hint>Enter user's first and last name.</hint>
+	</property>
 </targeting>

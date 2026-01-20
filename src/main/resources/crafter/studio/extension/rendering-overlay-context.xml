@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -25,276 +25,272 @@
                            http://www.springframework.org/schema/mvc
                            http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-    <!-- STUDIO CHANGES -->
+	<!-- STUDIO CHANGES -->
 
-    <bean id="cacheControl" class="org.craftercms.studio.impl.v2.utils.spring.CacheControlFactory">
-        <constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.cache.assets.enabled')}"/>
-        <constructor-arg name="maxAge" value="#{studioConfiguration.getProperty('studio.cache.assets.maxAge')}"/>
-    </bean>
+	<bean id="cacheControl" class="org.craftercms.studio.impl.v2.utils.spring.CacheControlFactory">
+		<constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.cache.assets.enabled')}"/>
+		<constructor-arg name="maxAge" value="#{studioConfiguration.getProperty('studio.cache.assets.maxAge')}"/>
+	</bean>
 
-    <!-- ESAPI. Override default security configuration -->
-    <!-- Letting spring to create the instance, so it can access Studio Configuration and
-     other spring beans-->
-    <bean class="org.springframework.beans.factory.config.MethodInvokingBean">
-        <property name="targetClass" value="org.craftercms.studio.impl.v2.validation.StudioEsapiSecurityConfiguration"/>
-        <property name="targetMethod" value="setInstance"/>
-        <property name="arguments">
-            <bean class="org.craftercms.studio.impl.v2.validation.StudioEsapiSecurityConfiguration">
-            </bean>
-        </property>
-    </bean>
+	<!-- ESAPI. Override default security configuration -->
+	<!-- Letting spring to create the instance, so it can access Studio Configuration and
+	 other spring beans-->
+	<bean class="org.springframework.beans.factory.config.MethodInvokingBean">
+		<property name="targetClass" value="org.craftercms.studio.impl.v2.validation.StudioEsapiSecurityConfiguration"/>
+		<property name="targetMethod" value="setInstance"/>
+		<property name="arguments">
+			<bean class="org.craftercms.studio.impl.v2.validation.StudioEsapiSecurityConfiguration">
+			</bean>
+		</property>
+	</bean>
 
-    <bean class="org.springframework.beans.factory.config.MethodInvokingBean">
-        <property name="targetClass" value="org.owasp.esapi.ESAPI"/>
-        <property name="targetMethod" value="initialize"/>
-        <property name="arguments">
-            <array>
-                <value>org.craftercms.studio.impl.v2.validation.StudioEsapiSecurityConfiguration</value>
-            </array>
-        </property>
-    </bean>
+	<bean class="org.springframework.beans.factory.config.MethodInvokingBean">
+		<property name="targetClass" value="org.owasp.esapi.ESAPI"/>
+		<property name="targetMethod" value="initialize"/>
+		<property name="arguments">
+			<array>
+				<value>org.craftercms.studio.impl.v2.validation.StudioEsapiSecurityConfiguration</value>
+			</array>
+		</property>
+	</bean>
 
-    <mvc:interceptors>
-        <!-- By adding this interceptor we can keep the list of urls to include etag header and
-         have different cacheControl settings per path/pattern-->
-        <bean class="org.craftercms.studio.impl.v2.utils.spring.WebContentInterceptorFactory">
-            <constructor-arg name="cacheControl" ref="cacheControl"/>
-            <constructor-arg name="cachedPaths"
-                             value="#{studioConfiguration.getProperty('studio.cache.assets.maxAge.includeUrls')}"/>
-            <constructor-arg name="alwaysRevalidatePaths" value="${crafter.engine.header.etag.include.urls}"/>
-        </bean>
-    </mvc:interceptors>
+	<mvc:interceptors>
+		<!-- By adding this interceptor we can keep the list of urls to include etag header and
+		 have different cacheControl settings per path/pattern-->
+		<bean class="org.craftercms.studio.impl.v2.utils.spring.WebContentInterceptorFactory">
+			<constructor-arg name="cacheControl" ref="cacheControl"/>
+			<constructor-arg name="cachedPaths"
+					 value="#{studioConfiguration.getProperty('studio.cache.assets.maxAge.includeUrls')}"/>
+			<constructor-arg name="alwaysRevalidatePaths" value="${crafter.engine.header.etag.include.urls}"/>
+		</bean>
+	</mvc:interceptors>
 
-    <bean id="crafter.staticAssetsRequestHandler" class="org.craftercms.engine.controller.StaticAssetsRequestHandler"
-          init-method="init">
-        <property name="contentStoreService" ref="crafter.contentStoreService"/>
-        <property name="disableCaching" value="${crafter.engine.staticAssets.disableCaching}"/>
-        <property name="cacheControl" ref="cacheControl"/>
-    </bean>
+	<bean id="crafter.staticAssetsRequestHandler" class="org.craftercms.engine.controller.StaticAssetsRequestHandler">
+		<constructor-arg name="contentStoreService" ref="crafter.contentStoreService"/>
+		<constructor-arg name="disableCaching" value="${crafter.engine.staticAssets.disableCaching}"/>
+		<property name="cacheControl" ref="cacheControl"/>
+	</bean>
 
-     <util:map id="crafter.urlMappings">
-        <entry key="/api/1/services/**" value-ref="crafter.restScriptsController"/>
-        <entry key="/static-assets/**" value-ref="crafter.staticAssetsRequestHandler"/>
-        <entry key="/*" value-ref="crafter.pageRenderController"/>
-    </util:map>
+	<util:map id="crafter.urlMappings">
+		<entry key="/api/1/services/**" value-ref="crafter.restScriptsController"/>
+		<entry key="/static-assets/**" value-ref="crafter.staticAssetsRequestHandler"/>
+		<entry key="/*" value-ref="crafter.pageRenderController"/>
+	</util:map>
 
-    <mvc:annotation-driven validator="commonValidator">
-        <mvc:path-matching registered-suffixes-only="true" />
-    </mvc:annotation-driven>
+	<mvc:annotation-driven validator="commonValidator">
+		<mvc:path-matching/>
+	</mvc:annotation-driven>
 
-    <!--
-    This allows to validate params for "in-line annotated methods"
-    e.g.: public ResponseBody clearCache(@ValidSiteId @RequestParam String siteId)
-     -->
-    <bean id="methodValidationPostProcessor" class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor">
-        <property name="validator" ref="commonValidator"/>
-    </bean>
+	<!--
+	This allows to validate params for "in-line annotated methods"
+	e.g.: public Result clearCache(@ValidSiteId @RequestParam String siteId)
+	 -->
+	<bean id="methodValidationPostProcessor" class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor">
+		<property name="validator" ref="commonValidator"/>
+	</bean>
 
-    <!-- ////////////////////////////////////// -->
-    <!--      Controllers                       -->
-    <!-- ////////////////////////////////////// -->
-    <bean id="studioRestExceptionHandlers" class="org.craftercms.studio.controller.rest.v2.ExceptionHandlers"/>
+	<!-- ////////////////////////////////////// -->
+	<!--      Controllers                       -->
+	<!-- ////////////////////////////////////// -->
+	<bean id="studioRestExceptionHandlers" class="org.craftercms.studio.controller.rest.v2.ExceptionHandlers"/>
 
-    <bean id="studioGroupsController" class="org.craftercms.studio.controller.rest.v2.GroupsController">
-        <constructor-arg name="groupService" ref="groupService" />
-    </bean>
+	<bean id="studioGroupsController" class="org.craftercms.studio.controller.rest.v2.GroupsController">
+		<constructor-arg name="groupService" ref="groupService"/>
+	</bean>
 
-    <bean id="studioUsersController" class="org.craftercms.studio.controller.rest.v2.UsersController">
-        <constructor-arg name="userService" ref="userService" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-    </bean>
+	<bean id="studioUsersController" class="org.craftercms.studio.controller.rest.v2.UsersController">
+		<constructor-arg name="userService" ref="userService"/>
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+	</bean>
 
-    <bean id="studioUiController" class="org.craftercms.studio.controller.rest.v2.UiController">
-        <constructor-arg name="uiService" ref="uiService"/>
-    </bean>
+	<bean id="studioUiController" class="org.craftercms.studio.controller.rest.v2.UiController">
+		<constructor-arg name="uiService" ref="uiService"/>
+	</bean>
 
-    <bean id="studioS3Controller" class="org.craftercms.studio.controller.rest.v2.aws.AwsS3Controller"/>
+	<bean id="studioS3Controller" class="org.craftercms.studio.controller.rest.v2.aws.AwsS3Controller"/>
 
-    <bean id="studioMediaConvertController"
-          class="org.craftercms.studio.controller.rest.v2.aws.AwsMediaConvertController"/>
+	<bean id="studioMediaConvertController"
+	      class="org.craftercms.studio.controller.rest.v2.aws.AwsMediaConvertController"/>
 
-    <bean id="studioSitesController" class="org.craftercms.studio.controller.rest.v2.SitesController">
-        <constructor-arg name="sitesService" ref="sitesService" />
-        <constructor-arg name="marketplaceService" ref="marketplaceService"/>
-        <constructor-arg name="policyService" ref="policyService"/>
-    </bean>
+	<bean id="studioSitesController" class="org.craftercms.studio.controller.rest.v2.SitesController">
+		<constructor-arg name="sitesService" ref="sitesService"/>
+		<constructor-arg name="marketplaceService" ref="marketplaceService"/>
+		<constructor-arg name="policyService" ref="policyService"/>
+	</bean>
 
-    <bean id="searchController" class="org.craftercms.studio.controller.rest.v2.SearchController">
-        <constructor-arg name="searchService" ref="searchService"/>
-    </bean>
+	<bean id="searchController" class="org.craftercms.studio.controller.rest.v2.SearchController">
+		<constructor-arg name="searchService" ref="searchService"/>
+	</bean>
 
-    <bean id="auditController" class="org.craftercms.studio.controller.rest.v2.AuditController">
-        <property name="auditService" ref="auditService" />
-    </bean>
+	<bean id="auditController" class="org.craftercms.studio.controller.rest.v2.AuditController">
+		<property name="auditService" ref="auditService"/>
+	</bean>
 
-    <bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="securityService" ref="cstudioSecurityService"/>
-        <constructor-arg name="monitorService" ref="cstudioMonitorService"/>
-    </bean>
+	<bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController">
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+		<constructor-arg name="monitorService" ref="cstudioMonitorService"/>
+	</bean>
 
-    <bean id="cmisController" class="org.craftercms.studio.controller.rest.v2.CmisController">
-    </bean>
+	<bean id="repositoryManagementController"
+	      class="org.craftercms.studio.controller.rest.v2.RepositoryManagementController">
+		<constructor-arg name="repositoryManagementService" ref="repositoryManagementService"/>
+	</bean>
 
-    <bean id="repositoryManagementController"
-          class="org.craftercms.studio.controller.rest.v2.RepositoryManagementController">
-        <constructor-arg name="repositoryManagementService" ref="repositoryManagementService" />
-    </bean>
+	<bean id="configurationController" class="org.craftercms.studio.controller.rest.v2.ConfigurationController">
+		<constructor-arg name="configurationService" ref="configurationService"/>
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+		<constructor-arg name="contentTypeService" ref="contentTypeService"/>
+	</bean>
 
-    <bean id="configurationController" class="org.craftercms.studio.controller.rest.v2.ConfigurationController">
-        <constructor-arg name="configurationService" ref="configurationService"/>
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="contentTypeService" ref="contentTypeService"/>
-    </bean>
+	<bean id="modelController" class="org.craftercms.studio.controller.rest.v2.ModelController">
+		<constructor-arg name="contentTypeService" ref="contentTypeService"/>
+	</bean>
 
-    <bean id="modelController" class="org.craftercms.studio.controller.rest.v2.ModelController">
-        <constructor-arg name="contentTypeService" ref="contentTypeService"/>
-    </bean>
+	<bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
+		<constructor-arg name="contentService" ref="contentService"/>
+		<constructor-arg name="dependencyService" ref="dependencyService"/>
+		<constructor-arg name="clipboardService" ref="clipboardService"/>
+	</bean>
 
-    <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
-        <constructor-arg name="contentService" ref="contentService"/>
-        <constructor-arg name="dependencyService" ref="dependencyService"/>
-        <constructor-arg name="clipboardService" ref="clipboardService"/>
-        <constructor-arg name="workflowService" ref="studio.workflowService" />
-    </bean>
+	<bean id="pluginController" class="org.craftercms.studio.controller.rest.v2.PluginController">
+		<constructor-arg name="scriptingService" ref="scriptingService"/>
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+	</bean>
 
-    <bean id="pluginController" class="org.craftercms.studio.controller.rest.v2.PluginController">
-        <constructor-arg name="scriptingService" ref="scriptingService" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-    </bean>
+	<bean id="dependencyController" class="org.craftercms.studio.controller.rest.v2.DependencyController">
+		<constructor-arg name="dependencyService" ref="dependencyService"/>
+	</bean>
 
-    <bean id="dependencyController" class="org.craftercms.studio.controller.rest.v2.DependencyController" >
-        <constructor-arg name="dependencyService" ref="dependencyService" />
-    </bean>
+	<bean id="marketplaceController" class="org.craftercms.studio.controller.rest.v2.MarketplaceController">
+		<constructor-arg name="marketplaceService" ref="marketplaceService"/>
+	</bean>
 
-    <bean id="marketplaceController" class="org.craftercms.studio.controller.rest.v2.MarketplaceController">
-        <constructor-arg name="marketplaceService" ref="marketplaceService"/>
-    </bean>
+	<bean id="webdavController" class="org.craftercms.studio.controller.rest.v2.WebdavController">
+		<constructor-arg name="webDavService" ref="webDavService"/>
+	</bean>
 
-    <bean id="webdavController" class="org.craftercms.studio.controller.rest.v2.WebdavController">
-        <constructor-arg name="webDavService" ref="webDavService"/>
-    </bean>
+	<bean id="publishController" class="org.craftercms.studio.controller.rest.v2.PublishController">
+		<constructor-arg name="publishService" ref="publishService"/>
+		<constructor-arg name="sitesService" ref="sitesService"/>
+	</bean>
 
-    <bean id="publishController" class="org.craftercms.studio.controller.rest.v2.PublishController">
-        <constructor-arg name="publishService" ref="publishService" />
-        <constructor-arg name="sitesService" ref="sitesService" />
-    </bean>
+	<bean id="securityController" class="org.craftercms.studio.controller.rest.v2.SecurityController">
+		<constructor-arg name="encryptionService" ref="encryptionService"/>
+		<constructor-arg name="accessTokenService" ref="accessTokenService"/>
+	</bean>
 
-    <bean id="securityController" class="org.craftercms.studio.controller.rest.v2.SecurityController">
-        <constructor-arg name="encryptionService" ref="encryptionService"/>
-        <constructor-arg name="accessTokenService" ref="accessTokenService"/>
-    </bean>
+	<bean id="proxyController" class="org.craftercms.studio.controller.rest.v2.ProxyController">
+		<constructor-arg name="proxyService" ref="cstudioProxyService"/>
+	</bean>
 
-    <bean id="proxyController" class="org.craftercms.studio.controller.rest.v2.ProxyController">
-        <constructor-arg name="proxyService" ref="cstudioProxyService"/>
-    </bean>
+	<bean id="dashboardController" class="org.craftercms.studio.controller.rest.v2.DashboardController">
+		<constructor-arg name="dashboardService" ref="dashboardService"/>
+	</bean>
 
-    <bean id="dashboardController" class="org.craftercms.studio.controller.rest.v2.DashboardController">
-        <constructor-arg name="dashboardService" ref="dashboardService" />
-    </bean>
+	<bean id="studio.workflowController" class="org.craftercms.studio.controller.rest.v2.WorkflowController">
+		<constructor-arg name="workflowService" ref="studio.workflowService"/>
+		<constructor-arg name="publishService" ref="publishService"/>
+	</bean>
 
-    <bean id="studio.workflowController" class="org.craftercms.studio.controller.rest.v2.WorkflowController" >
-        <constructor-arg name="workflowService" ref="studio.workflowService" />
-    </bean>
+	<!-- Access Token -->
+	<bean id="accessTokenController" class="org.craftercms.studio.controller.web.AccessTokenController">
+		<constructor-arg name="accessTokenService" ref="accessTokenService"/>
+	</bean>
 
-    <!-- Access Token -->
-    <bean id="accessTokenController" class="org.craftercms.studio.controller.web.AccessTokenController">
-        <constructor-arg name="accessTokenService" ref="accessTokenService"/>
-    </bean>
+	<!-- Plugins -->
+	<bean class="org.craftercms.studio.controller.web.v1.PluginController">
+		<constructor-arg name="configurationService" ref="configurationService"/>
+	</bean>
 
-    <!-- Plugins -->
-    <bean class="org.craftercms.studio.controller.web.v1.PluginController">
-        <constructor-arg name="configurationService" ref="configurationService"/>
-    </bean>
+	<bean id="loggersController" class="org.craftercms.studio.controller.rest.v2.LoggerController">
+		<constructor-arg name="logService" ref="loggerService"/>
+	</bean>
 
-    <bean id="loggersController" class="org.craftercms.studio.controller.rest.v2.LoggerController">
-        <constructor-arg name="logService" ref="loggerService"/>
-    </bean>
+	<bean id="systemController" class="org.craftercms.studio.controller.rest.v2.SystemController">
+		<constructor-arg name="systemPropertiesService" ref="systemPropertiesService"/>
+	</bean>
 
-    <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
-        <property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
-    </bean>
+	<bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">
+		<property name="disableCaching" value="${crafter.core.rest.views.json.disableCaching}"/>
+	</bean>
 
-    <bean id="crafter.mainViewResolver" class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
-        <property name="order" value="0" />
-        <property name="contentNegotiationManager">
-            <bean class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
-                <property name="favorPathExtension" value="true"/>
-                <!-- We ignore accept header since most of the time views that can't be resolved will be resolved as application/xml -->
-                <property name="ignoreAcceptHeader" value="true" />
-                <property name="defaultContentType" value="text/html" />
-                <property name="mediaTypes">
-                    <map>
-                        <entry key="${crafter.engine.page.url.extension}" value="text/html" />
-                        <entry key="xml" value="application/xml" />
-                        <entry key="json" value="application/json" />
-                        <entry key="bin" value="image/png" />
-                    </map>
-                </property>
-            </bean>
-        </property>
-        <property name="viewResolvers">
-            <list>
-                <bean class="org.craftercms.engine.view.CrafterPageViewResolver">
-                    <property name="cacheUrlTransformations" value="${crafter.engine.page.view.resolver.url.transformation.cache}"/>
-                    <property name="renderUrlToStoreUrlTransformerName" value="renderUrlToTargetedStoreUrl" />
-                    <property name="storeUrlToRenderUrlTransformerName" value="storeUrlToRenderUrl" />
-                    <property name="toFullHttpsUrlTransformerName" value="toFullHttpsUrl" />
-                    <property name="urlTransformationService" ref="crafter.urlTransformationService" />
-                    <property name="cacheTemplate" ref="crafter.cacheTemplate" />
-                    <property name="siteItemService" ref="crafter.siteItemService" />
-                    <property name="pageViewNameXPathQuery" value="${crafter.engine.page.view.name.xpathQuery}" />
-                    <property name="redirectUrlXPathQuery" value="${crafter.engine.page.redirect.xpathQuery}" />
-                    <property name="contentTypeXPathQuery" value="${crafter.engine.page.contentType.xpathQuery}" />
-                    <property name="redirectContentType" value="${crafter.engine.page.redirect.contentType}" />
-                    <property name="disabledXPathQuery" value="${crafter.engine.page.disabled.xpathQuery}" />
-                    <property name="mimeTypeXPathQuery" value="${crafter.engine.page.mimeType.xpathQuery}" />
-                    <property name="forceHttpsXPathQuery" value="${crafter.engine.page.forceHttps.xpathQuery}" />
-                    <property name="delegatedViewResolver" ref="crafter.freeMarkerViewResolver" />
-                    <property name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector" />
-                    <property name="accessManager" ref="crafter.pageAccessManager"/>
-                    <property name="scriptResolver" ref="crafter.pageScriptResolver"/>
+	<bean id="crafter.mainViewResolver" class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+		<property name="order" value="0"/>
+		<property name="contentNegotiationManager">
+			<bean class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+				<!-- We ignore accept header since most of the time views that can't be resolved will be resolved as application/xml -->
+				<property name="ignoreAcceptHeader" value="true"/>
+				<property name="defaultContentType" value="text/html"/>
+				<property name="mediaTypes">
+					<map>
+						<entry key="${crafter.engine.page.url.extension}" value="text/html"/>
+						<entry key="xml" value="application/xml"/>
+						<entry key="json" value="application/json"/>
+						<entry key="bin" value="image/png"/>
+					</map>
+				</property>
+			</bean>
+		</property>
+		<property name="viewResolvers">
+			<list>
+				<bean class="org.craftercms.engine.view.CrafterPageViewResolver">
+					<constructor-arg name="renderUrlToStoreUrlTransformerName" value="renderUrlToTargetedStoreUrl"/>
+					<constructor-arg name="storeUrlToRenderUrlTransformerName" value="storeUrlToRenderUrl"/>
+					<constructor-arg name="toFullHttpsUrlTransformerName" value="toFullHttpsUrl"/>
+					<constructor-arg name="urlTransformationService" ref="crafter.urlTransformationService"/>
+					<constructor-arg name="cacheTemplate" ref="crafter.cacheTemplate"/>
+					<constructor-arg name="siteItemService" ref="crafter.siteItemService"/>
+					<constructor-arg name="pageViewNameXPathQuery" value="${crafter.engine.page.view.name.xpathQuery}"/>
+					<constructor-arg name="redirectUrlXPathQuery" value="${crafter.engine.page.redirect.xpathQuery}"/>
+					<constructor-arg name="contentTypeXPathQuery" value="${crafter.engine.page.contentType.xpathQuery}"/>
+					<constructor-arg name="redirectContentType" value="${crafter.engine.page.redirect.contentType}"/>
+					<constructor-arg name="disabledXPathQuery" value="${crafter.engine.page.disabled.xpathQuery}"/>
+					<constructor-arg name="mimeTypeXPathQuery" value="${crafter.engine.page.mimeType.xpathQuery}"/>
+					<constructor-arg name="forceHttpsXPathQuery" value="${crafter.engine.page.forceHttps.xpathQuery}"/>
+					<constructor-arg name="scriptResolver" ref="crafter.pageScriptResolver"/>
+					<constructor-arg name="delegatedViewResolver" ref="crafter.freeMarkerViewResolver"/>
+					<constructor-arg name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector"/>
+					<constructor-arg name="accessManager" ref="crafter.pageAccessManager"/>
+					<property name="cacheUrlTransformations" value="${crafter.engine.page.view.resolver.url.transformation.cache}"/>
+				</bean>
+			</list>
+		</property>
+		<property name="defaultViews">
+			<list>
+				<ref bean="crafter.jsonView"/>
+				<ref bean="crafter.xmlView"/>
+				<ref bean="studio.binaryView"/>
+			</list>
+		</property>
+	</bean>
 
-                </bean>
-            </list>
-        </property>
-        <property name="defaultViews">
-            <list>
-                <ref bean="crafter.jsonView"/>
-                <ref bean="crafter.xmlView"/>
-                <ref bean="studio.binaryView"/>
-            </list>
-        </property>
-    </bean>
+	<bean id="crafter.coreObjectMapper" class="org.craftercms.commons.jackson.CustomSerializationObjectMapper">
+		<property name="dateFormat">
+			<bean class="java.text.SimpleDateFormat">
+				<constructor-arg index="0" value="yyyy-MM-dd'T'HH:mm:ssXXX"/>
+			</bean>
+		</property>
+		<property name="serializers">
+			<list>
+				<bean class="org.craftercms.commons.jackson.ObjectIdSerializer"/>
+				<ref bean="crafter.dom4jDocumentJsonSerializer"/>
+			</list>
+		</property>
+		<property name="deserializers">
+			<map>
+				<entry key="org.bson.types.ObjectId">
+					<bean class="org.craftercms.commons.jackson.ObjectIdDeserializer"/>
+				</entry>
+			</map>
+		</property>
+	</bean>
 
-    <bean id="crafter.coreObjectMapper" class="org.craftercms.commons.jackson.CustomSerializationObjectMapper">
-        <property name="dateFormat">
-            <bean class="java.text.SimpleDateFormat">
-                <constructor-arg index="0" value="yyyy-MM-dd'T'HH:mm:ssXXX"/>
-            </bean>
-        </property>
-        <property name="serializers">
-            <list>
-                <bean class="org.craftercms.commons.jackson.ObjectIdSerializer"/>
-                <bean class="org.craftercms.core.util.json.jackson.Dom4jDocumentJsonSerializer"/>
-            </list>
-        </property>
-        <property name="deserializers">
-            <map>
-                <entry key="org.bson.types.ObjectId">
-                    <bean class="org.craftercms.commons.jackson.ObjectIdDeserializer"/>
-                </entry>
-            </map>
-        </property>
-    </bean>
+	<bean id="crafter.resourceMsgConverter" class="org.springframework.http.converter.ResourceHttpMessageConverter"/>
 
-    <bean id="crafter.resourceMsgConverter" class="org.springframework.http.converter.ResourceHttpMessageConverter"/>
-
-    <util:list id="crafter.messageConverters">
-        <ref bean="crafter.resourceMsgConverter"/>
-        <ref bean="crafter.jsonMsgConverter"/>
-        <ref bean="crafter.xmlMsgConverter"/>
-    </util:list>
+	<util:list id="crafter.messageConverters">
+		<ref bean="crafter.resourceMsgConverter"/>
+		<ref bean="crafter.jsonMsgConverter"/>
+		<ref bean="crafter.xmlMsgConverter"/>
+	</util:list>
 
 </beans>

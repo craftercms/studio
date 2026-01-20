@@ -8,8 +8,8 @@
 -->
 <html lang="en">
 <head>
-	<#include "/templates/web/fragments/head.ftl">
-	<@crafter.head/>
+    <#include "/templates/web/fragments/head.ftl">
+    <@crafter.head/>
 </head>
 <body>
 <@crafter.body_top/>
@@ -21,50 +21,50 @@
 		<div class="inner">
 
 			<!-- Header -->
-			<@renderComponent component = contentModel.header_o.item />
+                    <@renderComponent component = contentModel.header_o.item />
 
 			<!-- Content -->
 			<section>
 				<header class="main">
-          <@crafter.h1 $field="subject_t">
-            ${contentModel.subject_t!""}
-          </@crafter.h1>
-          <div>
-            by <@crafter.span $field"author_s">${contentModel.author_s!""}</@crafter.span>
-          </div>
+                                    <@crafter.h1 $field="subject_t">
+                                        ${contentModel.subject_t!""}
+                                    </@crafter.h1>
+					<div>
+						by <@crafter.span $field"author_s">${contentModel.author_s!""}</@crafter.span>
+					</div>
 				</header>
-				<#if contentModel.image_s??>
-					<#assign image = contentModel.image_s/>
-				<#else>
-					<#assign image = "/static-assets/images/placeholder.png"/>
-				</#if>
+                            <#if contentModel.image_s??>
+                                <#assign image = contentModel.image_s/>
+                            <#else>
+                                <#assign image = "/static-assets/images/placeholder.png"/>
+                            </#if>
 				<span class="image main">
           <@crafter.img $field='image_s' src="${image}" alt=""/>
         </span>
 
-        <@crafter.renderRepeatGroup
-          $field="sections_o"
-          $containerAttributes={'style': 'list-style: none; padding-left: 0;'};
-          item, index
-        >
-          <@crafter.div
-            $field="sections_o.section_html"
-            $index=index
-          >
-            ${item.section_html}
-          </@crafter.div>
-          <hr class="major" />
-        </@crafter.renderRepeatGroup>
+                            <@crafter.renderRepeatGroup
+                            $field="sections_o"
+                            $containerAttributes={'style': 'list-style: none; padding-left: 0;'};
+                            item, index
+                            >
+                                <@crafter.div
+                                $field="sections_o.section_html"
+                                $index=index
+                                >
+                                    ${item.section_html}
+                                </@crafter.div>
+				    <hr class="major"/>
+                            </@crafter.renderRepeatGroup>
 			</section>
 		</div>
 	</div>
 
-	<#assign articleCategories = contentModel.queryValues("//categories_o/item/key")/>
-	<#assign articlePath = contentModel.storeUrl />
-	<#assign additionalModel = {"articleCategories": articleCategories, "articlePath": articlePath }/>
+    <#assign articleCategories = contentModel.queryValues("//categories_o/item/key")/>
+    <#assign articlePath = contentModel.storeUrl />
+    <#assign additionalModel = {"articleCategories": articleCategories, "articlePath": articlePath }/>
 
 	<!-- Left Rail -->
-	<@renderComponent component = contentModel.left_rail_o.item additionalModel = additionalModel />
+    <@renderComponent component = contentModel.left_rail_o.item additionalModel = additionalModel />
 
 </div>
 

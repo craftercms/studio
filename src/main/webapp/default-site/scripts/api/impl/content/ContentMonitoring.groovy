@@ -62,9 +62,9 @@ class ContentMonitoring {
 		def config = configurationService.legacyGetConfiguration(site, "site-config.xml")
 
 		if (config.contentMonitoring != null && config.contentMonitoring.monitor != null) {
-			if(config.contentMonitoring.monitor instanceof Map) {
+			if (config.contentMonitoring.monitor instanceof Map) {
 				// there is only one monitor
-				config.contentMonitoring.monitor = [ config.contentMonitoring.monitor ]
+				config.contentMonitoring.monitor = [config.contentMonitoring.monitor]
 			}
 
 			results.monitors = []
@@ -73,23 +73,22 @@ class ContentMonitoring {
 
 				logger.debug("Execute monitor '{}' in site '{}'", monitor.name, site)
 
-				if(monitor.paths !=null && monitor.paths.path!=null) {
-					if(monitor.paths.path instanceof Map) {
+				if (monitor.paths != null && monitor.paths.path != null) {
+					if (monitor.paths.path instanceof Map) {
 						// there is only one path
-						monitor.paths.path = [ monitor.paths.path ]
+						monitor.paths.path = [monitor.paths.path]
 					}
 
 					def queryStatement = monitor.query
 
-                    def searchParams = new SearchParams()
-                    searchParams.query = queryStatement
-                    searchParams.limit = 10000
-
-					def executedQuery = searchService.search(site, Collections.emptyList(), searchParams)
+					def searchParams = new SearchParams()
+					searchParams.query = queryStatement
+					searchParams.limit = 10000
+					def executedQuery = searchService.search(site, searchParams)
 					def itemsFound = executedQuery.total
 					def items = executedQuery.items
 					logger.debug("Content monitor '{}' has found '{}' items in site '{}'",
-							monitor.name, itemsFound, site)
+						monitor.name, itemsFound, site)
 
 					monitor.paths.path.each { path ->
 						// there are paths, query for items and then match against paths patterns
@@ -100,34 +99,33 @@ class ContentMonitoring {
 						// iterate over the items and prepare notifications
 						items.findAll { it && it.path =~ path.pattern }.each { item ->
 							def notifyItem = [
-									id : item.path,
-									internalName : item.name
+								id          : item.path,
+								internalName: item.name
 							]
 							//TODO: Move this logic to search service, maybe add a 'renderUrl' to all items?
-							if(notifyItem.id.contains("/site/website")) {
-								def uri = notifyItem.id.replace("/site/website", "").replace("/index.xml","").replace(".xml", "")
+							if (notifyItem.id.contains("/site/website")) {
+								def uri = notifyItem.id.replace("/site/website", "").replace("/index.xml", "").replace(".xml", "")
 								notifyItem.url = "$authoringBaseUrl/preview/#/?page=$uri&site=$site".toString()
 							}
 							monitorPathResult.items << notifyItem
 						}
 
-						if(monitorPathResult.items) {
+						if (monitorPathResult.items) {
 							results.monitors.add(monitorPathResult)
 							logger.info("Content monitor '{}' in site '{}' will send the notification '{}'",
-									monitor.name, site, path.emailTemplate)
+								monitor.name, site, path.emailTemplate)
 							notificationService.notify(
-									site,
-									path.emails.split(",") as List,
-									path.emailTemplate,
-									Pair.of("monitorName", monitor.name),
-									Pair.of("items", monitorPathResult.items)
+								site,
+								path.emails.split(",") as List,
+								path.emailTemplate,
+								Pair.of("monitorName", monitor.name),
+								Pair.of("items", monitorPathResult.items)
 							)
 						}
 					} //end looping over paths
 				} // if no paths to monitor, don't do anything
 			} // end looping through site monitors
-		}
-		else {
+		} else {
 			logger.debug("No expired content items to report in site '{}'", site)
 		}
 		return results

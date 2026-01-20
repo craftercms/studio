@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,15 +21,11 @@ import java.util.Map;
 
 public interface RemoteRepositoryDAO {
 
-    RemoteRepository getRemoteRepository(Map params);
+	RemoteRepository getRemoteRepository(Map params);
 
-    void insertRemoteRepository(Map params);
+	void insertRemoteRepository(Map params);
 
-    void deleteRemoteRepositoryForSite(Map params);
+	void deleteRemoteRepository(Map params);
 
-    void deleteRemoteRepository(Map params);
-
-    List<RemoteRepository> listRemoteRepositories(Map params);
-
-    void deleteRemoteRepositoriesForSite(Map params);
+	List<RemoteRepository> listRemoteRepositories(Map params);
 }

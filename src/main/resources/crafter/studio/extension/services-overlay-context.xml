@@ -19,70 +19,91 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!-- STUDIO CHANGES -->
+	<!-- STUDIO CHANGES -->
 
-    <bean name="studio.crafter.properties" class="java.util.HashMap">
-        <constructor-arg index="0">
-            <map key-type="java.lang.String" value-type="java.lang.String">
-                <entry key="environment"
-                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ENVIRONMENT_ACTIVE)}}"/>
-                <entry key="previewUrl" value="${previewUrl}"/>
+	<bean name="studio.crafter.properties" class="java.util.HashMap">
+		<constructor-arg index="0">
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="environment"
+				       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_ENVIRONMENT_ACTIVE)}}"/>
+				<entry key="previewUrl" value="${previewUrl}"/>
 
-            </map>
-        </constructor-arg>
-    </bean>
+			</map>
+		</constructor-arg>
+	</bean>
 
-    <bean id="crafter.modePreviewContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
-        <property name="attributeName" value="modePreview"/>
-        <property name="scope" value="SERVLET_CONTEXT"/>
-    </bean>
+	<bean id="crafter.modePreviewContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
+		<constructor-arg name="attributeName" value="modePreview"/>
+		<property name="scope" value="SERVLET_CONTEXT"/>
+	</bean>
 
-    <bean id="crafter.environmentContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
-        <property name="attributeName" value="environment"/>
-        <property name="scope" value="SERVLET_CONTEXT"/>
-    </bean>
+	<bean id="crafter.environmentContextAttributeMacro" class="org.craftercms.engine.macro.impl.ScopeAttributeMacro">
+		<constructor-arg name="attributeName" value="environment"/>
+		<property name="scope" value="SERVLET_CONTEXT"/>
+	</bean>
 
-    <bean id="crafter.siteContextManager" class="org.craftercms.engine.service.context.SiteContextManager" depends-on="sqlSessionFactory">
-        <property name="fallbackContextFactory" ref="crafter.fallbackSiteContextFactory"/>
-        <property name="contextFactory" ref="crafter.siteContextFactory"/>
-        <property name="siteListResolver" ref="crafter.siteResolver"/>
-        <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
-        <property name="waitForContextInit" value="${crafter.engine.site.context.waitForInit}"/>
-        <property name="jobThreadPoolExecutor" ref="crafter.jobThreadPoolExecutor"/>
-        <property name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
-    </bean>
+	<bean id="crafter.siteContextManager" class="org.craftercms.engine.service.context.SiteContextManager" depends-on="sqlSessionFactory">
+		<constructor-arg name="contextFactory" ref="crafter.siteContextFactory"/>
+		<constructor-arg name="fallbackContextFactory" ref="crafter.fallbackSiteContextFactory"/>
+		<constructor-arg name="siteListResolver" ref="crafter.siteResolver"/>
+		<constructor-arg name="waitForContextInit" value="${crafter.engine.site.context.waitForInit}"/>
+		<constructor-arg name="jobThreadPoolExecutor" ref="crafter.jobThreadPoolExecutor"/>
+		<constructor-arg name="defaultSiteName" value="${crafter.engine.site.default.name}"/>
+		<constructor-arg name="contextBuildRetryMaxCount" value="${crafter.engine.site.context.build.retry.maxCount}"/>
+		<constructor-arg name="contextBuildRetryWaitTimeBase" value="${crafter.engine.site.context.build.retry.waitTimeBase}"/>
+		<constructor-arg name="contextBuildRetryWaitTimeMultiplier" value="${crafter.engine.site.context.build.retry.waitTimeMultiplier}"/>
+		<constructor-arg name="modePreview" value="${crafter.engine.preview}"/>
+		<constructor-arg name="watcherPaths" value="${crafter.engine.watcher.paths}"/>
+		<constructor-arg name="watcherIgnorePaths" value="${crafter.engine.watcher.ignorePaths}"/>
+		<constructor-arg name="watcherCounterLimit" value="${crafter.engine.watcher.counter.limit}"/>
+		<constructor-arg name="watcherIntervalPeriod" value="${crafter.engine.watcher.interval.period}"/>
+		<constructor-arg name="lockByKey" ref="crafter.lockByKey"/>
+		<property name="entitlementValidator" ref="crafter.entitlementValidator"/>
+	</bean>
 
-    <!-- Declared with scope="prototype" so that a new one is created for every SiteContext -->
-    <bean id="crafter.freeMarkerConfig" class="org.craftercms.engine.freemarker.CrafterFreeMarkerConfigurer" scope="prototype" depends-on="studioConfiguration">
-        <property name="templateExceptionHandler" ref="crafter.crafterTemplateExceptionHandler"/>
-        <property name="templateLoaderPaths" value="WEB-INF"/>
-        <property name="defaultEncoding" value="UTF-8"/>
-        <property name="freemarkerSettings">
-            <props>
-                <prop key="output_encoding">UTF-8</prop>
-                <prop key="localized_lookup">false</prop>
-                <prop key="object_wrapper">org.craftercms.engine.freemarker.CrafterObjectWrapper(#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')})</prop>
-                <prop key="datetime_format">${crafter.engine.model.datetime.pattern}</prop>
-                <prop key="time_zone">${crafter.engine.model.datetime.timeZone}</prop>
-                <prop key="new_builtin_class_resolver">safer</prop>
-            </props>
-        </property>
-        <property name="freemarkerVariables" ref="crafter.freemarkerVariables"/>
-        <property name="preTemplateLoaders">
-            <array>
-                <ref bean="crafter.crafterFreeMarkerTemplateLoader"/>
-            </array>
-        </property>
-        <property name="cacheTemplates" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CACHE_TEMPLATES)}"/>
-    </bean>
+	<!-- Declared with scope="prototype" so that a new one is created for every SiteContext -->
+	<bean id="crafter.freeMarkerConfig" class="org.craftercms.engine.freemarker.CrafterFreeMarkerConfigurer" scope="prototype" depends-on="studioConfiguration">
+		<property name="templateExceptionHandler" ref="crafter.crafterTemplateExceptionHandler"/>
+		<property name="templateLoaderPaths" value="WEB-INF"/>
+		<property name="defaultEncoding" value="UTF-8"/>
+		<property name="freemarkerSettings">
+			<props>
+				<prop key="output_encoding">UTF-8</prop>
+				<prop key="localized_lookup">false</prop>
+				<prop key="object_wrapper">org.craftercms.engine.freemarker.CrafterObjectWrapper(#{studioConfiguration.getProperty('studio.scripting.sandbox.enable')})</prop>
+				<prop key="datetime_format">${crafter.engine.model.datetime.pattern}</prop>
+				<prop key="time_zone">${crafter.engine.model.datetime.timeZone}</prop>
+				<prop key="new_builtin_class_resolver">safer</prop>
+			</props>
+		</property>
+		<property name="freemarkerVariables" ref="crafter.freemarkerVariables"/>
+		<property name="preTemplateLoaders">
+			<array>
+				<ref bean="crafter.crafterFreeMarkerTemplateLoader"/>
+			</array>
+		</property>
+		<property name="cacheTemplates" value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CACHE_TEMPLATES)}"/>
+	</bean>
 
-    <!-- ////////////////////////////////// -->
-    <!--                                    -->
-    <!--            STUDIO                  -->
-    <!--                                    -->
-    <!-- ////////////////////////////////// -->
+	<!-- Override bean from studio to use property from studio config -->
+	<!-- Disable Grape auto-download -->
+	<bean id="grapeAutoDownloadDisabler" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean" depends-on="studioConfiguration">
+		<property name="targetClass" value="groovy.grape.Grape" />
+		<property name="targetMethod" value="setEnableAutoDownload" />
+		<property name="arguments">
+		    <list>
+			<value type="java.lang.Boolean">#{studioConfiguration.getProperty('studio.scripting.grapes.download.enabled')}</value>
+		    </list>
+		</property>
+	</bean>
 
-    <import resource="classpath:crafter/studio/studio-services-context.xml"/>
-    <import resource="classpath*:crafter/cstudio/extension/services-context.xml"/>
-    <import resource="classpath:crafter/entitlements/entitlements-context.xml"/>
+	<!-- ////////////////////////////////// -->
+	<!--                                    -->
+	<!--            STUDIO                  -->
+	<!--                                    -->
+	<!-- ////////////////////////////////// -->
+
+	<import resource="classpath:crafter/studio/studio-services-context.xml"/>
+	<import resource="classpath*:crafter/cstudio/extension/services-context.xml"/>
+	<import resource="classpath:crafter/entitlements/entitlements-context.xml"/>
 </beans>

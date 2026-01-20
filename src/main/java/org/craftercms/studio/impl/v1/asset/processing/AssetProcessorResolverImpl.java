@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.asset.processing.AssetProcessorResolver;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorConfiguration;
 import org.craftercms.studio.api.v1.exception.AssetProcessingConfigurationException;
 import org.craftercms.studio.api.v1.exception.AssetProcessingException;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -33,29 +32,28 @@ import static java.lang.String.format;
  */
 public class AssetProcessorResolverImpl implements AssetProcessorResolver, ApplicationContextAware {
 
-    private String beanNameFormat;
-    private ApplicationContext applicationContext;
+	private String beanNameFormat;
+	private ApplicationContext applicationContext;
 
-    @Required
-    public void setBeanNameFormat(String beanNameFormat) {
-        this.beanNameFormat = beanNameFormat;
-    }
+	public AssetProcessorResolverImpl(String beanNameFormat) {
+		this.beanNameFormat = beanNameFormat;
+	}
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) {
+		this.applicationContext = applicationContext;
+	}
 
-    @Override
-    public AssetProcessor getProcessor(ProcessorConfiguration config) throws AssetProcessingException {
-        String beanName = format(beanNameFormat, config.getType());
-        AssetProcessor processor = applicationContext.getBean(beanName, AssetProcessor.class);
+	@Override
+	public AssetProcessor getProcessor(ProcessorConfiguration config) throws AssetProcessingException {
+		String beanName = format(beanNameFormat, config.getType());
+		AssetProcessor processor = applicationContext.getBean(beanName, AssetProcessor.class);
 
-        if (processor != null) {
-            return processor;
-        } else {
-            throw new AssetProcessingConfigurationException("Invalid processor type: " + config.getType());
-        }
-    }
+		if (processor != null) {
+			return processor;
+		} else {
+			throw new AssetProcessingConfigurationException("Invalid processor type: " + config.getType());
+		}
+	}
 
 }

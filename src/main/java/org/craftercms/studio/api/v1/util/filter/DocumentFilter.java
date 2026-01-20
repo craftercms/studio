@@ -21,23 +21,23 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_TYP
 
 public class DocumentFilter extends AbstractFilter {
 
-    /**
-     * filtering for documents. compared with contentType and
-     * contentType for pages is /cstudio-com/document
-     *
-     * @param item item
-     * @return true/false
-     */
+	/**
+	 * filtering for documents. compared with contentType and
+	 * contentType for pages is /cstudio-com/document
+	 *
+	 * @param item item
+	 * @return true/false
+	 */
 
-    public boolean filter(ContentItemTO item) {
-        boolean isMatched = match(item.contentType);
-        boolean isDocument = (isMatched && !item.component);
-        item.document = isDocument;      //it may have been set already, but still resetting.
-        return isDocument;
-    }
+	public boolean filter(ContentItemTO item) {
+		boolean isMatched = match(item.contentType);
+		boolean isDocument = (isMatched && !item.component);
+		item.document = isDocument;      //it may have been set already, but still resetting.
+		return isDocument;
+	}
 
-    @Override
-    public String getIncludePattern() {
-        return studioConfiguration.getProperty(CONTENT_TYPES_FILTER_DOCUMENTS_INCLUDE_PATTERN);
-    }
+	@Override
+	public String getIncludePattern() {
+		return studioConfiguration.getProperty(CONTENT_TYPES_FILTER_DOCUMENTS_INCLUDE_PATTERN);
+	}
 }

@@ -24,28 +24,28 @@ import org.springframework.web.client.RestClientException;
  */
 public interface Deployer {
 
-    /**
-     * Calls a Crafter Deployer to create any necessary targets for the site.
-     *
-     * @param site the site
-     * @throws RestClientException if an error occurs
-     */
-    void createTargets(String site) throws RestClientException;
+	/**
+	 * Calls a Crafter Deployer to create any necessary targets for the site.
+	 *
+	 * @param site the site
+	 * @throws RestClientException if an error occurs
+	 */
+	void createTargets(String site) throws RestClientException;
 
-    /**
-     * Deletes the targets associated with the site.
-     *
-     * @param site the site
-     * @throws RestClientException if an error occurs
-     */
-    void deleteTargets(String site) throws RestClientException;
+	/**
+	 * Deletes the targets associated with the site.
+	 *
+	 * @param site the site
+	 * @throws RestClientException if an error occurs
+	 */
+	void deleteTargets(String site) throws RestClientException;
 
-    /**
-     * Call Crafter Deployer API to duplicate the site targets
-     *
-     * @param sourceSiteId the site to duplicate from
-     * @param siteId       the new site id
-     * @throws RestClientException if an error occurs while calling Deployer API
-     */
-    void duplicateTargets(String sourceSiteId, String siteId);
+	/**
+	 * Call Crafter Deployer API to duplicate the site targets
+	 *
+	 * @param sourceSiteId the site to duplicate from
+	 * @param siteId       the new site id
+	 * @throws RestClientException if an error occurs while calling Deployer API
+	 */
+	void duplicateTargets(String sourceSiteId, String siteId);
 }

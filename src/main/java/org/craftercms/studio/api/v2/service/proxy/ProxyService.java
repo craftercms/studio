@@ -18,7 +18,8 @@ package org.craftercms.studio.api.v2.service.proxy;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.springframework.http.ResponseEntity;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.net.URISyntaxException;
 
 /**
@@ -28,28 +29,28 @@ import java.net.URISyntaxException;
  * @since 4.0.1
  */
 public interface ProxyService {
-    /**
-     * Proxies a request to Crafter Engine.
-     *
-     * @param body    body of the request
-     * @param siteId  ID of the crafter site
-     * @param request the request
-     * @return response from Crafter Engine
-     * @throws URISyntaxException if request URI is not valid
-     * @throws SiteNotFoundException if site is not found
-     */
-    ResponseEntity<Object> proxyEngine(String body, String siteId, HttpServletRequest request) throws URISyntaxException, SiteNotFoundException;
+	/**
+	 * Proxies a request to Crafter Engine.
+	 *
+	 * @param body    body of the request
+	 * @param siteId  ID of the crafter site
+	 * @param request the request
+	 * @return response from Crafter Engine
+	 * @throws URISyntaxException    if request URI is not valid
+	 * @throws SiteNotFoundException if site is not found
+	 */
+	ResponseEntity<Object> proxyEngine(String body, String siteId, HttpServletRequest request) throws URISyntaxException, SiteNotFoundException;
 
-    /**
-     * Proxies a request to Crafter Engine log monitor service, after checking
-     * current user has permission to access log data for siteId.
-     *
-     * @param body    body of the request.
-     * @param siteId  ID of the crafter site
-     * @param request the request
-     * @return response from Crafter Engine
-     * @throws URISyntaxException if request URI is not valid
-     * @throws SiteNotFoundException if site is not found
-     */
-    ResponseEntity<Object> getSiteLogEvents(String body, String siteId, HttpServletRequest request) throws URISyntaxException, SiteNotFoundException;
+	/**
+	 * Proxies a request to Crafter Engine log monitor service, after checking
+	 * current user has permission to access log data for siteId.
+	 *
+	 * @param body    body of the request.
+	 * @param siteId  ID of the crafter site
+	 * @param request the request
+	 * @return response from Crafter Engine
+	 * @throws URISyntaxException    if request URI is not valid
+	 * @throws SiteNotFoundException if site is not found
+	 */
+	ResponseEntity<Object> getSiteLogEvents(String body, String siteId, HttpServletRequest request) throws URISyntaxException, SiteNotFoundException;
 }

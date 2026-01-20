@@ -27,17 +27,16 @@ import org.craftercms.studio.api.v1.exception.AssetProcessingException;
  */
 public interface AssetProcessor {
 
-    /**
-     * Processes the given asset.
-     *
-     * @param config            the configuration to use
-     * @param inputPathMatcher  the Matcher object that resulted from path matching the asset against the input path pattern of the
-     *                          pipeline
-     * @param input             the asset to process
-     *
-     * @return the transformed asset or a new asset
-     * @throws AssetProcessingException if an error occurs.
-     */
-    Asset processAsset(ProcessorConfiguration config, Matcher inputPathMatcher, Asset input) throws AssetProcessingException;
+	/**
+	 * Processes the given asset.
+	 *
+	 * @param config           the configuration to use
+	 * @param inputPathMatcher the Matcher object that resulted from path matching the asset against the input path pattern of the
+	 *                         pipeline
+	 * @param input            the asset to process
+	 * @return the transformed asset or a new asset
+	 * @throws AssetProcessingException if an error occurs.
+	 */
+	Asset processAsset(ProcessorConfiguration config, Matcher inputPathMatcher, Asset input) throws AssetProcessingException;
 
 }

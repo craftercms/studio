@@ -16,15 +16,43 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+import org.apache.ibatis.annotations.Param;
+
 import java.util.Map;
 
 public interface NavigationOrderSequenceMapper {
 
-    void insert(NavigationOrderSequence navigationOrderSequence);
+	String SITE = "site";
+	String SOURCE_PATH = "sourcePath";
+	String TARGET_PATH = "targetPath";
 
-    void update(NavigationOrderSequence navigationOrderSequence);
+	void insert(NavigationOrderSequence navigationOrderSequence);
 
-    NavigationOrderSequence getPageNavigationOrderForSiteAndPath(Map params);
+	void update(NavigationOrderSequence navigationOrderSequence);
 
-    void deleteSequencesForSite(Map params);
+	NavigationOrderSequence getPageNavigationOrderForSiteAndPath(Map params);
+
+	void deleteSequencesForSite(Map params);
+
+	/**
+	 * Moves the navigation order from one path to another.
+	 *
+	 * @param site       the site id
+	 * @param sourcePath the previous path to update
+	 * @param targetPath the new path
+	 */
+	void move(@Param(SITE) String site,
+			  @Param(SOURCE_PATH) String sourcePath,
+			  @Param(TARGET_PATH) String targetPath);
+
+	/**
+	 * Copies the navigation order from one path to another.
+	 *
+	 * @param site       the site id
+	 * @param sourcePath the path to copy from
+	 * @param targetPath the path to copy to
+	 */
+	void copy(@Param(SITE) String site,
+			  @Param(SOURCE_PATH) String sourcePath,
+			  @Param(TARGET_PATH) String targetPath);
 }

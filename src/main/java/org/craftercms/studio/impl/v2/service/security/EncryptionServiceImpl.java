@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.security.EncryptionService;
-import org.craftercms.studio.api.v2.service.security.internal.EncryptionServiceInternal;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ENCRYPTION_TOOL;
 
@@ -32,17 +31,18 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class EncryptionServiceImpl implements EncryptionService {
 
-    protected EncryptionServiceInternal encryptionServiceInternal;
+	protected EncryptionService encryptionServiceInternal;
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_ENCRYPTION_TOOL)
-    public String encrypt(@SiteId String siteId,
-                          @ValidateStringParam String text) throws ServiceLayerException {
-        return encryptionServiceInternal.encrypt(text);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_ENCRYPTION_TOOL)
+	public String encrypt(@SiteId String siteId,
+			      @ValidateStringParam String text) throws ServiceLayerException {
+		return encryptionServiceInternal.encrypt(siteId, text);
+	}
 
-    public void setEncryptionServiceInternal(EncryptionServiceInternal encryptionServiceInternal) {
-        this.encryptionServiceInternal = encryptionServiceInternal;
-    }
+	@SuppressWarnings("unused")
+	public void setEncryptionServiceInternal(EncryptionService encryptionServiceInternal) {
+		this.encryptionServiceInternal = encryptionServiceInternal;
+	}
 }

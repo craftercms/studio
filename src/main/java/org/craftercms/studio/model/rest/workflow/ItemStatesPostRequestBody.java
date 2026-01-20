@@ -20,44 +20,45 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.List;
 
 public class ItemStatesPostRequestBody {
 
-    @NotEmpty
-    @ValidSiteId
-    private String siteId;
-    @NotEmpty
-    private List<@NotBlank @ValidExistingContentPath String> items;
+	@NotEmpty
+	@ValidSiteId
+	private String siteId;
+	@NotEmpty
+	private List<@NotBlank @ValidExistingContentPath String> items;
 
-    @NotNull
-    @JsonUnwrapped
-    private ItemStatesUpdate update;
+	@NotNull
+	@JsonUnwrapped
+	private ItemStatesUpdate update;
 
-    public String getSiteId() {
-        return siteId;
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(String siteId) {
+		this.siteId = siteId;
+	}
 
-    public List<String> getItems() {
-        return items;
-    }
+	public List<String> getItems() {
+		return items;
+	}
 
-    public void setItems(List<String> items) {
-        this.items = items;
-    }
+	public void setItems(List<String> items) {
+		this.items = items;
+	}
 
-    public ItemStatesUpdate getUpdate() {
-        return update;
-    }
+	public ItemStatesUpdate getUpdate() {
+		return update;
+	}
 
-    public void setUpdate(ItemStatesUpdate update) {
-        this.update = update;
-    }
+	public void setUpdate(ItemStatesUpdate update) {
+		this.update = update;
+	}
 }

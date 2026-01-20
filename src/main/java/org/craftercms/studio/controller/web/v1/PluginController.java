@@ -20,6 +20,7 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.springframework.core.io.Resource;
@@ -30,7 +31,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+
 import java.beans.ConstructorProperties;
 
 /**
@@ -43,35 +45,35 @@ import java.beans.ConstructorProperties;
 @RequestMapping("/1/plugin")
 public class PluginController {
 
-    /**
-     * The configuration service
-     */
-    protected final ConfigurationService configurationService;
+	/**
+	 * The configuration service
+	 */
+	protected final ConfigurationService configurationService;
 
-    @ConstructorProperties({"configurationService"})
-    public PluginController(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
+	@ConstructorProperties({"configurationService"})
+	public PluginController(ConfigurationService configurationService) {
+		this.configurationService = configurationService;
+	}
 
-    /**
-     * Returns a single file for a given plugin
-     */
-    @Valid
-    @GetMapping("/file")
-    public ResponseEntity<Resource> getPluginFile(@ValidSiteId @RequestParam String siteId,
-                                                  @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String type,
-                                                  @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String name,
-                                                  @ValidExistingContentPath @ValidateSecurePathParam @RequestParam(required = false) String filename,
-                                                  @ValidExistingContentPath @ValidateSecurePathParam String pluginId)
-            throws ContentNotFoundException {
-        Resource resource = configurationService.getPluginFile(siteId, pluginId, type, name, filename);
+	/**
+	 * Returns a single file for a given plugin
+	 */
+	@Valid
+	@GetMapping("/file")
+	public ResponseEntity<Resource> getPluginFile(@ValidSiteId @RequestParam String siteId,
+						      @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String type,
+						      @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String name,
+						      @ValidExistingContentPath @ValidateSecurePathParam @RequestParam(required = false) String filename,
+						      @ValidExistingContentPath @ValidateSecurePathParam String pluginId)
+		throws ContentNotFoundException, SiteNotFoundException {
+		Resource resource = configurationService.getPluginFile(siteId, pluginId, type, name, filename);
 
-        String contentType = StudioUtils.getMimeType(filename);
+		String contentType = StudioUtils.getMimeType(filename);
 
-        return ResponseEntity
-                .ok()
-                .header(HttpHeaders.CONTENT_TYPE, contentType)
-                .body(resource);
-    }
+		return ResponseEntity
+			.ok()
+			.header(HttpHeaders.CONTENT_TYPE, contentType)
+			.body(resource);
+	}
 
 }

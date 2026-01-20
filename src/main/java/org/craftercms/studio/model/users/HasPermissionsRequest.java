@@ -18,18 +18,19 @@ package org.craftercms.studio.model.users;
 
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
+
 import java.util.List;
 
 public class HasPermissionsRequest {
 
-    protected List<@ValidateNoTagsParam String> permissions;
+	protected List<@ValidateNoTagsParam String> permissions;
 
-    public List<@ValidateNoTagsParam @Size(max = 100) String> getPermissions() {
-        return permissions;
-    }
+	public List<@ValidateNoTagsParam @Size(max = 100) String> getPermissions() {
+		return permissions;
+	}
 
-    public void setPermissions(List<String> permissions) {
-        this.permissions = permissions;
-    }
+	public void setPermissions(List<String> permissions) {
+		this.permissions = permissions;
+	}
 }

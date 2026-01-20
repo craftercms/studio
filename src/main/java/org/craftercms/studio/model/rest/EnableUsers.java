@@ -18,8 +18,9 @@ package org.craftercms.studio.model.rest;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -27,22 +28,22 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 
 public class EnableUsers {
 
-    private List<@NotBlank @EsapiValidatedParam(type = USERNAME) String> usernames = Collections.emptyList();
-    private List<@NotNull Long> ids = Collections.emptyList();
+	private List<@NotBlank @EsapiValidatedParam(type = USERNAME) String> usernames = Collections.emptyList();
+	private List<@NotNull Long> ids = Collections.emptyList();
 
-    public List<String> getUsernames() {
-        return usernames;
-    }
+	public List<String> getUsernames() {
+		return usernames;
+	}
 
-    public void setUsernames(List<String> usernames) {
-        this.usernames = usernames;
-    }
+	public void setUsernames(List<String> usernames) {
+		this.usernames = usernames;
+	}
 
-    public List<Long> getIds() {
-        return ids;
-    }
+	public List<Long> getIds() {
+		return ids;
+	}
 
-    public void setIds(List<Long> ids) {
-        this.ids = ids;
-    }
+	public void setIds(List<Long> ids) {
+		this.ids = ids;
+	}
 }

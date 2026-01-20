@@ -19,7 +19,8 @@ package org.craftercms.studio.model.search;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.PositiveOrZero;
+
 import java.util.List;
 import java.util.Map;
 
@@ -28,142 +29,143 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 
 /**
  * Holds the data needed to perform a search operation
+ *
  * @author joseross
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchParams {
 
-    /**
-     * Keywords to search in the files.
-     */
-    @EsapiValidatedParam(type= SEARCH_KEYWORDS)
-    protected String keywords;
+	/**
+	 * Keywords to search in the files.
+	 */
+	@EsapiValidatedParam(type = SEARCH_KEYWORDS)
+	protected String keywords;
 
-    /**
-     * Lucene query to execute.
-     */
-    protected String query;
+	/**
+	 * Lucene query to execute.
+	 */
+	protected String query;
 
-    /**
-     * Regular expression to filter the paths
-     */
-    protected String path;
+	/**
+	 * Regular expression to filter the paths
+	 */
+	protected String path;
 
-    /**
-     * The offset to paginate the results
-     */
-    @PositiveOrZero
-    protected int offset = 0;
+	/**
+	 * The offset to paginate the results
+	 */
+	@PositiveOrZero
+	protected int offset = 0;
 
-    /**
-     * The limit to paginate the results
-     */
-    @PositiveOrZero
-    protected int limit = 20;
+	/**
+	 * The limit to paginate the results
+	 */
+	@PositiveOrZero
+	protected int limit = 20;
 
-    /**
-     * The field to sort the results
-     */
-    protected String sortBy = "_score";
+	/**
+	 * The field to sort the results
+	 */
+	protected String sortBy = "_score";
 
-    /**
-     * The order to sort the results
-     */
-    protected String sortOrder = "DESC";
+	/**
+	 * The order to sort the results
+	 */
+	protected String sortOrder = "DESC";
 
-    /**
-     * The filters to search the files
-     */
-    protected Map<String, Object> filters;
+	/**
+	 * The filters to search the files
+	 */
+	protected Map<String, Object> filters;
 
-    /**
-     * Indicates if OR should be used instead of AND
-     */
-    protected boolean orOperator;
+	/**
+	 * Indicates if OR should be used instead of AND
+	 */
+	protected boolean orOperator;
 
-    /**
-     * List of additional fields to include for each item
-     */
-    protected List<String> additionalFields = emptyList();
+	/**
+	 * List of additional fields to include for each item
+	 */
+	protected List<String> additionalFields = emptyList();
 
-    public String getKeywords() {
-        return keywords;
-    }
+	public String getKeywords() {
+		return keywords;
+	}
 
-    public void setKeywords(final String keywords) {
-        this.keywords = keywords;
-    }
+	public void setKeywords(final String keywords) {
+		this.keywords = keywords;
+	}
 
-    public String getQuery() {
-        return query;
-    }
+	public String getQuery() {
+		return query;
+	}
 
-    public void setQuery(final String query) {
-        this.query = query;
-    }
+	public void setQuery(final String query) {
+		this.query = query;
+	}
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		return path;
+	}
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+	public void setPath(String path) {
+		this.path = path;
+	}
 
-    public int getOffset() {
-        return offset;
-    }
+	public int getOffset() {
+		return offset;
+	}
 
-    public void setOffset(final int offset) {
-        this.offset = offset;
-    }
+	public void setOffset(final int offset) {
+		this.offset = offset;
+	}
 
-    public int getLimit() {
-        return limit;
-    }
+	public int getLimit() {
+		return limit;
+	}
 
-    public void setLimit(final int limit) {
-        this.limit = limit;
-    }
+	public void setLimit(final int limit) {
+		this.limit = limit;
+	}
 
-    public String getSortBy() {
-        return sortBy;
-    }
+	public String getSortBy() {
+		return sortBy;
+	}
 
-    public void setSortBy(final String sortBy) {
-        this.sortBy = sortBy;
-    }
+	public void setSortBy(final String sortBy) {
+		this.sortBy = sortBy;
+	}
 
-    public String getSortOrder() {
-        return sortOrder;
-    }
+	public String getSortOrder() {
+		return sortOrder;
+	}
 
-    public void setSortOrder(final String sortOrder) {
-        this.sortOrder = sortOrder;
-    }
+	public void setSortOrder(final String sortOrder) {
+		this.sortOrder = sortOrder;
+	}
 
-    public Map<String, Object> getFilters() {
-        return filters;
-    }
+	public Map<String, Object> getFilters() {
+		return filters;
+	}
 
-    public void setFilters(final Map<String, Object> filters) {
-        this.filters = filters;
-    }
+	public void setFilters(final Map<String, Object> filters) {
+		this.filters = filters;
+	}
 
-    public boolean isOrOperator() {
-        return orOperator;
-    }
+	public boolean isOrOperator() {
+		return orOperator;
+	}
 
-    public void setOrOperator(boolean orOperator) {
-        this.orOperator = orOperator;
-    }
+	public void setOrOperator(boolean orOperator) {
+		this.orOperator = orOperator;
+	}
 
-    public List<String> getAdditionalFields() {
-        return additionalFields;
-    }
+	public List<String> getAdditionalFields() {
+		return additionalFields;
+	}
 
-    public void setAdditionalFields(List<String> additionalFields) {
-        this.additionalFields = additionalFields;
-    }
+	public void setAdditionalFields(List<String> additionalFields) {
+		this.additionalFields = additionalFields;
+	}
 
 }

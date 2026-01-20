@@ -19,90 +19,90 @@
 <!-- Site Policy configuration used for testing -->
 <site-policy>
 
-    <statement>
-        <target-path-pattern>/static-assets/.*</target-path-pattern>
-        <permitted>
-            <path>
-                <source-regex>[\(\)]</source-regex>
-                <target-regex>-</target-regex>
-            </path>
-        </permitted>
-    </statement>
-    <statement>
-        <target-path-pattern>/static-assets/.*</target-path-pattern>
-        <permitted>
-            <path>
-                <source-regex>_</source-regex>
-                <target-regex>-</target-regex>
-            </path>
-        </permitted>
-    </statement>
-    <!-- Only allow small files -->
-    <statement>
-        <target-path-pattern>/static-assets/small.*</target-path-pattern>
-        <permitted>
-            <minimum-file-size>1</minimum-file-size>
-            <maximum-file-size>10000</maximum-file-size>
-        </permitted>
-    </statement>
+	<statement>
+		<target-path-pattern>/static-assets/.*</target-path-pattern>
+		<permitted>
+			<path>
+				<source-regex>[\(\)]</source-regex>
+				<target-regex>-</target-regex>
+			</path>
+		</permitted>
+	</statement>
+	<statement>
+		<target-path-pattern>/static-assets/.*</target-path-pattern>
+		<permitted>
+			<path>
+				<source-regex>_</source-regex>
+				<target-regex>-</target-regex>
+			</path>
+		</permitted>
+	</statement>
+	<!-- Only allow small files -->
+	<statement>
+		<target-path-pattern>/static-assets/small.*</target-path-pattern>
+		<permitted>
+			<minimum-file-size>1</minimum-file-size>
+			<maximum-file-size>10000</maximum-file-size>
+		</permitted>
+	</statement>
 
-    <!-- Only allow images not of type svg -->
-    <statement>
-        <target-path-pattern>/static-assets/images.*</target-path-pattern>
-        <permitted>
-            <mime-types>image/*</mime-types>
-        </permitted>
-        <denied>
-            <mime-types>image/svg+xml</mime-types>
-        </denied>
-    </statement>
+	<!-- Only allow images not of type svg -->
+	<statement>
+		<target-path-pattern>/static-assets/images.*</target-path-pattern>
+		<permitted>
+			<mime-types>image/*</mime-types>
+		</permitted>
+		<denied>
+			<mime-types>image/svg+xml</mime-types>
+		</denied>
+	</statement>
 
-    <!-- Only allow letters in the path -->
-    <statement>
-        <target-path-pattern>/static-assets/no-numbers.*</target-path-pattern>
-        <permitted>
-            <path>
-                <source-regex>([A-Za-z\-/\.]*)</source-regex>
-            </path>
-        </permitted>
-    </statement>
+	<!-- Only allow letters in the path -->
+	<statement>
+		<target-path-pattern>/static-assets/no-numbers.*</target-path-pattern>
+		<permitted>
+			<path>
+				<source-regex>([A-Za-z\-/\.]*)</source-regex>
+			</path>
+		</permitted>
+	</statement>
 
-    <!-- Only allow lowercase letters in the path -->
-    <statement>
-        <target-path-pattern>/static-assets/only-lowercase.*</target-path-pattern>
-        <permitted>
-            <path>
-                <source-regex>([a-z\-/\.]*)</source-regex>
-                <target-regex caseTransform="lowercase">$1</target-regex>
-            </path>
-        </permitted>
-    </statement>
+	<!-- Only allow lowercase letters in the path -->
+	<statement>
+		<target-path-pattern>/static-assets/only-lowercase.*</target-path-pattern>
+		<permitted>
+			<path>
+				<source-regex>([a-z\-/\.]*)</source-regex>
+				<target-regex caseTransform="lowercase">$1</target-regex>
+			</path>
+		</permitted>
+	</statement>
 
-    <!-- Remove numbers in the path -->
-    <statement>
-        <target-path-pattern>/static-assets/remove-numbers.*</target-path-pattern>
-        <permitted>
-            <path>
-                <source-regex>\d</source-regex>
-                <target-regex/>
-            </path>
-        </permitted>
-    </statement>
+	<!-- Remove numbers in the path -->
+	<statement>
+		<target-path-pattern>/static-assets/remove-numbers.*</target-path-pattern>
+		<permitted>
+			<path>
+				<source-regex>\d</source-regex>
+				<target-regex/>
+			</path>
+		</permitted>
+	</statement>
 
-    <!--  Only allow a specific content-type  -->
-    <statement>
-        <target-path-pattern>/site/components/headers.*</target-path-pattern>
-        <permitted>
-            <content-types>/component/header,/component/test</content-types>
-        </permitted>
-    </statement>
+	<!--  Only allow a specific content-type  -->
+	<statement>
+		<target-path-pattern>/site/components/headers.*</target-path-pattern>
+		<permitted>
+			<content-types>/component/header,/component/test</content-types>
+		</permitted>
+	</statement>
 
-    <!-- Denied specific content-type -->
-    <statement>
-        <target-path-pattern>/site/components/footers.*</target-path-pattern>
-        <denied>
-            <content-types>/component/header,/component/test</content-types>
-        </denied>
-    </statement>
+	<!-- Denied specific content-type -->
+	<statement>
+		<target-path-pattern>/site/components/footers.*</target-path-pattern>
+		<denied>
+			<content-types>/component/header,/component/test</content-types>
+		</denied>
+	</statement>
 
 </site-policy>

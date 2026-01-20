@@ -38,42 +38,43 @@ import static org.craftercms.studio.impl.v2.service.marketplace.internal.Marketp
  */
 public abstract class PluginUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(PluginUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(PluginUtils.class);
 
-    /**
-     * Validates that all required parameters are provided and have a value
-     * @param plugin the plugin to validate
-     * @param params the parameters to validate
-     * @throws MissingPluginParameterException if any of the required parameters is not valid
-     */
-    public static void validatePluginParameters(final Plugin plugin, final Map<String, String> params)
-            throws MissingPluginParameterException {
-        if (CollectionUtils.isEmpty(plugin.getParameters())) {
-            logger.debug("No parameters defined for the plugin '{}'", plugin.getId());
-            return;
-        }
+	/**
+	 * Validates that all required parameters are provided and have a value
+	 *
+	 * @param plugin the plugin to validate
+	 * @param params the parameters to validate
+	 * @throws MissingPluginParameterException if any of the required parameters is not valid
+	 */
+	public static void validatePluginParameters(final Plugin plugin, final Map<String, String> params)
+		throws MissingPluginParameterException {
+		if (CollectionUtils.isEmpty(plugin.getParameters())) {
+			logger.debug("No parameters defined for the plugin '{}'", plugin.getId());
+			return;
+		}
 
-        for(Parameter param : plugin.getParameters()) {
-            logger.debug("Check parameter '{}' for the blueprint '{}'", param.getName(), plugin.getId());
-            if (param.isRequired()) {
-                if (!params.containsKey(param.getName()) || StringUtils.isEmpty(params.get(param.getName()))) {
-                    throw new MissingPluginParameterException(plugin, param);
-                }
-            } else {
-                params.putIfAbsent(param.getName(), param.getDefaultValue());
-            }
-        }
-        logger.debug("All required parameters are present for blueprint '{}'", plugin.getId());
-    }
+		for (Parameter param : plugin.getParameters()) {
+			logger.debug("Check parameter '{}' for the blueprint '{}'", param.getName(), plugin.getId());
+			if (param.isRequired()) {
+				if (!params.containsKey(param.getName()) || StringUtils.isEmpty(params.get(param.getName()))) {
+					throw new MissingPluginParameterException(plugin, param);
+				}
+			} else {
+				params.putIfAbsent(param.getName(), param.getDefaultValue());
+			}
+		}
+		logger.debug("All required parameters are present for blueprint '{}'", plugin.getId());
+	}
 
-    public static String getPluginPath(String pluginId) {
-        return pluginId.replaceAll("\\.", File.separator);
-    }
+	public static String getPluginPath(String pluginId) {
+		return pluginId.replaceAll("\\.", File.separator);
+	}
 
-    public static String getPluginConfigurationPath(StudioConfiguration studioConfiguration, String pluginId) {
-        return String.join(File.separator, studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN),
-                        getPluginPath(pluginId), studioConfiguration.getProperty(PLUGIN_CONFIG_FILENAME_CONFIG_KEY))
-                .replaceAll(PATTERN_MODULE, studioConfiguration.getProperty(PLUGIN_CONFIG_MODULE_CONFIG_KEY));
-    }
+	public static String getPluginConfigurationPath(StudioConfiguration studioConfiguration, String pluginId) {
+		return String.join(File.separator, studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN),
+				getPluginPath(pluginId), studioConfiguration.getProperty(PLUGIN_CONFIG_FILENAME_CONFIG_KEY))
+			.replaceAll(PATTERN_MODULE, studioConfiguration.getProperty(PLUGIN_CONFIG_MODULE_CONFIG_KEY));
+	}
 
 }

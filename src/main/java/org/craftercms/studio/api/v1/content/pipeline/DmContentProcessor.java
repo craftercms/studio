@@ -16,29 +16,20 @@
 package org.craftercms.studio.api.v1.content.pipeline;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
 public interface DmContentProcessor {
 
-    /**
-     * create missing folders in the given path
-     *
-     * @param site
-     * @param path
-     * @param isPreview
-     * @return last child folder in the path
-     */
-    ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * change file to folder content. See WcmClipboardServiceImpl when updating this logic.
-     * Duplicate exists due to prevent circular dependency
-     *
-     * @param site site id
-     * @param path content path
-     * @return new content path
-     */
-    String fileToFolder(String site, String path) throws ServiceLayerException, UserNotFoundException;
+	/**
+	 * create missing folders in the given path
+	 *
+	 * @param site
+	 * @param path
+	 * @param isPreview
+	 * @return last child folder in the path
+	 */
+	ContentItemTO createMissingFoldersInPath(String site, String path, boolean isPreview)
+		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 }

@@ -25,7 +25,6 @@ import java.util.Map;
  *
  * @author hyanghee
  * @author Dejan Brkic
- *
  */
 public class SiteConfigTO implements Serializable {
 
@@ -34,94 +33,106 @@ public class SiteConfigTO implements Serializable {
 	 */
 	protected static final long serialVersionUID = 3411780412457597813L;
 
-    /**
-     * WEM project name
-     */
-    protected String wemProject;
+	/**
+	 * WEM project name
+	 */
+	protected String wemProject;
 
-    /**
-     * site name
-     */
-    protected String siteName = null;
+	/**
+	 * site name
+	 */
+	protected String siteName = null;
 
 	/**
 	 * site display name
 	 */
 	protected String name = null;
 
-	/** the last updated date of site configuration **/
+	/**
+	 * the last updated date of site configuration
+	 **/
 	protected ZonedDateTime lastUpdated = null;
 
-    /** web project configuration if the site is dm-based **/
-    protected RepositoryConfigTO repositoryConfig = null;
+	/**
+	 * web project configuration if the site is dm-based
+	 **/
+	protected RepositoryConfigTO repositoryConfig = null;
 
-	/** default timezone **/
+	/**
+	 * default timezone
+	 **/
 	protected String timezone = null;
 
 	protected boolean stagingEnvironmentEnabled;
 
-	/** staging environment **/
+	/**
+	 * staging environment
+	 **/
 	protected String stagingEnvironment;
 
-	/** live environment **/
+	/**
+	 * live environment
+	 **/
 	protected String liveEnvironment;
 
-    /** sandbox branch **/
-    protected String sandboxBranch = null;
+	/**
+	 * sandbox branch
+	 **/
+	protected String sandboxBranch = null;
 
-    /**
-     * Map of fields &amp; boosting to use in search
-     */
-    protected Map<String, Float> searchFields;
+	/**
+	 * Map of fields &amp; boosting to use in search
+	 */
+	protected Map<String, Float> searchFields;
 
-    /**
-     * Configuration for the range facets in search
-     */
-    protected Map<String, FacetTO> facets;
+	/**
+	 * Configuration for the range facets in search
+	 */
+	protected Map<String, FacetTO> facets;
 
-    /**
-     * Pattern for the plugins folder
-     */
-    protected String pluginFolderPattern;
+	/**
+	 * Pattern for the plugins folder
+	 */
+	protected String pluginFolderPattern;
 
-    /**
-     * Authoring url
-     */
-    protected String authoringUrl;
+	/**
+	 * Authoring url
+	 */
+	protected String authoringUrl;
 
-    /**
-     * Staging url
-     */
-    protected String stagingUrl;
+	/**
+	 * Staging url
+	 */
+	protected String stagingUrl;
 
-    /**
-     * Live url
-     */
-    protected String liveUrl;
+	/**
+	 * Live url
+	 */
+	protected String liveUrl;
 
-    /**
-     * Admin email address for notification service
-     */
-    protected String adminEmailAddress;
+	/**
+	 * Admin email address for notification service
+	 */
+	protected String adminEmailAddress;
 
-    protected boolean requirePeerReview = false;
+	protected boolean requirePeerReview = false;
 
-    protected List<String> protectedFolderPatterns;
+	protected List<String> protectedFolderPatterns;
 
-    /**
-     * @return the WEM project
-     */
-    public String getWemProject() {
-        return wemProject;
-    }
+	/**
+	 * @return the WEM project
+	 */
+	public String getWemProject() {
+		return wemProject;
+	}
 
-    public void setWemProject(String wemProject) {
-        this.wemProject = wemProject;
-    }
+	public void setWemProject(String wemProject) {
+		this.wemProject = wemProject;
+	}
 
-    public String getSiteName() {
-        return siteName;
-    }
+	public String getSiteName() {
+		return siteName;
+	}
 
 	public String getName() {
 		return name;
@@ -139,13 +150,13 @@ public class SiteConfigTO implements Serializable {
 		return lastUpdated;
 	}
 
-    public RepositoryConfigTO getRepositoryConfig() {
-        return repositoryConfig;
-    }
+	public RepositoryConfigTO getRepositoryConfig() {
+		return repositoryConfig;
+	}
 
-    public void setRepositoryConfig(RepositoryConfigTO repositoryConfig) {
-        this.repositoryConfig = repositoryConfig;
-    }
+	public void setRepositoryConfig(RepositoryConfigTO repositoryConfig) {
+		this.repositoryConfig = repositoryConfig;
+	}
 
 	public void setTimezone(String timezone) {
 		this.timezone = timezone;
@@ -155,107 +166,107 @@ public class SiteConfigTO implements Serializable {
 		return timezone;
 	}
 
-    public String getSandboxBranch() {
-        return sandboxBranch;
-    }
+	public String getSandboxBranch() {
+		return sandboxBranch;
+	}
 
-    public void setSandboxBranch(String sandboxBranch) {
-        this.sandboxBranch = sandboxBranch;
-    }
+	public void setSandboxBranch(String sandboxBranch) {
+		this.sandboxBranch = sandboxBranch;
+	}
 
-    public String getStagingEnvironment() {
-        return stagingEnvironment;
-    }
+	public String getStagingEnvironment() {
+		return stagingEnvironment;
+	}
 
-    public void setStagingEnvironment(String stagingEnvironment) {
-        this.stagingEnvironment = stagingEnvironment;
-    }
+	public void setStagingEnvironment(String stagingEnvironment) {
+		this.stagingEnvironment = stagingEnvironment;
+	}
 
-    public String getLiveEnvironment() {
-        return liveEnvironment;
-    }
+	public String getLiveEnvironment() {
+		return liveEnvironment;
+	}
 
-    public void setLiveEnvironment(String liveEnvironment) {
-        this.liveEnvironment = liveEnvironment;
-    }
+	public void setLiveEnvironment(String liveEnvironment) {
+		this.liveEnvironment = liveEnvironment;
+	}
 
-    public boolean isStagingEnvironmentEnabled() {
-        return stagingEnvironmentEnabled;
-    }
+	public boolean isStagingEnvironmentEnabled() {
+		return stagingEnvironmentEnabled;
+	}
 
-    public void setStagingEnvironmentEnabled(boolean stagingEnvironmentEnabled) {
-        this.stagingEnvironmentEnabled = stagingEnvironmentEnabled;
-    }
+	public void setStagingEnvironmentEnabled(boolean stagingEnvironmentEnabled) {
+		this.stagingEnvironmentEnabled = stagingEnvironmentEnabled;
+	}
 
-    public Map<String, Float> getSearchFields() {
-        return searchFields;
-    }
+	public Map<String, Float> getSearchFields() {
+		return searchFields;
+	}
 
-    public void setSearchFields(Map<String, Float> searchFields) {
-        this.searchFields = searchFields;
-    }
+	public void setSearchFields(Map<String, Float> searchFields) {
+		this.searchFields = searchFields;
+	}
 
-    public Map<String, FacetTO> getFacets() {
-        return facets;
-    }
+	public Map<String, FacetTO> getFacets() {
+		return facets;
+	}
 
-    public void setFacets(final Map<String, FacetTO> facets) {
-        this.facets = facets;
-    }
+	public void setFacets(final Map<String, FacetTO> facets) {
+		this.facets = facets;
+	}
 
-    public String getPluginFolderPattern() {
-        return pluginFolderPattern;
-    }
+	public String getPluginFolderPattern() {
+		return pluginFolderPattern;
+	}
 
-    public void setPluginFolderPattern(final String pluginFolderPattern) {
-        this.pluginFolderPattern = pluginFolderPattern;
-    }
+	public void setPluginFolderPattern(final String pluginFolderPattern) {
+		this.pluginFolderPattern = pluginFolderPattern;
+	}
 
-    public String getAuthoringUrl() {
-        return authoringUrl;
-    }
+	public String getAuthoringUrl() {
+		return authoringUrl;
+	}
 
-    public void setAuthoringUrl(String authoringUrl) {
-        this.authoringUrl = authoringUrl;
-    }
+	public void setAuthoringUrl(String authoringUrl) {
+		this.authoringUrl = authoringUrl;
+	}
 
-    public String getStagingUrl() {
-        return stagingUrl;
-    }
+	public String getStagingUrl() {
+		return stagingUrl;
+	}
 
-    public void setStagingUrl(String stagingUrl) {
-        this.stagingUrl = stagingUrl;
-    }
+	public void setStagingUrl(String stagingUrl) {
+		this.stagingUrl = stagingUrl;
+	}
 
-    public String getLiveUrl() {
-        return liveUrl;
-    }
+	public String getLiveUrl() {
+		return liveUrl;
+	}
 
-    public void setLiveUrl(String liveUrl) {
-        this.liveUrl = liveUrl;
-    }
+	public void setLiveUrl(String liveUrl) {
+		this.liveUrl = liveUrl;
+	}
 
-    public String getAdminEmailAddress() {
-        return adminEmailAddress;
-    }
+	public String getAdminEmailAddress() {
+		return adminEmailAddress;
+	}
 
-    public void setAdminEmailAddress(String adminEmailAddress) {
-        this.adminEmailAddress = adminEmailAddress;
-    }
+	public void setAdminEmailAddress(String adminEmailAddress) {
+		this.adminEmailAddress = adminEmailAddress;
+	}
 
-    public boolean isRequirePeerReview() {
-        return requirePeerReview;
-    }
+	public boolean isRequirePeerReview() {
+		return requirePeerReview;
+	}
 
-    public void setRequirePeerReview(boolean requirePeerReview) {
-        this.requirePeerReview = requirePeerReview;
-    }
+	public void setRequirePeerReview(boolean requirePeerReview) {
+		this.requirePeerReview = requirePeerReview;
+	}
 
-    public List<String> getProtectedFolderPatterns() {
-        return protectedFolderPatterns;
-    }
+	public List<String> getProtectedFolderPatterns() {
+		return protectedFolderPatterns;
+	}
 
-    public void setProtectedFolderPatterns(List<String> protectedFolderPatterns) {
-        this.protectedFolderPatterns = protectedFolderPatterns;
-    }
+	public void setProtectedFolderPatterns(List<String> protectedFolderPatterns) {
+		this.protectedFolderPatterns = protectedFolderPatterns;
+	}
 }

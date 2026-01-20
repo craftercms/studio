@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,41 +17,36 @@
 package org.craftercms.studio.impl.v1.repository.job;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Triggers a cleanup for all repositories on all existing sites.
+ *
  * @author joseross
  */
 public class RepositoryCleanupJob {
 
-    protected static final Logger logger = LoggerFactory.getLogger(RepositoryCleanupJob.class);
+	protected static final Logger logger = LoggerFactory.getLogger(RepositoryCleanupJob.class);
 
-    protected SiteService siteService;
-    protected ContentRepository contentRepository;
+	protected SiteService siteService;
+	protected GitContentRepository contentRepository;
 
-    /**
-     * Performs a cleanup for all repositories on all existing sites.
-     */
-    public void cleanupAllRepositories() {
-        logger.info("Started git garbage collection for the global repo");
-        contentRepository.cleanupRepositories(StringUtils.EMPTY);
-        logger.info("Started git garbage collection for all sites");
-        siteService.getAllAvailableSites().forEach(contentRepository::cleanupRepositories);
-    }
+	public RepositoryCleanupJob(final SiteService siteService, final GitContentRepository contentRepository) {
+		this.siteService = siteService;
+		this.contentRepository = contentRepository;
+	}
 
-    @Required
-    public void setSiteService(final SiteService siteService) {
-        this.siteService = siteService;
-    }
+	/**
+	 * Performs a cleanup for all repositories on all existing sites.
+	 */
+	public void cleanupAllRepositories() {
+		logger.info("Started git garbage collection for the global repo");
+		contentRepository.garbageCollectGitRepositories(StringUtils.EMPTY);
+		logger.info("Started git garbage collection for all sites");
+		siteService.getAllAvailableSites().forEach(contentRepository::garbageCollectGitRepositories);
+	}
 
-    @Required
-    public void setContentRepository(final ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-    
 }

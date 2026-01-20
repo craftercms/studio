@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,68 +16,75 @@
 
 package org.craftercms.studio.model.rest.workflow;
 
-import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
 public class UpdateItemStatesByQueryRequestBody {
 
-    @Valid
-    @NotNull
-    private Query query;
-    @Valid
-    @NotNull
-    private ItemStatesUpdate update;
+	@Valid
+	@NotNull
+	private Query query;
+	@Valid
+	@NotNull
+	private ItemStatesUpdate update;
 
-    public Query getQuery() {
-        return query;
-    }
+	public Query getQuery() {
+		return query;
+	}
 
-    public void setQuery(Query query) {
-        this.query = query;
-    }
+	public void setQuery(Query query) {
+		this.query = query;
+	}
 
-    public ItemStatesUpdate getUpdate() {
-        return update;
-    }
+	public ItemStatesUpdate getUpdate() {
+		return update;
+	}
 
-    public void setUpdate(ItemStatesUpdate update) {
-        this.update = update;
-    }
+	public void setUpdate(ItemStatesUpdate update) {
+		this.update = update;
+	}
 
-    public static class Query {
-        @NotEmpty
-        @ValidSiteId
-        private String siteId;
-        @ValidExistingContentPath
-        private String path;
-        private Long states;
+	public static class Query {
+		@NotEmpty
+		@ValidSiteId
+		private String siteId;
 
-        public String getSiteId() {
-            return siteId;
-        }
+		/**
+		 * Content path regex
+		 */
+		@ValidateSecurePathParam
+		@ValidateNoTagsParam
+		private String path;
 
-        public void setSiteId(String siteId) {
-            this.siteId = siteId;
-        }
+		private Long states;
 
-        public String getPath() {
-            return path;
-        }
+		public String getSiteId() {
+			return siteId;
+		}
 
-        public void setPath(String path) {
-            this.path = path;
-        }
+		public void setSiteId(String siteId) {
+			this.siteId = siteId;
+		}
 
-        public Long getStates() {
-            return states;
-        }
+		public String getPath() {
+			return path;
+		}
 
-        public void setStates(Long states) {
-            this.states = states;
-        }
-    }
+		public void setPath(String path) {
+			this.path = path;
+		}
+
+		public Long getStates() {
+			return states;
+		}
+
+		public void setStates(Long states) {
+			this.states = states;
+		}
+	}
 }

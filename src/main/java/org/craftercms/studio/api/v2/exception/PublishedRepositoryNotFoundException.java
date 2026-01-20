@@ -27,12 +27,12 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public class PublishedRepositoryNotFoundException extends ServiceLayerException {
 
-    public PublishedRepositoryNotFoundException(String message) {
-        super(message);
-    }
+	public PublishedRepositoryNotFoundException(String message) {
+		super(message);
+	}
 
-    public PublishedRepositoryNotFoundException(String message, Exception e) {
-        super(message, e);
-    }
+	public PublishedRepositoryNotFoundException(String message, Exception e) {
+		super(message, e);
+	}
 
 }

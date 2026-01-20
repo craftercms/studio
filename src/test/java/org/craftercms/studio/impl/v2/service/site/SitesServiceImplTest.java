@@ -38,63 +38,63 @@ import static org.mockito.Mockito.*;
 
 public class SitesServiceImplTest {
 
-    private static final String SITE_ID = "site1";
-    private static final String NON_EXISTING_SITE_ID = "non-existing-site-id";
-    private static final String EXISTING_SITE_ID = "existing-site";
-    private static final String SOURCE_SITE_ID = "original";
-    private static final String NEW_SITE_ID = "the-copy";
+	private static final String SITE_ID = "site1";
+	private static final String NON_EXISTING_SITE_ID = "non-existing-site-id";
+	private static final String EXISTING_SITE_ID = "existing-site";
+	private static final String SOURCE_SITE_ID = "original";
+	private static final String NEW_SITE_ID = "the-copy";
 
-    @Mock
-    protected SiteService siteServiceV1;
-    @Mock
-    protected SitesService sitesServiceInternal;
-    @InjectMocks
-    protected SitesServiceImpl sitesService;
-    private AutoCloseable mocks;
+	@Mock
+	protected SiteService siteServiceV1;
+	@Mock
+	protected SitesService sitesServiceInternal;
+	@InjectMocks
+	protected SitesServiceImpl sitesService;
+	private AutoCloseable mocks;
 
-    @BeforeEach
-    public void setUp() throws SiteNotFoundException {
-        mocks = MockitoAnnotations.openMocks(this);
-        when(sitesServiceInternal.exists(NON_EXISTING_SITE_ID)).thenReturn(false);
-        when(sitesServiceInternal.exists(SITE_ID)).thenReturn(true);
-        doThrow(new SiteNotFoundException(NON_EXISTING_SITE_ID)).when(siteServiceV1).checkSiteExists(NON_EXISTING_SITE_ID);
-        when(sitesService.exists(EXISTING_SITE_ID)).thenReturn(true);
-    }
+	@BeforeEach
+	public void setUp() throws SiteNotFoundException {
+		mocks = MockitoAnnotations.openMocks(this);
+		when(sitesServiceInternal.exists(NON_EXISTING_SITE_ID)).thenReturn(false);
+		when(sitesServiceInternal.exists(SITE_ID)).thenReturn(true);
+		doThrow(new SiteNotFoundException(NON_EXISTING_SITE_ID)).when(siteServiceV1).checkSiteExists(NON_EXISTING_SITE_ID);
+		when(sitesService.exists(EXISTING_SITE_ID)).thenReturn(true);
+	}
 
-    @AfterEach
-    public void tearDown() throws Exception {
-        mocks.close();
-    }
+	@AfterEach
+	public void tearDown() throws Exception {
+		mocks.close();
+	}
 
-    @Test
-    public void siteDeleteTest() throws ServiceLayerException {
-        sitesService.deleteSite(SITE_ID);
-        verify(sitesServiceInternal).deleteSite(SITE_ID);
-    }
+	@Test
+	public void siteDeleteTest() throws ServiceLayerException {
+		sitesService.deleteSite(SITE_ID);
+		verify(sitesServiceInternal).deleteSite(SITE_ID);
+	}
 
-    @Test
-    public void nonExistingSiteDeleteTest() throws NoSuchMethodException {
-        Method method = SitesServiceImpl.class.getMethod("deleteSite", String.class);
-        assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
-    }
+	@Test
+	public void nonExistingSiteDeleteTest() throws NoSuchMethodException {
+		Method method = SitesServiceImpl.class.getMethod("deleteSite", String.class);
+		assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
+	}
 
-    @Test
-    public void duplicateNonExistentSiteTest() throws NoSuchMethodException {
-        Method method = SitesServiceImpl.class.getMethod("duplicate", String.class, String.class, String.class,
-                String.class, String.class, boolean.class);
-        assertTrue(method.isAnnotationPresent(RequireSiteReady.class));
-    }
+	@Test
+	public void duplicateNonExistentSiteTest() throws NoSuchMethodException {
+		Method method = SitesServiceImpl.class.getMethod("duplicate", String.class, String.class, String.class,
+			String.class, String.class, boolean.class);
+		assertTrue(method.isAnnotationPresent(RequireSiteReady.class));
+	}
 
-    @Test
-    public void duplicateIntoAlreadyExistentSiteTest() {
-        assertThrows(SiteAlreadyExistsException.class, () ->
-                sitesService.duplicate(EXISTING_SITE_ID, EXISTING_SITE_ID, "site_name", "The new site", "main_branch", false));
-    }
+	@Test
+	public void duplicateIntoAlreadyExistentSiteTest() {
+		assertThrows(SiteAlreadyExistsException.class, () ->
+			sitesService.duplicate(EXISTING_SITE_ID, EXISTING_SITE_ID, "site_name", "The new site", "main_branch", false));
+	}
 
-    @Test
-    public void duplicateSiteTest() throws ServiceLayerException {
-        sitesService.duplicate(EXISTING_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
+	@Test
+	public void duplicateSiteTest() throws ServiceLayerException {
+		sitesService.duplicate(EXISTING_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
 
-        verify(sitesServiceInternal).duplicate(EXISTING_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
-    }
+		verify(sitesServiceInternal).duplicate(EXISTING_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
+	}
 }

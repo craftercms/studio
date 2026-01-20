@@ -26,6 +26,6 @@ import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
  */
 public interface GitCliOutputExceptionResolver {
 
-    GitCliOutputException resolveException(int exitValue, String output);
+	GitCliOutputException resolveException(int exitValue, String output);
 
 }

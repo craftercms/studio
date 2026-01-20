@@ -16,7 +16,8 @@
   -->
 
 <component>
-	<content-type>/component/level-descriptor</content-type>	<display-template/>
+	<content-type>/component/level-descriptor</content-type>
+	<display-template/>
 	<merge-strategy>inherit-levels</merge-strategy>
 	<objectGroupId>750f</objectGroupId>
 	<objectId>750f18d6-ff73-72da-c9de-3edbe426e84c</objectId>

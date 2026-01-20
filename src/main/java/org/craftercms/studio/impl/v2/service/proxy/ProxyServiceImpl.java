@@ -25,9 +25,10 @@ import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.springframework.http.ResponseEntity;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+
 import java.beans.ConstructorProperties;
 import java.net.URISyntaxException;
 
@@ -36,27 +37,27 @@ import java.net.URISyntaxException;
  */
 public class ProxyServiceImpl implements ProxyService {
 
-    protected final ProxyService proxyServiceInternal;
+	protected final ProxyService proxyServiceInternal;
 
-    @ConstructorProperties({"proxyServiceInternal"})
-    public ProxyServiceImpl(final ProxyService proxyServiceInternal) {
-        this.proxyServiceInternal = proxyServiceInternal;
-    }
+	@ConstructorProperties({"proxyServiceInternal"})
+	public ProxyServiceImpl(final ProxyService proxyServiceInternal) {
+		this.proxyServiceInternal = proxyServiceInternal;
+	}
 
-    @Override
-    @RequireSiteReady
-    @HasPermission(type = DefaultPermission.class, action = StudioPermissionsConstants.PERMISSION_VIEW_LOGS)
-    public ResponseEntity<Object> getSiteLogEvents(final String body,
-                                                   @SiteId final String siteId,
-                                                   final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
-        return proxyEngine(body, siteId, request);
-    }
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = StudioPermissionsConstants.PERMISSION_VIEW_LOGS)
+	public ResponseEntity<Object> getSiteLogEvents(final String body,
+						       @SiteId final String siteId,
+						       final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
+		return proxyEngine(body, siteId, request);
+	}
 
-    @Override
-    @Valid
-    @RequireSiteReady
-    public ResponseEntity<Object> proxyEngine(final String body, @NotEmpty @SiteId final String siteId,
-                                              final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
-        return proxyServiceInternal.proxyEngine(body, siteId, request);
-    }
+	@Override
+	@Valid
+	@RequireSiteReady
+	public ResponseEntity<Object> proxyEngine(final String body, @NotEmpty @SiteId final String siteId,
+						  final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
+		return proxyServiceInternal.proxyEngine(body, siteId, request);
+	}
 }

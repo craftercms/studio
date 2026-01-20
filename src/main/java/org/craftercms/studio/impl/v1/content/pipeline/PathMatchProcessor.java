@@ -26,76 +26,80 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 
 public class PathMatchProcessor extends BaseContentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(PathMatchProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(PathMatchProcessor.class);
 
-    public static final String NAME = "PathMatchProcessor";
+	public static final String NAME = "PathMatchProcessor";
 
-    /** a list of paths to match on **/
-    protected List<String> _matchPaths;
+	/**
+	 * a list of paths to match on
+	 **/
+	protected List<String> _matchPaths;
 
-    /** a list of paths not to match on **/
-    protected List<String> _unmatchPaths;
+	/**
+	 * a list of paths not to match on
+	 **/
+	protected List<String> _unmatchPaths;
 
-    /**
-     * @param matchPaths the matchPaths to set
-     */
-    public void setMatchPaths(List<String> matchPaths) {
-        this._matchPaths = matchPaths;
-    }
+	/**
+	 * @param matchPaths the matchPaths to set
+	 */
+	public void setMatchPaths(List<String> matchPaths) {
+		this._matchPaths = matchPaths;
+	}
 
-    /**
-     * @param unmatchPaths the unmatchPaths to set
-     */
-    public void setUnmatchPaths(List<String> unmatchPaths) {
-        this._unmatchPaths = unmatchPaths;
-    }
+	/**
+	 * @param unmatchPaths the unmatchPaths to set
+	 */
+	public void setUnmatchPaths(List<String> unmatchPaths) {
+		this._unmatchPaths = unmatchPaths;
+	}
 
-    /**
-     * default constructor
-     */
-    public PathMatchProcessor() {
-        super(NAME);
-    }
+	/**
+	 * default constructor
+	 */
+	public PathMatchProcessor() {
+		super(NAME);
+	}
 
-    /**
-     * constructor that sets the process name
-     *
-     * @param name
-     */
-    public PathMatchProcessor(String name) {
-        super(name);
-    }
+	/**
+	 * constructor that sets the process name
+	 *
+	 * @param name
+	 */
+	public PathMatchProcessor(String name) {
+		super(name);
+	}
 
-    public boolean isProcessable(PipelineContent content) {
-        String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
-        String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-        String path = folderPath + FILE_SEPARATOR + fileName;
-        boolean result = false;
-        // if at least one match path provided, and it does not match, not processable
-        if ((_matchPaths != null && _matchPaths.size() > 0)) {
-            // if match is true and one of paths is matching the content path, it is processable
-            for (String pathPattern : _matchPaths) {
-                if (path.matches(pathPattern)) {
-                    result = true;
-                    break;
-                }
-            }
-        } else {
-            // if no match paths provided, match all
-            result =  true;
-        }
-        if (result) {
-            // if path matches on any unmathPath, it is not processable
-            if ((_unmatchPaths != null && _unmatchPaths.size() > 0)) {
-                // if match is true and one of paths is matching the content path, it is processable
-                for (String pathPattern : _unmatchPaths) {
-                    if (path.matches(pathPattern)) {
-                        result = false;
-                        break;
-                    }
-                }
-            }
-        }
-        return result;
-    }
+	public boolean isProcessable(PipelineContent content) {
+		String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
+		String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
+		String path = folderPath + FILE_SEPARATOR + fileName;
+		boolean result = false;
+		// if at least one match path provided, and it does not match, not processable
+		if ((_matchPaths != null && _matchPaths.size() > 0)) {
+			// if match is true and one of paths is matching the content path, it is processable
+			for (String pathPattern : _matchPaths) {
+				if (path.matches(pathPattern)) {
+					result = true;
+					break;
+				}
+			}
+		} else {
+			// if no match paths provided, match all
+			result = true;
+		}
+		if (result) {
+			// if path matches on any unmathPath, it is not processable
+			if ((_unmatchPaths != null && _unmatchPaths.size() > 0)) {
+				// if match is true and one of paths is matching the content path, it is processable
+				for (String pathPattern : _unmatchPaths) {
+					if (path.matches(pathPattern)) {
+						result = false;
+						break;
+					}
+				}
+			}
+		}
+		return result;
+	}
 }

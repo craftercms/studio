@@ -23,5 +23,5 @@ package org.craftercms.studio.api.v2.event;
  * site members only.
  */
 public interface SiteBroadcastEvent extends BroadcastEvent {
-    String getSiteId();
+	String getSiteId();
 }

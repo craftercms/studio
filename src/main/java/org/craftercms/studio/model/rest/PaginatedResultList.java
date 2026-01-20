@@ -20,56 +20,55 @@ package org.craftercms.studio.model.rest;
  * A paginated {@link ResultList}.
  *
  * @param <T> the entity type
- *
  * @author Dejan Brkic
  * @author avasquez
  */
 public class PaginatedResultList<T> extends ResultList<T> {
 
-    protected long total;
-    protected int offset;
-    protected int limit;
+	protected long total;
+	protected int offset;
+	protected int limit;
 
-    /**
-     * Returns the total of results.
-     */
-    public long getTotal() {
-        return total;
-    }
+	/**
+	 * Returns the total of results.
+	 */
+	public long getTotal() {
+		return total;
+	}
 
-    /**
-     * Sets the total of results.
-     */
-    public void setTotal(long total) {
-        this.total = total;
-    }
+	/**
+	 * Sets the total of results.
+	 */
+	public void setTotal(long total) {
+		this.total = total;
+	}
 
-    /**
-     * Returns the offset in the total of results this result list starts.
-     */
-    public int getOffset() {
-        return offset;
-    }
+	/**
+	 * Returns the offset in the total of results this result list starts.
+	 */
+	public int getOffset() {
+		return offset;
+	}
 
-    /**
-     * Sets the offset in the total of results this result list starts.
-     */
-    public void setOffset(int offset) {
-        this.offset = offset;
-    }
+	/**
+	 * Sets the offset in the total of results this result list starts.
+	 */
+	public void setOffset(int offset) {
+		this.offset = offset;
+	}
 
-    /**
-     * Returns the number of items in the result list.
-     */
-    public int getLimit() {
-        return limit;
-    }
+	/**
+	 * Returns the number of items in the result list.
+	 */
+	public int getLimit() {
+		return limit;
+	}
 
-    /**
-     * Sets the number of items in the result list.
-     */
-    public void setLimit(int limit) {
-        this.limit = limit;
-    }
+	/**
+	 * Sets the number of items in the result list.
+	 */
+	public void setLimit(int limit) {
+		this.limit = limit;
+	}
 
 }

@@ -26,14 +26,14 @@ import java.util.concurrent.Callable;
 @RetryingRepositoryOperation
 public class RetryingRepositoryOperationFacadeImpl implements RetryingRepositoryOperationFacade {
 
-    @Override
-    public <T> T call(GitCommand<T> gitCommand) throws GitAPIException {
-        return gitCommand.call();
-    }
+	@Override
+	public <T> T call(GitCommand<T> gitCommand) throws GitAPIException {
+		return gitCommand.call();
+	}
 
-    @Override
-    public <T> T call(Callable<T> gitCommand) throws Exception {
-        return gitCommand.call();
-    }
+	@Override
+	public <T> T call(Callable<T> gitCommand) throws Exception {
+		return gitCommand.call();
+	}
 
 }

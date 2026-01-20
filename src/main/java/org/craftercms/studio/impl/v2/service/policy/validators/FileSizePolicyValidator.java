@@ -34,49 +34,49 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  */
 public class FileSizePolicyValidator implements PolicyValidator {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileSizePolicyValidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(FileSizePolicyValidator.class);
 
-    public static final String CONFIG_KEY_MIN_SIZE = "minimum-file-size";
-    public static final String CONFIG_KEY_MAX_SIZE = "maximum-file-size";
+	public static final String CONFIG_KEY_MIN_SIZE = "minimum-file-size";
+	public static final String CONFIG_KEY_MAX_SIZE = "maximum-file-size";
 
-    private void validatePermitted(HierarchicalConfiguration<?> config, Action action, ValidationResult result) {
-        if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            logger.debug("The target is a folder, skip action '{}'", action);
-            return;
-        }
+	private void validatePermitted(HierarchicalConfiguration<?> config, Action action, ValidationResult result) {
+		if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
+			logger.debug("The target is a folder, skip action '{}'", action);
+			return;
+		}
 
-        if (config.containsKey(CONFIG_KEY_MIN_SIZE) && action.containsMetadata(Action.METADATA_FILE_SIZE)) {
-            long minSize = config.getLong(CONFIG_KEY_MIN_SIZE);
-            Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
-            if (value.longValue() < minSize) {
-                logger.error("File size should be at least '{}' for action '{}'", minSize, action);
-                result.setAllowed(false);
-                result.setMessage(format("File size should be at least '%s' bytes", minSize));
-                return;
-            }
-        } else {
-            logger.debug("No min size found, skip action '{}'", action);
-        }
+		if (config.containsKey(CONFIG_KEY_MIN_SIZE) && action.containsMetadata(Action.METADATA_FILE_SIZE)) {
+			long minSize = config.getLong(CONFIG_KEY_MIN_SIZE);
+			Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
+			if (value.longValue() < minSize) {
+				logger.error("File size should be at least '{}' for action '{}'", minSize, action);
+				result.setAllowed(false);
+				result.setMessage(format("File size should be at least '%s' bytes", minSize));
+				return;
+			}
+		} else {
+			logger.debug("No min size found, skip action '{}'", action);
+		}
 
 
-        if (config.containsKey(CONFIG_KEY_MAX_SIZE) && action.containsMetadata(Action.METADATA_FILE_SIZE)) {
-            long maxSize = config.getLong(CONFIG_KEY_MAX_SIZE);
-            Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
-            if (value.longValue() > maxSize) {
-                logger.error("File size should be less than '{}' for action '{}'", maxSize, action);
-                result.setAllowed(false);
-                result.setMessage(format("File size should be less than '%s' bytes", maxSize));
-            }
-        } else {
-            logger.debug("No max size found, skip action '{}'", action);
-        }
-    }
+		if (config.containsKey(CONFIG_KEY_MAX_SIZE) && action.containsMetadata(Action.METADATA_FILE_SIZE)) {
+			long maxSize = config.getLong(CONFIG_KEY_MAX_SIZE);
+			Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
+			if (value.longValue() > maxSize) {
+				logger.error("File size should be less than '{}' for action '{}'", maxSize, action);
+				result.setAllowed(false);
+				result.setMessage(format("File size should be less than '%s' bytes", maxSize));
+			}
+		} else {
+			logger.debug("No max size found, skip action '{}'", action);
+		}
+	}
 
-    @Override
-    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
-        if (permittedConfig != null) {
-            validatePermitted(permittedConfig, action, result);
-        }
-    }
+	@Override
+	public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
+		if (permittedConfig != null) {
+			validatePermitted(permittedConfig, action, result);
+		}
+	}
 
 }

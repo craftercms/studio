@@ -16,42 +16,42 @@
   -->
 
 <xsl:stylesheet version="3.0"
-                xmlns:beans="http://www.springframework.org/schema/beans"
-                xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                exclude-result-prefixes="beans">
-    <xsl:param name="pluginId"/>
-    <xsl:param name="newXml"/>
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+		exclude-result-prefixes="beans">
+	<xsl:param name="pluginId"/>
+	<xsl:param name="newXml"/>
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <xsl:template match="/beans:beans">
-        <xsl:copy>
-            <!-- To keep the attributes -->
-            <xsl:apply-templates select="@*|node()" />
+	<xsl:template match="/beans:beans">
+		<xsl:copy>
+			<!-- To keep the attributes -->
+			<xsl:apply-templates select="@*|node()"/>
 
-            <!-- Add the new content -->
-            <!-- value-of will not format the new xml but it's the only way to avoid issues with namespaces -->
-            <xsl:text>&#10;</xsl:text>
-            <xsl:value-of select="$newXml" disable-output-escaping="yes"/>
-            <xsl:text>&#10;</xsl:text>
-        </xsl:copy>
-    </xsl:template>
+			<!-- Add the new content -->
+			<!-- value-of will not format the new xml but it's the only way to avoid issues with namespaces -->
+			<xsl:text>&#10;</xsl:text>
+			<xsl:value-of select="$newXml" disable-output-escaping="yes"/>
+			<xsl:text>&#10;</xsl:text>
+		</xsl:copy>
+	</xsl:template>
 
 </xsl:stylesheet>

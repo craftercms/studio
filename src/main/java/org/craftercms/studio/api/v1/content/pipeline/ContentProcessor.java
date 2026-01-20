@@ -22,35 +22,32 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 
 /**
  * interface for processing wcm content upon creating or updating the content
- * 
- * @author hyanghee
  *
+ * @author hyanghee
  */
 public interface ContentProcessor {
 
 	/**
-	 * process the content at the given path. 
-	 * 
-	 * @param content
-	 * 			content to process
-	 * @param result 
-	 * 			result to return
-	 * @throws ContentProcessException 
+	 * process the content at the given path.
+	 *
+	 * @param content content to process
+	 * @param result  result to return
+	 * @throws ContentProcessException
 	 */
 	void process(PipelineContent content, ResultTO result) throws ServiceLayerException, UserNotFoundException;
-	
+
 	/**
 	 * determines if the content is processable by the given parameters
-	 * 
+	 *
 	 * @param content
 	 */
 	boolean isProcessable(PipelineContent content);
 
 	/**
 	 * get the name of this processor
-	 * 
+	 *
 	 * @return processor name
 	 */
 	String getName();
-	
+
 }

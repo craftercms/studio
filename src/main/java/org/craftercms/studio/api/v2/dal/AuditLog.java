@@ -16,152 +16,164 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
+
 public class AuditLog {
-    private long id;
-    private long organizationId;
-    private long siteId;
-    private String siteName;
-    private String operation;
-    private ZonedDateTime operationTimestamp;
-    private String origin;
-    private String primaryTargetId;
-    private String primaryTargetType;
-    private String primaryTargetSubtype;
-    private String primaryTargetValue;
-    private String actorId;
-    private String actorDetails;
-    private String clusterNodeId;
-    private List<AuditLogParameter> parameters;
-    private String commitId;
+	private long id;
+	private long organizationId;
+	private long siteId;
+	private String siteName;
+	private String operation;
+	private ZonedDateTime operationTimestamp;
+	private String origin;
+	private String primaryTargetId;
+	private String primaryTargetType;
+	private String primaryTargetSubtype;
+	private String primaryTargetValue;
+	private String actorId;
+	private String actorDetails;
+	private String clusterNodeId;
+	private List<AuditLogParameter> parameters;
+	private String commitId;
 
-    public long getId() {
-        return id;
-    }
+	public long getId() {
+		return id;
+	}
 
-    public void setId(long id) {
-        this.id = id;
-    }
+	public void setId(long id) {
+		this.id = id;
+	}
 
-    public long getOrganizationId() {
-        return organizationId;
-    }
+	public long getOrganizationId() {
+		return organizationId;
+	}
 
-    public void setOrganizationId(long organizationId) {
-        this.organizationId = organizationId;
-    }
+	public void setOrganizationId(long organizationId) {
+		this.organizationId = organizationId;
+	}
 
-    public long getSiteId() {
-        return siteId;
-    }
+	public long getSiteId() {
+		return siteId;
+	}
 
-    public void setSiteId(long siteId) {
-        this.siteId = siteId;
-    }
+	public void setSiteId(long siteId) {
+		this.siteId = siteId;
+	}
 
-    public String getSiteName() {
-        return siteName;
-    }
+	public String getSiteName() {
+		return siteName;
+	}
 
-    public void setSiteName(String siteName) {
-        this.siteName = siteName;
-    }
+	public void setSiteName(String siteName) {
+		this.siteName = siteName;
+	}
 
-    public String getOperation() {
-        return operation;
-    }
+	public String getOperation() {
+		return operation;
+	}
 
-    public void setOperation(String operation) {
-        this.operation = operation;
-    }
+	public void setOperation(String operation) {
+		this.operation = operation;
+	}
 
-    public ZonedDateTime getOperationTimestamp() {
-        return operationTimestamp;
-    }
+	public ZonedDateTime getOperationTimestamp() {
+		return operationTimestamp;
+	}
 
-    public void setOperationTimestamp(ZonedDateTime operationTimestamp) {
-        this.operationTimestamp = operationTimestamp;
-    }
+	public void setOperationTimestamp(ZonedDateTime operationTimestamp) {
+		this.operationTimestamp = operationTimestamp;
+	}
 
-    public String getOrigin() {
-        return origin;
-    }
+	public String getOrigin() {
+		return origin;
+	}
 
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
+	public void setOrigin(String origin) {
+		this.origin = origin;
+	}
 
-    public String getPrimaryTargetId() {
-        return primaryTargetId;
-    }
+	public String getPrimaryTargetId() {
+		return primaryTargetId;
+	}
 
-    public void setPrimaryTargetId(String primaryTargetId) {
-        this.primaryTargetId = primaryTargetId;
-    }
+	public void setPrimaryTargetId(String primaryTargetId) {
+		this.primaryTargetId = primaryTargetId;
+	}
 
-    public String getPrimaryTargetType() {
-        return primaryTargetType;
-    }
+	public String getPrimaryTargetType() {
+		return primaryTargetType;
+	}
 
-    public void setPrimaryTargetType(String primaryTargetType) {
-        this.primaryTargetType = primaryTargetType;
-    }
+	public void setPrimaryTargetType(String primaryTargetType) {
+		this.primaryTargetType = primaryTargetType;
+	}
 
-    public String getPrimaryTargetSubtype() {
-        return primaryTargetSubtype;
-    }
+	public String getPrimaryTargetSubtype() {
+		return primaryTargetSubtype;
+	}
 
-    public void setPrimaryTargetSubtype(String primaryTargetSubtype) {
-        this.primaryTargetSubtype = primaryTargetSubtype;
-    }
+	public void setPrimaryTargetSubtype(String primaryTargetSubtype) {
+		this.primaryTargetSubtype = primaryTargetSubtype;
+	}
 
-    public String getPrimaryTargetValue() {
-        return primaryTargetValue;
-    }
+	public String getPrimaryTargetValue() {
+		return primaryTargetValue;
+	}
 
-    public void setPrimaryTargetValue(String primaryTargetValue) {
-        this.primaryTargetValue = primaryTargetValue;
-    }
+	public void setPrimaryTargetValue(String primaryTargetValue) {
+		this.primaryTargetValue = primaryTargetValue;
+	}
 
-    public String getActorId() {
-        return actorId;
-    }
+	public String getActorId() {
+		return actorId;
+	}
 
-    public void setActorId(String actorId) {
-        this.actorId = actorId;
-    }
+	public void setActorId(String actorId) {
+		this.actorId = actorId;
+	}
 
-    public String getActorDetails() {
-        return actorDetails;
-    }
+	public String getActorDetails() {
+		return actorDetails;
+	}
 
-    public void setActorDetails(String actorDetails) {
-        this.actorDetails = actorDetails;
-    }
+	public void setActorDetails(String actorDetails) {
+		this.actorDetails = actorDetails;
+	}
 
-    public String getClusterNodeId() {
-        return clusterNodeId;
-    }
+	public String getClusterNodeId() {
+		return clusterNodeId;
+	}
 
-    public void setClusterNodeId(String clusterNodeId) {
-        this.clusterNodeId = clusterNodeId;
-    }
+	public void setClusterNodeId(String clusterNodeId) {
+		this.clusterNodeId = clusterNodeId;
+	}
 
-    public List<AuditLogParameter> getParameters() {
-        return parameters;
-    }
+	public List<AuditLogParameter> getParameters() {
+		return parameters;
+	}
 
-    public void setParameters(List<AuditLogParameter> parameters) {
-        this.parameters = parameters;
-    }
+	public void setParameters(List<AuditLogParameter> parameters) {
+		this.parameters = parameters;
+	}
 
-    public String getCommitId() {
-        return commitId;
-    }
+	public String getCommitId() {
+		return commitId;
+	}
 
-    public void setCommitId(String commitId) {
-        this.commitId = commitId;
-    }
+	public void setCommitId(String commitId) {
+		this.commitId = commitId;
+	}
+
+	public static AuditLog createAuditLogEntry() {
+		AuditLog auditLog = new AuditLog();
+		auditLog.setOrganizationId(1);
+		auditLog.setOrigin(ORIGIN_API);
+		auditLog.setClusterNodeId(StringUtils.EMPTY);
+		return auditLog;
+	}
 }

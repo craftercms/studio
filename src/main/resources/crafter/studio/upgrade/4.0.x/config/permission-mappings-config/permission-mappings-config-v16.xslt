@@ -17,49 +17,67 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- Relabel permissions -->
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Read']">
-        <xsl:element name="permission"><xsl:text>content_read</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
-    </xsl:template>
+	<!-- Relabel permissions -->
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Read']">
+		<xsl:element name="permission">
+			<xsl:text>content_read</xsl:text>
+		</xsl:element>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Create Content']">
-        <xsl:element name="permission"><xsl:text>content_create</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
-    </xsl:template>
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Create Content']">
+		<xsl:element name="permission">
+			<xsl:text>content_create</xsl:text>
+		</xsl:element>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Write']">
-        <xsl:element name="permission"><xsl:text>content_write</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
-    </xsl:template>
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Write']">
+		<xsl:element name="permission">
+			<xsl:text>content_write</xsl:text>
+		</xsl:element>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Create Folder']">
-        <xsl:element name="permission"><xsl:text>folder_create</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
-    </xsl:template>
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Create Folder']">
+		<xsl:element name="permission">
+			<xsl:text>folder_create</xsl:text>
+		</xsl:element>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'delete_content']">
-        <xsl:element name="permission"><xsl:text>content_delete</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
-    </xsl:template>
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'delete_content']">
+		<xsl:element name="permission">
+			<xsl:text>content_delete</xsl:text>
+		</xsl:element>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Publish']">
-        <xsl:element name="permission"><xsl:text>publish</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
-    </xsl:template>
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Publish']">
+		<xsl:element name="permission">
+			<xsl:text>publish</xsl:text>
+		</xsl:element>
+		<xsl:text>&#10;</xsl:text>
+	</xsl:template>
 
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Delete']" />
+	<xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'Delete']"/>
 </xsl:stylesheet>

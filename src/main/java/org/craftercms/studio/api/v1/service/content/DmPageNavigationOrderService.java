@@ -19,40 +19,56 @@ package org.craftercms.studio.api.v1.service.content;
 import org.dom4j.Document;
 
 /**
- *
  * Order Service for Navigation Pages
  *
  * @author shankark
  * @author Dejan Brkic
- *
  */
 public interface DmPageNavigationOrderService {
 
-    /**
-     * Return new navigation order
-     */
-    double getNewNavOrder(String site, String path);
+	/**
+	 * Return new navigation order
+	 */
+	double getNewNavOrder(String site, String path);
 
 
-    double getNewNavOrder(String site, String path, double currentMaxNavOrder);
+	double getNewNavOrder(String site, String path, double currentMaxNavOrder);
 
-    /**
-     * Always adds/overwrites the Document element with new unique nav order
-     *
-     * @param doc
-     * @return true if document was updated with new nav order
-     */
-    boolean addNavOrder(String site, String path, Document doc);
+	/**
+	 * Always adds/overwrites the Document element with new unique nav order
+	 *
+	 * @param doc
+	 * @return true if document was updated with new nav order
+	 */
+	boolean addNavOrder(String site, String path, Document doc);
 
-    /**
-     * Updates the Document element with new unique nav order if one does not exist
-     *
-     * @param document
-     * @return true if document was updated with new nav order
-     */
-    boolean updateNavOrder(String site, String path, Document document);
+	/**
+	 * Updates the Document element with new unique nav order if one does not exist
+	 *
+	 * @param document
+	 * @return true if document was updated with new nav order
+	 */
+	boolean updateNavOrder(String site, String path, Document document);
 
-    void deleteSequencesForSite(String site);
+	void deleteSequencesForSite(String site);
 
-    int getPageNavigationOrderIncrement();
+	int getPageNavigationOrderIncrement();
+
+	/**
+	 * Moves the navigation order from one path to another.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the previous path to update
+	 * @param targetPath the new path
+	 */
+	void move(String siteId, String sourcePath, String targetPath);
+
+	/**
+	 * Copies the navigation order from one path to another.
+	 *
+	 * @param siteId     the site id
+	 * @param sourcePath the path to copy from
+	 * @param targetPath the path to copy to
+	 */
+	void copy(String siteId, String sourcePath, String targetPath);
 }

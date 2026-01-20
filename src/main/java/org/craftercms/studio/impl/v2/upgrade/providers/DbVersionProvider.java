@@ -34,65 +34,66 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.VersionProvider} for the database.
+ *
  * @author joseross
  */
 public class DbVersionProvider extends AbstractVersionProvider<String> {
 
-    private static final Logger logger = LoggerFactory.getLogger(DbVersionProvider.class);
+	private static final Logger logger = LoggerFactory.getLogger(DbVersionProvider.class);
 
-    public static final String SCHEMA = "{schema}";
-    public static final String SQL_QUERY_META = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
-        + "'{schema}' AND table_name = '_meta' LIMIT 1";
-    public static final String SQL_QUERY_VERSION = "select version from _meta";
+	public static final String SCHEMA = "{schema}";
+	public static final String SQL_QUERY_META = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
+		+ "'{schema}' AND table_name = '_meta' LIMIT 1";
+	public static final String SQL_QUERY_VERSION = "select version from _meta";
 
-    // TODO: SJ: Does this still apply?
-    public static final String SQL_QUERY_GROUP = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
-        + "'{schema}' AND table_name = 'cstudio_group' LIMIT 1";
-    public static final String SQL_UPDATE_VERSION = "UPDATE _meta SET version = ?";
+	// TODO: SJ: Does this still apply?
+	public static final String SQL_QUERY_GROUP = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
+		+ "'{schema}' AND table_name = 'cstudio_group' LIMIT 1";
+	public static final String SQL_UPDATE_VERSION = "UPDATE _meta SET version = ?";
 
-    protected StudioConfiguration studioConfiguration;
+	protected StudioConfiguration studioConfiguration;
 
-    @ConstructorProperties({"studioConfiguration"})
-    public DbVersionProvider(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
+	@ConstructorProperties({"studioConfiguration"})
+	public DbVersionProvider(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
+	}
 
-    @Override
-    protected String doGetVersion(UpgradeContext<String> context) throws Exception {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(((StudioUpgradeContext) context).getDataSource());
-        logger.debug("Check if the _meta table exists");
-        int count = jdbcTemplate.queryForObject(
-                SQL_QUERY_META.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)), Integer.class);
-        if(count != 0) {
-            logger.debug("The _meta table exists");
-            logger.debug("Get the version from the _meta table");
-            return jdbcTemplate.queryForObject(SQL_QUERY_VERSION, String.class);
+	@Override
+	protected String doGetVersion(UpgradeContext<String> context) throws Exception {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(((StudioUpgradeContext) context).getDataSource());
+		logger.debug("Check if the _meta table exists");
+		int count = jdbcTemplate.queryForObject(
+			SQL_QUERY_META.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)), Integer.class);
+		if (count != 0) {
+			logger.debug("The _meta table exists");
+			logger.debug("Get the version from the _meta table");
+			return jdbcTemplate.queryForObject(SQL_QUERY_VERSION, String.class);
 
-        } else {
-            logger.debug("Check if the group table exists");
-            count = jdbcTemplate.queryForObject(
-                    SQL_QUERY_GROUP.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)), Integer.class);
-            if(count != 0) {
-                logger.debug("Database version is 3.0.0");
-                return VERSION_3_0_0;
-            } else {
-                throw new UpgradeNotSupportedException("Automated migration from 2.5.x DB is not supported yet.");
-            }
-        }
-    }
+		} else {
+			logger.debug("Check if the group table exists");
+			count = jdbcTemplate.queryForObject(
+				SQL_QUERY_GROUP.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)), Integer.class);
+			if (count != 0) {
+				logger.debug("Database version is 3.0.0");
+				return VERSION_3_0_0;
+			} else {
+				throw new UpgradeNotSupportedException("Automated migration from 2.5.x DB is not supported yet.");
+			}
+		}
+	}
 
-    @Override
-    protected void doSetVersion(UpgradeContext<String> context, String nextVersion) throws UpgradeException {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(((StudioUpgradeContext) context).getDataSource());
-        try {
-            int updated = jdbcTemplate.update(SQL_UPDATE_VERSION, nextVersion);
-            if (updated != 1) {
-                throw new UpgradeException("Failed to update the database version");
-            }
-            logger.info("Database version updated to '{}'", nextVersion);
-        } catch (Exception e) {
-            throw new UpgradeException(format("Failed to update the database version to '%s'", nextVersion), e);
-        }
-    }
+	@Override
+	protected void doSetVersion(UpgradeContext<String> context, String nextVersion) throws UpgradeException {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(((StudioUpgradeContext) context).getDataSource());
+		try {
+			int updated = jdbcTemplate.update(SQL_UPDATE_VERSION, nextVersion);
+			if (updated != 1) {
+				throw new UpgradeException("Failed to update the database version");
+			}
+			logger.info("Database version updated to '{}'", nextVersion);
+		} catch (Exception e) {
+			throw new UpgradeException(format("Failed to update the database version to '%s'", nextVersion), e);
+		}
+	}
 
 }

@@ -25,25 +25,25 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  */
 public class ValidationException extends ServiceLayerException {
 
-    protected String modifiedValue;
+	protected String modifiedValue;
 
-    public ValidationException() {
-    }
+	public ValidationException() {
+	}
 
-    public ValidationException(String message) {
-        super(message);
-    }
+	public ValidationException(String message) {
+		super(message);
+	}
 
-    public ValidationException(String message, Exception e) {
-        super(message, e);
-    }
+	public ValidationException(String message, Exception e) {
+		super(message, e);
+	}
 
-    public String getModifiedValue() {
-        return modifiedValue;
-    }
+	public String getModifiedValue() {
+		return modifiedValue;
+	}
 
-    public void setModifiedValue(String modifiedValue) {
-        this.modifiedValue = modifiedValue;
-    }
+	public void setModifiedValue(String modifiedValue) {
+		this.modifiedValue = modifiedValue;
+	}
 
 }

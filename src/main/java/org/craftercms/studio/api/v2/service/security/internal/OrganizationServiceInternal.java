@@ -17,5 +17,5 @@
 package org.craftercms.studio.api.v2.service.security.internal;
 
 public interface OrganizationServiceInternal {
-    boolean organizationExists(long orgId);
+	boolean organizationExists(long orgId);
 }

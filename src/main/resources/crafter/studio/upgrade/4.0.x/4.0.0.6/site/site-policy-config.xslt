@@ -17,49 +17,49 @@
   ~  */
   -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
-    <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes"/>
-    <xsl:strip-space elements="*"/>
+	<!-- to keep the right formatting -->
+	<xsl:output method="xml" indent="yes"/>
+	<xsl:strip-space elements="*"/>
 
-    <!-- copy all elements -->
-    <xsl:template match="node() | @*">
-        <!-- insert line breaks before comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-        </xsl:copy>
-        <!-- insert line breaks after comments -->
-        <xsl:if test="self::comment()">
-            <xsl:text>&#10;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+	<!-- copy all elements -->
+	<xsl:template match="node() | @*">
+		<!-- insert line breaks before comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+		<xsl:copy>
+			<xsl:apply-templates select="node() | @*"/>
+		</xsl:copy>
+		<!-- insert line breaks after comments -->
+		<xsl:if test="self::comment()">
+			<xsl:text>&#10;</xsl:text>
+		</xsl:if>
+	</xsl:template>
 
-    <!-- Update statement for static-assets -->
-    <xsl:template match="/site-policy">
-        <xsl:copy>
-            <xsl:element name="statement">
-                <xsl:element name="target-path-pattern">
-                    <xsl:text>/static-assets/.*</xsl:text>
-                </xsl:element>
-                <xsl:element name="permitted">
-                    <xsl:element name="path">
-                        <xsl:element name="source-regex">
-                            <xsl:text>[\(\)]</xsl:text>
-                        </xsl:element>
-                        <xsl:element name="target-regex">
-                            <xsl:text>-</xsl:text>
-                        </xsl:element>
-                    </xsl:element>
-                </xsl:element>
-            </xsl:element>
-            <xsl:for-each select="statement">
-                <!-- Keep other statements unless it is matching the same files -->
-                <xsl:if test="not(target-path-pattern='/static-assets/.*') or not(permitted/path/source-regex='[\(\)]')">
-                    <xsl:copy-of select="."/>
-                </xsl:if>
-            </xsl:for-each>
-        </xsl:copy>
-    </xsl:template>
+	<!-- Update statement for static-assets -->
+	<xsl:template match="/site-policy">
+		<xsl:copy>
+			<xsl:element name="statement">
+				<xsl:element name="target-path-pattern">
+					<xsl:text>/static-assets/.*</xsl:text>
+				</xsl:element>
+				<xsl:element name="permitted">
+					<xsl:element name="path">
+						<xsl:element name="source-regex">
+							<xsl:text>[\(\)]</xsl:text>
+						</xsl:element>
+						<xsl:element name="target-regex">
+							<xsl:text>-</xsl:text>
+						</xsl:element>
+					</xsl:element>
+				</xsl:element>
+			</xsl:element>
+			<xsl:for-each select="statement">
+				<!-- Keep other statements unless it is matching the same files -->
+				<xsl:if test="not(target-path-pattern='/static-assets/.*') or not(permitted/path/source-regex='[\(\)]')">
+					<xsl:copy-of select="."/>
+				</xsl:if>
+			</xsl:for-each>
+		</xsl:copy>
+	</xsl:template>
 </xsl:stylesheet>

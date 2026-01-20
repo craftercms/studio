@@ -24,20 +24,20 @@ package org.craftercms.studio.model.rest;
  */
 public class Result {
 
-    protected ApiResponse response;
+	protected ApiResponse response;
 
-    /**
-     * Returns the API response.
-     */
-    public ApiResponse getResponse() {
-        return response;
-    }
+	/**
+	 * Returns the API response.
+	 */
+	public ApiResponse getResponse() {
+		return response;
+	}
 
-    /**
-     * Sets the API response.
-     */
-    public void setResponse(ApiResponse response) {
-        this.response = response;
-    }
+	/**
+	 * Sets the API response.
+	 */
+	public void setResponse(ApiResponse response) {
+		this.response = response;
+	}
 
 }

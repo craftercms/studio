@@ -25,8 +25,8 @@ import org.springframework.context.ApplicationEvent;
  */
 public class StartClusterSetupEvent extends ApplicationEvent {
 
-    public StartClusterSetupEvent(Object source) {
-        super(source);
-    }
+	public StartClusterSetupEvent(Object source) {
+		super(source);
+	}
 
 }

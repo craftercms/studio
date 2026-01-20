@@ -39,31 +39,31 @@ class ContentServices {
 	 * @param content - the content to write
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static writeContent(site, path, content, context){
-        def contentServicesImpl = ServiceFactory.getContentServices(context)
-        return contentServicesImpl.writeContent(site, path, content)
+	static writeContent(site, path, content, context) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.writeContent(site, path, content)
 	}
 
-    /**
-     * create a folder
-     * @param site - the project ID
-     * @param path - the path to create the folder in
-     * @param name - the folder name to create
-     * @oaran context - container for passing request, token and other values that may be needed by the implementation
-     */
-    static createFolder(site, path, name, context){
-        def contentServicesImpl = ServiceFactory.getContentServices(context)
-        return contentServicesImpl.createFolder(site, path, name)
-    }
+	/**
+	 * create a folder
+	 * @param site - the project ID
+	 * @param path - the path to create the folder in
+	 * @param name - the folder name to create
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
+	 */
+	static createFolder(site, path, name, context) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.createFolder(site, path, name)
+	}
 
-    /**
+	/**
 	 * Write asset
 	 * @param site - the project ID
 	 * @param path - the path to wrtie the content
 	 * @param content - the content to write
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static writeAsset(site, path, content, context){
+	static writeAsset(site, path, content, context) {
 		throw new Exception("NOT USED")
 	}
 
@@ -91,12 +91,12 @@ class ContentServices {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.getContentAtPath(site, path)
 	}
-  	/**
-  	 * check if content at path exits
-  	 * @param site - the project ID
-  	 * @param path - the path to check
+	/**
+	 * check if content at path exits
+	 * @param site - the project ID
+	 * @param path - the path to check
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-  	 */
+	 */
 	@Deprecated
 	static doesContentItemExist(site, path, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
@@ -109,7 +109,7 @@ class ContentServices {
 	 * @param rootPath - the path to root at
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getContentItemTree(site, path, depth, context){
+	static getContentItemTree(site, path, depth, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.getContentItemTree(site, path, depth)
 	}
@@ -138,10 +138,10 @@ class ContentServices {
 
 	/**
 	 * get content orders for a given path (usually used for navigation)
-  	 * @param site - the project ID
-  	 * @param path - the parent path containing the ordered objects
+	 * @param site - the project ID
+	 * @param path - the parent path containing the ordered objects
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-  	 */
+	 */
 	static getItemOrders(context, site, path) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.getItemOrders(site, path)
@@ -168,27 +168,6 @@ class ContentServices {
 
 	}
 
-	//  Currently not supporting this as edit operations will lock for the caller autormaticall
-	//	/**
-	//	 * lock a given item
-	//	 * @param site - the project ID
-	//	 * @param path - the path of the item to lock
-	//	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	//	 */
-	//	static lockContentItem(site, path, context) {
-	//	}
-
-	/**
-	 * get the version history for an item
-	 * @param site - the project ID
-	 * @param path - the path of the item
-	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	 */
-	static getContentItemVersionHistory(site, path, context) {
-		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentItemVersionHistory(site, path)
-	}
-
 	/**
 	 * revert a version (create a new version based on an old version)
 	 * @param site - the project ID
@@ -196,7 +175,7 @@ class ContentServices {
 	 * @param version - old version ID to base to version on
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static revertContentItem(site, path, version, major, comment, context){
+	static revertContentItem(site, path, version, major, comment, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.revertContentItem(site, path, version, major, comment)
 	}
@@ -208,7 +187,7 @@ class ContentServices {
 	 * @param version - old version ID to base to version on
 	 * @paran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getContentVersionAtPath(site, path, version, context){
+	static getContentVersionAtPath(site, path, version, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.getContentVersionAtPath(site, path, version)
 	}
@@ -240,45 +219,19 @@ class ContentServices {
 	}
 
 	static reorderItems(context, site, path, before, after) {
-        def contentServicesImpl = ServiceFactory.getContentServices(context);
-        return contentServicesImpl.reorderItems(site, path, before, after);
-    }
+		def contentServicesImpl = ServiceFactory.getContentServices(context);
+		return contentServicesImpl.reorderItems(site, path, before, after);
+	}
 
-    /**
-     * rename a folder
-     * @param site - the project ID
-     * @param path - the folder path to rename
-     * @param name - the new folder name
-     * @oaran context - container for passing request, token and other values that may be needed by the implementation
-     */
-    static renameFolder(site, path, name, context){
-        def contentServicesImpl = ServiceFactory.getContentServices(context)
-        return contentServicesImpl.renameFolder(site, path, name)
-    }
-
-    /**
-     * Push content to remote
-     * @param context container for passing request, token and other values that may be needed by the implementation
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @param remoteBranch remote branch to push to
-     * @return
-     */
-    static pushToRemote(context, siteId, remoteName, remoteBranch) {
-        def contentServiceImpl = ServiceFactory.getContentServices(context)
-        return contentServiceImpl.pushToRemote(siteId, remoteName, remoteBranch)
-    }
-
-    /**
-     * Pull content from remote
-     * @param context container for passing request, token and other values that may be needed by the implementation
-     * @param siteId site identifier
-     * @param remoteName remote name
-     * @param remoteBranch remote branch to pull from
-     * @return
-     */
-    static pullFromRemote(context, siteId, remoteName, remoteBranch) {
-        def contentServiceImpl = ServiceFactory.getContentServices(context)
-        return contentServiceImpl.pullFromRemote(siteId, remoteName, remoteBranch)
-    }
+	/**
+	 * rename a folder
+	 * @param site - the project ID
+	 * @param path - the folder path to rename
+	 * @param name - the new folder name
+	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
+	 */
+	static renameFolder(site, path, name, context) {
+		def contentServicesImpl = ServiceFactory.getContentServices(context)
+		return contentServicesImpl.renameFolder(site, path, name)
+	}
 }
