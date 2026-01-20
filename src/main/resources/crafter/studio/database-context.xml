@@ -212,7 +212,7 @@
             <property name="integrityValidator" ref="crafter.databaseValidator"/>
         </bean>
 
-        <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jSpringService"
+        <bean id="studioMariaDBService" class="ch.vorburger.mariadb4j.springframework.MariaDB4jCoreSpringService"
               destroy-method="stop" depends-on="studioConfiguration">
             <property name="defaultBaseDir"
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_BASE_PATH)}" />
