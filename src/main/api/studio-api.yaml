@@ -2433,53 +2433,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/content/get-content.json:
-        get:
-            tags:
-                - content
-            summary: Get content stream.
-            description: "Required role: N/A"
-            operationId: getContent
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/health/index.xml
-                -   name: edit
-                    in: query
-                    schema:
-                        type: boolean
-                    description: True to make content locked
-                    required: true
-                    example: true
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    content:
-                                        type: string
-                            example:
-                                content: "<page>\n\t<content-type>/page/category-landing</content-type>\n\t<display-template>/templates/web/pages/category-landing.ftl</display-template>\n\t<no-template-required/>\n\t<merge-strategy>inherit-levels</merge-strategy>\n\t<objectGroupId>0557</objectGroupId>\n\t<objectId>05573d7a-3556-1ad0-6e34-9b085944fee2</objectId>\n\t<file-name>index.xml</file-name>\n\t<folder-name>health</folder-name>\n\t<placeInNav>true</placeInNav>\n\t<orderDefault_f>9000</orderDefault_f>\n\t<internal-name>Health</internal-name>\n\t<title_t>Health</title_t>\n\t<createdDate>2017-03-14T15:21:57.000Z</createdDate>\n\t<createdDate_dt>2017-03-14T15:21:57.000Z</createdDate_dt>\n\t<lastModifiedDate>2020-10-07T12:08:00.200Z</lastModifiedDate>\n\t<lastModifiedDate_dt>2020-10-07T12:08:00.200Z</lastModifiedDate_dt>\n\t<category_s>health</category_s>\n\t<max_articles_i>10</max_articles_i>\n\t<articles_title_t>Health</articles_title_t>\n\t<disabled>false</disabled>\n\t<header_o item-list=\"true\"/>\n\t<left_rail_o item-list=\"true\"/>\n</page>\n"
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '403':
-                    $ref: '#/components/responses/api1Forbidden'
-
     /api/1/services/api/1/content/get-content-type.json:
         get:
             tags:
@@ -2568,41 +2521,6 @@ paths:
                     $ref: '#/components/responses/api1BadRequest'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
-
-    /api/1/services/api/1/content/get-item.json:
-        get:
-            tags:
-                - content
-            summary: Get content item.
-            description: "Required role: N/A"
-            operationId: getItem
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/index.xml
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ContentItemV1'
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '403':
-                    $ref: '#/components/responses/api1Forbidden'
 
     /api/1/services/api/1/content/get-item-orders.json:
         get:
