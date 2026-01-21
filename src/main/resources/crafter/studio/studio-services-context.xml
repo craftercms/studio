@@ -81,7 +81,6 @@
 	<bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
 		<property name="contentRepository" ref="contentRepository"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="contentProcessor" ref="cstudioProcessContentExecutor"/>
 		<property name="dependencyService" ref="studioDependencyService"/>
 		<property name="dependencyServiceV2" ref="dependencyServiceInternal"/>
 		<property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
@@ -295,6 +294,7 @@
 
 	<bean id="configurationServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.configuration.internal.ConfigurationServiceInternalImpl">
+		<property name="contentRepository" ref="contentRepository"/>
 		<property name="contentServiceV1" ref="cstudioContentService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="auditService" ref="auditServiceInternal"/>
@@ -985,172 +985,6 @@
 	</bean>
 
 	<!-- ////////////////////////////////////// -->
-	<!--           Action Executors             -->
-	<!-- ////////////////////////////////////// -->
-	<bean id="cstudioProcessContentExecutor" class="org.craftercms.studio.impl.v1.executor.ProcessContentExecutorImpl">
-		<property name="processorChains">
-			<map>
-				<entry key="assetContent">
-					<ref bean="cstudioAssetContentProcessorPipeline"/>
-				</entry>
-				<entry key="assetContentCleanDraft">
-					<ref bean="cstudioAssetCleanContentProcessorPipeline"/>
-				</entry>
-				<entry key="plainContent">
-					<ref bean="cstudioPlainContentProcessorPipeline"/>
-				</entry>
-				<entry key="formContent">
-					<ref bean="cstudioFormContentProcessorPipeline"/>
-				</entry>
-				<entry key="previewformContent">
-					<ref bean="cstudioPreviewFormContentProcessorPipeline"/>
-				</entry>
-				<entry key="importContent">
-					<ref bean="cstudioImportContentProcessorPipeline"/>
-				</entry>
-			</map>
-		</property>
-	</bean>
-
-	<!-- ////////////////////////////////////// -->
-	<!--       Content processor pipelines      -->
-	<!-- ////////////////////////////////////// -->
-	<bean id="cstudioAssetContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
-		<property name="chain">
-			<list>
-				<ref bean="cstudioFileFolderPathProcessor"/>
-				<ref bean="cstudioCheckImageSizeProcessor"/>
-				<ref bean="cstudioAssetDmContentProcessor"/>
-				<ref bean="cstudioExtractDependencyProcessor"/>
-				<ref bean="cstudioPostActivityProcessor"/>
-				<ref bean="cstudioInvalidateCacheProcessor"/>
-			</list>
-		</property>
-	</bean>
-
-	<bean id="cstudioAssetCleanContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
-		<property name="chain">
-			<list>
-				<ref bean="cstudioFileFolderPathProcessor"/>
-				<ref bean="cstudioCheckImageSizeProcessor"/>
-				<ref bean="cstudioAssetDmContentProcessor"/>
-				<ref bean="cstudioPostActivityProcessor"/>
-				<ref bean="cstudioInvalidateCacheProcessor"/>
-			</list>
-		</property>
-	</bean>
-
-	<bean id="cstudioPlainContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
-		<property name="chain">
-			<list>
-				<ref bean="cstudioFileFolderPathProcessor"/>
-				<ref bean="cstudioFormDmContentProcessor"/>
-			</list>
-		</property>
-	</bean>
-
-	<bean id="cstudioFormContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
-		<property name="chain">
-			<list>
-				<ref bean="cstudioExtractParamsProcessor"/>
-				<ref bean="cstudioFormNavOrderProcessor"/>
-				<ref bean="cstudioFileFolderPathProcessor"/>
-				<ref bean="cstudioFormDmContentProcessor"/>
-				<ref bean="cstudioPostActivityProcessor"/>
-				<ref bean="cstudioContentLifeCycleProcessor"/>
-				<ref bean="cstudioInvalidateCacheProcessor"/>
-				<ref bean="cstudioExtractDependencyProcessor"/>
-			</list>
-		</property>
-	</bean>
-
-	<bean id="cstudioPreviewFormContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
-		<property name="chain">
-			<list>
-				<ref bean="cstudioExtractParamsProcessor"/>
-				<ref bean="cstudioFormDmContentProcessor"/>
-			</list>
-		</property>
-	</bean>
-
-	<bean id="cstudioImportContentProcessorPipeline" class="org.craftercms.studio.impl.v1.content.pipeline.ContentProcessorPipelineImpl">
-		<property name="chain">
-			<list>
-				<ref bean="cstudioExtractParamsProcessor"/>
-				<ref bean="cstudioFormNavOrderProcessor"/>
-				<ref bean="cstudioFileFolderPathProcessor"/>
-				<ref bean="cstudioPostActivityProcessor"/>
-				<ref bean="cstudioContentLifeCycleProcessor"/>
-				<ref bean="cstudioInvalidateCacheProcessor"/>
-				<ref bean="cstudioExtractDependencyProcessor"/>
-			</list>
-		</property>
-	</bean>
-	<!-- ///////////////////////////// -->
-	<!--       Content processors      -->
-	<!-- //////////////////////////// -->
-	<bean id="cstudioFileFolderPathProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.FileFolderPathProcessor"/>
-
-	<bean id="cstudioCheckImageSizeProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.CheckImageSizeProcessor"/>
-
-	<bean id="cstudioAssetDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.AssetDmContentProcessor" parent="cstudioFormDmContentProcessor">
-	</bean>
-
-	<bean id="cstudioPostActivityProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.PostActivityProcessor">
-		<property name="auditService" ref="auditServiceInternal"/>
-		<property name="siteService" ref="cstudioSiteServiceSimple"/>
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="contentRepository" ref="contentRepository"/>
-		<property name="activityStreamService" ref="studio.activityStreamService"/>
-		<property name="userService" ref="userServiceInternal"/>
-		<property name="itemService" ref="itemService"/>
-	</bean>
-
-	<bean id="cstudioInvalidateCacheProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.InvalidateCacheProcessor">
-	</bean>
-
-	<bean id="cstudioFormDmContentProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.FormDmContentProcessor">
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="contentRepository" ref="contentRepository"/>
-		<property name="itemService" ref="itemService"/>
-		<property name="contentServiceV2" ref="contentService"/>
-		<property name="publishService" ref="publishServiceInternal"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
-	</bean>
-
-	<bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">
-		<property name="params">
-			<map>
-				<entry>
-					<key>
-						<value>fileName</value>
-					</key>
-					<value>file-name</value>
-				</entry>
-				<entry>
-					<key>
-						<value>contentType</value>
-					</key>
-					<value>content-type</value>
-				</entry>
-			</map>
-		</property>
-	</bean>
-
-	<bean id="cstudioFormNavOrderProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.FormNavOrderProcessor">
-		<property name="pageNavOrderService" ref="cstudioPageNavOrderService"/>
-	</bean>
-
-	<bean id="cstudioExtractDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractDependencyProcessor">
-		<property name="dependencyService" ref="dependencyServiceInternal"/>
-	</bean>
-
-	<bean id="cstudioContentLifeCycleProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ContentLifeCycleProcessor">
-		<property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
-	</bean>
-
-	<!-- ////////////////////////////////////// -->
 	<!--          Crafter Deployers             -->
 	<!-- ////////////////////////////////////// -->
 	<bean id="abstractDeployer" class="org.craftercms.studio.impl.v2.deployment.AbstractDeployer" abstract="true">
@@ -1364,14 +1198,6 @@
 	</bean>
 
 	<bean id="studioAssetProcessingConfigReader" class="org.craftercms.studio.impl.v1.asset.processing.AssetProcessingConfigReaderImpl"/>
-
-	<bean id="studioAssetProcessingService" class="org.craftercms.studio.impl.v1.service.asset.processing.AssetProcessingServiceImpl">
-		<constructor-arg name="configPath"
-				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH)}"/>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
-		<constructor-arg name="configReader" ref="studioAssetProcessingConfigReader"/>
-		<constructor-arg name="pipelineResolver" ref="studioAssetProcessorPipelineResolver"/>
-	</bean>
 
 	<!-- ////////////////////////////////////// -->
 	<!--              Entitlements              -->

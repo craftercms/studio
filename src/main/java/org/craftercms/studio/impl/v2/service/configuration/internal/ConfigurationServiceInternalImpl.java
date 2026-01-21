@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,7 +23,6 @@ import org.apache.commons.text.StringSubstitutor;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.commons.lang.UrlUtils;
-import org.craftercms.core.exception.XmlFileParseException;
 import org.craftercms.core.service.Context;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -40,6 +39,7 @@ import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
@@ -109,6 +109,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 
 	private static final String READ_ONLY_BLOB_STORES_TEMPLATE_LOCATION = "/crafter/studio/utils/readonly-blob-stores.xslt";
 
+	private GitContentRepository contentRepository;
 	private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 	private ContentService contentService;
 	private StudioConfiguration studioConfiguration;
@@ -496,13 +497,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
 			.replaceAll(PATTERN_MODULE, module);
 		String configPath = Paths.get(configBasePath, path).toString();
-		contentServiceV1.writeContent(siteId, configPath, content);
-		try {
-			itemService.persistItemAfterWrite(siteId, configPath, true);
-			contentServiceV1.notifyContentEvent(siteId, configPath);
-		} catch (XmlFileParseException e) {
-			logger.error("Failed to parse updated XML file at site '{}', path '{}'", siteId, configPath, e);
-		}
+		contentService.write(siteId, configPath, content);
 		generateAuditLog(siteId, configPath);
 		dependencyService.upsertDependencies(siteId, configPath);
 	}
@@ -582,11 +577,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 					.replaceAll(PATTERN_ENVIRONMENT, environment);
 			if (contentService.contentExists(siteId, configBasePath)) {
 				String configPath = Paths.get(configBasePath, path).toString();
-				contentServiceV1.writeContent(siteId, configPath, content);
-				itemService.persistItemAfterWrite(siteId, configPath,true);
-				contentServiceV1.notifyContentEvent(siteId, configPath);
-				generateAuditLog(siteId, configPath);
-				dependencyService.upsertDependencies(siteId, configPath);
+				contentService.write(siteId, configPath, content);
 			} else {
 				writeDefaultConfiguration(siteId, module, path, content);
 			}
@@ -644,7 +635,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	@Override
 	public void writeGlobalConfiguration(String path, InputStream content)
 			throws ServiceLayerException, UserNotFoundException {
-		contentServiceV1.writeContent(EMPTY, path, validate(content, path));
+		contentRepository.writeContent(EMPTY, path, validate(content, path));
 		contentServiceV1.notifyContentEvent(EMPTY, path);
 		generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path);
 		invalidateCache(path);
@@ -841,6 +832,10 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	@SuppressWarnings("unused")
 	public void setContentServiceV1(org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1) {
 		this.contentServiceV1 = contentServiceV1;
+	}
+
+	public void setContentRepository(GitContentRepository contentRepository) {
+		this.contentRepository = contentRepository;
 	}
 
 	@Lazy

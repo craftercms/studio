@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,17 +20,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
-import org.craftercms.commons.entitlements.exception.EntitlementException;
-import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
-import org.craftercms.commons.security.permissions.DefaultPermission;
-import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -38,23 +31,23 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.to.*;
-import org.craftercms.studio.api.v2.annotation.*;
-import org.craftercms.studio.api.v2.annotation.policy.*;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
+import org.craftercms.studio.api.v1.to.DmOrderTO;
+import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
-import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
-import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
-import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
@@ -71,7 +64,6 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
-import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.Person;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -84,7 +76,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
-import org.springframework.validation.Validator;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -98,8 +89,8 @@ import java.util.regex.Pattern;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.CONTENT_PATH_WRITE;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -109,12 +100,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.controller.rest.ValidationUtils.validateValue;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PATH_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 
 /**
  * Content Services that other services may use
@@ -132,7 +119,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	protected ServicesConfig servicesConfig;
 	protected DependencyService dependencyService;
 	protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceV2;
-	protected ProcessContentExecutor contentProcessor;
 	protected DmPageNavigationOrderService dmPageNavigationOrderService;
 	protected DmContentLifeCycleService dmContentLifeCycleService;
 	protected SitesService siteService;
@@ -288,369 +274,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 	}
 
-	@Override
-	@Valid
-	@ValidateAction(type = Type.CREATE)
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	@RequireSiteExists
-	public void writeContent(@SiteId String site,
-				 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath String path,
-				 @ActionTargetFilename String fileName,
-				 @ActionContentType String contentType,
-				 InputStream input,
-				 String createFolders,
-				 String edit,
-				 String unlock)
-		throws ServiceLayerException, UserNotFoundException, ValidationException {
-		Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
-		validateValue(pathValidator, path, REQUEST_PARAM_PATH);
-		validateValue(pathValidator, fileName, REQUEST_PARAM_NAME);
-		writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
-	}
-
-	@Override
-	@Valid
-	@ValidateAction(type = Type.CREATE)
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public void writeContent(@SiteId final String site,
-				 @ProtectedResourceId(PATH_RESOURCE_ID) @ActionTargetPath final String path,
-				 @ActionTargetFilename final String fileName,
-				 @ActionContentType final String contentType,
-				 final InputStream input,
-				 final String createFolders,
-				 final String edit,
-				 final String unlock,
-				 final boolean skipAuditLogInsert) throws ServiceLayerException, UserNotFoundException {
-		try {
-			entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
-		} catch (EntitlementException e) {
-			throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
-				+ "system administrator.");
-		}
-
-		// Let's force path to include the filename
-		String pathWithFilename = removeEnd(path.replaceAll("//", "/"), FILE_SEPARATOR);
-		if (!path.endsWith(fileName)) {
-			pathWithFilename += FILE_SEPARATOR + fileName;
-		}
-
-		Map<String, String> params = new HashMap<>();
-		params.put(DmConstants.KEY_SITE, site);
-		params.put(DmConstants.KEY_PATH, pathWithFilename);
-		params.put(DmConstants.KEY_FILE_NAME, fileName);
-		params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
-		params.put(DmConstants.KEY_CREATE_FOLDERS, createFolders);
-		params.put(DmConstants.KEY_EDIT, edit);
-		params.put(DmConstants.KEY_UNLOCK, unlock);
-		params.put(DmConstants.KEY_SKIP_AUDIT_LOG_INSERT, String.valueOf(skipAuditLogInsert));
-
-		// Check if the user is saving and closing (releasing the lock) or just saving and will continue to edit
-		// If "unlock" is empty, it means it's a save and close operation
-		// if "unlock" is set to "false", it also means it's a save and continue operation
-		boolean isSaveAndClose = (StringUtils.isNotEmpty(unlock) && !unlock.equalsIgnoreCase("false"));
-
-		doWriteContent(site, pathWithFilename, fileName, contentType, input, params, isSaveAndClose);
-	}
-
-	/**
-	 * Write content to the repository
-	 *
-	 * @param site           the site id
-	 * @param path           the path, including filename
-	 * @param fileName       the filename
-	 * @param contentType    the content type
-	 * @param input          content to be written
-	 * @param params         parameter map for the content processor pipeline
-	 * @param isSaveAndClose true if the user is saving and closing (releasing the lock) or just saving and will continue to edit
-	 * @throws ServiceLayerException if the content cannot be written
-	 * @throws UserNotFoundException if the user cannot be found
-	 */
-	private void doWriteContent(final String site,
-				    final String path,
-				    final String fileName,
-				    final String contentType,
-				    final InputStream input,
-				    final Map<String, String> params,
-				    final boolean isSaveAndClose) throws ServiceLayerException, UserNotFoundException {
-
-		String folderPath = removeEnd(path, FILE_SEPARATOR + fileName);
-		String id = site + ":" + path + ":" + fileName + ":" + contentType;
-
-		boolean clearSystemProcessing = false;
-		try {
-			boolean shouldUpdateChildrenParent = false;
-			if (contentExists(site, path)) {
-				trySetSystemProcessing(site, path);
-				clearSystemProcessing = true;
-			} else {
-				// Check if creating a new page to an existing folder
-				boolean isPage = path.startsWith(ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
-				shouldUpdateChildrenParent = isPage && contentExists(site, folderPath);
-			}
-
-			// TODO: SJ: Content is being written here via the pipeline, this is not the best design and will be
-			// TODO: SJ: refactored in 2.7.x
-			processContent(site, id, input, true, params, getContentChainID(path));
-
-			if (shouldUpdateChildrenParent) {
-				// Update folder's children parentId, so they become this new page children instead
-				itemService.updateNewPageChildren(site, folderPath);
-			}
-
-			// TODO: SJ: Why is the item being loaded again? Why is the state being set to system not processing
-			// TODO: SJ: again? Why would we insert the item into objectStateService again?
-			// TODO: SJ: Refactor for 2.7.x
-			ContentItemTO itemTo = getContentItem(site, path, 0);
-
-			if (isSaveAndClose) {
-				itemService.updateStateBits(site, itemTo.getUri(), SAVE_AND_CLOSE_ON_MASK,
-					SAVE_AND_CLOSE_OFF_MASK);
-			} else {
-				itemService.updateStateBits(site, itemTo.getUri(), SAVE_AND_NOT_CLOSE_ON_MASK,
-					SAVE_AND_NOT_CLOSE_OFF_MASK);
-			}
-		} catch (RuntimeException e) {
-			logger.error("Failed to write content at site '{}' path '{}'", site, path, e);
-			throw e;
-		} finally {
-			if (clearSystemProcessing) {
-				itemService.setSystemProcessing(site, path, false);
-			}
-		}
-	}
-
-	/**
-	 * Tries to set the system processing flag for the given site and path. If the flag is already set, it throws an exception.
-	 *
-	 * @param site the site
-	 * @param path the path
-	 * @throws ServiceLayerException if the flag is already set
-	 */
-	private void trySetSystemProcessing(final String site, final String path) throws ServiceLayerException {
-		if (itemService.isSystemProcessing(site, path)) {
-			// TODO: SJ: Review and refactor/redo
-			logger.error("Failed to write content at site '{}' path '{}' because it is being processed " +
-				"(Object State is system processing)", site, path);
-			throw new ServiceLayerException(format("Failed to write content at site '%s' path '%s' " +
-					"because it is being processed  (Object State is system processing)",
-				site, path));
-		}
-		itemService.setSystemProcessing(site, path, true);
-	}
-
-	/**
-	 * Try resetting system processing flag for the given site and path
-	 * @param site site identifier
-	 * @param path content path
-	 */
-	private void tryResetSystemProcessing(final String site, final String path) {
-		if (itemService.isSystemProcessing(site, path)) {
-			itemService.setSystemProcessing(site, path, false);
-		}
-	}
-
-	/**
-	 * Returns the content chain ID for the given path.
-	 * {@value DmConstants#CONTENT_CHAIN_FORM} for anything inside {@value DmConstants#SLASH_SITE},
-	 * {@value DmConstants#CONTENT_CHAIN_ASSET} otherwise.
-	 *
-	 * @param path the path
-	 * @return the content chain ID
-	 */
-	@NonNull
-	private static String getContentChainID(final String path) {
-		// TODO: SJ: Item processing pipeline needs to be configurable without hardcoded paths
-		// TODO: SJ: We need to consider various mechanics for pipeline choice other than path
-		// TODO: SJ: Furthermore, we already have similar machinery in Crafter Core that might be a fit for some
-		// TODO: SJ: of this work
-
-		// default chain is asset type
-		String chainID = DmConstants.CONTENT_CHAIN_ASSET;
-
-		if (path.startsWith(SLASH_SITE)) {
-			// anything inside site is a form based XML
-			// example /site/website
-			//         /site/components
-			//         /site/books
-			chainID = DmConstants.CONTENT_CHAIN_FORM;
-		}
-		return chainID;
-	}
-
-	@Override
-	@Valid
-	@ValidateAction(type = Type.CREATE)
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	@RequireSiteExists
-	public void writeContentAndRename(@SiteId final String site,
-					  @ValidateSecurePathParam final String path,
-					  @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath final String targetPath,
-					  @ValidateStringParam @ActionTargetFilename final String fileName,
-					  @ValidateStringParam @ActionContentType final String contentType,
-					  final InputStream input,
-					  @ValidateStringParam final String createFolders,
-					  @ValidateStringParam final String edit,
-					  @ValidateStringParam final String unlock,
-					  final boolean createFolder) throws ServiceLayerException, ValidationException {
-		// TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
-		// TODO: SJ: 2.7.x
-		// TODO: SJ: FIXME: Remove the log below after testing
-		logger.debug("Write and rename item at site '{}' path '{}' targetPath '{}' "
-			+ "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
-
-		Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
-		validateValue(pathValidator, path, REQUEST_PARAM_PATH);
-		validateValue(pathValidator, targetPath, REQUEST_PARAM_TARGET);
-		validateValue(pathValidator, fileName, REQUEST_PARAM_NAME);
-
-		// Check if the target path already exists and prevent any operation
-		boolean isIndexFile = targetPath.endsWith(FILE_SEPARATOR + INDEX_FILE);
-		String checkPath = isIndexFile ? FilenameUtils.getFullPathNoEndSeparator(targetPath) : targetPath;
-		if (contentExists(site, checkPath)) {
-			throw new ServiceLayerException("Content " + path + " can't be renamed because target path " +
-				checkPath + " already exists");
-		}
-		contentServiceV2.assertNotInWorkflow(site, List.of(path), true);
-		try {
-			//TODO: This should be made transactional, write will commit even if move fails
-			writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, true);
-			moveContent(site, path, targetPath);
-		} catch (ServiceLayerException | RuntimeException | UserNotFoundException e) {
-			logger.error("Failed to execute write and rename item at site '{}' path '{}' targetPath '{}' "
-				+ "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType, e);
-		}
-	}
-
-	/**
-	 * write content asset
-	 *
-	 * @param site
-	 * @param path
-	 * @param assetName
-	 * @param in
-	 * @param isImage       is this asset an image?
-	 * @param allowedWidth  specifies the allowed image width in pixel if the asset is an image
-	 * @param allowedHeight specifies the allowed image height in pixel if the asset is an image
-	 * @param unlock        unlock the content upon edit?
-	 * @return content asset info
-	 * @throws ServiceLayerException
-	 */
-	@Override
-	@Valid
-	@ValidateAction(type = Type.CREATE)
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public Map<String, Object> writeContentAsset(@SiteId String site,
-						     @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath String path,
-						     @ValidateStringParam @ActionTargetFilename String assetName,
-						     InputStream in, String isImage, String allowedWidth,
-						     String allowedHeight, String allowLessSize, String draft,
-						     String unlock, String systemAsset) throws ServiceLayerException {
-
-		try {
-			entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
-		} catch (EntitlementException e) {
-			throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
-				+ "system administrator.");
-		}
-
-		boolean isSystemAsset = Boolean.parseBoolean(systemAsset);
-
-		Map<String, String> params = new HashMap<>();
-		params.put(DmConstants.KEY_SITE, site);
-		params.put(DmConstants.KEY_PATH, path);
-		params.put(DmConstants.KEY_FILE_NAME, assetName);
-		params.put(DmConstants.KEY_IS_IMAGE, isImage);
-		params.put(DmConstants.KEY_ALLOW_LESS_SIZE, allowLessSize);
-		params.put(DmConstants.KEY_ALLOWED_WIDTH, allowedWidth);
-		params.put(DmConstants.KEY_ALLOWED_HEIGHT, allowedHeight);
-		params.put(DmConstants.KEY_CONTENT_TYPE, "");
-		params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
-
-		params.put(DmConstants.KEY_UNLOCK, unlock);
-		params.put(DmConstants.KEY_SYSTEM_ASSET, String.valueOf(isSystemAsset));
-
-		boolean exists = contentExists(site, path + FILE_SEPARATOR + assetName);
-		params.put(DmConstants.KEY_ACTIVITY_TYPE, (exists ? OPERATION_UPDATE : OPERATION_CREATE));
-
-		String id = site + ":" + path + ":" + assetName + ":";
-		// processContent will close the input stream
-		ContentItemTO item = null;
-		try {
-			path = path + FILE_SEPARATOR + assetName;
-			item = getContentItem(site, path);
-
-			if (item != null) {
-				trySetSystemProcessing(site, path);
-			}
-
-			ResultTO result = processContent(site, id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
-			ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO) result.getItem();
-
-			if (isSystemAsset) {
-				path = path.replace(assetName, assetInfoTO.getFileName());
-			}
-
-			item = getContentItem(site, path);
-			item.setSize(assetInfoTO.getSize());
-			item.setSizeUnit(assetInfoTO.getSizeUnit());
-			if (Boolean.parseBoolean(unlock)) {
-				itemService.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
-			} else {
-				itemService.updateStateBits(site, path, SAVE_AND_NOT_CLOSE_ON_MASK, SAVE_AND_NOT_CLOSE_OFF_MASK);
-			}
-
-			Map<String, Object> toRet = new HashMap<>();
-			toRet.put("success", true);
-			toRet.put("message", item);
-			return toRet;
-		} catch (Exception e) {
-			logger.error("Failed to process content at site '{}' path '{}'", site, path, e);
-			Map<String, Object> toRet = new HashMap<>();
-			toRet.put("success", false);
-			toRet.put("message", e.getMessage());
-			toRet.put("error", e);
-			return toRet;
-		} finally {
-			if (item != null) {
-				itemService.setSystemProcessing(site, path, false);
-			}
-		}
-	}
-
-	// This method is used for writing configuration files, this needs to be refactored in 3.1+
-	@Override
-	@Valid
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public String writeContent(@SiteId String siteId,
-				   @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
-				   InputStream content)
-		throws ServiceLayerException, UserNotFoundException {
-		boolean result;
-
-		String commitId = contentRepository.writeContent(siteId, path, content);
-
-		result = StringUtils.isNotEmpty(commitId);
-		if (result && isNotEmpty(siteId)) {
-			applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
-		}
-		return commitId;
-	}
-
-	@Override
-	@Valid
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public boolean writeContentAndNotify(@SiteId String site,
-					     @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
-					     InputStream content)
-		throws ServiceLayerException, UserNotFoundException {
-		boolean result = isNotEmpty(writeContent(site, path, content));
-		if (result) {
-			notifyContentEvent(site, path);
-		}
-
-		return result;
-	}
-
 	/**
 	 * Notify when there is a content update
 	 *
@@ -661,150 +284,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	@Valid
 	public void notifyContentEvent(@ValidateStringParam String site, @ValidateSecurePathParam String path) {
 		applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, path));
-	}
-
-	@Override
-	@RequireSiteExists
-	public boolean validateAndCreateFolder(@SiteId String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
-		Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
-		validateValue(pathValidator, path, REQUEST_PARAM_PATH);
-		validateValue(pathValidator, name, REQUEST_PARAM_NAME);
-
-		return this.createFolder(site, path, name);
-	}
-
-	@Override
-	@Valid
-	@ValidateAction(type = Type.CREATE)
-	public boolean createFolder(@ValidateStringParam @SiteId String site,
-				    @ValidateSecurePathParam @ActionTargetPath String path,
-				    @ValidateStringParam @ActionTargetFilename String name)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		String folderPath = path + FILE_SEPARATOR + name;
-		String commitId = contentRepository.createFolder(site, path, name);
-		if (commitId == null) {
-			return false;
-		}
-		Item parentItem = itemService.getItem(site, path, true);
-		if (isNull(parentItem)) {
-			parentItem = createMissingParentItem(site, path);
-		}
-		itemService.persistItemAfterCreateFolder(site, folderPath, name, parentItem.getId());
-
-		String username = SecurityUtils.getCurrentUsername();
-		Site siteFeed = siteService.getSite(site);
-		AuditLog auditLog = createAuditLogEntry();
-		auditLog.setOperation(OPERATION_CREATE);
-		auditLog.setCommitId(commitId);
-		auditLog.setSiteId(siteFeed.getId());
-		auditLog.setActorId(username);
-		// TODO: SJ: There should be a helper method to consistently create these keys/paths
-		auditLog.setPrimaryTargetId(site + ":" + folderPath);
-		auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
-		auditLog.setPrimaryTargetValue(folderPath);
-		auditService.insertAuditLog(auditLog);
-		applicationContext.publishEvent(new SyncFromRepoEvent(site));
-		applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, folderPath));
-
-		return true;
-	}
-
-	private Item createMissingParentItem(String site, String parentPath)
-		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
-		String ancestorPath = ContentUtils.getParentUrl(parentPath);
-		String name = ContentUtils.getPageName(parentPath);
-		Item ancestor = itemService.getItem(site, ancestorPath, true);
-		if (isNull(ancestor)) {
-			createMissingParentItem(site, ancestorPath);
-			ancestor = itemService.getItem(site, ancestorPath, true);
-		}
-		itemService.persistItemAfterCreateFolder(site, parentPath, name, ancestor.getId());
-		return itemService.getItem(site, parentPath, true);
-	}
-
-	@Override
-	@Valid
-	@ValidateAction(type = Type.MOVE)
-	public String moveContent(@ValidateStringParam @SiteId String siteId,
-				  @ValidateSecurePathParam @ActionSourcePath String fromPath,
-				  @ValidateSecurePathParam @ActionTargetPath String toPath) {
-		String movePath = null;
-		try {
-			String sourcePath = (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
-				fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
-			String sourcePathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
-
-			PastedPathMap movePathMap = constructNewPathForCutCopy(siteId, fromPath, toPath, true);
-			movePath = movePathMap.filePath;
-			String moveFileName = movePathMap.fileName;
-			String movePathOnly = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
-			boolean moveAltFileName = movePathMap.altName;
-			boolean targetIsIndex = DmConstants.INDEX_FILE.equals(moveFileName);
-			boolean sourceIsIndex = DmConstants.INDEX_FILE.equals(fromPath);
-
-			String targetPath = movePathOnly;
-			if (movePathOnly.equals(sourcePathOnly)
-				|| (moveAltFileName && !targetIsIndex)
-				|| (!sourceIsIndex && !targetIsIndex)) {
-				// we never send index.xml to the repo, we move folders (and the folder has the rename)
-				// SO otherwise, this is a rename and we need to forward the full path
-				targetPath = movePath;
-			}
-
-			logger.debug("Move file in siteId '{}' from '{}' to '{}', sourcePath '{}' to target path '{}'",
-				siteId, fromPath, toPath, sourcePath, targetPath);
-
-			// NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
-			// historically with MOVE it is not
-			String commitId = contentRepository.moveContent(siteId, sourcePath, targetPath);
-
-			if (commitId != null) {
-				String targetLabel = moveFileName;
-				// For page and components: update label in both DB and xml
-				Document movedDocument = null;
-				if (movePath.endsWith(DmConstants.XML_PATTERN)) {
-					InputStream movedContentStream = getContent(siteId, movePath);
-					movedDocument = ContentUtils.convertStreamToXml(movedContentStream);
-					if (movedDocument != null) {
-						Element root = movedDocument.getRootElement();
-						updateContentOnMove(root, moveFileName, movePathMap.fileFolder, movePathMap.modifier);
-						targetLabel = root.selectSingleNode(format("//%s", ELM_INTERNAL_NAME)).getText();
-					}
-				}
-
-				applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
-				if (movedDocument != null) {
-					writeContent(siteId, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
-				}
-
-				// Update the database with the commitId for the target item
-				var newParent = itemService.getItem(siteId, toPath, true);
-				Long parentId = newParent != null ? newParent.getId() : null;
-				updateDatabaseOnMove(siteId, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder, commitId);
-				updateChildrenOnMove(siteId, fromPath, movePath, commitId);
-			} else {
-				logger.error("Failed to move item in siteId '{}' from '{}' to '{}'", siteId, sourcePath, targetPath);
-				movePath = fromPath;
-			}
-
-			applicationContext.publishEvent(new MoveContentEvent(SecurityUtils.getAuthentication(), siteId, fromPath, movePath));
-		} catch (ServiceLayerException e) {
-			logger.error("Failed to move item. Content not found while moving content in siteId '{}' from '{}' to '{}'," +
-					" new name is '{}'",
-				siteId, fromPath, toPath, movePath, e);
-		} catch (UserNotFoundException e) {
-			logger.error("Current user could not be found while moving content for siteId '{}' from '{}' to '{}', new name is '{}'",
-				siteId, fromPath, toPath, movePath, e);
-		} catch (DocumentException e) {
-			logger.error("Failed to update XML while moving content for siteId '{}' from '{}' to '{}', new name is '{}'",
-				siteId, fromPath, toPath, movePath, e);
-		} catch (AuthenticationException e) {
-			logger.error("Failed to authenticate user while moving content for siteId '{}' from '{}' to '{}', new name is '{}'",
-				siteId, fromPath, toPath, movePath, e);
-		}
-
-		return movePath;
 	}
 
 	protected void updateDatabaseOnMove(String site, String fromPath, String movePath, String commitId)
@@ -1664,60 +1143,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 	@Override
 	@Valid
-	public boolean revertContentItem(String site,
-									 @ValidateSecurePathParam String path,
-									 String version, boolean major,
-									 String comment)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		contentServiceV2.lockContent(site, path);
-		try {
-			trySetSystemProcessing(site, path);
-			String commitId = contentRepository.revertContent(site, path, version, comment);
-
-			// TODO: The repository should throw an exception instead of returning a boolean
-			if (isEmpty(commitId)) {
-				return false;
-			}
-
-			try {
-				dependencyServiceV2.upsertDependencies(site, path);
-			} catch (ServiceLayerException e) {
-				logger.error("Failed to extract the dependencies for reverted content at " +
-					"site '{}' path '{}' version '{}'", site, path, version);
-			}
-
-			String username = SecurityUtils.getCurrentUsername();
-			// Update the database for the target item
-			itemService.persistItemAfterWrite(site, path, true);
-
-
-			// This is not required, the current user is already loaded in memory
-			User user = userService.getUserByIdOrUsername(-1, username);
-			Site siteFeed = siteService.getSite(site);
-			AuditLog auditLog = createAuditLogEntry();
-			auditLog.setOperation(OPERATION_REVERT);
-			auditLog.setSiteId(siteFeed.getId());
-			auditLog.setActorId(username);
-			auditLog.setPrimaryTargetId(site + ":" + path);
-			auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-			auditLog.setPrimaryTargetValue(path);
-			auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
-			auditService.insertAuditLog(auditLog);
-
-			Item item = itemService.getItem(site, path);
-			activityStreamService.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
-				DateUtils.getCurrentTime(), item, null);
-			applicationContext.publishEvent(new ContentEvent(SecurityUtils.getAuthentication(), site, path));
-
-			return true;
-		} finally {
-			tryResetSystemProcessing(site, path);
-			contentServiceV2.unlockContent(site, path);
-		}
-	}
-
-	@Override
-	@Valid
 	public Optional<Resource> getContentVersion(@ValidateStringParam String site,
 						    @ValidateSecurePathParam String path,
 						    @ValidateStringParam() String commitId) {
@@ -1861,30 +1286,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			}
 		}
 		return false;
-	}
-
-	@Valid
-	protected ResultTO processContent(String siteId, String id, InputStream input, boolean isXml,
-					  Map<String, String> params,
-					  String contentChainForm)
-		throws ServiceLayerException, UserNotFoundException {
-		// TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
-		// TODO: SJ: Pipeline should take input, and give you back output
-		// TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
-		// TODO: SJ: Furthermore, we have redundancy in the code of the processors
-
-		long startTime = 0;
-		if (logger.isDebugEnabled()) {
-			startTime = System.currentTimeMillis();
-		}
-		ResultTO to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Write completed for '{}' in '{}' milliseconds.",
-				id, (System.currentTimeMillis() - startTime));
-		}
-
-		return to;
 	}
 
 	@Override
@@ -2037,63 +1438,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	}
 
 	@Override
-	@Valid
-	@ValidateAction(type = Type.RENAME)
-	@RequireContentExists
-	public boolean renameContent(@ValidateStringParam @SiteId String siteId,
-				     @ValidateSecurePathParam @ActionTargetPath @ContentPath String path,
-				     @ValidateStringParam @ActionTargetFilename String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
-		Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
-		validateValue(pathValidator, path, REQUEST_PARAM_PATH);
-		validateValue(pathValidator, name, REQUEST_PARAM_NAME);
-
-		boolean toRet = false;
-		String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
-		String targetPath = parentPath + FILE_SEPARATOR + name;
-
-		if (contentExists(siteId, targetPath)) {
-			throw new ContentExistException(format("Content '%s' in siteId '%s', cannot be renamed " +
-				"because an item with the name '%s' already exists.", path, siteId, name));
-		}
-//        check if there are children in-queue
-		contentServiceV2.assertNotInWorkflow(siteId, List.of(path), true);
-
-		ContentItemTO sourceContentItem = getContentItem(siteId, path);
-		boolean isFolder = sourceContentItem.isFolder();
-		String contentType = sourceContentItem.getContentType();
-
-		if (!SUPPORT_RENAME_CONTENT_TYPES.contains(contentType)) {
-			throw new ServiceLayerException(format("Failed to rename content at siteId '%s' path '%s' " +
-				"with content type '%s'", siteId, path, contentType));
-		}
-
-		logger.debug("Rename folder at siteId '{}' sourcePath '{}' to target path '{}'", siteId, path, targetPath);
-		// NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
-		// historically with MOVE it is not
-		String commitId = contentRepository.moveContent(siteId, path, targetPath);
-
-		if (commitId != null) {
-			// Update the database with the commitId for the target item
-			updateDatabaseOnMove(siteId, path, targetPath, commitId);
-			if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(siteId);
-
-			itemService.persistItemAfterRenameContent(siteId, targetPath, name, contentType);
-
-			if (isFolder) {
-				updateChildrenOnMove(siteId, path, targetPath, commitId);
-			}
-			applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
-			applicationContext.publishEvent(new MoveContentEvent(SecurityUtils.getAuthentication(), siteId, path, targetPath));
-			toRet = true;
-
-		} else {
-			logger.error("Failed to move item in siteId '{}' from '{}' to '{}'", siteId, path, targetPath);
-		}
-		return toRet;
-	}
-
-	@Override
 	public void setApplicationContext(@NonNull ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 	}
@@ -2110,13 +1454,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	public void setDependencyServiceV2(org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyServiceV2) {
 		this.dependencyServiceV2 = dependencyServiceV2;
 	}
-
-
-	@SuppressWarnings("unused")
-	public void setContentProcessor(ProcessContentExecutor contentProcessor) {
-		this.contentProcessor = contentProcessor;
-	}
-
 
 	@SuppressWarnings("unused")
 	public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {

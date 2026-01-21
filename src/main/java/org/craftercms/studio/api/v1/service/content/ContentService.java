@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,11 +16,9 @@
 
 package org.craftercms.studio.api.v1.service.content;
 
-import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
@@ -30,7 +28,6 @@ import org.springframework.core.io.Resource;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -137,72 +134,12 @@ public interface ContentService {
 	Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
 
 	/**
-	 * write content
-	 *
-	 * @param site    - the project ID
-	 * @param path    path to content
-	 * @param content stream of content to write
-	 * @return return new commit id
-	 * @throws ServiceLayerException general service error
-	 * @throws UserNotFoundException user not found exception
-	 */
-	String writeContent(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
-
-	/**
-	 * write content from an input stream and notify the subscribers.
-	 *
-	 * @param site    - the project ID
-	 * @param path    path to content
-	 * @param content stream of content to write
-	 * @return return true if successful
-	 * @throws ServiceLayerException general service error
-	 * @throws UserNotFoundException user not found exception
-	 */
-	boolean writeContentAndNotify(String site, String path, InputStream content) throws ServiceLayerException, UserNotFoundException;
-
-	/**
 	 * Notify when there is a content update
 	 *
 	 * @param site site name
 	 * @param path path name
 	 */
 	void notifyContentEvent(String site, String path);
-
-	/**
-	 * Validate the input and create a folder
-	 *
-	 * @param site - the project ID
-	 * @param path path to create a folder in
-	 * @param name a folder name to create
-	 * @return return the reference to the folder created
-	 * @throws ServiceLayerException
-	 * @throws UserNotFoundException
-	 * @throws ValidationException
-	 */
-	boolean validateAndCreateFolder(String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
-
-	/**
-	 * create a folder
-	 *
-	 * @param site - the project ID
-	 * @param path path to create a folder in
-	 * @param name a folder name to create
-	 * @return return the reference to the folder created
-	 * @throws SiteNotFoundException site not found
-	 */
-	boolean createFolder(String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
-
-	/**
-	 * move content fromPath to toPath
-	 *
-	 * @param site     - the project ID
-	 * @param fromPath the source path
-	 * @param toPath   the target path to copy content to
-	 * @return final path if successful, null otherwise
-	 */
-	String moveContent(String site, String fromPath, String toPath);
 
 	/**
 	 * get the tree of content items (metadata) beginning at a root
@@ -243,22 +180,6 @@ public interface ContentService {
 	String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException;
 
 	/**
-	 * revert a version (create a new version based on an old version)
-	 *
-	 * @param site    - the project ID
-	 * @param path    - the path of the item to "revert"
-	 * @param version - old version ID to base to version on
-	 * @param major   major version
-	 * @param comment comment for revert action
-	 * @return true if success otherwise false
-	 *
-	 * @throws ServiceLayerException general service exception
-	 * @throws UserNotFoundException user not found exception
-	 */
-	boolean revertContentItem(String site, String path, String version, boolean major, String comment)
-		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
-
-	/**
 	 * return the content for a given version
 	 *
 	 * @param site    - the project ID
@@ -280,55 +201,6 @@ public interface ContentService {
 	 */
 	String getContentVersionAsString(String site, String path, String version) throws ContentNotFoundException;
 
-	/**
-	 * write content
-	 *
-	 * @param site          site identifier
-	 * @param path          path
-	 * @param fileName      file name
-	 * @param contentType   content type
-	 * @param input         content
-	 * @param createFolders create missing folders in path?
-	 * @param edit          edit
-	 * @param unlock        unlock the content upon edit?
-	 * @throws ServiceLayerException general service error
-	 * @throws UserNotFoundException user not found exception
-	 * @throws ValidationException validation exception
-	 */
-	void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-			  String createFolders, String edit, String unlock)
-		throws ServiceLayerException, UserNotFoundException, ValidationException;
-
-	/**
-	 * write content
-	 *
-	 * @param site               site identifier
-	 * @param path               path
-	 * @param fileName           file name
-	 * @param contentType        content type
-	 * @param input              content
-	 * @param createFolders      create missing folders in path?
-	 * @param edit               edit
-	 * @param unlock             unlock the content upon edit?
-	 * @param skipAuditLogInsert if true do not insert audit log row, otherwise false
-	 * @throws ServiceLayerException general service error
-	 * @throws UserNotFoundException user not found exception
-	 */
-	void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-			  String createFolders, String edit, String unlock, boolean skipAuditLogInsert)
-		throws ServiceLayerException, UserNotFoundException;
-
-	// TODO: Remove this method
-	void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
-				   final String contentType, final InputStream input, final String createFolders,
-				   final String edit, final String unlock, final boolean createFolder)
-		throws ServiceLayerException, ValidationException;
-
-	Map<String, Object> writeContentAsset(String site, String path, String assetName, InputStream in,
-					      String isImage, String allowedWidth, String allowedHeight,
-					      String allowLessSize, String draft, String unlock, String systemAsset)
-		throws ServiceLayerException;
-
 	/* THESE ARE NOT PUBLIC METHODS, DO NOT USE THE THEM */
 	/* DEJAN TO CLEAN UP WHAT IS NOT TRULY PUBLIC */
 
@@ -342,19 +214,5 @@ public interface ContentService {
 
 	double reorderItems(String site, String relativePath, String before, String after, String orderName)
 		throws ServiceLayerException;
-
-	/**
-	 * rename a content item
-	 *
-	 * @param site - the project ID
-	 * @param path path to a folder to rename
-	 * @param name a new folder name
-	 * @return return the reference to the folder renamed
-	 * @throws ServiceLayerException general service error
-	 * @throws UserNotFoundException user not found
-	 * @throws ValidationException   validation exception
-	 */
-	boolean renameContent(String site, String path, String name)
-		throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException;
 
 }

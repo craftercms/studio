@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -460,25 +460,6 @@ public class GitCli {
 			executeGitCommand(cleanCl);
 		} catch (Exception e) {
 			throw new GitCliException("Git clean failed on directory " + repoDir.getAbsolutePath(), e);
-		}
-	}
-
-	/**
-	 * Git restore -s <version> <path>
-	 * This will checkout the file from the given version (commit id) to the working directory
-	 *
-	 * @param repoDir the git repository directory
-	 * @param path     the path to restore
-	 * @param version  the version to restore
-	 * @throws GitCliException if the git restore command fails
-	 */
-	public void restoreVersion(File repoDir, String path, String version) throws GitCliException {
-		GitCommandLine restoreCl = new GitCommandLine(repoDir, "restore", "-s", version, path);
-
-		try {
-			executeGitCommand(restoreCl);
-		} catch (Exception e) {
-			throw new GitCliException("Git restore failed on directory " + repoDir.getAbsolutePath() + " for path " + path, e);
 		}
 	}
 

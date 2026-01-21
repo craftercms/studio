@@ -394,19 +394,6 @@ public interface GitContentRepository extends ContentRepository {
 	Collection<RepositoryItem> getContentChildren(String site, String folderPath) throws ServiceLayerException;
 
 	/**
-	 * Revert content to a previous version
-	 *
-	 * @param site    site id
-	 * @param path    path of the content
-	 * @param version version to revert to
-	 * @param comment comment for the revert operation
-	 * @return commit id of the new version
-	 * @throws UserNotFoundException if the current user is not found
-	 * @throws ServiceLayerException if there is any error while reverting the content
-	 */
-	String revertContent(String site, String path, String version, String comment) throws UserNotFoundException, ServiceLayerException;
-
-	/**
 	 * Write a content item into the repository
 	 *
 	 * @param site    the site id
