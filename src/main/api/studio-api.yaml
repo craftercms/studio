@@ -2348,54 +2348,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/site/get.json:
-        get:
-            tags:
-                - sites
-            summary: Get a Crafter Studio project/site
-            description: No required role
-            operationId: getSiteV1
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Site'
-                            example:
-                                id: 8
-                                siteUuid: "8d71254a-ceb3-409a-bb59-610505764a77"
-                                siteId: "third"
-                                name: "third"
-                                description: "null"
-                                deleted: 0
-                                liveUrl: "null"
-                                lastCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
-                                publishingEnabled: 1
-                                publishingStatus: "ready"
-                                lastVerifiedGitlogCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
-                                sandboxBranch: "master"
-                                publishedRepoCreated: 0
-                                state: "READY"
-                                lastSyncedGitlogCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
-                                siteDeleted: false
-                                sitePublishedRepoCreated: false
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
     /api/1/services/api/1/site/monitor-content.json:
         get:
             tags:
