@@ -552,12 +552,6 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public String revertContent(String site, String path, String version, String comment)
-			throws UserNotFoundException, ServiceLayerException {
-		return localRepository.revertContent(site, path, version, comment);
-	}
-
-	@Override
 	public Optional<Resource> getContentByCommitId(String site, String path, String commitId) {
 		return localRepository.getContentByCommitId(site, path, commitId);
 	}

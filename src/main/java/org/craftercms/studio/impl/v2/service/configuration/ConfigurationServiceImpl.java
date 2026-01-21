@@ -152,7 +152,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_GLOBAL_CONFIGURATION)
 	public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		configurationServiceInternal.writeGlobalConfiguration(path, content);
 	}
 

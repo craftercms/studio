@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -73,12 +73,12 @@ import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.NonNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -93,7 +93,10 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import static java.lang.String.format;
@@ -1305,28 +1308,6 @@ public class GitRepositoryHelper implements DisposableBean {
 		}
 
 		return commitId;
-	}
-
-	/**
-	 * Restore (to the working directory) a file from a given version
-	 *
-	 * @param repo    the repository
-	 * @param siteId  the site
-	 * @param path    the path to restore
-	 * @param version the version (commit id) to restore the file from
-	 * @throws ServiceLayerException if there is an error while trying to restore the file
-	 */
-	public void restoreVersion(final Repository repo, final String siteId, final String path, final String version) throws ServiceLayerException {
-		String gitLockKey = getSandboxRepoLockKey(siteId, true);
-		generalLockService.lock(gitLockKey);
-		try {
-			File repoDir = repo.getWorkTree();
-			gitCli.restoreVersion(repoDir, path, version);
-		} catch (Exception e) {
-			throw new ServiceLayerException(format("Failed to restore version '%s' of path '%s' in site '%s'", version, path, siteId), e);
-		} finally {
-			generalLockService.unlock(gitLockKey);
-		}
 	}
 
 	/**
