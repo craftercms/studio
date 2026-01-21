@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -1806,26 +1806,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		} else {
 			FileUtils.copyDirectory(sourceFile, targetFile);
 		}
-	}
-
-	@Override
-	public String revertContent(String siteId, String path, String version, String comment)
-		throws UserNotFoundException, ServiceLayerException {
-		String commitId;
-		String gitLockKey = helper.getSandboxRepoLockKey(siteId);
-		generalLockService.lock(gitLockKey);
-		try {
-			Repository repo = helper.getRepositoryForWrite(siteId);
-			helper.restoreVersion(repo, siteId, helper.getGitPath(path), version);
-			commitId = helper.commitFiles(repo, siteId, comment, helper.getCurrentUserIdent(), path);
-			if (commitId != null) {
-				persistCommit(siteId, commitId);
-			}
-		} finally {
-			generalLockService.unlock(gitLockKey);
-		}
-
-		return commitId;
 	}
 
 	/**

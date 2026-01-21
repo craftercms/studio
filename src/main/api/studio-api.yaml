@@ -2433,98 +2433,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/content/create-folder.json:
-        post:
-            tags:
-                - content
-            summary: Create folder.
-            description: "Required role: N/A"
-            operationId: createFolder
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/
-                -   name: name
-                    in: query
-                    schema:
-                        type: string
-                    description: Name of the new folder
-                    required: true
-                    example: newFolder
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: boolean
-                                example:
-                                    message: true
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '500':
-                    $ref: '#/components/responses/InternalServerError'
-
-    /api/1/services/api/1/content/rename-folder.json:
-        post:
-            tags:
-                - content
-            summary: Rename folder.
-            description: "Required role: N/A"
-            operationId: renameFolder
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/
-                -   name: name
-                    in: query
-                    schema:
-                        type: string
-                    description: New name of the folder
-                    required: true
-                    example: newFolder
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    result:
-                                        type: string
-                                example:
-                                    result: "true"
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '409':
-                    $ref: '#/components/responses/api1PublishConflict'
-                '500':
-                    $ref: '#/components/responses/InternalServerError'
-
     /api/1/services/api/1/content/get-content.json:
         get:
             tags:
@@ -2571,52 +2479,6 @@ paths:
                     $ref: '#/components/responses/api1Unauthorized'
                 '403':
                     $ref: '#/components/responses/api1Forbidden'
-
-    /api/1/services/api/1/content/get-content-at-path.json:
-        get:
-            tags:
-                - content
-            summary: Get content stream at path.
-            description: "Required role: N/A"
-            operationId: getContentAtPath
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/health/index.xml
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    contentStream:
-                                        type: object
-                                        properties:
-                                            type:
-                                                type: integer
-                                            size:
-                                                type: integer
-                                    contentPath:
-                                        type: string
-                            example:
-                                contentStream:
-                                    type: 3
-                                    size: 1699
-                                contentPath: "/site/website/health/index.xml"
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
 
     /api/1/services/api/1/content/get-content-type.json:
         get:
@@ -2960,47 +2822,6 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/content/revert-content.json:
-        get:
-            tags:
-                - content
-            summary: Revert content item to a specific version.
-            description: "Required role: N/A"
-            operationId: revertContent
-            parameters:
-                -   name: site
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/style/index.xml
-                -   name: version
-                    in: query
-                    schema:
-                        type: string
-                    description: Version to revert to
-                    required: true
-                    example: 818e0f68bfccda9a9a1a788341b87ca3ba5ad3c6
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: boolean
-                                example: true
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
 
     /api/1/services/api/1/server/get-available-languages.json:
         get:
