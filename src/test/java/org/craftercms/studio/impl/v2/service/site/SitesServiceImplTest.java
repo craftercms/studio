@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.service.site;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -34,7 +33,8 @@ import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class SitesServiceImplTest {
 
@@ -44,8 +44,6 @@ public class SitesServiceImplTest {
 	private static final String SOURCE_SITE_ID = "original";
 	private static final String NEW_SITE_ID = "the-copy";
 
-	@Mock
-	protected SiteService siteServiceV1;
 	@Mock
 	protected SitesService sitesServiceInternal;
 	@InjectMocks
@@ -57,7 +55,6 @@ public class SitesServiceImplTest {
 		mocks = MockitoAnnotations.openMocks(this);
 		when(sitesServiceInternal.exists(NON_EXISTING_SITE_ID)).thenReturn(false);
 		when(sitesServiceInternal.exists(SITE_ID)).thenReturn(true);
-		doThrow(new SiteNotFoundException(NON_EXISTING_SITE_ID)).when(siteServiceV1).checkSiteExists(NON_EXISTING_SITE_ID);
 		when(sitesService.exists(EXISTING_SITE_ID)).thenReturn(true);
 	}
 

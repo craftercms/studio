@@ -46,8 +46,6 @@ public interface SiteFeedMapper {
 
 	Integer exists(String siteId);
 
-	Integer existsById(String id);
-
 	Integer existsByName(String name);
 
 	/**
@@ -67,8 +65,6 @@ public interface SiteFeedMapper {
 
 	void enablePublishing(Map params);
 
-	List<SiteFeed> getDeletedSites();
-
 	/**
 	 * Updates the name and description for the given site
 	 *
@@ -82,7 +78,5 @@ public interface SiteFeedMapper {
 	void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String state);
 
 	List<String> getAllCreatedSites(@Param(STATE) String state);
-
-	String getSiteState(@Param(SITE_ID) String siteId);
 
 }

@@ -23,9 +23,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
-import org.craftercms.studio.model.site.SiteDetailsV1;
 
 import java.util.List;
 import java.util.Map;
@@ -116,36 +114,12 @@ public interface SiteService {
 	boolean exists(String site);
 
 	/**
-	 * Checks if a site exists. If it does not, it throws a {@link SiteNotFoundException}
-	 *
-	 * @param site site ID
-	 * @throws SiteNotFoundException if no site is found for the given site ID
-	 */
-	void checkSiteExists(String site) throws SiteNotFoundException;
-
-	/**
-	 * Check if site already exists
-	 *
-	 * @param id site ID in DB
-	 * @return true if site exists, false otherwise
-	 */
-	boolean existsById(String id);
-
-	/**
 	 * Check if site already exists
 	 *
 	 * @param name site name in DB
 	 * @return true if site exists, false otherwise
 	 */
 	boolean existsByName(String name);
-
-	/**
-	 * Get total number of sites that user is allowed access to for current user
-	 *
-	 * @return number of sites
-	 * @throws UserNotFoundException
-	 */
-	int getSitesPerUserTotal() throws UserNotFoundException, ServiceLayerException;
 
 	/**
 	 * Get total number of sites that user is allowed access to for given username
@@ -156,17 +130,6 @@ public interface SiteService {
 	 * @throws ServiceLayerException general service error
 	 */
 	int getSitesPerUserTotal(String username) throws UserNotFoundException, ServiceLayerException;
-
-	/**
-	 * Get sites that user is allowed access to for current user
-	 *
-	 * @param start  start position for pagination
-	 * @param number number of sites per page
-	 * @return number of sites
-	 * @throws UserNotFoundException
-	 */
-	List<SiteFeed> getSitesPerUser(int start, int number) throws UserNotFoundException,
-		ServiceLayerException;
 
 	/**
 	 * Get sites that user is allowed access to for given username
@@ -189,25 +152,6 @@ public interface SiteService {
 	 * @throws SiteNotFoundException site not found
 	 */
 	SiteFeed getSite(String siteId) throws SiteNotFoundException;
-
-	/**
-	 * Get site details.
-	 * This will include the site feed info and the blob store configuration details
-	 *
-	 * @param siteId site id
-	 * @return SiteDetails object for the requested site
-	 * @throws ServiceLayerException if an error occurs while retrieving the site details
-	 */
-	SiteDetailsV1 getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
-
-	/**
-	 * Get deleted sites
-	 *
-	 * @return List of deleted sites from DB
-	 */
-	List<SiteFeed> getDeletedSites();
-
-	String getSiteState(String siteId);
 
 	/**
 	 * Get list of all sites with state = CREATED

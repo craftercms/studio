@@ -179,11 +179,6 @@ class SpringContentServices {
 		return springBackedService.getContent(site, path)
 	}
 
-	def lockContent(site, path) {
-		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
-		springBackedService.lockContent(site, path);
-	}
-
 	def writeContentAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset) {
 		def springBackendService = this.context.applicationContext.get(ASSET_PROCESSING_SERVICE_BEAN);
 		return springBackendService.processAsset(site, path, fileName, content, isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset);

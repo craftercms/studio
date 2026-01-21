@@ -45,34 +45,4 @@ class SpringSiteServices {
 			remoteToken, remotePrivateKey, createOption, params, createAsOrphan)
 	}
 
-	def deleteSite(siteId) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.deleteSite(siteId)
-	}
-
-	def reloadSiteConfiguration(site) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.reloadSiteConfiguration(site)
-	}
-
-	def exists(site) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.exists(site)
-	}
-
-	def getSitesPerUserTotal() {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.getSitesPerUserTotal()
-	}
-
-	def getSitesPerUser(start, number) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.getSitesPerUser(start, number)
-	}
-
-	def getSite(siteId) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.getSiteDetails(siteId)
-	}
-
 }
