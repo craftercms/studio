@@ -37,8 +37,6 @@ import java.util.Map;
  */
 public interface SiteService {
 
-	int countSites();
-
 	/**
 	 * Create a new site based on an existing blueprint
 	 *

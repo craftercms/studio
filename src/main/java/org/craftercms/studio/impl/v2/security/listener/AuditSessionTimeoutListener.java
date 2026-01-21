@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,8 +15,8 @@
  */
 package org.craftercms.studio.impl.v2.security.listener;
 
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.core.context.SecurityContext;
@@ -33,7 +33,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_SESSI
 public class AuditSessionTimeoutListener extends AbstractAuditListener {
 
 	@ConstructorProperties({"studioConfiguration", "siteService", "auditService"})
-	public AuditSessionTimeoutListener(StudioConfiguration studioConfiguration, SiteService siteService, AuditService auditService) {
+	public AuditSessionTimeoutListener(StudioConfiguration studioConfiguration, SitesService siteService, AuditService auditService) {
 		super(studioConfiguration, siteService, auditService);
 	}
 

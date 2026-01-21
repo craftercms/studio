@@ -25,22 +25,9 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface SiteFeedMapper {
 
-	List<SiteFeed> getSites();
-
-	int countSites();
-
 	SiteFeed getSite(Map params);
 
 	boolean createSite(SiteFeed siteFeed);
-
-	/**
-	 * Delete site
-	 *
-	 * @param siteId site identifier
-	 * @param state  deleted state value
-	 * @return
-	 */
-	boolean deleteSite(@Param(SITE_ID) String siteId, @Param(STATE) String state);
 
 	void updateLastCommitId(Map params);
 

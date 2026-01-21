@@ -142,11 +142,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	protected SqlSessionFactory sqlSessionFactory;
 
 	@Override
-	public int countSites() {
-		return siteFeedMapper.countSites();
-	}
-
-	@Override
 	@Valid
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
 	public void createSiteFromBlueprint(

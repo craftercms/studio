@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.security.listener;
 
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
@@ -38,7 +39,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN
 public class AuditLoginListener extends AbstractAuditListener {
 
 	@ConstructorProperties({"studioConfiguration", "siteService", "auditService"})
-	public AuditLoginListener(StudioConfiguration studioConfiguration, SiteService siteService,
+	public AuditLoginListener(StudioConfiguration studioConfiguration, SitesService siteService,
 				  AuditService auditService) {
 		super(studioConfiguration, siteService, auditService);
 	}

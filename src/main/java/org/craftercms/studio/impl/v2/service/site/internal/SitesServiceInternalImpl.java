@@ -62,7 +62,10 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -72,7 +75,6 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
@@ -589,10 +591,10 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 * @param siteName     the new site name
 	 */
 	protected void auditSiteDuplicate(final String sourceSiteId, final String siteId, final String siteName) {
-		SiteFeed globalSiteFeed = siteFeedMapper.getSite(Map.of(SITE_ID, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)));
+		Site globalSite = siteDao.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_DUPLICATE);
-		auditLog.setSiteId(globalSiteFeed.getId());
+		auditLog.setSiteId(globalSite.getId());
 		auditLog.setActorId(getCurrentUsername());
 		auditLog.setPrimaryTargetId(siteId);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);

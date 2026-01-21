@@ -16,27 +16,19 @@
 
 package org.craftercms.studio.impl.v2.service.audit.internal;
 
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v2.dal.ActivityStreamDAO;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 /**
  * Internal implementation of {@link ActivityStreamService}
  */
 public class ActivityStreamServiceInternalImpl implements ActivityStreamService {
 
-	private SiteFeedMapper siteFeedMapper;
+	private SiteDAO siteDao;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private ActivityStreamDAO activityStreamDAO;
 
@@ -60,16 +52,14 @@ public class ActivityStreamServiceInternalImpl implements ActivityStreamService 
 				.getActivitiesForUsers(getSiteId(siteId), usernames, actions, dateForm, dateTo, offset, limit);
 	}
 
-	private long getSiteId(String site) {
-		Map<String, Object> params = new HashMap<>();
-		params.put(SITE_ID, site);
-		SiteFeed siteFeed = siteFeedMapper.getSite(params);
-		return siteFeed.getId();
+	private long getSiteId(String siteId) {
+		Site site = siteDao.getSite(siteId);
+		return site.getId();
 	}
 
 	@SuppressWarnings("unused")
-	public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-		this.siteFeedMapper = siteFeedMapper;
+	public void setSiteDao(SiteDAO siteDao) {
+		this.siteDao = siteDao;
 	}
 
 	public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

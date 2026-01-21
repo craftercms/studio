@@ -315,7 +315,7 @@
 		<constructor-arg name="organizationServiceInternal" ref="organizationServiceInternal"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="auditService" ref="auditServiceInternal"/>
-		<constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
+		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
 	</bean>
 
 	<bean id="groupServiceInternal"
@@ -562,7 +562,7 @@
 
 	<bean id="studio.activityStreamService"
 	      class="org.craftercms.studio.impl.v2.service.audit.internal.ActivityStreamServiceInternalImpl">
-		<property name="siteFeedMapper" ref="siteFeedMapper"/>
+		<property name="siteDao" ref="siteDao"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<property name="activityStreamDAO" ref="activityStreamDao"/>
 	</bean>
@@ -1198,7 +1198,7 @@
 	<!--              Entitlements              -->
 	<!-- ////////////////////////////////////// -->
 	<bean id="crafter.entitlementsProvider" class="org.craftercms.studio.impl.v1.entitlement.StudioEntitlementUsageProvider">
-		<property name="siteService" ref="cstudioSiteServiceSimple"/>
+		<property name="siteService" ref="sitesServiceInternal"/>
 		<property name="userService" ref="userServiceInternal"/>
 		<property name="itemService" ref="itemService"/>
 	</bean>

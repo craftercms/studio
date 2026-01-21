@@ -19,13 +19,13 @@ package org.craftercms.studio.impl.v2.upgrade.operations.site;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -44,25 +44,25 @@ public class AddSiteUuidOperation extends AbstractUpgradeOperation {
 
 	private static final Logger logger = LoggerFactory.getLogger(AddSiteUuidOperation.class);
 
-	private final SiteFeedMapper siteFeedMapper;
+	private final SiteDAO siteDao;
 
-	@ConstructorProperties({"studioConfiguration", "siteFeedMapper"})
-	public AddSiteUuidOperation(StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper) {
+	@ConstructorProperties({"studioConfiguration", "siteDao"})
+	public AddSiteUuidOperation(StudioConfiguration studioConfiguration, SiteDAO siteDao) {
 		super(studioConfiguration);
-		this.siteFeedMapper = siteFeedMapper;
+		this.siteDao = siteDao;
 	}
 
 	@Override
 	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-		var site = context.getTarget();
-		logger.debug("Get the site data from the database for site '{}'", site);
+		var siteId = context.getTarget();
+		logger.debug("Get the site data from the database for site '{}'", siteId);
 		Map<String, String> params = new HashMap<>();
-		params.put(SITE_ID, site);
-		SiteFeed siteFeed = siteFeedMapper.getSite(params);
-		if (siteFeed != null) {
+		params.put(SITE_ID, siteId);
+		Site site = siteDao.getSite(siteId);
+		if (site != null) {
 			try {
 				logger.debug("Add a UUID file to site '{}'", site);
-				addSiteUuidFile(site, siteFeed.getSiteUuid());
+				addSiteUuidFile(siteId, site.getSiteUuid());
 			} catch (IOException e) {
 				throw new UpgradeException(format("Failed to add a UUID file to site '%s'", site), e);
 			}

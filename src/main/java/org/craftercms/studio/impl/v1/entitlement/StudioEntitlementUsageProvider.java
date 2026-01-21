@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,9 +21,9 @@ import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.model.Module;
 import org.craftercms.commons.entitlements.usage.EntitlementUsageProvider;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,9 +38,9 @@ import static org.craftercms.commons.entitlements.model.Module.STUDIO;
 public class StudioEntitlementUsageProvider implements EntitlementUsageProvider {
 
 	/**
-	 * Current instance of {@link SiteService}.
+	 * Current instance of {@link SitesService}.
 	 */
-	protected SiteService siteService;
+	protected SitesService siteService;
 	protected UserService userService;
 	protected ItemService itemService;
 
@@ -75,7 +75,7 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
 	}
 
 	protected int countSites() {
-		return siteService.countSites();
+		return siteService.getAllSites().size();
 	}
 
 	protected int countUsers() throws ServiceLayerException {
@@ -86,7 +86,7 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
 		return itemService.countAllContentItems();
 	}
 
-	public void setSiteService(SiteService siteService) {
+	public void setSiteService(SitesService siteService) {
 		this.siteService = siteService;
 	}
 
