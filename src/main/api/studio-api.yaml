@@ -2316,38 +2316,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/site/exists.json:
-        get:
-            tags:
-                - sites
-            summary: Check if Crafter Studio project/site exists.
-            description: "Required role: admin, member in the project/site"
-            operationId: projectExists
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    exists:
-                                        type: boolean
-                                        example: true
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
     /api/1/services/api/1/site/monitor-content.json:
         get:
             tags:
