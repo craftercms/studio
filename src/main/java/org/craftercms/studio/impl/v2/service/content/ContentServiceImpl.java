@@ -68,7 +68,7 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public boolean contentExists(@SiteId String siteId,
-								 @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws SiteNotFoundException {
+								 @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
 		return contentServiceInternal.contentExists(siteId, path);
 	}
 
@@ -230,11 +230,19 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@Valid
 	@RequireSiteReady
+	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Resource getContentAsResource(@SiteId String site,
 										 @ValidateSecurePathParam @ContentPath String path)
 			throws ContentNotFoundException {
 		return contentServiceInternal.getContentAsResource(site, path);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public InputStream getContent(@SiteId String siteId, @ContentPath String path) throws ContentNotFoundException {
+		return contentServiceInternal.getContent(siteId, path);
 	}
 
 	@Override
@@ -248,7 +256,7 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public Collection<RepositoryVersion> getHistory(@SiteId String siteId, String start, int limit) throws ServiceLayerException{
+	public Collection<RepositoryVersion> getHistory(@SiteId String siteId, String start, int limit) throws ServiceLayerException {
 		return contentServiceInternal.getHistory(siteId, start, limit);
 	}
 
@@ -293,6 +301,13 @@ public class ContentServiceImpl implements ContentService {
 	public WriteContentResult createFolder(@SiteId String siteId, @ActionTargetPath @ContentPath String path)
 			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		return contentServiceInternal.createFolder(siteId, path);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public String getContentTypeClass(String site, String uri) throws SiteNotFoundException {
+		return contentServiceInternal.getContentTypeClass(site, uri);
 	}
 
 	@Override

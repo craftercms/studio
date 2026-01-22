@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.service.dependency.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -34,7 +33,6 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +44,9 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 import static org.craftercms.studio.impl.v2.utils.DependencyUtils.isValidDependencyPath;
 
 public class DependencyServiceInternalImpl implements DependencyService {
@@ -95,7 +95,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 		if (isEmpty(paths)) {
 			return emptyList();
 		}
-		boolean isLiveTarget = StringUtils.equals(servicesConfig.getLiveEnvironment(site), publishingTarget);
+		boolean isLiveTarget = CS.equals(servicesConfig.getLiveEnvironment(site), publishingTarget);
 		return dependencyDao.getHardDependenciesForList(site, publishingTarget, paths,
 			getItemSpecificDependenciesPatterns(), isLiveTarget);
 	}
@@ -224,7 +224,7 @@ public class DependencyServiceInternalImpl implements DependencyService {
 		boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
 		boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
 		boolean isJs = path.endsWith(DmConstants.JS_PATTERN);
-		boolean isTemplate = ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(siteId));
+		boolean isTemplate = matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(siteId));
 
 		return isXml || isCss || isJs || isTemplate;
 	}
@@ -243,10 +243,12 @@ public class DependencyServiceInternalImpl implements DependencyService {
 		this.studioConfiguration = studioConfiguration;
 	}
 
+	@SuppressWarnings("unused")
 	public void setDependencyDao(DependencyDAO dependencyDao) {
 		this.dependencyDao = dependencyDao;
 	}
 
+	@SuppressWarnings("unused")
 	public void setDependencyResolver(DependencyResolver dependencyResolver) {
 		this.dependencyResolver = dependencyResolver;
 	}

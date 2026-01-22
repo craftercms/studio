@@ -143,7 +143,7 @@
 				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_SCRIPT_FOLDER)}"/>
 		<constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
 		<constructor-arg name="itemService" ref="itemService"/>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
+		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
 		<constructor-arg name="blobExtension" value="#{studioConfiguration.getProperty('studio.blob.file.extension')}"/>
 		<constructor-arg name="executorThreadCount" value="#{studioConfiguration.getProperty('studio.upgrade.db.population.threadCount')}"/>

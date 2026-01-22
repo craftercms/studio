@@ -45,12 +45,15 @@ import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
+import org.springframework.context.annotation.Lazy;
 
 import java.beans.ConstructorProperties;
 import java.io.FileReader;
@@ -84,45 +87,38 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
 	private final PluginDescriptorReader descriptorReader;
-	private final StudioBlobAwareContentRepository blobAwareRepository;
+	private StudioBlobAwareContentRepository blobAwareRepository;
 	private final StudioConfiguration studioConfiguration;
 	private final SiteFeedMapper siteFeedMapper;
 	private final SiteDAO siteDao;
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final Deployer deployer;
-	private final ConfigurationService configurationService;
+	private ConfigurationService configurationService;
 	private final AuditService auditService;
 	private final TaskManager taskManager;
-	private final StudioBlobStoreResolver blobStoreResolver;
+	private StudioBlobStoreResolver blobStoreResolver;
 	private ApplicationContext applicationContext;
 
 	@ConstructorProperties({"descriptorReader",
-			"blobAwareRepository",
 			"studioConfiguration", "siteFeedMapper",
 			"siteDao",
 			"retryingDatabaseOperationFacade",
-			"deployer", "configurationService",
-			"auditService", "taskManager",
-			"blobStoreResolver"})
+			"deployer",
+			"auditService", "taskManager"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
-									StudioBlobAwareContentRepository blobAwareRepository,
 									StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
 									SiteDAO siteDao,
 									RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-									Deployer deployer, ConfigurationService configurationService,
-									AuditService auditService, TaskManager taskManager,
-									StudioBlobStoreResolver blobStoreResolver) {
+									Deployer deployer,
+									AuditService auditService, TaskManager taskManager) {
 		this.descriptorReader = descriptorReader;
-		this.blobAwareRepository = blobAwareRepository;
 		this.studioConfiguration = studioConfiguration;
 		this.siteFeedMapper = siteFeedMapper;
 		this.siteDao = siteDao;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.deployer = deployer;
-		this.configurationService = configurationService;
 		this.auditService = auditService;
 		this.taskManager = taskManager;
-		this.blobStoreResolver = blobStoreResolver;
 	}
 
 	@Override
@@ -628,5 +624,25 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Override
 	public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	// These setters are needed to break circular dependencies
+	@Autowired
+	@Lazy
+	@Qualifier("configurationServiceInternal")
+	public void setConfigurationService(ConfigurationService configurationService) {
+		this.configurationService = configurationService;
+	}
+
+	@Autowired
+	@Lazy
+	public void setBlobStoreResolver(StudioBlobStoreResolver blobStoreResolver) {
+		this.blobStoreResolver = blobStoreResolver;
+	}
+
+	@Autowired
+	@Lazy
+	public void setBlobAwareRepository(StudioBlobAwareContentRepository blobAwareRepository) {
+		this.blobAwareRepository = blobAwareRepository;
 	}
 }

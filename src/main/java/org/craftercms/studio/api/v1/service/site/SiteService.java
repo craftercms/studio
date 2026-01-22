@@ -151,13 +151,6 @@ public interface SiteService {
 	 */
 	SiteFeed getSite(String siteId) throws SiteNotFoundException;
 
-	/**
-	 * Get list of all sites with state = CREATED
-	 *
-	 * @return list of sites
-	 */
-	List<String> getAllCreatedSites();
-
 	void setSiteState(String siteId, String state);
 
 }

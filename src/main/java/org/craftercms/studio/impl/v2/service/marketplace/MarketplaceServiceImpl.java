@@ -133,7 +133,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public String getPluginConfigurationAsString(@SiteId String siteId,
-						     String pluginId) throws ContentNotFoundException {
+						     String pluginId) throws ServiceLayerException {
 		return marketplaceServiceInternal.getPluginConfigurationAsString(siteId, pluginId);
 	}
 

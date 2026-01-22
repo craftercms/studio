@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,6 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.plugin.model.Plugin;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -77,7 +76,7 @@ public class MarketplaceServiceInternalImplTest {
 	private static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
 
 	@BeforeTest
-	public void setUp() throws IOException, ContentNotFoundException {
+	public void setUp() throws IOException, ServiceLayerException {
 		initMocks(this);
 		marketplaceService.widgetMapping = widgetMapping;
 

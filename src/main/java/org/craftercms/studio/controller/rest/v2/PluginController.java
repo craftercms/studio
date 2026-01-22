@@ -25,7 +25,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -72,7 +71,7 @@ public class PluginController extends ManagementTokenAware {
 	}
 
 	@GetMapping("/get_configuration")
-	public ResultOne<String> getPluginConfiguration(@ValidSiteId String siteId, String pluginId) throws ContentNotFoundException {
+	public ResultOne<String> getPluginConfiguration(@ValidSiteId String siteId, String pluginId) throws ServiceLayerException {
 		String content = marketplaceService.getPluginConfigurationAsString(siteId, pluginId);
 
 		ResultOne<String> result = new ResultOne<>();

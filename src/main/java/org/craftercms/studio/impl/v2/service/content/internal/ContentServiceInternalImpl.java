@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -71,6 +72,7 @@ import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.db.DBUtils;
+import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
@@ -131,7 +133,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.*;
 import static org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl.ContentItemIds.generate;
@@ -174,7 +176,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private final ItemService itemService;
 	private final GeneralLockService generalLockService;
 	private ApplicationEventPublisher eventPublisher;
-	private final org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 	private final PublishService publishService;
 	private final ContentLifecycle contentLifecycle;
 	private final ContentLifecycle assetLifecycle;
@@ -190,7 +191,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			"retryingDatabaseOperationFacade", "publishService",
 			"permissionEvaluator", "pageNavOrderService", "itemService",
 			"itemDao", "generalLockService", "dependencyService",
-			"contentServiceV1", "contentRepository", "contentLifecycle",
+			"contentRepository", "contentLifecycle",
 			"auditService", "assetLifecycle",
 			"servicesConfig", "activityStreamService",
 			"entitlementValidator"})
@@ -201,7 +202,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 									  DmPageNavigationOrderService pageNavOrderService, ItemService itemService,
 									  ItemDAO itemDao, GeneralLockService generalLockService,
 									  DependencyService dependencyService,
-									  org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1,
 									  GitContentRepository contentRepository, ContentLifecycle contentLifecycle,
 									  AuditService auditService, ContentLifecycle assetLifecycle,
 									  ServicesConfig servicesConfig, ActivityStreamService activityStreamService,
@@ -217,7 +217,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		this.itemDao = itemDao;
 		this.generalLockService = generalLockService;
 		this.dependencyService = dependencyService;
-		this.contentServiceV1 = contentServiceV1;
 		this.contentRepository = contentRepository;
 		this.contentLifecycle = contentLifecycle;
 		this.auditService = auditService;
@@ -811,6 +810,41 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, path));
 
 		return writeContentResult;
+	}
+
+	@Override
+	public String getContentTypeClass(String site, String uri) throws SiteNotFoundException {
+		if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+			return CONTENT_TYPE_LEVEL_DESCRIPTOR;
+		}
+		if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
+			return CONTENT_TYPE_PAGE;
+		}
+		if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site))) {
+			return CONTENT_TYPE_COMPONENT;
+		}
+		if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
+			return CONTENT_TYPE_DOCUMENT;
+		}
+		if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
+			return CONTENT_TYPE_ASSET;
+		}
+		if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
+			return CONTENT_TYPE_RENDERING_TEMPLATE;
+		}
+		if (CS.startsWith(uri, studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH))) {
+			return CONTENT_TYPE_CONTENT_TYPE;
+		}
+		if (matchesPatterns(uri, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
+			return CONTENT_TYPE_TAXONOMY;
+		}
+		if (matchesPatterns(uri, servicesConfig.getScriptsPatterns(site))) {
+			return CONTENT_TYPE_SCRIPT;
+		}
+		if (matchesPatterns(uri, servicesConfig.getConfigurationPatterns(site))) {
+			return CONTENT_TYPE_CONFIGURATION;
+		}
+		return CONTENT_TYPE_FILE;
 	}
 
 	private WriteContentResult createFolderInternal(String siteId, String path)
@@ -2282,7 +2316,19 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public Resource getContentAsResource(String site, String path) throws ContentNotFoundException {
-		return contentServiceV1.getContentAsResource(site, path);
+		if (!contentExists(site, path)) {
+			throw new ContentNotFoundException(path, site,
+					format("File '%s' not found in site '%s'", path, site));
+		}
+		return new ContentResource(this, site, path);
+	}
+
+	@Override
+	public InputStream getContent(String siteId, String path) throws ContentNotFoundException {
+		if (CS.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+			return this.contentRepository.getContent(StringUtils.EMPTY, path);
+		}
+		return this.contentRepository.getContent(siteId, path);
 	}
 
 	@SuppressWarnings("unused")

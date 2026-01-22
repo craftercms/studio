@@ -762,11 +762,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	}
 
 	@Override
-	public List<String> getAllCreatedSites() {
-		return siteFeedMapper.getAllCreatedSites(STATE_READY);
-	}
-
-	@Override
 	public void setSiteState(String siteId, String state) {
 		retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, state));
 	}

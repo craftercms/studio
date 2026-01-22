@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,18 +18,19 @@ package org.craftercms.studio.impl.v2.upgrade.operations.db;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -59,6 +60,7 @@ import java.util.concurrent.TimeUnit;
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.io.FilenameUtils.getName;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
@@ -197,7 +199,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 	 * @param siteId  the numeric site id
 	 */
 	private void populateParentId(final StudioUpgradeContext context, String site, long siteId) {
-		logger.debug("Execute the stored procedure '{}' in site '{}'", populateParentIdSpName, site);
+		logger.debug("Execute the populate parent id stored procedure '{}' in site '{}'", populateParentIdSpName, site);
 		try (Connection connection = context.getConnection()) {
 			CallableStatement callableStatement = connection.prepareCall(
 				QUERY_CALL_STORED_PROCEDURE.replace(STORED_PROCEDURE_NAME, populateParentIdSpName)
@@ -240,41 +242,43 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 				TreeWalk treeWalk = new TreeWalk(repo);
 				treeWalk.addTree(tree);
 				treeWalk.setRecursive(false);
-				ExecutorService taskExecutor = Executors.newFixedThreadPool(executorThreadCount);
-				while (treeWalk.next()) {
-					String pathString = treeWalk.getPathString();
-					String nameString = treeWalk.getNameString();
-					if (treeWalk.isSubtree()) {
-						taskExecutor.execute(() -> {
-								try {
-									processFolder(siteName, FILE_SEPARATOR + pathString,
-										nameString);
-								} catch (IOException e) {
-									logger.error("Failed to process file '{}' in site '{}'", pathString,
-										siteName, e);
-								}
-							}
-						);
-						treeWalk.enterSubtree();
-					} else {
-						if (StringUtils.containsAny(getName(nameString), IGNORE_FILES)) {
-							logger.debug("Skip ignored file '{}' in site '{}'", pathString,
-								siteName);
-						} else {
+				try(ExecutorService taskExecutor = Executors.newFixedThreadPool(executorThreadCount)) {
+					while (treeWalk.next()) {
+						String pathString = treeWalk.getPathString();
+						String nameString = treeWalk.getNameString();
+						if (treeWalk.isSubtree()) {
 							taskExecutor.execute(() -> {
-								try {
-									processFile(siteName, FILE_SEPARATOR + pathString,
-										nameString);
-								} catch (DocumentException | IOException | SiteNotFoundException e) {
-									logger.error("Failed to process file '{}' in site '{}'", pathString,
-										siteName, e);
-								}
-							});
+										try {
+											processFolder(siteName, FILE_SEPARATOR + pathString,
+													nameString);
+										} catch (IOException e) {
+											logger.error("Failed to process file '{}' in site '{}'", pathString,
+													siteName, e);
+										}
+									}
+							);
+							treeWalk.enterSubtree();
+						} else {
+							if (CS.containsAny(getName(nameString), IGNORE_FILES)) {
+								logger.debug("Skip ignored file '{}' in site '{}'", pathString,
+										siteName);
+							} else {
+								taskExecutor.execute(() -> {
+									try {
+										processFile(siteName, FILE_SEPARATOR + pathString,
+												nameString);
+									} catch (DocumentException | IOException | SiteNotFoundException |
+											 ContentNotFoundException e) {
+										logger.error("Failed to process file '{}' in site '{}'", pathString,
+												siteName, e);
+									}
+								});
+							}
 						}
 					}
+					taskExecutor.shutdown();
+					taskExecutor.awaitTermination(executorTimeoutSeconds, TimeUnit.SECONDS);
 				}
-				taskExecutor.shutdown();
-				taskExecutor.awaitTermination(executorTimeoutSeconds, TimeUnit.SECONDS);
 			}
 		}
 	}
@@ -299,15 +303,15 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 	}
 
 	private void processFile(String site, String path,
-				 String name) throws DocumentException, IOException, SiteNotFoundException {
+				 String name) throws DocumentException, IOException, SiteNotFoundException, ContentNotFoundException {
 		logger.debug("Process the file '{}' in site '{}'", path, site);
 		File file = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
 			studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
 			studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH)).toFile();
 
-		if (StringUtils.endsWith(path, blobExtension)) {
-			path = StringUtils.removeEnd(path, "." + blobExtension);
-			name = StringUtils.removeEnd(name, "." + blobExtension);
+		if (CS.endsWith(path, blobExtension)) {
+			path = CS.removeEnd(path, "." + blobExtension);
+			name = CS.removeEnd(name, "." + blobExtension);
 		}
 
 		Item item = itemServiceInternal.instantiateItem(site, path)
@@ -321,16 +325,16 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 			.withIgnored(ArrayUtils.contains(IGNORE_FILES, name))
 			.build();
 
-		if (StringUtils.endsWith(name, ".xml")) {
+		if (CS.endsWith(name, ".xml")) {
 			populateDescriptorProperties(site, path, item);
 		}
 
 		itemServiceInternal.upsertEntry(item);
 	}
 
-	private void populateDescriptorProperties(String site, String path, Item item) throws DocumentException {
+	private void populateDescriptorProperties(String site, String path, Item item) throws DocumentException, ContentNotFoundException {
 		logger.debug("Extract the descriptor properties from file '{}' in site '{}'", path, site);
-		Document document = contentService.getContentAsDocument(site, path);
+		Document document = ContentUtils.convertStreamToXml(contentService.getContent(site, path));
 		if (document != null) {
 			Element rootElement = document.getRootElement();
 

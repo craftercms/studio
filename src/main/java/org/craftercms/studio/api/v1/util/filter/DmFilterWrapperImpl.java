@@ -19,13 +19,13 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.ServicesManager;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 
 public class DmFilterWrapperImpl implements DmFilterWrapper {
 
@@ -117,7 +117,7 @@ public class DmFilterWrapperImpl implements DmFilterWrapper {
 		if (relativePath != null) {
 			List<String> patterns = getFilterPatterns(site, filterType);
 			if (patterns != null) {
-				return ContentUtils.matchesPatterns(relativePath, patterns);
+				return matchesPatterns(relativePath, patterns);
 			}
 		}
 		return false;

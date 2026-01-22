@@ -65,9 +65,9 @@ public interface ConfigurationService {
 	 * @param path        path of configuration file
 	 * @param environment environment to use. if empty using default
 	 * @return String content of configuration file
-	 * @throws ContentNotFoundException if there is any issue reading the file from the repository
+	 * @throws ServiceLayerException if there is any issue reading the file from the repository
 	 */
-	String getConfigurationAsString(String siteId, String module, String path, String environment) throws ContentNotFoundException;
+	String getConfigurationAsString(String siteId, String module, String path, String environment) throws ServiceLayerException;
 
 	/**
 	 * Get configuration as DOM document for given parameters
@@ -128,7 +128,7 @@ public interface ConfigurationService {
 	 * @return String content of configuration file
 	 * @throws ContentNotFoundException if there is any issue reading the file from the repository
 	 */
-	String getGlobalConfigurationAsString(String path) throws ContentNotFoundException;
+	String getGlobalConfigurationAsString(String path) throws ServiceLayerException;
 
 	/**
 	 * Write configuration file for given parameters

@@ -19,7 +19,6 @@ package org.craftercms.studio.api.v1.service.content;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
 import org.dom4j.Document;
@@ -82,15 +81,6 @@ public interface ContentService {
 	 */
 	String getContentAsString(String site, String path);
 
-
-	/**
-	 * Check if path is a correct location to write asset content
-	 *
-	 * @param path to write asset
-	 * @throws ServiceLayerException if path is not permitted
-	 */
-	void checkWriteAssetPath(String path) throws ServiceLayerException;
-
 	/**
 	 * get content as string from repository
 	 *
@@ -101,17 +91,6 @@ public interface ContentService {
 	 */
 	String getContentAsString(String site, String path, String encoding);
 
-
-	/**
-	 * Get content from the repository.
-	 * This "shallow" version of the method will retrieve the content from disk instead of the git repository.
-	 *
-	 * @param siteId the site id
-	 * @param path   the path of the content
-	 * @return the content as a string
-	 */
-	String shallowGetContentAsString(String siteId, String path);
-
 	/**
 	 * get document from wcm content
 	 *
@@ -121,25 +100,6 @@ public interface ContentService {
 	 * @throws DocumentException XML document error
 	 */
 	Document getContentAsDocument(String site, String path) throws DocumentException;
-
-	/**
-	 * Returns content wrapped as a {@link Resource} instance
-	 *
-	 * @param site the site id
-	 * @param path the path of the content
-	 * @return the resource object
-	 * @throws ContentNotFoundException if there is no content at the given path
-	 * @since 3.1.1
-	 */
-	Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
-
-	/**
-	 * Notify when there is a content update
-	 *
-	 * @param site site name
-	 * @param path path name
-	 */
-	void notifyContentEvent(String site, String path);
 
 	/**
 	 * get the tree of content items (metadata) beginning at a root
@@ -207,8 +167,6 @@ public interface ContentService {
 	ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) throws SiteNotFoundException;
 
 	String getContentTypeClass(String site, String uri) throws SiteNotFoundException;
-
-	void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
 
 	List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 
