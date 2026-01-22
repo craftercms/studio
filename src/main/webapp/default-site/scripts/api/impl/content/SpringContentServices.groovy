@@ -61,11 +61,6 @@ class SpringContentServices {
 		return springBackedService.getContentVersionAsString(site, path, version)
 	}
 
-	def lockContent(site, path) {
-		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
-		springBackedService.lockContent(site, path);
-	}
-
 	def reorderItems(site, path, before, after) {
 		def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
 		return springBackendService.reorderItems(site, path, before, after, "default");

@@ -61,7 +61,7 @@
 	<bean id="repoPipeline" scope="prototype"
 	      class="org.craftercms.studio.impl.v2.upgrade.pipeline.SiteRepositoryUpgradePipelineImpl">
 		<property name="continueOnFailure" value="true"/>
-		<property name="siteService" ref="cstudioSiteServiceSimple"/>
+		<property name="siteService" ref="sitesServiceInternal"/>
 		<property name="siteSandboxBranch"
 			  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_SANDBOX_BRANCH)}"/>
 		<property name="siteUpgradeBranch"
@@ -182,7 +182,7 @@
 
 	<bean id="addSiteUuidUpgrader" scope="prototype" parent="upgradeOperation"
 	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.AddSiteUuidOperation">
-		<constructor-arg name="siteFeedMapper" ref="siteFeedMapper"/>
+		<constructor-arg name="siteDao" ref="siteDao"/>
 	</bean>
 
 	<bean id="findAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"

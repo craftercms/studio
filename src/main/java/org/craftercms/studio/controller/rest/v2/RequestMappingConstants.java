@@ -29,6 +29,7 @@ public final class RequestMappingConstants {
 	 * Proxy Controller
 	 */
 	public static final String PROXY_ENGINE = "/engine";
+	public static final String LOG_MONITOR_ENGINE_PROXY = "/api/1/monitoring/log.json";
 
 	/**
 	 * Dashboard Controller
@@ -156,7 +157,10 @@ public final class RequestMappingConstants {
 	 */
 	public static final String SYSTEM = "/system";
 
-	public static final String LOG_MONITOR_ENGINE_PROXY = "/api/1/monitoring/log.json";
+	/**
+	 * Site Controller
+	 */
+
 
 	private RequestMappingConstants() {
 	}

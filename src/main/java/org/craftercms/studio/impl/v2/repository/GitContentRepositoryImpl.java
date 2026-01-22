@@ -46,7 +46,6 @@ import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.repository.*;
 import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.service.security.UserService;
-import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -122,7 +121,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	private ContextManager contextManager;
 	private ContentStoreService contentStoreService;
 	private GeneralLockService generalLockService;
-	private SitesService siteService;
 	private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
@@ -1165,7 +1163,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			// Create target branch
 			createEnvironmentBranch(siteId, newCommitId,
 				target);
-			siteService.setPublishedRepoCreated(siteId);
+			siteDao.setPublishedRepoCreated(siteId);
 			logger.info("Completed the initial publish of the site '{}' for target '{}'", siteId, target);
 			return newCommitId;
 		} catch (Exception e) {
@@ -1381,7 +1379,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		String repoLockKey = helper.getSandboxRepoLockKey(site);
 		Repository repo = helper.getRepository(site, SANDBOX);
 		generalLockService.lock(repoLockKey);
-		try (Git git = Git.wrap(repo); RevWalk revWalk = new RevWalk(git.getRepository());) {
+		try (Git git = Git.wrap(repo); RevWalk revWalk = new RevWalk(git.getRepository())) {
 			// git log --first-parent --reverse commitFrom..commitTo
 			revWalk.setFirstParent(true);
 			revWalk.markStart(revWalk.parseCommit(repo.resolve(commitTo)));
@@ -1918,11 +1916,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	@SuppressWarnings("unused")
 	public void setGeneralLockService(GeneralLockService generalLockService) {
 		this.generalLockService = generalLockService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setSiteService(SitesService siteService) {
-		this.siteService = siteService;
 	}
 
 	@SuppressWarnings("unused")

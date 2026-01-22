@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,32 +16,27 @@
 
 package org.craftercms.studio.impl.v2.upgrade.pipeline;
 
-import java.io.IOException;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.upgrade.UpgradeOperation;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineImpl;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
-import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CreateBranchCommand;
-import org.eclipse.jgit.api.DeleteBranchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.MergeCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
@@ -70,7 +65,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 	 * Message for the merge commit after upgrading.
 	 */
 	protected String commitMessage;
-	protected SiteService siteService;
+	protected SitesService siteService;
 	protected GeneralLockService generalLockService;
 	protected GitRepositoryHelper gitRepositoryHelper;
 	protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
@@ -117,21 +112,21 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 	 */
 	@Override
 	public void execute(final UpgradeContext<String> context) throws UpgradeException {
-		var site = context.getTarget();
-		String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+		var siteId = context.getTarget();
+		String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
 		generalLockService.lock(gitLockKey);
 		try {
-			Repository repository = gitRepositoryHelper.getRepository(site, GitRepositories.SANDBOX);
+			Repository repository = gitRepositoryHelper.getRepository(siteId, GitRepositories.SANDBOX);
 			String sandboxBranch = siteSandboxBranch;
 			if (repository != null) {
 				Git git = new Git(repository);
 				try {
 					if (!isEmpty()) {
-						SiteFeed siteFeed = siteService.getSite(site);
-						if (!StringUtils.isEmpty(siteFeed.getSandboxBranch())) {
-							sandboxBranch = siteFeed.getSandboxBranch();
+						Site site = siteService.getSite(siteId);
+						if (!StringUtils.isEmpty(site.getSandboxBranch())) {
+							sandboxBranch = site.getSandboxBranch();
 						}
-						createTemporaryBranch(site, git);
+						createTemporaryBranch(siteId, git);
 						checkoutBranch(siteUpgradeBranch, git);
 						super.execute(context);
 						checkoutBranch(sandboxBranch, git);
@@ -140,13 +135,13 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
 					}
 				} catch (GitAPIException | IOException | SiteNotFoundException e) {
-					throw new UpgradeException("Error branching or merging upgrade branch for site " + site, e);
+					throw new UpgradeException("Error branching or merging upgrade branch for site " + siteId, e);
 				} finally {
 					if (!isEmpty()) {
 						try {
 							checkoutBranch(sandboxBranch, git);
 						} catch (GitAPIException e) {
-							logger.error("Failed to clean up the repository in site '{}'", site, e);
+							logger.error("Failed to clean up the repository in site '{}'", siteId, e);
 						}
 					}
 					git.close();
@@ -169,7 +164,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 		this.commitMessage = commitMessage;
 	}
 
-	public void setSiteService(SiteService siteService) {
+	public void setSiteService(SitesService siteService) {
 		this.siteService = siteService;
 	}
 

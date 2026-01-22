@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License version 3 as published by
@@ -38,7 +38,7 @@
 	<bean class="org.craftercms.studio.config.DeployerConfig"/>
 
 	<bean id="repositoryStartupCleanup" class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
-		<property name="siteService" ref="cstudioSiteServiceSimple"/>
+		<property name="siteService" ref="sitesServiceInternal"/>
 		<property name="generalLockService" ref="cstudioGeneralLockService"/>
 		<property name="helper" ref="studio.gitRepositoryHelper"/>
 	</bean>
@@ -315,7 +315,7 @@
 		<constructor-arg name="organizationServiceInternal" ref="organizationServiceInternal"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="auditService" ref="auditServiceInternal"/>
-		<constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
+		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
 	</bean>
 
 	<bean id="groupServiceInternal"
@@ -562,7 +562,7 @@
 
 	<bean id="studio.activityStreamService"
 	      class="org.craftercms.studio.impl.v2.service.audit.internal.ActivityStreamServiceInternalImpl">
-		<property name="siteFeedMapper" ref="siteFeedMapper"/>
+		<property name="siteDao" ref="siteDao"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<property name="activityStreamDAO" ref="activityStreamDao"/>
 	</bean>
@@ -624,11 +624,6 @@
 
 	<!-- continue refactoring -->
 	<!-- Jobs -->
-	<bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">
-		<constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
-		<constructor-arg name="contentRepository" ref="gitContentRepositoryV2"/>
-	</bean>
-
 	<bean id="studioClockJob" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
 		<property name="jobDetail">
 			<bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
@@ -699,8 +694,8 @@
 	<bean id="studioRepositoryCleanupJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
 		<property name="jobDetail">
 			<bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-				<property name="targetObject" ref="studioRepositoryCleanupJob"/>
-				<property name="targetMethod" value="cleanupAllRepositories"/>
+				<property name="targetObject" ref="sitesServiceInternal"/>
+				<property name="targetMethod" value="garbageCollectRepositories"/>
 				<property name="concurrent" value="false"/>
 			</bean>
 		</property>
@@ -800,6 +795,7 @@
 	</bean>
 
 	<bean id="diskMonitor" class="org.craftercms.studio.impl.v2.monitor.DiskMonitor">
+		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
 		<constructor-arg name="baseRepoPath"
 				 value="#{studioConfiguration.getProperty('studio.repo.basePath')}"/>
 		<constructor-arg name="lowWaterMark"
@@ -905,7 +901,6 @@
 		<property name="contextManager" ref="contextManager"/>
 		<property name="contentStoreService" ref="crafter.contentStoreService"/>
 		<property name="generalLockService" ref="cstudioGeneralLockService"/>
-		<property name="siteService" ref="sitesServiceInternal"/>
 		<property name="helper" ref="studio.gitRepositoryHelper"/>
 		<property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
@@ -1203,7 +1198,7 @@
 	<!--              Entitlements              -->
 	<!-- ////////////////////////////////////// -->
 	<bean id="crafter.entitlementsProvider" class="org.craftercms.studio.impl.v1.entitlement.StudioEntitlementUsageProvider">
-		<property name="siteService" ref="cstudioSiteServiceSimple"/>
+		<property name="siteService" ref="sitesServiceInternal"/>
 		<property name="userService" ref="userServiceInternal"/>
 		<property name="itemService" ref="itemService"/>
 	</bean>

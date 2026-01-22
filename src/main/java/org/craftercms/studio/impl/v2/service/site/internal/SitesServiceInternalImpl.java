@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,12 +35,15 @@ import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,16 +62,20 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
@@ -86,22 +93,25 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final ConfigurationService configurationService;
 	private final AuditService auditService;
 	private final TaskManager taskManager;
+	private final StudioBlobStoreResolver blobStoreResolver;
 	private ApplicationContext applicationContext;
 
 	@ConstructorProperties({"descriptorReader",
-		"blobAwareRepository",
-		"studioConfiguration", "siteFeedMapper",
-		"siteDao",
-		"retryingDatabaseOperationFacade",
-		"deployer", "configurationService",
-		"auditService", "taskManager"})
+			"blobAwareRepository",
+			"studioConfiguration", "siteFeedMapper",
+			"siteDao",
+			"retryingDatabaseOperationFacade",
+			"deployer", "configurationService",
+			"auditService", "taskManager",
+			"blobStoreResolver"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
-					StudioBlobAwareContentRepository blobAwareRepository,
-					StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
-					SiteDAO siteDao,
-					RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-					Deployer deployer, ConfigurationService configurationService,
-					AuditService auditService, TaskManager taskManager) {
+									StudioBlobAwareContentRepository blobAwareRepository,
+									StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
+									SiteDAO siteDao,
+									RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+									Deployer deployer, ConfigurationService configurationService,
+									AuditService auditService, TaskManager taskManager,
+									StudioBlobStoreResolver blobStoreResolver) {
 		this.descriptorReader = descriptorReader;
 		this.blobAwareRepository = blobAwareRepository;
 		this.studioConfiguration = studioConfiguration;
@@ -112,6 +122,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		this.configurationService = configurationService;
 		this.auditService = auditService;
 		this.taskManager = taskManager;
+		this.blobStoreResolver = blobStoreResolver;
 	}
 
 	@Override
@@ -285,6 +296,13 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Override
 	public Site getSite(String siteId) {
 		return siteDao.getSite(siteId);
+	}
+
+	@Override
+	public SiteDetails getSiteDetails(String siteId) throws ServiceLayerException {
+		Site site = getSite(siteId);
+		List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+		return new SiteDetails(site, blobStores);
 	}
 
 	@Override
@@ -552,13 +570,17 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
-	public void setPublishedRepoCreated(final String siteId) {
-		siteDao.setPublishedRepoCreated(siteId);
+	public void updatePublishingStatus(String siteId, String status) {
+		retryingDatabaseOperationFacade.retry(() -> siteDao.updatePublishingStatus(siteId, status));
 	}
 
 	@Override
-	public void updatePublishingStatus(String siteId, String status) {
-		retryingDatabaseOperationFacade.retry(() -> siteDao.updatePublishingStatus(siteId, status));
+	public void garbageCollectRepositories() {
+		blobAwareRepository.garbageCollectGitRepositories(EMPTY);
+		getSitesByState(READY).forEach(site -> {
+			String siteId = site.getSiteId();
+			blobAwareRepository.garbageCollectGitRepositories(siteId);
+		});
 	}
 
 	/**
@@ -569,10 +591,10 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 * @param siteName     the new site name
 	 */
 	protected void auditSiteDuplicate(final String sourceSiteId, final String siteId, final String siteName) {
-		SiteFeed globalSiteFeed = siteFeedMapper.getSite(Map.of(SITE_ID, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)));
+		Site globalSite = siteDao.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_DUPLICATE);
-		auditLog.setSiteId(globalSiteFeed.getId());
+		auditLog.setSiteId(globalSite.getId());
 		auditLog.setActorId(getCurrentUsername());
 		auditLog.setPrimaryTargetId(siteId);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);

@@ -18,9 +18,9 @@ package org.craftercms.studio.impl.v2.security.listener;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,10 +45,10 @@ public abstract class AbstractAuditListener {
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
 
 	protected final StudioConfiguration studioConfiguration;
-	protected final SiteService siteService;
+	protected final SitesService siteService;
 	protected final AuditService auditService;
 
-	public AbstractAuditListener(StudioConfiguration studioConfiguration, SiteService siteService,
+	public AbstractAuditListener(StudioConfiguration studioConfiguration, SitesService siteService,
 				     AuditService auditService) {
 		this.studioConfiguration = studioConfiguration;
 		this.siteService = siteService;

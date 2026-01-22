@@ -24,14 +24,14 @@
 
 	<bean id="loginAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditLoginListener">
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-		<constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
-		<constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
+		<constructor-arg name="auditService" ref="auditServiceInternal"/>
 	</bean>
 
 	<bean id="logoutAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditLogoutListener">
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-		<constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
-		<constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
+		<constructor-arg name="auditService" ref="auditServiceInternal"/>
 	</bean>
 
 	<bean id="accessTokenAuthenticationListener"
@@ -45,8 +45,8 @@
 
 	<bean id="sessionTimeoutAuditListener" class="org.craftercms.studio.impl.v2.security.listener.AuditSessionTimeoutListener">
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-		<constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
-		<constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
+		<constructor-arg name="auditService" ref="auditServiceInternal"/>
 	</bean>
 
 	<!-- Users -->

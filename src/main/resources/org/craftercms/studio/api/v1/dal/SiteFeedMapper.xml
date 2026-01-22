@@ -47,20 +47,6 @@
 		<parameter property="state" jdbcType="VARCHAR"/>
 	</parameterMap>
 
-	<select id="getSites" resultMap="SiteFeedMap">
-		SELECT *
-		FROM site
-		WHERE system = 0
-		  AND deleted = 0
-	</select>
-
-	<select id="countSites" resultType="int">
-		SELECT count(1)
-		FROM site
-		WHERE NOT site_id = 'studio_root'
-		  AND deleted = 0
-	</select>
-
 	<select id="getSite" resultMap="SiteFeedMap" parameterType="java.util.Map">
 		SELECT *
 		FROM site
@@ -75,14 +61,6 @@
 			#{publishingStatus}, #{sandboxBranch})
 	</insert>
 
-	<update id="deleteSite">
-		UPDATE site
-		SET state   = #{state},
-		    deleted = 1
-		WHERE site_id = #{siteId}
-		  AND deleted = 0
-	</update>
-
 	<update id="updateLastCommitId" parameterType="java.util.Map">
 		UPDATE site
 		SET last_commit_id = #{lastCommitId}
@@ -94,13 +72,6 @@
 		SELECT count(1)
 		FROM site
 		WHERE site_id = #{siteId}
-		  AND deleted = 0
-	</select>
-
-	<select id="existsById" parameterType="java.lang.String" resultType="int">
-		SELECT count(1)
-		FROM site
-		WHERE id = #{id}
 		  AND deleted = 0
 	</select>
 
@@ -163,13 +134,6 @@
 		  AND deleted = 0
 	</update>
 
-	<select id="getDeletedSites" resultMap="SiteFeedMap">
-		SELECT *
-		FROM site
-		WHERE deleted = 1
-		  AND system = 0
-	</select>
-
 	<update id="updateSite">
 		UPDATE site
 		<set>
@@ -192,12 +156,5 @@
 		WHERE state = #{state}
 		  AND deleted = 0
 		  AND system = 0
-	</select>
-
-	<select id="getSiteState" resultType="java.lang.String">
-		SELECT s.state
-		FROM site s
-		WHERE s.site_id = #{siteId}
-		  AND s.deleted = 0
 	</select>
 </mapper>

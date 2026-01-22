@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v2.repository;
 import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
 import org.eclipse.jgit.lib.Repository;
@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 
 /**
  * Clean up git repositories on startup
@@ -44,7 +45,7 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 public class RepositoryStartupCleanup {
 	private static final Logger logger = LoggerFactory.getLogger(RepositoryStartupCleanup.class);
 
-	protected SiteService siteService;
+	protected SitesService siteService;
 	protected GeneralLockService generalLockService;
 	protected GitRepositoryHelper helper;
 
@@ -60,7 +61,8 @@ public class RepositoryStartupCleanup {
 	}
 
 	protected void unlockSitesRepositories() {
-		siteService.getAllAvailableSites().forEach(siteId -> {
+		siteService.getSitesByState(READY).forEach(site -> {
+			String siteId = site.getSiteId();
 			logger.debug("Unlock git lock for site '{}'", siteId);
 			String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
 
@@ -108,7 +110,7 @@ public class RepositoryStartupCleanup {
 		}
 	}
 
-	public void setSiteService(final SiteService siteService) {
+	public void setSiteService(final SitesService siteService) {
 		this.siteService = siteService;
 	}
 
