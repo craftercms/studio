@@ -306,7 +306,7 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public String getContentTypeClass(String site, String uri) throws SiteNotFoundException {
+	public String getContentTypeClass(@SiteId String site, @ContentPath String uri) throws SiteNotFoundException {
 		return contentServiceInternal.getContentTypeClass(site, uri);
 	}
 
