@@ -70,7 +70,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 	public String getConfigurationAsString(@SiteId String siteId,
 					       String module,
 					       @ProtectedResourceId(PATH_RESOURCE_ID) String path,
-					       String environment) throws ContentNotFoundException {
+					       String environment) throws ServiceLayerException {
 		return configurationServiceInternal.getConfigurationAsString(siteId, module, path, environment);
 	}
 
@@ -104,7 +104,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_GLOBAL_CONFIGURATION)
-	public String getGlobalConfigurationAsString(@ProtectedResourceId(PATH_RESOURCE_ID) String path) throws ContentNotFoundException {
+	public String getGlobalConfigurationAsString(@ProtectedResourceId(PATH_RESOURCE_ID) String path) throws ServiceLayerException {
 		return configurationServiceInternal.getGlobalConfigurationAsString(path);
 	}
 

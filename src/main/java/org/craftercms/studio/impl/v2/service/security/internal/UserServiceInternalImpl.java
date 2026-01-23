@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -55,8 +55,11 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -92,9 +95,9 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	private static final String TOKEN_DELIMITER = "|";
 
 	private final UserDAO userDao;
-	private final ConfigurationService configurationService;
+	private ConfigurationService configurationService;
 	private final StudioConfiguration studioConfiguration;
-	private final SitesService siteService;
+	private SitesService siteService;
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final Cache<String, User> userCache;
 	private final Zxcvbn zxcvbn;
@@ -104,31 +107,29 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	private final ObjectFactory<ForgotPasswordTaskFactory> forgotPasswordTaskFactory;
 	private final TextEncryptor encryptor;
 	private final InstanceService instanceService;
-	private final SecurityService securityService;
+	private SecurityService securityService;
 	private final GeneralLockService generalLockService;
 	private final GroupService groupService;
 	private final SessionRegistry sessionRegistry;
 
 	private ApplicationEventPublisher eventPublisher;
 
-	@ConstructorProperties({"userDao", "configurationService", "studioConfiguration",
-		"siteService", "retryingDatabaseOperationFacade", "userCache", "zxcvbn",
-		"auditService", "entitlementValidator", "taskExecutor", "forgotPasswordTaskFactory",
-		"encryptor", "instanceService", "securityService", "generalLockService",
-		"groupService", "sessionRegistry"})
+	@ConstructorProperties({"userDao", "studioConfiguration",
+			"retryingDatabaseOperationFacade", "userCache", "zxcvbn",
+			"auditService", "entitlementValidator", "taskExecutor", "forgotPasswordTaskFactory",
+			"encryptor", "instanceService", "generalLockService",
+			"groupService", "sessionRegistry"})
 	public UserServiceInternalImpl(UserDAO userDao,
-								   ConfigurationService configurationService, StudioConfiguration studioConfiguration,
-								   SitesService siteService, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+								   StudioConfiguration studioConfiguration,
+								   RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 								   Cache<String, User> userCache, Zxcvbn zxcvbn,
 								   AuditService auditService, EntitlementValidator entitlementValidator,
 								   TaskExecutor taskExecutor, ObjectFactory<ForgotPasswordTaskFactory> forgotPasswordTaskFactory,
 								   TextEncryptor encryptor, InstanceService instanceService,
-								   SecurityService securityService, GeneralLockService generalLockService,
+								   GeneralLockService generalLockService,
 								   GroupService groupService, SessionRegistry sessionRegistry) {
 		this.userDao = userDao;
-		this.configurationService = configurationService;
 		this.studioConfiguration = studioConfiguration;
-		this.siteService = siteService;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.userCache = userCache;
 		this.zxcvbn = zxcvbn;
@@ -138,7 +139,6 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		this.forgotPasswordTaskFactory = forgotPasswordTaskFactory;
 		this.encryptor = encryptor;
 		this.instanceService = instanceService;
-		this.securityService = securityService;
 		this.generalLockService = generalLockService;
 		this.groupService = groupService;
 		this.sessionRegistry = sessionRegistry;
@@ -159,7 +159,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	@NonNull
 	@Override
 	public User getUserByIdOrUsername(long userId, String username)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		Map<String, Object> params = new HashMap<>();
 		params.put(USER_ID, userId);
 		params.put(USERNAME, username);
@@ -180,7 +180,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public List<User> getUsersByIdOrUsername(List<Long> userIds, List<String> usernames)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		List<User> users = new LinkedList<>();
 		for (long userId : userIds) {
 			users.add(getUserByIdOrUsername(userId, StringUtils.EMPTY));
@@ -200,13 +200,13 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	@Override
 	public Collection<User> getAllUsersForSite(long orgId, String siteId, String keyword, int offset, int limit,
 											   String sort)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		List<NormalizedGroup> groupNames = configurationService.getSiteGroups(siteId);
 		try {
 			return userDao.getAllUsersForSite(
-				groupNames.stream()
-					.map(NormalizedGroup::toString)
-					.toList(), keyword, offset, limit, sort);
+					groupNames.stream()
+							.map(NormalizedGroup::toString)
+							.toList(), keyword, offset, limit, sort);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
 		}
@@ -226,7 +226,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		List<NormalizedGroup> groupNames = configurationService.getSiteGroups(siteId);
 		try {
 			return userDao.getAllUsersForSiteTotal(
-				groupNames.stream().map(NormalizedGroup::toString).toList(), keyword
+					groupNames.stream().map(NormalizedGroup::toString).toList(), keyword
 			);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
@@ -248,7 +248,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 			entitlementValidator.validateEntitlement(EntitlementType.USER, 1);
 		} catch (EntitlementException e) {
 			throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact " +
-				"your system administrator.", e);
+					"your system administrator.", e);
 		}
 
 		if (userExists(user.getUsername())) {
@@ -374,17 +374,17 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public void deleteUsers(final List<Long> userIds, final List<String> usernames)
-		throws UserNotFoundException, ServiceLayerException, AuthenticationException {
+			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		User currentUser = getCurrentUser();
 
 		if (CollectionUtils.containsAny(userIds, List.of(currentUser.getId())) ||
-			CollectionUtils.containsAny(usernames, List.of(currentUser.getUsername()))) {
+				CollectionUtils.containsAny(usernames, List.of(currentUser.getUsername()))) {
 			throw new ServiceLayerException("Cannot delete self.");
 		}
 
 		User gitRepoUser = getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
 		if (CollectionUtils.containsAny(userIds, List.of(gitRepoUser.getId())) ||
-			CollectionUtils.containsAny(usernames, List.of(gitRepoUser.getUsername()))) {
+				CollectionUtils.containsAny(usernames, List.of(gitRepoUser.getUsername()))) {
 			throw new ServiceLayerException("Cannot delete generic Git Repo User.");
 		}
 
@@ -408,7 +408,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		try {
 			Group g = groupService.getGroupByName(SYSTEM_ADMIN_GROUP);
 			List<User> members =
-				groupService.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE, StringUtils.EMPTY);
+					groupService.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE, StringUtils.EMPTY);
 			if (!isNotEmpty(members)) {
 				return;
 			}
@@ -427,7 +427,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 			});
 			if (CollectionUtils.isEmpty(membersAfterRemove)) {
 				throw new ServiceLayerException("Removing all members of the System Admin group is not allowed." +
-					" We must have at least one system administrator.");
+						" We must have at least one system administrator.");
 			}
 		} catch (GroupNotFoundException e) {
 			throw new ServiceLayerException("Failed to delete users. System Admin group not found", e);
@@ -440,23 +440,23 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	private void cleanUpAfterUsersDelete(List<User> deleted) {
 		logger.debug("Search the current sessions for deleted users '{}'", deleted);
 		Set<AuthenticatedUser> principals = sessionRegistry.getAllPrincipals().stream()
-			.map(principal -> (AuthenticatedUser) principal)
-			.filter(authenticatedUser -> deleted.stream()
-				.anyMatch(user -> authenticatedUser.getId() == user.getId()))
-			.collect(toSet());
+				.map(principal -> (AuthenticatedUser) principal)
+				.filter(authenticatedUser -> deleted.stream()
+						.anyMatch(user -> authenticatedUser.getId() == user.getId()))
+				.collect(toSet());
 		principals.forEach(principal -> {
 			// Invalidate any open session
 			List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
 			sessions.forEach(session -> {
 				logger.debug("Invalidate the session '{}' for user '{}'",
-					session.getSessionId(), principal.getUsername());
+						session.getSessionId(), principal.getUsername());
 				session.expireNow();
 			});
 		});
 
 		logger.debug("Trigger event so tokens are removed for deleted users '{}", deleted);
 		eventPublisher.publishEvent(new UsersDeletedEvent(deleted.stream()
-			.map(User::getId).toList()));
+				.map(User::getId).toList()));
 	}
 
 	/**
@@ -482,7 +482,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		List<User> users = getUsersByIdOrUsername(userIds, usernames);
 
 		Map<String, Object> params = new HashMap<>();
@@ -524,7 +524,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public List<Group> getUserGroups(long userId, String username)
-		throws UserNotFoundException, ServiceLayerException {
+			throws UserNotFoundException, ServiceLayerException {
 		return getUserGroups(userId, username, false);
 	}
 
@@ -550,7 +550,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public UserResponse changePassword(String username, String current, String newPassword)
-		throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException, AuthenticationException, UserNotFoundException {
+			throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException, AuthenticationException, UserNotFoundException {
 		AuthenticatedUser currentUser = getCurrentUser();
 		if (currentUser == null || !CS.equals(username, currentUser.getUsername())) {
 			throw new ActionsDeniedException("Cannot change password: current logged in user does not match provided username");
@@ -582,7 +582,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public boolean resetPassword(String username, String newPassword) throws UserNotFoundException,
-		ServiceLayerException {
+			ServiceLayerException {
 		if (!userExists(username)) {
 			throw new UserNotFoundException();
 		}
@@ -632,7 +632,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	protected Map<String, String> getUserProperties(User user, long siteId) {
 		return userDao.getUserProperties(user.getId(), siteId).stream()
-			.collect(toMap(UserProperty::getKey, UserProperty::getValue));
+				.collect(toMap(UserProperty::getKey, UserProperty::getValue));
 	}
 
 	protected String getGlobalSiteName() {
@@ -645,7 +645,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public Map<String, Map<String, String>> getUserProperties(String siteId)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		var actualSiteId = getActualSiteId(siteId);
 		var dbSiteId = siteService.getSite(actualSiteId).getId();
 		var username = SecurityUtils.getCurrentUsername();
@@ -662,7 +662,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public Map<String, String> updateUserProperties(String siteId, Map<String, String> propertiesToUpdate)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		var actualSiteId = getActualSiteId(siteId);
 		var dbSiteId = siteService.getSite(actualSiteId).getId();
 		var username = SecurityUtils.getCurrentUsername();
@@ -681,7 +681,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	@Override
 	public Map<String, String> deleteUserProperties(String siteId,
 													List<String> propertiesToDelete)
-		throws ServiceLayerException {
+			throws ServiceLayerException {
 		var actualSiteId = getActualSiteId(siteId);
 		var dbSiteId = siteService.getSite(actualSiteId).getId();
 		var username = SecurityUtils.getCurrentUsername();
@@ -724,7 +724,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public Collection<NormalizedRole> getUserGlobalRoles(String username)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		List<Group> groups = getUserGroups(-1, username);
 
 		if (CollectionUtils.isEmpty(groups)) {
@@ -738,8 +738,8 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		}
 
 		return groups.stream()
-			.flatMap(group -> roleMappings.getOrDefault(new NormalizedGroup(group.getGroupName()), emptyList()).stream())
-			.collect(Collectors.toSet());
+				.flatMap(group -> roleMappings.getOrDefault(new NormalizedGroup(group.getGroupName()), emptyList()).stream())
+				.collect(Collectors.toSet());
 	}
 
 	@Override
@@ -755,7 +755,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	@Override
 	public String getForgotPasswordToken(final String username) throws ServiceLayerException {
 		long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
-			Long.parseLong(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
+				Long.parseLong(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
 		String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
 		String studioId = instanceService.getInstanceId();
 		String token = joinWith(TOKEN_DELIMITER, username, studioId, timestamp, salt);
@@ -765,7 +765,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public List<String> getCurrentUserSitePermissions(String site)
-		throws ServiceLayerException, UserNotFoundException, ExecutionException {
+			throws ServiceLayerException, UserNotFoundException, ExecutionException {
 		String currentUser = getCurrentUsername();
 		List<NormalizedRole> roles = getUserSiteRoles(-1, currentUser, site);
 		return securityService.getUserPermission(site, currentUser, roles);
@@ -773,7 +773,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public List<NormalizedRole> getUserSiteRoles(long userId, String username, String site)
-		throws ServiceLayerException, UserNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		List<Group> groups = getUserGroups(userId, username);
 
 		if (CollectionUtils.isEmpty(groups)) {
@@ -830,14 +830,14 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 			throw new AuthenticationException("User should be authenticated");
 		}
 		return getUserSiteRoles(-1, authentication.getName(), site)
-			.stream()
-			.map(NormalizedRole::toString)
-			.toList();
+				.stream()
+				.map(NormalizedRole::toString)
+				.toList();
 	}
 
 	@Override
 	public Map<String, Boolean> hasCurrentUserSitePermissions(final String site, final Collection<String> permissions)
-		throws ServiceLayerException, UserNotFoundException, ExecutionException {
+			throws ServiceLayerException, UserNotFoundException, ExecutionException {
 		Map<String, Boolean> toRet = new HashMap<>();
 		List<String> userPermissions = getCurrentUserSitePermissions(site);
 		permissions.forEach(p -> toRet.put(p, userPermissions.contains(p)));
@@ -886,11 +886,11 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	}
 
 	protected boolean validateDecryptedToken(String decryptedToken)
-		throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException {
+			throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException {
 		StringTokenizer tokenElements = new StringTokenizer(decryptedToken, TOKEN_DELIMITER);
 		if (tokenElements.countTokens() != 4) {
 			logger.warn("Failed to validate forgot password token. Found '{}' elements when expecting 4.",
-				tokenElements.countTokens());
+					tokenElements.countTokens());
 			return false;
 		}
 
@@ -899,15 +899,15 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 		if (userProfile.isExternallyManaged()) {
 			logger.warn("Failed to validate forgot password token. User '{}' is externally managed and therefore " +
-				"the password is not managed by us.", username);
+					"the password is not managed by us.", username);
 			throw new UserExternallyManagedException();
 		}
 
 		String studioId = tokenElements.nextToken();
 		if (!CS.equals(studioId, instanceService.getInstanceId())) {
 			logger.warn("Failed to validate forgot password token. Token's Studio instance ID is '{}' and " +
-					"does not match the current value '{}'",
-				studioId, instanceService.getInstanceId());
+							"does not match the current value '{}'",
+					studioId, instanceService.getInstanceId());
 			return false;
 		}
 
@@ -915,7 +915,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		boolean isExpired = tokenTimestamp < System.currentTimeMillis();
 		if (isExpired) {
 			logger.info("Failed to validate forgot password token. The token timestamp '{}' is in the past.",
-				tokenTimestamp);
+					tokenTimestamp);
 		}
 
 		return !isExpired;
@@ -923,7 +923,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public UserResponse setPassword(String token, String newPassword) throws UserNotFoundException,
-		UserExternallyManagedException, ServiceLayerException {
+			UserExternallyManagedException, ServiceLayerException {
 		if (!validateToken(token)) {
 			return null;
 		}
@@ -956,7 +956,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public boolean validateToken(String token) throws UserNotFoundException,
-		UserExternallyManagedException, ServiceLayerException {
+			UserExternallyManagedException, ServiceLayerException {
 		String decryptedToken = decryptToken(token);
 		if (StringUtils.isEmpty(decryptedToken)) {
 			logger.warn("Failed to validate forgot password token. The decrypted token is empty.");
@@ -977,8 +977,8 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		for (org.craftercms.studio.api.v2.dal.Site site : allSites) {
 			List<NormalizedGroup> siteGroups = configurationService.getSiteGroups(site.getSiteId());
 			if (isSysAdmin || userGroups.stream().map(Group::getGroupName)
-				.map(NormalizedGroup::new)
-				.anyMatch(siteGroups::contains)) {
+					.map(NormalizedGroup::new)
+					.anyMatch(siteGroups::contains)) {
 				sites.add(new org.craftercms.studio.model.Site(site));
 			}
 		}
@@ -996,8 +996,8 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 			List<Group> userGroups = getUserGroups(-1, username);
 			List<NormalizedGroup> siteGroups = configurationService.getSiteGroups(siteId);
 			return userGroups.stream()
-				.map(group -> new NormalizedGroup((group.getGroupName())))
-				.anyMatch(siteGroups::contains);
+					.map(group -> new NormalizedGroup((group.getGroupName())))
+					.anyMatch(siteGroups::contains);
 		} catch (ServiceLayerException | UserNotFoundException e) {
 			logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
 		}
@@ -1007,5 +1007,26 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	@Override
 	public void setApplicationEventPublisher(@NonNull ApplicationEventPublisher applicationEventPublisher) {
 		this.eventPublisher = applicationEventPublisher;
+	}
+
+	// These setters are used to avoid circular dependencies
+	@Autowired
+	@Lazy
+	@Qualifier("configurationServiceInternal")
+	public void setConfigurationService(ConfigurationService configurationService) {
+		this.configurationService = configurationService;
+	}
+
+	@Autowired
+	@Lazy
+	public void setSecurityService(SecurityService securityService) {
+		this.securityService = securityService;
+	}
+
+	@Autowired
+	@Lazy
+	@Qualifier("sitesServiceInternal")
+	public void setSiteService(SitesService siteService) {
+		this.siteService = siteService;
 	}
 }

@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v1.util;
 
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -27,9 +28,11 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
@@ -65,7 +68,7 @@ public class ContentUtils {
 	 */
 	public static Document convertStreamToXml(InputStream is) throws DocumentException {
 		InputStreamReader isReader = null;
-		try {
+		try (is) {
 			isReader = new InputStreamReader(is, StudioConstants.CONTENT_ENCODING);
 			SAXReader saxReader = new SAXReader();
 			try {
@@ -81,7 +84,7 @@ public class ContentUtils {
 				logger.error("Failed to turn off external entity loading. This could be a security risk.", e);
 			}
 			return saxReader.read(isReader);
-		} catch (DocumentException | UnsupportedEncodingException e) {
+		} catch (DocumentException | IOException e) {
 			logger.error("Failed to parse XML document", e);
 			return null;
 		} finally {
@@ -90,15 +93,17 @@ public class ContentUtils {
 		}
 	}
 
-	public static boolean matchesPatterns(String uri, List<String> patterns) {
-		if (patterns != null) {
-			for (String pattern : patterns) {
-				if (uri.matches(pattern)) {
-					return true;
-				}
-			}
+	/**
+	 * Reads a string content from an InputStream
+	 * The stream is closed after reading.
+	 *
+	 * @param stream the input stream to read from
+	 * @return the string content
+	 */
+	public static String convertStreamToString(InputStream stream) throws IOException {
+		try (stream) {
+			return IOUtils.toString(stream, UTF_8);
 		}
-		return false;
 	}
 
 	/**

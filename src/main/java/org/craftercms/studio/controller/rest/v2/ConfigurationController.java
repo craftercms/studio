@@ -19,14 +19,11 @@ package org.craftercms.studio.controller.rest.v2;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.Valid;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidConfigurationPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
@@ -51,6 +48,7 @@ import java.beans.ConstructorProperties;
 import java.io.InputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
@@ -77,7 +75,7 @@ public class ConfigurationController {
 	}
 
 	@GetMapping("clear_cache")
-	public Result clearCache(@ValidSiteId @RequestParam String siteId) throws SiteNotFoundException {
+	public Result clearCache(@ValidSiteId @RequestParam String siteId) {
 		configurationService.invalidateConfiguration(siteId);
 		var result = new Result();
 		result.setResponse(OK);
@@ -90,9 +88,9 @@ public class ConfigurationController {
 						  @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
 						  @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
 						  @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
-		throws ContentNotFoundException {
+			throws ServiceLayerException {
 		final String content;
-		if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+		if (CS.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
 			content = configurationService.getGlobalConfigurationAsString(path);
 		} else {
 			content = configurationService.getConfigurationAsString(siteId, module, path, environment);
@@ -109,7 +107,7 @@ public class ConfigurationController {
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
 		String siteId = wcRequest.getSiteId();
-		if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+		if (CS.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
 			configurationService.writeGlobalConfiguration(wcRequest.getPath(), is);
 		} else {
 			configurationService.writeConfiguration(siteId, wcRequest.getModule(), wcRequest.getPath(),
@@ -189,7 +187,7 @@ public class ConfigurationController {
 	}
 
 	@JsonIgnoreProperties
-	protected static class DeleteContentTypeRequest {
+	public static class DeleteContentTypeRequest {
 
 		@ValidSiteId
 		protected String siteId;

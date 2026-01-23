@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 
@@ -46,6 +45,7 @@ import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 
 public class ItemServiceInternalImpl implements ItemService {
 	// TODO: SJ: Add logging to this class
@@ -60,7 +60,6 @@ public class ItemServiceInternalImpl implements ItemService {
 	private ItemDAO itemDao;
 	private ServicesConfig servicesConfig;
 	private ContentService contentService;
-	private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 	private GeneralLockService generalLockService;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
@@ -150,20 +149,20 @@ public class ItemServiceInternalImpl implements ItemService {
 	public String getBrowserUrl(String site, String path) throws SiteNotFoundException {
 		String replacePattern;
 		boolean isPage = false;
-		if (ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(site))) {
+		if (matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(site))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
+		} else if (matchesPatterns(path, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
+		} else if (matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
 			CS.endsWith(path, FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
+		} else if (matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, List.of(CONTENT_TYPE_CONFIG_REGEX))) {
+		} else if (matchesPatterns(path, List.of(CONTENT_TYPE_CONFIG_REGEX))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getAssetPatterns(site))) {
+		} else if (matchesPatterns(path, servicesConfig.getAssetPatterns(site))) {
 			replacePattern = StringUtils.EMPTY;
-		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getDocumentPatterns(site))) {
+		} else if (matchesPatterns(path, servicesConfig.getDocumentPatterns(site))) {
 			replacePattern = DmConstants.ROOT_PATTERN_DOCUMENTS;
 		} else {
 			replacePattern = DmConstants.ROOT_PATTERN_PAGES;
@@ -208,7 +207,7 @@ public class ItemServiceInternalImpl implements ItemService {
 				.withLastModifiedBy(userObj.getId())
 				.withLastModifiedOn(DateUtils.getCurrentTime())
 				.withLabel(label)
-				.withSystemType(contentServiceV1.getContentTypeClass(siteId, path))
+				.withSystemType(contentService.getContentTypeClass(siteId, path))
 				.withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
 				.withMimeType(StudioUtils.getMimeType(path))
 				.withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
@@ -246,7 +245,7 @@ public class ItemServiceInternalImpl implements ItemService {
 			.withLastModifiedBy(userObj.getId())
 			.withLastModifiedOn(DateUtils.getCurrentTime())
 			.withLabel(label)
-			.withSystemType(contentServiceV1.getContentTypeClass(siteId, path))
+			.withSystemType(contentService.getContentTypeClass(siteId, path))
 			.withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
 			.withMimeType(StudioUtils.getMimeType(path))
 			.withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
@@ -471,11 +470,6 @@ public class ItemServiceInternalImpl implements ItemService {
 	@SuppressWarnings("unused")
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setContentServiceV1(org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1) {
-		this.contentServiceV1 = contentServiceV1;
 	}
 
 	public void setGeneralLockService(GeneralLockService generalLockService) {

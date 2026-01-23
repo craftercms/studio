@@ -50,8 +50,6 @@ public interface SiteFeedMapper {
 
 	List<SiteFeed> getSitesPerUserData(Map params);
 
-	void enablePublishing(Map params);
-
 	/**
 	 * Updates the name and description for the given site
 	 *
@@ -63,7 +61,5 @@ public interface SiteFeedMapper {
 	int updateSite(@Param(SITE_ID) String siteId, @Param(NAME) String name, @Param(DESC) String description);
 
 	void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String state);
-
-	List<String> getAllCreatedSites(@Param(STATE) String state);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -48,9 +48,8 @@ public interface ContentService {
 	 * @param siteId site identifier
 	 * @param path   content path
 	 * @return true if the content exists, false otherwise
-	 * @throws SiteNotFoundException if site is not found
 	 */
-	boolean contentExists(String siteId, String path) throws SiteNotFoundException;
+	boolean contentExists(String siteId, String path);
 
 	/**
 	 * This is a faster, but less accurate, version of contentExists. This prioritizes
@@ -308,6 +307,15 @@ public interface ContentService {
 	Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
 
 	/**
+	 * Get content from repository
+	 * @param siteId the site id
+	 * @param path the content path
+	 * @return the content as input stream
+	 * @throws ContentNotFoundException if content is not found
+	 */
+	InputStream getContent(String siteId, String path) throws ContentNotFoundException;
+
+	/**
 	 * Get the version history for a given content item.
 	 *
 	 * @param siteId the site id
@@ -379,4 +387,17 @@ public interface ContentService {
 	 * @return the result of the folder creation, which includes affected paths
 	 */
 	WriteContentResult createFolder(String siteId, String path) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+
+
+	/**
+	 * Get content type class for given site and uri.
+	 * It will default to {@link org.craftercms.studio.api.v1.constant.StudioConstants#CONTENT_TYPE_FILE} if
+	 * the path does not match any content type pattern.
+	 * @param site the site id
+	 * @param uri the content uri
+	 * @return the content type class
+	 * @throws SiteNotFoundException if site is not found
+	 */
+	String getContentTypeClass(String site, String uri) throws SiteNotFoundException;
+
 }

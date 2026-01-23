@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,7 +18,7 @@ package org.craftercms.studio.impl.v2.utils.spring;
 
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.AbstractResource;
 
@@ -49,7 +49,7 @@ public class ContentResource extends AbstractResource {
 	 */
 	protected String path;
 
-	public ContentResource(final ContentService contentService, final String site, final String path) {
+	public ContentResource(final org.craftercms.studio.api.v2.service.content.ContentService contentService, final String site, final String path) {
 		this.contentService = contentService;
 		this.site = site;
 		this.path = path;

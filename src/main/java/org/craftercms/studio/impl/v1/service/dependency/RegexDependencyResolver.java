@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.to.DependencyResolverConfigTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -32,13 +31,13 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.apache.commons.lang.StringEscapeUtils.unescapeXml;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 import static org.springframework.web.util.HtmlUtils.htmlUnescape;
 
 public class RegexDependencyResolver implements DependencyResolver {
@@ -215,7 +214,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 				DependencyResolverConfigTO.ItemType it = entry.getValue();
 				List<String> includes = it.getIncludes();
 				List<String> excludes = it.getExcludes();
-				if (ContentUtils.matchesPatterns(path, includes) && !ContentUtils.matchesPatterns(path, excludes)) {
+				if (matchesPatterns(path, includes) && !matchesPatterns(path, excludes)) {
 					itemType = it;
 					break;
 				}
@@ -264,7 +263,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 											Matcher m = p.matcher(v);
 											return m.replaceAll(transform.getReplace());
 										})
-										.collect(Collectors.toList());
+										.toList();
 
 									matchedPaths.addAll(transformedValues);
 								}

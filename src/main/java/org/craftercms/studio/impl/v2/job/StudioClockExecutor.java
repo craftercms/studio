@@ -18,7 +18,8 @@ package org.craftercms.studio.impl.v2.job;
 
 import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class StudioClockExecutor implements Job {
 	}
 
 	private TaskExecutor taskExecutor;
-	private SiteService siteService;
+	private SiteDAO siteDao;
 	private GeneralLockService generalLockService;
 	private List<Job> globalTasks;
 	private List<SiteJob> siteTasks;
@@ -79,7 +80,7 @@ public class StudioClockExecutor implements Job {
 			job.execute();
 		}
 
-		List<String> sites = siteService.getAllCreatedSites();
+		List<String> sites = siteDao.getSitesByState(Site.State.READY).stream().map(Site::getSiteId).toList();
 		for (String site : sites) {
 			taskExecutor.execute(() -> {
 				String tasksLock = STUDIO_CLOCK_EXECUTOR_SITE_LOCK.replaceAll(PATTERN_SITE, site);
@@ -100,8 +101,8 @@ public class StudioClockExecutor implements Job {
 		this.taskExecutor = taskExecutor;
 	}
 
-	public void setSiteService(SiteService siteService) {
-		this.siteService = siteService;
+	public void setSiteDao(SiteDAO siteDao) {
+		this.siteDao = siteDao;
 	}
 
 	public void setGeneralLockService(GeneralLockService generalLockService) {

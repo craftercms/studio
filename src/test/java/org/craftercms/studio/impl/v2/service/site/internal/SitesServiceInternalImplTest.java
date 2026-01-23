@@ -86,6 +86,8 @@ public class SitesServiceInternalImplTest {
 	@Before
 	public void setUp() throws IOException {
 		sitesServiceInternal.setApplicationContext(applicationContext);
+		sitesServiceInternal.setBlobAwareRepository(contentRepository);
+		sitesServiceInternal.setConfigurationService(configurationService);
 		Site site = new Site();
 		site.setSiteId(SITE_ID);
 		site.setName("Site 1");

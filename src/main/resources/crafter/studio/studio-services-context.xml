@@ -81,20 +81,11 @@
 	<bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
 		<property name="contentRepository" ref="contentRepository"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="dependencyService" ref="studioDependencyService"/>
-		<property name="dependencyServiceV2" ref="dependencyServiceInternal"/>
 		<property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
-		<property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
-		<property name="siteService" ref="sitesServiceInternal"/>
-		<property name="contentItemIdGenerator" ref="cstudioContentIdGenerator"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="contentTypeService" ref="cstudioContentTypeService"/>
-		<property name="entitlementValidator" ref="crafter.entitlementValidator"/>
-		<property name="auditService" ref="auditServiceInternal"/>
 		<property name="itemService" ref="itemService"/>
 		<property name="userService" ref="userServiceInternal"/>
-		<property name="activityStreamService" ref="studio.activityStreamService"/>
-		<property name="contentServiceV2" ref="contentServiceInternal"/>
 		<property name="publishService" ref="publishServiceInternal"/>
 	</bean>
 
@@ -146,18 +137,10 @@
 	<bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"/>
 
 	<bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
-		<property name="contentService" ref="cstudioContentService"/>
 		<property name="contentTypeService" ref="cstudioContentTypeService"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="emailService" ref="mailSender"/>
-		<property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
-		<property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory"/>
-		<property name="groupService" ref="groupServiceInternal"/>
 		<property name="userService" ref="userServiceInternal"/>
 		<property name="configurationService" ref="configurationServiceInternal"/>
-		<property name="auditService" ref="auditServiceInternal"/>
-		<property name="siteService" ref="cstudioSiteServiceSimple"/>
 		<property name="cache" ref="configurationCache"/>
 	</bean>
 
@@ -191,17 +174,6 @@
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="navigationOrderSequenceMapper" ref="navigationOrderSequenceMapper"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
-	</bean>
-
-	<bean id="cstudioContentLifeCycleService" class="org.craftercms.studio.impl.v1.service.content.DmContentLifeCycleServiceImpl"
-	      parent="cstudioRegistrableService">
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="scriptObjects">
-			<map>
-			</map>
-		</property>
-		<property name="scriptExecutor" ref="studioGroovyScriptExecutor"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
 	</bean>
 
 	<bean id="clipboardServiceInternal"
@@ -295,10 +267,9 @@
 	<bean id="configurationServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.configuration.internal.ConfigurationServiceInternalImpl">
 		<property name="contentRepository" ref="contentRepository"/>
-		<property name="contentServiceV1" ref="cstudioContentService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="auditService" ref="auditServiceInternal"/>
-		<property name="siteService" ref="sitesServiceInternal"/>
+		<property name="siteDao" ref="siteDao"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
 		<property name="configurationReader" ref="crafter.configurationReader"/>
 		<property name="translationConfig"
@@ -337,10 +308,8 @@
 
 	<bean id="userServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
-		<constructor-arg name="configurationService" ref="configurationServiceInternal"/>
 		<constructor-arg name="userDao" ref="userDao"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
 		<constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<constructor-arg name="userCache" ref="userDetailsCache"/>
 		<constructor-arg name="zxcvbn">
@@ -353,7 +322,6 @@
 		<constructor-arg name="auditService" ref="auditServiceInternal"/>
 		<constructor-arg name="instanceService" ref="instanceService"/>
 		<constructor-arg name="encryptor" ref="internalTextEncryptor"/>
-		<constructor-arg name="securityService" ref="studio.securityService"/>
 		<constructor-arg name="sessionRegistry" ref="sessionRegistry"/>
 		<constructor-arg name="forgotPasswordTaskFactory" ref="forgotPasswordTaskFactory"/>
 		<constructor-arg name="taskExecutor" ref="forgotPasswordTaskExecutor"/>
@@ -394,13 +362,11 @@
 	<bean id="sitesServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
 		<constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
-		<constructor-arg name="blobAwareRepository" ref="contentRepository"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="siteFeedMapper" ref="siteFeedMapper"/>
 		<constructor-arg name="siteDao" ref="siteDao"/>
 		<constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<constructor-arg name="deployer" ref="allDeployers"/>
-		<constructor-arg name="configurationService" ref="configurationServiceInternal"/>
 		<constructor-arg name="auditService" ref="auditServiceInternal"/>
 		<constructor-arg name="taskManager" ref="taskManager"/>
 	</bean>
@@ -539,7 +505,6 @@
 		<property name="userService" ref="userServiceInternal"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
 		<property name="contentService" ref="contentServiceInternal"/>
-		<property name="contentServiceV1" ref="cstudioContentService"/>
 		<property name="generalLockService" ref="cstudioGeneralLockService"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 	</bean>
@@ -637,7 +602,7 @@
 	</bean>
 
 	<bean id="studio.clockExecutor" class="org.craftercms.studio.impl.v2.job.StudioClockExecutor">
-		<property name="siteService" ref="cstudioSiteServiceSimple"/>
+		<property name="siteDao" ref="siteDao"/>
 		<property name="taskExecutor" ref="studio.clockTaskExecutor"/>
 		<property name="generalLockService" ref="cstudioGeneralLockService"/>
 		<property name="globalTasks" ref="studio.clockTasksGlobal"/>
@@ -840,7 +805,7 @@
 		<constructor-arg name="userService" ref="userServiceInternal"/>
 		<constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
 		<constructor-arg name="itemService" ref="itemService"/>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
+		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="configurationService" ref="configurationServiceInternal"/>
 		<constructor-arg name="contentRepository" ref="contentRepository"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>

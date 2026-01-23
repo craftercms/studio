@@ -120,13 +120,6 @@
 		ORDER BY site_id
 	</select>
 
-	<update id="enablePublishing" parameterType="java.util.Map">
-		UPDATE site
-		SET publishing_enabled = #{enabled}
-		WHERE site_id = #{siteId}
-		  AND deleted = 0
-	</update>
-
 	<update id="updatePublishingStatus" parameterType="java.util.Map">
 		UPDATE site
 		SET publishing_status = #{publishingStatus}
@@ -149,12 +142,4 @@
 		WHERE site_id = #{siteId}
 		  AND deleted = 0
 	</update>
-
-	<select id="getAllCreatedSites" resultType="String">
-		SELECT site_id
-		FROM site
-		WHERE state = #{state}
-		  AND deleted = 0
-		  AND system = 0
-	</select>
 </mapper>

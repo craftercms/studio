@@ -45,4 +45,9 @@ class SpringSiteServices {
 			remoteToken, remotePrivateKey, createOption, params, createAsOrphan)
 	}
 
+	def getSitesPerUser(start, number) {
+		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
+		return springBackedService.getSitesPerUser(start, number)
+	}
+
 }

@@ -51,4 +51,8 @@ class SiteServices {
 			remoteToken, remotePrivateKey, createOption, params, createAsOrphan)
 	}
 
+	static getSitesPerUser(context, start, number) {
+		def siteServicesImpl = ServiceFactory.getSiteServices(context)
+		return siteServicesImpl.getSitesPerUser(start, number)
+	}
 }

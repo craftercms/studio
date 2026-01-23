@@ -719,6 +719,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	@Override
 	@Valid
+	public List<SiteFeed> getSitesPerUser(int start,
+										  int number)
+			throws UserNotFoundException, ServiceLayerException {
+		return getSitesPerUser(SecurityUtils.getCurrentUsername(), start, number);
+	}
+
+	@Override
+	@Valid
 	public List<SiteFeed> getSitesPerUser(@ValidateStringParam String username,
 					      int start,
 					      int number)
@@ -759,11 +767,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			StudioConstants.SITE_UUID_FILENAME);
 		String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
 		Files.write(path, toWrite.getBytes());
-	}
-
-	@Override
-	public List<String> getAllCreatedSites() {
-		return siteFeedMapper.getAllCreatedSites(STATE_READY);
 	}
 
 	@Override
