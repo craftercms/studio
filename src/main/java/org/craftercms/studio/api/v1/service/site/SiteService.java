@@ -130,6 +130,17 @@ public interface SiteService {
 	int getSitesPerUserTotal(String username) throws UserNotFoundException, ServiceLayerException;
 
 	/**
+	 * Get sites that user is allowed access to for current user
+	 *
+	 * @param start  start position for pagination
+	 * @param number number of sites per page
+	 * @return number of sites
+	 * @throws UserNotFoundException
+	 */
+	List<SiteFeed> getSitesPerUser(int start, int number) throws UserNotFoundException,
+			ServiceLayerException;
+
+	/**
 	 * Get sites that user is allowed access to for given username
 	 *
 	 * @param username username

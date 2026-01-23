@@ -139,6 +139,7 @@
 	<bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
 		<property name="contentTypeService" ref="cstudioContentTypeService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
+		<property name="userService" ref="userServiceInternal"/>
 		<property name="configurationService" ref="configurationServiceInternal"/>
 		<property name="cache" ref="configurationCache"/>
 	</bean>
