@@ -487,6 +487,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			try {
 				logger.debug("Item at site '{}' path '{}' is a descriptor, updating XML and copying dependencies", siteId, path);
 				Document document = convertStreamToXml(content.getWithException());
+				if (document == null) {
+					throw new InvalidParametersException("Content is not a valid XML document");
+				}
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
 				if (isPageDescriptor(path)) {
 					pageNavOrderService.updateNavOrder(siteId, path, document);
@@ -498,6 +501,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			} catch (DocumentException e) {
 				logger.error("Error converting stream to XML for content at site '{}' path '{}'", siteId, path, e);
 				throw new ServiceLayerException(format("Error converting stream to XML for site '%s' path '%s'", siteId, path), e);
+			} catch (ServiceLayerException e) {
+				logger.error("Failed to prepare lifecycleContent for site '{}' path '{}'", siteId, path, e);
+				throw e;
 			} catch (Exception e) {
 				logger.error("Failed to prepare lifecycleContent for site '{}' path '{}'", siteId, path, e);
 				throw new ServiceLayerException(format("Failed to prepare lifecycleContent for site '%s' path '%s'", siteId, path), e);
@@ -1322,7 +1328,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected void persistNewFolder(final String siteId, final String newFolder) throws UserNotFoundException, AuthenticationException, ServiceLayerException {
 		Item parentItem = itemService.getItem(siteId, getParentUrl(newFolder), true);
-		itemService.persistItemAfterCreateFolder(siteId, newFolder, getBaseName(Path.of(newFolder)), parentItem.getId());
+		Long parentId = parentItem != null ? parentItem.getId() : null;
+		itemService.persistItemAfterCreateFolder(siteId, newFolder, getBaseName(Path.of(newFolder)), parentId);
 	}
 
 	/**
