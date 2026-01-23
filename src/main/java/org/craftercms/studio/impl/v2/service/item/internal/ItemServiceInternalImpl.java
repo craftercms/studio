@@ -252,10 +252,24 @@ public class ItemServiceInternalImpl implements ItemService {
 	public void persistItemAfterWrite(String siteId, String path, boolean unlock)
 		throws ServiceLayerException, AuthenticationException {
 		User userObj = SecurityUtils.getCurrentUser();
-		var descriptor = contentService.getItem(siteId, path, false);
-		String disabledStr = descriptor.queryDescriptorValue(DISABLED);
-		boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
-		String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+		boolean disabled = false;
+		String label = null;
+		String contentType = null;
+		String localeCode = null;
+		try {
+			var descriptor = contentService.getItem(siteId, path, false);
+			String disabledStr = descriptor.queryDescriptorValue(DISABLED);
+			disabled = Boolean.parseBoolean(disabledStr);
+			label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+			contentType = descriptor.queryDescriptorValue(CONTENT_TYPE);
+			localeCode = descriptor.queryDescriptorValue(LOCALE_CODE);
+		} catch (XmlFileParseException e) {
+			logger.debug("Error getting content descriptor for path: '{}'", path, e);
+			// If page, component, or other descriptor file, it must be a valid xml file
+			if (underDescriptorRoot(path)) {
+				throw new ServiceLayerException("Error getting content descriptor for path: " + path, e);
+			}
+		}
 		if (StringUtils.isEmpty(label)) {
 			label = FilenameUtils.getName(path);
 		}
@@ -265,9 +279,9 @@ public class ItemServiceInternalImpl implements ItemService {
 			.withLastModifiedOn(DateUtils.getCurrentTime())
 			.withLabel(label)
 			.withSystemType(contentService.getContentTypeClass(siteId, path))
-			.withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
+			.withContentTypeId(contentType)
 			.withMimeType(StudioUtils.getMimeType(path))
-			.withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
+			.withLocaleCode(localeCode)
 			.withSize(contentService.getContentSize(siteId, path))
 			.build();
 		if (unlock) {
