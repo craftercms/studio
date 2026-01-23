@@ -2316,7 +2316,13 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public Resource getContentAsResource(String site, String path) throws ContentNotFoundException {
-		if (!contentExists(site, path)) {
+		boolean exists;
+		if (CS.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+			exists = contentExists(StringUtils.EMPTY, path);
+		} else {
+			exists = contentExists(site, path);
+		}
+		if (!exists) {
 			throw new ContentNotFoundException(path, site,
 					format("File '%s' not found in site '%s'", path, site));
 		}
