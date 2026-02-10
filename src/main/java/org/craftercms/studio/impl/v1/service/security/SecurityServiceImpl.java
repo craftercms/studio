@@ -259,23 +259,24 @@ public class SecurityServiceImpl implements SecurityService {
 			List<Node> ruleNodes = siteRoles.getOrDefault(role, siteRoles.get(WILDCARD_ROLE));
 			if (CollectionUtils.isEmpty(ruleNodes)) {
 				logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
-					site, path, PERMISSION_CONTENT_READ);
+						site, path, PERMISSION_CONTENT_READ);
 				// No rule for this role
 				permissions.add(PERMISSION_CONTENT_READ);
-			}
-			for (Node ruleNode : ruleNodes) {
-				String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
-				if (path.matches(regex)) {
-					logger.debug("Permissions found in site '{}' matching regex '{}' for role '{}'",
-						site, regex, role);
+			} else {
+				for (Node ruleNode : ruleNodes) {
+					String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
+					if (path.matches(regex)) {
+						logger.debug("Permissions found in site '{}' matching regex '{}' for role '{}'",
+								site, regex, role);
 
-					List<Node> permissionNodes = ruleNode.selectNodes(
-						StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
-					for (Node permissionNode : permissionNodes) {
-						String permission = permissionNode.getText().toLowerCase();
-						logger.trace("Add permission '{}' to site '{}' path '{}' role '{}'",
-							permission, site, path, role);
-						permissions.add(permission);
+						List<Node> permissionNodes = ruleNode.selectNodes(
+								StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+						for (Node permissionNode : permissionNodes) {
+							String permission = permissionNode.getText().toLowerCase();
+							logger.trace("Add permission '{}' to site '{}' path '{}' role '{}'",
+									permission, site, path, role);
+							permissions.add(permission);
+						}
 					}
 				}
 			}

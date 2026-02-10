@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v2.dal.Group;
 
 import java.util.*;
 
+import static org.craftercms.studio.api.v2.dal.security.NormalizedRole.WILDCARD_ROLE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapSiteWidePermissionsToItemAvailableActions;
 import static org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActions.mapSiteWidePermissionsToPackageAvailableActions;
 
@@ -45,11 +46,12 @@ public class SitePermissionMappings {
 	 */
 	public long getAvailableActions(String username, List<Group> groups, String path) {
 		List<NormalizedRole> rolesList = getRolesForUser(username, groups);
-
 		long availableActions = 0L;
 		for (NormalizedRole role : rolesList) {
 			RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
-			availableActions |= rolePermissionMappings.getActionsForPath(path);
+			if (rolePermissionMappings != null) {
+				availableActions |= rolePermissionMappings.getActionsForPath(path);
+			}
 		}
 		return availableActions;
 	}
@@ -90,7 +92,9 @@ public class SitePermissionMappings {
 		Set<String> permissions = new HashSet<>();
 		for (NormalizedRole role : rolesList) {
 			RolePermissionMappings rolePermissionMappings = rolePermissions.get(role);
-			permissions.addAll(rolePermissionMappings.getSiteWidePermissions());
+			if (rolePermissionMappings != null) {
+				permissions.addAll(rolePermissionMappings.getSiteWidePermissions());
+			}
 		}
 		return permissions;
 	}
@@ -107,6 +111,10 @@ public class SitePermissionMappings {
 				CollectionUtils.addAll(rolesList, groupRoles);
 			}
 		});
+
+		if (!rolesList.isEmpty()) {
+			rolesList.add(WILDCARD_ROLE);
+		}
 		return rolesList;
 	}
 
