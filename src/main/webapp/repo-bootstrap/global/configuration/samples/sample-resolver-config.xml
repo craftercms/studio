@@ -224,14 +224,6 @@
                         </pattern>
                     </includes>
                 </dependency-type>
-				<dependency-type>
-                    <name>item</name>
-                    <includes>
-                        <pattern>
-                            <find-regex>/site/(?!website/|components/)([^&lt;]+)\.xml</find-regex>
-                        </pattern>
-                    </includes>
-                </dependency-type>
                 <dependency-type>
                     <name>asset</name>
                     <includes>
