@@ -788,6 +788,14 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade/4.5.x/4.5.0.4-to-4.5.0.5.sql
+      - currentVersion: 4.5.0.5
+        nextVersion: 4.5.1.0
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-resolver-config.xml
+                dest: configuration/samples/sample-resolver-config.xml
+            commitDetails: Add sample file for sample-resolver-config.xml
 
   # Pipeline to upgrade site repositories
   site:
@@ -1482,6 +1490,12 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
             commitDetails: Add view templates and controllers as content-type dependencies
+      - currentVersion: 4.0.1.1
+        nextVersion: 4.5.1.0
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.5.x/config/resolver-config/resolver-config-v4.5.1.0.xslt
+            commitDetails: Tweak dependency resolver config to exclude backward slash in escaped json pattern
 
   engine-site-config:
     module: engine

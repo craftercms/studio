@@ -393,6 +393,23 @@ public class XsltTest {
 		testXsltTemplate(template, content, expected, params);
 	}
 
+	@DataProvider(name = "depResolver4510TestData")
+	public Object[][] depResolver4510TestData() {
+		return new Object[][]{
+				new Object[] {
+						new ClassPathResource("crafter/studio/upgrade/4.5.x/config/resolver-config/resolver-config-v4.5.1.0.xslt"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config-v4/4.x/4.5.1.0/input.xml"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config-v4/4.x/4.5.1.0/expected.xml"),
+						emptyMap()
+				}
+		};
+	}
+
+	@Test(dataProvider = "depResolver4510TestData")
+	public void depResolver4510Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
     @Test(dataProvider = "xsltData")
     public void testXsltTemplate(Resource template, Resource content, Resource expected, Map<String, Object> params)
             throws IOException, TransformerException {
