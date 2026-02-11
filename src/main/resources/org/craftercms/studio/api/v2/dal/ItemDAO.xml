@@ -623,7 +623,18 @@
 		</foreach>
 	</select>
 
+	<select id="getSubtreeItemCount" resultType="java.lang.Long">
+		SELECT COUNT(*)
+		FROM (
+			<include refid="getSubtreeItemsInternalQuery" />
+		) AS subtreeItems
+	</select>
+
 	<select id="getSubtreeItemsInternal" resultMap="LightItemMap">
+		<include refid="getSubtreeItemsInternalQuery" />
+	</select>
+
+	<sql id="getSubtreeItemsInternalQuery">
 		WITH RECURSIVE children AS (
 				SELECT i.id, i.path, i.label, i.system_type, i.mime_type
 				FROM item i
@@ -645,7 +656,7 @@
 			<foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
 				#{path}
 			</foreach>
-	</select>
+	</sql>
 
 	<update id="updateDeletedPageChildren">
 		UPDATE item,

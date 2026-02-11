@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
@@ -56,6 +57,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 	private AvailableActionsResolver availableActionsResolver;
 	private ContentService contentService;
+	private ItemDAO itemDAO;
 	private ServicesConfig servicesConfig;
 	private StudioBlobStoreResolver studioBlobStoreResolver;
 	private ContentTypeService contentTypeService;
@@ -176,6 +178,14 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		long siteWideActions = availableActionsResolver.getSiteWideActions(siteId, username);
 		result = result | siteWideActions;
 
+		if (CONTENT_TYPE_FOLDER.equals(itemSystemType)) {
+			long childrenCount = itemDAO.getSubtreeItemCount(siteId, List.of(itemPath));
+			if (childrenCount == 0) {
+				result &= ~PUBLISH;
+				result &= ~PUBLISH_REQUEST;
+			}
+		}
+
 		return result;
 	}
 
@@ -260,5 +270,10 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	@SuppressWarnings("unused")
 	public void setSecurityServiceV1(org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1) {
 		this.securityServiceV1 = securityServiceV1;
+	}
+
+	@SuppressWarnings("unused")
+	public void setItemDAO(final ItemDAO itemDAO) {
+		this.itemDAO = itemDAO;
 	}
 }
