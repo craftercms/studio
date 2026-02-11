@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,8 +17,11 @@
 package org.craftercms.studio.impl.v2.utils;
 
 import org.apache.commons.collections4.MapUtils;
+import org.craftercms.commons.validation.ValidationResult;
+import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
+import org.springframework.validation.Validator;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,6 +33,9 @@ import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.craftercms.commons.validation.ValidationUtils.validateValue;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.CONTENT_PATH_READ;
+import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_TARGET_PATH;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
 
 /**
@@ -97,13 +103,18 @@ public class DependencyUtils {
     }
 
     /**
-     * A dependency path is valid if the length is less than 4000 characters and does not contain line feeds
+     * A dependency path is valid if the length is less than 4000 characters, it does not contain line feeds,
+     * and it passes the content path validation.
      *
      * @param path the dependency target path
      * @return true if the path is valid, false otherwise
      */
     public static boolean isValidDependencyPath(final String path) {
+        Validator validator = new EsapiValidator(CONTENT_PATH_READ);
+        ValidationResult validationResult = validateValue(validator, path, KEY_TARGET_PATH);
+
         return path.length() <= MAX_DEPENDENCY_PATH_LENGTH &&
-                !INVALID_DEPENDENCY_PATH_PATTERN.matcher(path).matches();
+                !INVALID_DEPENDENCY_PATH_PATTERN.matcher(path).matches() &&
+                !validationResult.hasErrors();
     }
 }
