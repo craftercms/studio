@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -17,12 +17,12 @@
 
 <!-- resolver-config.xml
 
-    This file configures what file paths Crafter considers a dependency and how they should be extracted 
+    This file configures what file paths Crafter considers a dependency and how they should be extracted
 
 -->
 
 <dependency-resolver>
-    <version>4.0.1.1</version>
+    <version>4.5.1.0</version>
     <item-types>
         <item-type>
             <!-- name of type -->
@@ -225,14 +225,6 @@
                         </pattern>
                     </includes>
                 </dependency-type>
-				<dependency-type>
-                    <name>item</name>
-                    <includes>
-                        <pattern>
-                            <find-regex>/site/(?!website/|components/)([^&lt;]+)\.xml</find-regex>
-                        </pattern>
-                    </includes>
-                </dependency-type>
                 <dependency-type>
                     <name>asset</name>
                     <includes>
@@ -305,7 +297,7 @@
                     <includes>
                         <!-- path patterns to look for (multiple) -->
                         <pattern>
-                            <find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
+                            <find-regex>/static-assets/([^&lt;"'\)\?\\\]\#]+)</find-regex>
                         </pattern>
                     </includes>
                 </dependency-type>
