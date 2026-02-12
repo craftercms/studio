@@ -279,6 +279,7 @@
 		<property name="studioBlobStoreResolver" ref="blobStoreResolver"/>
 		<property name="contentTypeService" ref="contentTypeServiceInternal"/>
 		<property name="securityServiceV1" ref="cstudioSecurityService"/>
+		<property name="itemDAO" ref="itemDao"/>
 	</bean>
 
 	<bean id="studio.loginPageFilter"
