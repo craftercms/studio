@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,8 +18,8 @@ package org.craftercms.studio.impl.v2.monitor;
 import org.apache.commons.io.FileUtils;
 import org.craftercms.commons.monitoring.DiskInfo;
 import org.craftercms.studio.api.v2.notification.StudioNotificationSender;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
-import org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob;
 import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
@@ -44,7 +44,7 @@ public class DiskMonitor implements InitializingBean {
 	private static final String SERVER_NAME_MODEL_KEY = "serverName";
 	private static final String FORMAT_SIZE_MODEL_KEY = "byteCountToDisplaySize";
 
-	private final RepositoryCleanupJob gitGCJob;
+	private final SitesService siteService;
 	private final StudioNotificationSender notificationSender;
 	private final SystemStatusProvider systemStatusProvider;
 	private final int lowWaterMark;
@@ -54,12 +54,12 @@ public class DiskMonitor implements InitializingBean {
 
 	protected volatile DiskStatus diskStatus;
 
-	@ConstructorProperties({"gitGCJob", "notificationSender", "systemStatusProvider",
+	@ConstructorProperties({"siteService", "notificationSender", "systemStatusProvider",
 			"baseRepoPath", "lowWaterMark", "highWaterMark"})
-	public DiskMonitor(RepositoryCleanupJob gitGCJob, StudioNotificationSender notificationSender,
+	public DiskMonitor(SitesService siteService, StudioNotificationSender notificationSender,
 					   SystemStatusProvider systemStatusProvider,
 					   String baseRepoPath, int lowWaterMark, int highWaterMark) {
-		this.gitGCJob = gitGCJob;
+		this.siteService = siteService;
 		this.notificationSender = notificationSender;
 		this.systemStatusProvider = systemStatusProvider;
 		this.baseRepoPath = baseRepoPath;
@@ -163,7 +163,7 @@ public class DiskMonitor implements InitializingBean {
 		Instant lastCleanup = null;
 		if (aboveHigh) {
 			logger.debug("Running git gc on all repositories as disk usage is above high watermark.");
-			gitGCJob.cleanupAllRepositories();
+			siteService.garbageCollectRepositories();
 			lastCleanup = now();
 			newDiskInfo = getDiskInfo();
 			diskUsage = newDiskInfo.getDiskUsage();

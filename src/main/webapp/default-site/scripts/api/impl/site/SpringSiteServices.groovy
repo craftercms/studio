@@ -30,11 +30,6 @@ class SpringSiteServices {
 		this.context = context
 	}
 
-	def getAllAvailableSites() {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.getAllAvailableSites()
-	}
-
 	def createSiteFromBlueprint(blueprintName, siteId, siteName, sandboxBranch, desc, params, createAsOrphan) {
 		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
 		return springBackedService.createSiteFromBlueprint(blueprintName, siteId, siteName, sandboxBranch, desc,
@@ -50,34 +45,9 @@ class SpringSiteServices {
 			remoteToken, remotePrivateKey, createOption, params, createAsOrphan)
 	}
 
-	def deleteSite(siteId) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.deleteSite(siteId)
-	}
-
-	def reloadSiteConfiguration(site) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.reloadSiteConfiguration(site)
-	}
-
-	def exists(site) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.exists(site)
-	}
-
-	def getSitesPerUserTotal() {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.getSitesPerUserTotal()
-	}
-
 	def getSitesPerUser(start, number) {
 		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
 		return springBackedService.getSitesPerUser(start, number)
-	}
-
-	def getSite(siteId) {
-		def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-		return springBackedService.getSiteDetails(siteId)
 	}
 
 }

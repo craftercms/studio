@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,19 +35,25 @@ import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
+import org.springframework.context.annotation.Lazy;
 
 import java.beans.ConstructorProperties;
 import java.io.FileReader;
@@ -59,16 +65,20 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
@@ -77,39 +87,36 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
 	private final PluginDescriptorReader descriptorReader;
-	private final StudioBlobAwareContentRepository blobAwareRepository;
+	private StudioBlobAwareContentRepository blobAwareRepository;
 	private final StudioConfiguration studioConfiguration;
 	private final SiteFeedMapper siteFeedMapper;
 	private final SiteDAO siteDao;
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final Deployer deployer;
-	private final ConfigurationService configurationService;
+	private ConfigurationService configurationService;
 	private final AuditService auditService;
 	private final TaskManager taskManager;
+	private StudioBlobStoreResolver blobStoreResolver;
 	private ApplicationContext applicationContext;
 
 	@ConstructorProperties({"descriptorReader",
-		"blobAwareRepository",
-		"studioConfiguration", "siteFeedMapper",
-		"siteDao",
-		"retryingDatabaseOperationFacade",
-		"deployer", "configurationService",
-		"auditService", "taskManager"})
+			"studioConfiguration", "siteFeedMapper",
+			"siteDao",
+			"retryingDatabaseOperationFacade",
+			"deployer",
+			"auditService", "taskManager"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
-					StudioBlobAwareContentRepository blobAwareRepository,
-					StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
-					SiteDAO siteDao,
-					RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-					Deployer deployer, ConfigurationService configurationService,
-					AuditService auditService, TaskManager taskManager) {
+									StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
+									SiteDAO siteDao,
+									RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+									Deployer deployer,
+									AuditService auditService, TaskManager taskManager) {
 		this.descriptorReader = descriptorReader;
-		this.blobAwareRepository = blobAwareRepository;
 		this.studioConfiguration = studioConfiguration;
 		this.siteFeedMapper = siteFeedMapper;
 		this.siteDao = siteDao;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.deployer = deployer;
-		this.configurationService = configurationService;
 		this.auditService = auditService;
 		this.taskManager = taskManager;
 	}
@@ -285,6 +292,13 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Override
 	public Site getSite(String siteId) {
 		return siteDao.getSite(siteId);
+	}
+
+	@Override
+	public SiteDetails getSiteDetails(String siteId) throws ServiceLayerException {
+		Site site = getSite(siteId);
+		List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+		return new SiteDetails(site, blobStores);
 	}
 
 	@Override
@@ -552,13 +566,17 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
-	public void setPublishedRepoCreated(final String siteId) {
-		siteDao.setPublishedRepoCreated(siteId);
+	public void updatePublishingStatus(String siteId, String status) {
+		retryingDatabaseOperationFacade.retry(() -> siteDao.updatePublishingStatus(siteId, status));
 	}
 
 	@Override
-	public void updatePublishingStatus(String siteId, String status) {
-		retryingDatabaseOperationFacade.retry(() -> siteDao.updatePublishingStatus(siteId, status));
+	public void garbageCollectRepositories() {
+		blobAwareRepository.garbageCollectGitRepositories(EMPTY);
+		getSitesByState(READY).forEach(site -> {
+			String siteId = site.getSiteId();
+			blobAwareRepository.garbageCollectGitRepositories(siteId);
+		});
 	}
 
 	/**
@@ -569,10 +587,10 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 * @param siteName     the new site name
 	 */
 	protected void auditSiteDuplicate(final String sourceSiteId, final String siteId, final String siteName) {
-		SiteFeed globalSiteFeed = siteFeedMapper.getSite(Map.of(SITE_ID, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)));
+		Site globalSite = siteDao.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_DUPLICATE);
-		auditLog.setSiteId(globalSiteFeed.getId());
+		auditLog.setSiteId(globalSite.getId());
 		auditLog.setActorId(getCurrentUsername());
 		auditLog.setPrimaryTargetId(siteId);
 		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
@@ -606,5 +624,25 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Override
 	public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+
+	// These setters are needed to break circular dependencies
+	@Autowired
+	@Lazy
+	@Qualifier("configurationServiceInternal")
+	public void setConfigurationService(ConfigurationService configurationService) {
+		this.configurationService = configurationService;
+	}
+
+	@Autowired
+	@Lazy
+	public void setBlobStoreResolver(StudioBlobStoreResolver blobStoreResolver) {
+		this.blobStoreResolver = blobStoreResolver;
+	}
+
+	@Autowired
+	@Lazy
+	public void setBlobAwareRepository(StudioBlobAwareContentRepository blobAwareRepository) {
+		this.blobAwareRepository = blobAwareRepository;
 	}
 }

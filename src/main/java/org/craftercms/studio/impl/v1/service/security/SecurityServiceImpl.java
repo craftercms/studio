@@ -28,20 +28,15 @@ import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
-import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -51,10 +46,7 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -74,18 +66,9 @@ public class SecurityServiceImpl implements SecurityService {
 	private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
 	protected ContentTypeService contentTypeService;
-	protected ContentService contentService;
-	protected GeneralLockService generalLockService;
 	protected StudioConfiguration studioConfiguration;
-	protected JavaMailSender emailService;
-	protected JavaMailSender emailServiceNoAuth;
-	protected ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
-	protected GroupService groupService;
 	protected UserService userService;
 	protected ConfigurationService configurationService;
-	protected AuditService auditService;
-	protected SiteService siteService;
-
 	protected Cache<String, PermissionsConfigTO> cache;
 
 	@Override
@@ -276,23 +259,24 @@ public class SecurityServiceImpl implements SecurityService {
 			List<Node> ruleNodes = siteRoles.getOrDefault(role, siteRoles.get(WILDCARD_ROLE));
 			if (CollectionUtils.isEmpty(ruleNodes)) {
 				logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
-					site, path, PERMISSION_CONTENT_READ);
+						site, path, PERMISSION_CONTENT_READ);
 				// No rule for this role
 				permissions.add(PERMISSION_CONTENT_READ);
-			}
-			for (Node ruleNode : ruleNodes) {
-				String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
-				if (path.matches(regex)) {
-					logger.debug("Permissions found in site '{}' matching regex '{}' for role '{}'",
-						site, regex, role);
+			} else {
+				for (Node ruleNode : ruleNodes) {
+					String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
+					if (path.matches(regex)) {
+						logger.debug("Permissions found in site '{}' matching regex '{}' for role '{}'",
+								site, regex, role);
 
-					List<Node> permissionNodes = ruleNode.selectNodes(
-						StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
-					for (Node permissionNode : permissionNodes) {
-						String permission = permissionNode.getText().toLowerCase();
-						logger.trace("Add permission '{}' to site '{}' path '{}' role '{}'",
-							permission, site, path, role);
-						permissions.add(permission);
+						List<Node> permissionNodes = ruleNode.selectNodes(
+								StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+						for (Node permissionNode : permissionNodes) {
+							String permission = permissionNode.getText().toLowerCase();
+							logger.trace("Add permission '{}' to site '{}' path '{}' role '{}'",
+									permission, site, path, role);
+							permissions.add(permission);
+						}
 					}
 				}
 			}
@@ -551,36 +535,8 @@ public class SecurityServiceImpl implements SecurityService {
 		this.contentTypeService = contentTypeService;
 	}
 
-	public void setContentService(ContentService contentService) {
-		this.contentService = contentService;
-	}
-
-	public void setGeneralLockService(GeneralLockService generalLockService) {
-		this.generalLockService = generalLockService;
-	}
-
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
 		this.studioConfiguration = studioConfiguration;
-	}
-
-	@SuppressWarnings("unused")
-	public void setEmailService(JavaMailSender emailService) {
-		this.emailService = emailService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
-		this.emailServiceNoAuth = emailServiceNoAuth;
-	}
-
-	@SuppressWarnings("unused")
-	public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) {
-		this.freeMarkerConfig = freeMarkerConfig;
-	}
-
-	@SuppressWarnings("unused")
-	public void setGroupService(GroupService groupService) {
-		this.groupService = groupService;
 	}
 
 	public void setUserService(final UserService userService) {
@@ -589,14 +545,6 @@ public class SecurityServiceImpl implements SecurityService {
 
 	public void setConfigurationService(ConfigurationService configurationService) {
 		this.configurationService = configurationService;
-	}
-
-	public void setAuditService(AuditService auditService) {
-		this.auditService = auditService;
-	}
-
-	public void setSiteService(SiteService siteService) {
-		this.siteService = siteService;
 	}
 
 	public void setCache(Cache<String, PermissionsConfigTO> cache) {

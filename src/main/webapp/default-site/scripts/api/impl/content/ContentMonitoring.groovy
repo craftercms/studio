@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,10 +19,12 @@ package scripts.api.impl.content
 import org.apache.commons.lang3.tuple.Pair
 import org.craftercms.studio.model.search.SearchParams
 
+import static org.craftercms.studio.api.v2.dal.Site.State.READY
+
 class ContentMonitoring {
 
 	static SERVICES_CONFIG_BEAN = "cstudioServicesConfig"
-	static SITE_SERVICE_BEAN = "cstudioSiteServiceSimple"
+	static SITE_SERVICE_BEAN = "sitesServiceInternal"
 	static NOTIFICATION_SERVICE_BEAN = "cstudioNotificationService"
 	static SEARCH_SERVICE_BEAN = "searchServiceInternal"
 	static CONFIGURATION_SERVICE_BEAN = "configurationService"
@@ -30,12 +32,12 @@ class ContentMonitoring {
 	static doMonitoringForAllSites(context, logger) {
 		def results = []
 		def siteService = context.get(SITE_SERVICE_BEAN)
-		def sites = siteService.getAllAvailableSites()
+		def sites = siteService.getSitesByState(READY)
 
 		sites.each { site ->
 			def result = [:]
-			result.siteId = site
-			result.contentMonitoring = doContentMonitoringForSite(context, site, logger)
+			result.siteId = site.siteId
+			result.contentMonitoring = doContentMonitoringForSite(context, site.siteId, logger)
 			results.add(result)
 		}
 

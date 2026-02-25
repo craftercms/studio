@@ -27,7 +27,6 @@ public class WriteContentRequest {
 	@NotEmpty
 	@ValidExistingContentPath
 	private String path;
-	@NotEmpty
 	private String content;
 
 	public String getContent() {

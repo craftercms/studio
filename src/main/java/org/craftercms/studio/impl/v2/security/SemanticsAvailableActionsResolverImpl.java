@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,12 +17,12 @@
 package org.craftercms.studio.impl.v2.security;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
@@ -31,15 +31,13 @@ import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.Person;
 
 import java.util.List;
 import java.util.Set;
 
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.TOP_LEVEL_FOLDERS;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
@@ -47,6 +45,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isSystemProcessing;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.*;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForItemState;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForObject;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 
 /**
@@ -58,6 +57,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 	private AvailableActionsResolver availableActionsResolver;
 	private ContentService contentService;
+	private ItemDAO itemDAO;
 	private ServicesConfig servicesConfig;
 	private StudioBlobStoreResolver studioBlobStoreResolver;
 	private ContentTypeService contentTypeService;
@@ -98,7 +98,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	private boolean hasUnlockPermission(Person lockOwner, long state, String siteId, String path, String username) throws SiteNotFoundException {
 		boolean itemLocked = ItemState.isUserLocked(state);
 		String lockOwnerUsername = itemLocked && lockOwner != null ? lockOwner.getUsername() : null;
-		boolean isLockOwner = StringUtils.equals(username, lockOwnerUsername);
+		boolean isLockOwner = CS.equals(username, lockOwnerUsername);
 
 		Set<String> userPermissions = securityServiceV1.getUserPermissions(siteId, path, username);
 		boolean hasUnlockPermission = CollectionUtils.isNotEmpty(userPermissions) && userPermissions.contains(PERMISSION_ITEM_UNLOCK);
@@ -147,7 +147,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 		List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
 		if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
-				ContentUtils.matchesPatterns(itemPath, protectedFolderPatterns)) {
+				matchesPatterns(itemPath, protectedFolderPatterns)) {
 			result &= ~CONTENT_DELETE;
 			result &= ~CONTENT_CUT;
 			result &= ~CONTENT_RENAME;
@@ -160,8 +160,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		}
 
 		if ((result & CONTENT_UPLOAD) > 0 &&
-				(!StringUtils.equals(itemSystemType, CONTENT_TYPE_FOLDER) ||
-						!StudioUtils.matchesPatterns(itemPath, servicesConfig.getAssetPatterns(siteId)))) {
+				(!CS.equals(itemSystemType, CONTENT_TYPE_FOLDER) ||
+						!matchesPatterns(itemPath, servicesConfig.getAssetPatterns(siteId)))) {
 			result &= ~CONTENT_UPLOAD;
 		}
 
@@ -169,14 +169,22 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		if (isNotEmpty(itemContentTypeId)) {
 			String controllerPath = contentTypeService.getContentTypeControllerPath(itemContentTypeId);
 			result = checkActionForDependency(siteId, username, controllerPath, result,
-					CONTENT_EDIT_CONTROLLER, CONTENT_EDIT, CONTENT_DELETE_CONTROLLER, CONTENT_DELETE);
+					CONTENT_EDIT_CONTROLLER, CONTENT_DELETE_CONTROLLER);
 			String templatePath = contentTypeService.getContentTypeTemplatePath(siteId, itemContentTypeId);
 			result = checkActionForDependency(siteId, username, templatePath, result,
-					CONTENT_EDIT_TEMPLATE, CONTENT_EDIT, CONTENT_DELETE_TEMPLATE, CONTENT_DELETE);
+					CONTENT_EDIT_TEMPLATE, CONTENT_DELETE_TEMPLATE);
 		}
 
 		long siteWideActions = availableActionsResolver.getSiteWideActions(siteId, username);
 		result = result | siteWideActions;
+
+		if (CONTENT_TYPE_FOLDER.equals(itemSystemType)) {
+			long childrenCount = itemDAO.getSubtreeItemCount(siteId, List.of(itemPath));
+			if (childrenCount == 0) {
+				result &= ~PUBLISH;
+				result &= ~PUBLISH_REQUEST;
+			}
+		}
 
 		return result;
 	}
@@ -191,7 +199,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
 		String blobStorePath = itemPath;
 		if ("folder".equals(itemSystemType)) {
-			blobStorePath = appendIfMissing(itemPath, "/");
+			blobStorePath = CS.appendIfMissing(itemPath, "/");
 		}
 		StudioBlobStore blobStore = studioBlobStoreResolver.getByPaths(siteId, blobStorePath);
 		if (blobStore != null && blobStore.isReadOnly()) {
@@ -210,13 +218,13 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	private long checkActionForDependency(String siteId, String username, String dependencyPath,
-										  long actions, long itemEditMask, long depEditMask,
-										  long itemDeleteMask, long depDeleteMask)
+										  long actions, long itemEditMask,
+										  long itemDeleteMask)
 			throws UserNotFoundException, ServiceLayerException {
 		if (isNotEmpty(dependencyPath)) {
 			long depAvailableActions = availableActionsResolver.getContentItemAvailableActions(username, siteId, dependencyPath);
-			actions = updateForDependency(actions, depAvailableActions, itemEditMask, depEditMask);
-			actions = updateForDependency(actions, depAvailableActions, itemDeleteMask, depDeleteMask);
+			actions = updateForDependency(actions, depAvailableActions, itemEditMask, CONTENT_EDIT);
+			actions = updateForDependency(actions, depAvailableActions, itemDeleteMask, CONTENT_DELETE);
 		} else {
 			actions &= ~itemEditMask;
 			actions &= ~itemDeleteMask;
@@ -237,6 +245,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		return itemActions;
 	}
 
+	@SuppressWarnings("unused")
 	public void setAvailableActionsResolver(AvailableActionsResolver availableActionsResolver) {
 		this.availableActionsResolver = availableActionsResolver;
 	}
@@ -249,6 +258,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		this.servicesConfig = servicesConfig;
 	}
 
+	@SuppressWarnings("unused")
 	public void setStudioBlobStoreResolver(StudioBlobStoreResolver studioBlobStoreResolver) {
 		this.studioBlobStoreResolver = studioBlobStoreResolver;
 	}
@@ -257,7 +267,13 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		this.contentTypeService = contentTypeService;
 	}
 
+	@SuppressWarnings("unused")
 	public void setSecurityServiceV1(org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1) {
 		this.securityServiceV1 = securityServiceV1;
+	}
+
+	@SuppressWarnings("unused")
+	public void setItemDAO(final ItemDAO itemDAO) {
+		this.itemDAO = itemDAO;
 	}
 }

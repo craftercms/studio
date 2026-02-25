@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.parameters.SortField;
+import org.craftercms.core.exception.XmlFileParseException;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -34,9 +35,9 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
+import org.slf4j.Logger;
 
 import java.util.*;
 
@@ -46,9 +47,13 @@ import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.underDescriptorRoot;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class ItemServiceInternalImpl implements ItemService {
 	// TODO: SJ: Add logging to this class
+	private static final Logger logger = getLogger(ItemServiceInternalImpl.class);
 
 	public final static String INTERNAL_NAME = "/*[1]/internal-name";
 	public final static String CONTENT_TYPE = "/*[1]/content-type";
@@ -60,7 +65,6 @@ public class ItemServiceInternalImpl implements ItemService {
 	private ItemDAO itemDao;
 	private ServicesConfig servicesConfig;
 	private ContentService contentService;
-	private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 	private GeneralLockService generalLockService;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
@@ -150,20 +154,20 @@ public class ItemServiceInternalImpl implements ItemService {
 	public String getBrowserUrl(String site, String path) throws SiteNotFoundException {
 		String replacePattern;
 		boolean isPage = false;
-		if (ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(site))) {
+		if (matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(site))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
+		} else if (matchesPatterns(path, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
+		} else if (matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
 			CS.endsWith(path, FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
+		} else if (matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, List.of(CONTENT_TYPE_CONFIG_REGEX))) {
+		} else if (matchesPatterns(path, List.of(CONTENT_TYPE_CONFIG_REGEX))) {
 			return null;
-		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getAssetPatterns(site))) {
+		} else if (matchesPatterns(path, servicesConfig.getAssetPatterns(site))) {
 			replacePattern = StringUtils.EMPTY;
-		} else if (ContentUtils.matchesPatterns(path, servicesConfig.getDocumentPatterns(site))) {
+		} else if (matchesPatterns(path, servicesConfig.getDocumentPatterns(site))) {
 			replacePattern = DmConstants.ROOT_PATTERN_DOCUMENTS;
 		} else {
 			replacePattern = DmConstants.ROOT_PATTERN_PAGES;
@@ -189,15 +193,29 @@ public class ItemServiceInternalImpl implements ItemService {
 	@Override
 	public void persistItemAfterCreate(String siteId, String path,
 									   boolean unlock, Long parentId)
-		throws ServiceLayerException, AuthenticationException {
+			throws ServiceLayerException, AuthenticationException {
 		String lockKey = "persistItemAfterCreate:" + siteId;
 		generalLockService.lock(lockKey);
 		try {
 			User userObj = SecurityUtils.getCurrentUser();
-			var descriptor = contentService.getItem(siteId, path, false);
-			String disabledStr = descriptor.queryDescriptorValue(DISABLED);
-			boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
-			String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+			boolean disabled = false;
+			String label = null;
+			String contentType = null;
+			String localeCode = null;
+			try {
+				var descriptor = contentService.getItem(siteId, path, false);
+				String disabledStr = descriptor.queryDescriptorValue(DISABLED);
+				disabled = Boolean.parseBoolean(disabledStr);
+				label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+				contentType = descriptor.queryDescriptorValue(CONTENT_TYPE);
+				localeCode = descriptor.queryDescriptorValue(LOCALE_CODE);
+			} catch (XmlFileParseException e) {
+				logger.debug("Error getting content descriptor for path: '{}'", path, e);
+				// If page, component, or other descriptor file, it must be a valid xml file
+				if (underDescriptorRoot(path)) {
+					throw new ServiceLayerException("Error getting content descriptor for path: " + path, e);
+				}
+			}
 			if (StringUtils.isEmpty(label)) {
 				label = FilenameUtils.getName(path);
 			}
@@ -208,10 +226,10 @@ public class ItemServiceInternalImpl implements ItemService {
 				.withLastModifiedBy(userObj.getId())
 				.withLastModifiedOn(DateUtils.getCurrentTime())
 				.withLabel(label)
-				.withSystemType(contentServiceV1.getContentTypeClass(siteId, path))
-				.withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
+				.withSystemType(contentService.getContentTypeClass(siteId, path))
+				.withContentTypeId(contentType)
 				.withMimeType(StudioUtils.getMimeType(path))
-				.withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
+				.withLocaleCode(localeCode)
 				.withSize(contentService.getContentSize(siteId, path))
 				.withParentId(parentId)
 				.build();
@@ -234,10 +252,24 @@ public class ItemServiceInternalImpl implements ItemService {
 	public void persistItemAfterWrite(String siteId, String path, boolean unlock)
 		throws ServiceLayerException, AuthenticationException {
 		User userObj = SecurityUtils.getCurrentUser();
-		var descriptor = contentService.getItem(siteId, path, false);
-		String disabledStr = descriptor.queryDescriptorValue(DISABLED);
-		boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
-		String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+		boolean disabled = false;
+		String label = null;
+		String contentType = null;
+		String localeCode = null;
+		try {
+			var descriptor = contentService.getItem(siteId, path, false);
+			String disabledStr = descriptor.queryDescriptorValue(DISABLED);
+			disabled = Boolean.parseBoolean(disabledStr);
+			label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+			contentType = descriptor.queryDescriptorValue(CONTENT_TYPE);
+			localeCode = descriptor.queryDescriptorValue(LOCALE_CODE);
+		} catch (XmlFileParseException e) {
+			logger.debug("Error getting content descriptor for path: '{}'", path, e);
+			// If page, component, or other descriptor file, it must be a valid xml file
+			if (underDescriptorRoot(path)) {
+				throw new ServiceLayerException("Error getting content descriptor for path: " + path, e);
+			}
+		}
 		if (StringUtils.isEmpty(label)) {
 			label = FilenameUtils.getName(path);
 		}
@@ -246,10 +278,10 @@ public class ItemServiceInternalImpl implements ItemService {
 			.withLastModifiedBy(userObj.getId())
 			.withLastModifiedOn(DateUtils.getCurrentTime())
 			.withLabel(label)
-			.withSystemType(contentServiceV1.getContentTypeClass(siteId, path))
-			.withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
+			.withSystemType(contentService.getContentTypeClass(siteId, path))
+			.withContentTypeId(contentType)
 			.withMimeType(StudioUtils.getMimeType(path))
-			.withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
+			.withLocaleCode(localeCode)
 			.withSize(contentService.getContentSize(siteId, path))
 			.build();
 		if (unlock) {
@@ -471,11 +503,6 @@ public class ItemServiceInternalImpl implements ItemService {
 	@SuppressWarnings("unused")
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
-	}
-
-	@SuppressWarnings("unused")
-	public void setContentServiceV1(org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1) {
-		this.contentServiceV1 = contentServiceV1;
 	}
 
 	public void setGeneralLockService(GeneralLockService generalLockService) {

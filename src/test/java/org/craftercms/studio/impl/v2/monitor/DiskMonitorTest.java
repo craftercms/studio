@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,7 +16,7 @@
 package org.craftercms.studio.impl.v2.monitor;
 
 import org.craftercms.commons.monitoring.DiskInfo;
-import org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,14 +31,14 @@ import static org.mockito.Mockito.*;
 public class DiskMonitorTest {
 
 	@Mock
-	protected RepositoryCleanupJob gitGCJob;
+	protected SitesService siteService;
 
 	protected DiskMonitor getDiskMonitor(int lowWaterMark, int highWaterMark) {
 		return getDiskMonitor(lowWaterMark, highWaterMark, true);
 	}
 
 	protected DiskMonitor getDiskMonitor(int lowWaterMark, int highWaterMark, boolean systemReady) {
-		DiskMonitor spy = spy(new DiskMonitor(gitGCJob, null, () -> systemReady, ".", lowWaterMark, highWaterMark));
+		DiskMonitor spy = spy(new DiskMonitor(siteService, null, () -> systemReady, ".", lowWaterMark, highWaterMark));
 		spy.afterPropertiesSet();
 		return spy;
 	}
@@ -67,7 +67,7 @@ public class DiskMonitorTest {
 
 		diskMonitor.checkDiskUsage();
 
-		verify(gitGCJob).cleanupAllRepositories();
+		verify(siteService).garbageCollectRepositories();
 
 		verify(diskMonitor, times(1).description("Notification should be sent when disk usage is in alarm state"))
 				.sendAlarm();
@@ -85,8 +85,8 @@ public class DiskMonitorTest {
 
 		diskMonitor.checkDiskUsage();
 
-		verify(gitGCJob, never().description("Repositories should only be gc'ed the first time alarm is raised"))
-				.cleanupAllRepositories();
+		verify(siteService, never().description("Repositories should only be gc'ed the first time alarm is raised"))
+				.garbageCollectRepositories();
 
 		verify(diskMonitor, never().description("Notification should not be sent when disk usage is not in alarm state"))
 				.sendAlarm();
@@ -115,8 +115,8 @@ public class DiskMonitorTest {
 
 		diskMonitor.checkDiskUsage();
 
-		verify(gitGCJob, never().description("Repositories should only be gc'ed the first time alarm is raised"))
-				.cleanupAllRepositories();
+		verify(siteService, never().description("Repositories should only be gc'ed the first time alarm is raised"))
+				.garbageCollectRepositories();
 		verify(diskMonitor, never().description("Notification should not be sent when disk usage is not in alarm state"))
 				.sendAlarm();
 
@@ -144,8 +144,8 @@ public class DiskMonitorTest {
 
 		diskMonitor.checkDiskUsage();
 
-		verify(gitGCJob, never().description("Repositories should only be gc'ed the first time alarm is raised"))
-				.cleanupAllRepositories();
+		verify(siteService, never().description("Repositories should only be gc'ed the first time alarm is raised"))
+				.garbageCollectRepositories();
 		verify(diskMonitor, times(1).description("Notification should be sent when disk usage is in alarm state"))
 				.sendAlarm();
 
@@ -173,8 +173,8 @@ public class DiskMonitorTest {
 
 		diskMonitor.checkDiskUsage();
 
-		verify(gitGCJob, never().description("Repositories should only be gc'ed the first time alarm is raised"))
-				.cleanupAllRepositories();
+		verify(siteService, never().description("Repositories should only be gc'ed the first time alarm is raised"))
+				.garbageCollectRepositories();
 		verify(diskMonitor, times(1).description("Notification should be sent when disk usage is in alarm state"))
 				.sendAlarm();
 

@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v1.dal;
 
+@Deprecated
 public class SiteFeed {
 
 	public static final String STATE_INITIALIZING = "INITIALIZING";

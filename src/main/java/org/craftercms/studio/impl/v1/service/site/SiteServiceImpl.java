@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -46,8 +46,6 @@ import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsExcepti
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
-import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
@@ -66,8 +64,6 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
-import org.craftercms.studio.model.blobstore.BlobStoreDetails;
-import org.craftercms.studio.model.site.SiteDetails;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -87,13 +83,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.craftercms.commons.file.blob.BlobStore.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
@@ -146,21 +140,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	protected UserDAO userDao;
 
 	protected SqlSessionFactory sqlSessionFactory;
-
-	@Override
-	public Set<String> getAllAvailableSites() {
-		List<SiteFeed> sites = siteFeedMapper.getSites();
-		Set<String> toRet = new HashSet<>();
-		for (SiteFeed site : sites) {
-			toRet.add(site.getSiteId());
-		}
-		return toRet;
-	}
-
-	@Override
-	public int countSites() {
-		return siteFeedMapper.countSites();
-	}
 
 	@Override
 	@Valid
@@ -721,29 +700,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 	@Override
 	@Valid
-	public void checkSiteExists(@ValidateStringParam final String site) throws SiteNotFoundException {
-		if (!exists(site)) {
-			throw new SiteNotFoundException(format("Site '%s' not found.", site));
-		}
-	}
-
-	@Override
-	@Valid
-	public boolean existsById(@ValidateStringParam String siteId) {
-		return siteFeedMapper.existsById(siteId) > 0;
-	}
-
-	@Override
-	@Valid
 	public boolean existsByName(@ValidateStringParam String siteName) {
 		return siteFeedMapper.existsByName(siteName) > 0;
-	}
-
-	@Override
-	@Valid
-	public int getSitesPerUserTotal()
-		throws UserNotFoundException, ServiceLayerException {
-		return getSitesPerUserTotal(SecurityUtils.getCurrentUsername());
 	}
 
 	@Override
@@ -762,8 +720,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	@Override
 	@Valid
 	public List<SiteFeed> getSitesPerUser(int start,
-					      int number)
-		throws UserNotFoundException, ServiceLayerException {
+										  int number)
+			throws UserNotFoundException, ServiceLayerException {
 		return getSitesPerUser(SecurityUtils.getCurrentUsername(), start, number);
 	}
 
@@ -803,64 +761,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		}
 	}
 
-	@Override
-	@RequireSiteExists
-	public SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException {
-		Map<String, Object> params = new HashMap<>();
-		params.put("siteId", siteId);
-
-		List<BlobStoreDetails> storeDetails = Collections.emptyList();
-		if (!studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)) {
-			String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
-			HierarchicalConfiguration<?> xmlConfiguration = configurationService.getXmlConfiguration(siteId, MODULE_STUDIO, configLocation);
-			storeDetails = getBlobStoreDetails(xmlConfiguration);
-		}
-		return new SiteDetails(siteFeedMapper.getSite(params), storeDetails);
-	}
-
-	/**
-	 * Reads blob-stores-config.xml and returns a list of BlobStoreDetails
-	 *
-	 * @param xmlConfiguration the blob-stores-config.xml configuration
-	 * @return a list of BlobStoreDetails
-	 */
-	@NonNull
-	private static List<BlobStoreDetails> getBlobStoreDetails(HierarchicalConfiguration<?> xmlConfiguration) {
-		if (xmlConfiguration == null) {
-			return Collections.emptyList();
-		}
-
-		List<? extends HierarchicalConfiguration<?>> blobStores = xmlConfiguration.configurationsAt(CONFIG_KEY_STORE);
-		return blobStores.stream().map(store -> {
-			String id = store.getString(CONFIG_KEY_ID);
-			String type = store.getString(CONFIG_KEY_TYPE);
-			String pattern = store.getString(CONFIG_KEY_PATTERN);
-			boolean readOnly = store.getBoolean(CONFIG_KEY_READ_ONLY, false);
-
-			List<BlobStoreDetails.Mapping> mappings = store.configurationsAt(CONFIG_KEY_MAPPING).stream()
-				.map(mapping -> {
-					String publishingTarget = mapping.getString(CONFIG_KEY_MAPPING_PUBLISHING_TARGET);
-					String storeTarget = mapping.getString(CONFIG_KEY_MAPPING_STORE_TARGET);
-					String prefix = mapping.getString(CONFIG_KEY_MAPPING_PREFIX);
-					return new BlobStoreDetails.Mapping(publishingTarget, storeTarget, prefix);
-				}).collect(Collectors.toList());
-
-			BlobStoreDetails details = new BlobStoreDetails();
-			details.setId(id);
-			details.setPattern(pattern);
-			details.setType(type);
-			details.setReadOnly(readOnly);
-			details.setMappings(mappings);
-
-			return details;
-		}).collect(Collectors.toList());
-	}
-
-	@Override
-	public List<SiteFeed> getDeletedSites() {
-		return siteFeedMapper.getDeletedSites();
-	}
-
 	private void addSiteUuidFile(String site, String siteUuid) throws IOException {
 		Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
 			studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
@@ -870,18 +770,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	}
 
 	@Override
-	public List<String> getAllCreatedSites() {
-		return siteFeedMapper.getAllCreatedSites(STATE_READY);
-	}
-
-	@Override
 	public void setSiteState(String siteId, String state) {
 		retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, state));
-	}
-
-	@Override
-	public String getSiteState(String siteId) {
-		return siteFeedMapper.getSiteState(siteId);
 	}
 
 	public List<String> getDefaultGroups() {

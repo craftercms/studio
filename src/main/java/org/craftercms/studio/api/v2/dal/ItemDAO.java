@@ -492,6 +492,16 @@ public interface ItemDAO {
 												  @Param(PATHS) Collection<String> paths);
 
 	/**
+	 * Get the count of all the non-folder children of the given paths, recursively.
+	 *
+	 * @param siteId the site id
+	 * @param paths  the paths to get children count for
+	 * @return count of all the non-folder children of the given paths
+	 */
+	long getSubtreeItemCount(@Param(SITE_ID) String siteId,
+							 @Param(PATHS) Collection<String> paths);
+
+	/**
 	 * Get {@link ItemPathAndState} records for the given paths in a map by path
 	 *
 	 * @param siteId the site id

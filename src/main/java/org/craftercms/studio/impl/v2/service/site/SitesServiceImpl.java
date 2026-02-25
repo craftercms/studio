@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
 
 import java.beans.ConstructorProperties;
@@ -93,7 +94,8 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	public boolean exists(String siteId) {
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public boolean exists(@SiteId String siteId) {
 		return sitesServiceInternal.exists(siteId);
 	}
 
@@ -123,11 +125,20 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	public Site getSite(String siteId) throws SiteNotFoundException {
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Site getSite(@SiteId String siteId) throws SiteNotFoundException {
 		if (exists(siteId)) {
 			return sitesServiceInternal.getSite(siteId);
 		}
 		throw new SiteNotFoundException(siteId);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException {
+		return sitesServiceInternal.getSiteDetails(siteId);
 	}
 
 	@Override
@@ -168,13 +179,13 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	public void setPublishedRepoCreated(String siteId) {
-		sitesServiceInternal.setPublishedRepoCreated(siteId);
-	}
-
-	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
 	public void updatePublishingStatus(String siteId, String status) {
 		sitesServiceInternal.updatePublishingStatus(siteId, status);
+	}
+
+	@Override
+	public void garbageCollectRepositories() {
+		sitesServiceInternal.garbageCollectRepositories();
 	}
 }

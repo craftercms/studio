@@ -24,12 +24,12 @@ import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.commons.lang.RegexUtils;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -46,6 +47,7 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.DalUtils;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.dom4j.Document;
@@ -532,7 +534,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param path   The path to the item
 	 * @return The item metadata
 	 */
-	private ItemMetadata getItemMetadata(String siteId, String path) throws SiteNotFoundException {
+	private ItemMetadata getItemMetadata(String siteId, String path) throws SiteNotFoundException, ContentNotFoundException {
 		ItemMetadata result = new ItemMetadata(path);
 		if (CS.startsWith(path, ROOT_PATTERN_PAGES) ||
 			CS.startsWith(path, ROOT_PATTERN_ASSETS)) {
@@ -542,7 +544,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			return result;
 		}
 		try {
-			Document contentDoc = contentService.getContentAsDocument(siteId, path);
+			Document contentDoc = ContentUtils.convertStreamToXml(contentService.getContent(siteId, path));
 			if (contentDoc != null) {
 				Element rootElement = contentDoc.getRootElement();
 				String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
@@ -571,7 +573,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param allAncestors list of ancestors
 	 */
 	private void processCreate(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
-							   Site site, RepoOperation repoOperation, User user, Set<String> allAncestors) throws SiteNotFoundException {
+							   Site site, RepoOperation repoOperation, User user, Set<String> allAncestors) throws SiteNotFoundException, ContentNotFoundException {
 		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getPath());
 		processAncestors(itemDao, site.getSiteId(), repoOperation.getPath(), user.getId(),
 			repoOperation.getDateTime(), allAncestors);
@@ -619,7 +621,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param user modified {@link User}
 	 */
 	private void processUpdate(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
-							   Site site, RepoOperation repoOperation, User user) throws SiteNotFoundException {
+							   Site site, RepoOperation repoOperation, User user) throws SiteNotFoundException, ContentNotFoundException {
 		if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
 			return;
 		}
@@ -656,7 +658,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 */
 	private void processMove(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
 							 Site site, RepoOperation repoOperation, User user,
-							 Set<String> allAncestors) throws SiteNotFoundException {
+							 Set<String> allAncestors) throws SiteNotFoundException, ContentNotFoundException {
 		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
 		processAncestors(itemDao, site.getSiteId(), repoOperation.getMoveToPath(), user.getId(),
 			repoOperation.getDateTime(), allAncestors);

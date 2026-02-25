@@ -1954,6 +1954,40 @@ paths:
                     $ref: '#/components/responses/InternalServerError'
 
     /api/2/sites/{siteId}:
+        get:
+            tags:
+                - sites
+            summary: Get site details
+            description: 'Required Permission: "content_read"'
+            operationId: getSite
+            parameters:
+                -   name: siteId
+                    in: path
+                    required: true
+                    description: The site ID
+                    schema:
+                        type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    site:
+                                        $ref: '#/components/schemas/SiteDetails'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
         post:
             tags:
                 - sites
@@ -2028,6 +2062,41 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /api/2/sites/{siteId}/exists:
+        get:
+            summary: Check if a site exists
+            description: 'Required permission "site_member"'
+            operationId: siteExists
+            tags:
+                - sites
+            parameters:
+                -   name: siteId
+                    in: path
+                    schema:
+                        type: string
+                    required: true
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    exists:
+                                        type: boolean
+                                        example: true
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
@@ -2247,86 +2316,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/site/exists.json:
-        get:
-            tags:
-                - sites
-            summary: Check if Crafter Studio project/site exists.
-            description: "Required role: admin, member in the project/site"
-            operationId: projectExists
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    exists:
-                                        type: boolean
-                                        example: true
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/site/get.json:
-        get:
-            tags:
-                - sites
-            summary: Get a Crafter Studio project/site
-            description: No required role
-            operationId: getSite
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Site'
-                            example:
-                                id: 8
-                                siteUuid: "8d71254a-ceb3-409a-bb59-610505764a77"
-                                siteId: "third"
-                                name: "third"
-                                description: "null"
-                                deleted: 0
-                                liveUrl: "null"
-                                lastCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
-                                publishingEnabled: 1
-                                publishingStatus: "ready"
-                                lastVerifiedGitlogCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
-                                sandboxBranch: "master"
-                                publishedRepoCreated: 0
-                                state: "READY"
-                                lastSyncedGitlogCommitId: "5cb6fe1a1f2fa5aa38d372c757c8db8f0f17ecb3"
-                                siteDeleted: false
-                                sitePublishedRepoCreated: false
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
     /api/1/services/api/1/site/monitor-content.json:
         get:
             tags:
@@ -2444,191 +2433,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/content/create-folder.json:
-        post:
-            tags:
-                - content
-            summary: Create folder.
-            description: "Required role: N/A"
-            operationId: createFolder
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/
-                -   name: name
-                    in: query
-                    schema:
-                        type: string
-                    description: Name of the new folder
-                    required: true
-                    example: newFolder
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: boolean
-                                example:
-                                    message: true
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '500':
-                    $ref: '#/components/responses/InternalServerError'
-
-    /api/1/services/api/1/content/rename-folder.json:
-        post:
-            tags:
-                - content
-            summary: Rename folder.
-            description: "Required role: N/A"
-            operationId: renameFolder
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/
-                -   name: name
-                    in: query
-                    schema:
-                        type: string
-                    description: New name of the folder
-                    required: true
-                    example: newFolder
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    result:
-                                        type: string
-                                example:
-                                    result: "true"
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '409':
-                    $ref: '#/components/responses/api1PublishConflict'
-                '500':
-                    $ref: '#/components/responses/InternalServerError'
-
-    /api/1/services/api/1/content/get-content.json:
-        get:
-            tags:
-                - content
-            summary: Get content stream.
-            description: "Required role: N/A"
-            operationId: getContent
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/health/index.xml
-                -   name: edit
-                    in: query
-                    schema:
-                        type: boolean
-                    description: True to make content locked
-                    required: true
-                    example: true
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    content:
-                                        type: string
-                            example:
-                                content: "<page>\n\t<content-type>/page/category-landing</content-type>\n\t<display-template>/templates/web/pages/category-landing.ftl</display-template>\n\t<no-template-required/>\n\t<merge-strategy>inherit-levels</merge-strategy>\n\t<objectGroupId>0557</objectGroupId>\n\t<objectId>05573d7a-3556-1ad0-6e34-9b085944fee2</objectId>\n\t<file-name>index.xml</file-name>\n\t<folder-name>health</folder-name>\n\t<placeInNav>true</placeInNav>\n\t<orderDefault_f>9000</orderDefault_f>\n\t<internal-name>Health</internal-name>\n\t<title_t>Health</title_t>\n\t<createdDate>2017-03-14T15:21:57.000Z</createdDate>\n\t<createdDate_dt>2017-03-14T15:21:57.000Z</createdDate_dt>\n\t<lastModifiedDate>2020-10-07T12:08:00.200Z</lastModifiedDate>\n\t<lastModifiedDate_dt>2020-10-07T12:08:00.200Z</lastModifiedDate_dt>\n\t<category_s>health</category_s>\n\t<max_articles_i>10</max_articles_i>\n\t<articles_title_t>Health</articles_title_t>\n\t<disabled>false</disabled>\n\t<header_o item-list=\"true\"/>\n\t<left_rail_o item-list=\"true\"/>\n</page>\n"
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '403':
-                    $ref: '#/components/responses/api1Forbidden'
-
-    /api/1/services/api/1/content/get-content-at-path.json:
-        get:
-            tags:
-                - content
-            summary: Get content stream at path.
-            description: "Required role: N/A"
-            operationId: getContentAtPath
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/health/index.xml
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    contentStream:
-                                        type: object
-                                        properties:
-                                            type:
-                                                type: integer
-                                            size:
-                                                type: integer
-                                    contentPath:
-                                        type: string
-                            example:
-                                contentStream:
-                                    type: 3
-                                    size: 1699
-                                contentPath: "/site/website/health/index.xml"
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-
     /api/1/services/api/1/content/get-content-type.json:
         get:
             tags:
@@ -2717,41 +2521,6 @@ paths:
                     $ref: '#/components/responses/api1BadRequest'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
-
-    /api/1/services/api/1/content/get-item.json:
-        get:
-            tags:
-                - content
-            summary: Get content item.
-            description: "Required role: N/A"
-            operationId: getItem
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/index.xml
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ContentItemV1'
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '403':
-                    $ref: '#/components/responses/api1Forbidden'
 
     /api/1/services/api/1/content/get-item-orders.json:
         get:
@@ -2971,47 +2740,6 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/content/revert-content.json:
-        get:
-            tags:
-                - content
-            summary: Revert content item to a specific version.
-            description: "Required role: N/A"
-            operationId: revertContent
-            parameters:
-                -   name: site
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/style/index.xml
-                -   name: version
-                    in: query
-                    schema:
-                        type: string
-                    description: Version to revert to
-                    required: true
-                    example: 818e0f68bfccda9a9a1a788341b87ca3ba5ad3c6
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: boolean
-                                example: true
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
 
     /api/1/services/api/1/server/get-available-languages.json:
         get:
@@ -8737,6 +8465,66 @@ components:
                     description: Site description
             required:
                 - siteId
+
+        SiteDetails:
+            type: object
+            properties:
+                siteUuid:
+                    type: string
+                    description: Unique identifier for the site (UUID)
+                siteId:
+                    type: string
+                    description: Site ID
+                name:
+                    type: string
+                    description: Human-readable name of the site
+                description:
+                    type: string
+                    nullable: true
+                    description: Optional description of the site
+                liveUrl:
+                    type: string
+                    nullable: true
+                    description: URL where the site is published/live
+                lastCommitId:
+                    type: string
+                    description: Identifier of the last commit made to the site repository
+                publishingEnabled:
+                    type: boolean
+                    description: Indicates if publishing is enabled for the site
+                publishingStatus:
+                    type: string
+                    description: Current publishing status
+                sandboxBranch:
+                    type: string
+                    description: Name of the branch used for sandbox/development
+                publishedRepoCreated:
+                    type: boolean
+                    description: Indicates if the published repository has been created
+                state:
+                    type: string
+                    description: Current state of the site
+                blobStores:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            id:
+                                type: string
+                                description: the blobStore id
+                            readOnly:
+                                type: boolean
+                                description: if the blobStore is read-only
+            required:
+                - siteUuid
+                - siteId
+                - name
+                - publishingEnabled
+                - publishingStatus
+                - sandboxBranch
+                - publishedRepoCreated
+                - state
+
 
         MenuItem:
             type: object

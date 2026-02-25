@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,7 +24,9 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
 
 import java.util.List;
@@ -89,7 +91,7 @@ public interface SitesService {
 	 * @throws SiteNotFoundException if the site doesn't exist
 	 */
 	void updateSite(String siteId, String name, String description)
-		throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
+			throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
 
 	/**
 	 * Unlock a site which is locked with state `LOCKED`
@@ -162,6 +164,16 @@ public interface SitesService {
 	Site getSite(String siteId) throws SiteNotFoundException;
 
 	/**
+	 * Site details.
+	 * Contains site info and blob store details.
+	 *
+	 * @param siteId the site id
+	 * @return site details object
+	 * @throws SiteNotFoundException if the site doesn't exist
+	 */
+	SiteDetails getSiteDetails(String siteId) throws ServiceLayerException;
+
+	/**
 	 * Update a site's last commit id
 	 *
 	 * @param siteId   site id
@@ -190,7 +202,7 @@ public interface SitesService {
 	 * @throws ServiceLayerException if there is an error duplicating the site
 	 */
 	void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
-		throws ServiceLayerException;
+			throws ServiceLayerException;
 
 	/**
 	 * Get the sites matching a given state
@@ -208,17 +220,15 @@ public interface SitesService {
 	List<Site> getAllSites();
 
 	/**
-	 * Set the published repo created flag for the given site
-	 *
-	 * @param siteId the site id
-	 */
-	void setPublishedRepoCreated(String siteId);
-
-	/**
 	 * Update publishing status for the given site
 	 *
 	 * @param siteId the site id
 	 * @param status publisher status
 	 */
 	void updatePublishingStatus(String siteId, String status);
+
+	/**
+	 * Git Garbage collect global repository all site repositories (sandbox and published)
+	 */
+	void garbageCollectRepositories();
 }
