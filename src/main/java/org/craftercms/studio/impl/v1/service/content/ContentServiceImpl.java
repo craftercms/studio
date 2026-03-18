@@ -58,11 +58,14 @@ import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.policy.PolicyService;
+import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
@@ -74,7 +77,9 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
+import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.Type;
+import org.craftercms.studio.model.policy.ValidationResult;
 import org.craftercms.studio.model.rest.Person;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -102,6 +107,8 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.isNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
+import static org.apache.commons.io.FilenameUtils.getName;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
@@ -154,6 +161,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected UserServiceInternal userServiceInternal;
     protected ApplicationContext applicationContext;
     protected ActivityStreamServiceInternal activityStreamServiceInternal;
+    protected PolicyServiceInternal policyService;
 
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
 
@@ -705,6 +713,45 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return this.createFolder(site, path, name);
     }
 
+    /**
+     * Validates the folder creation action against policies and returns the modified folder path if applicable.
+     * It also validates the result path if the policy validation results in a modification.
+     *
+     * @param site       the site where the folder is being created
+     * @param folderPath the full path of the folder being created (including the new folder name)
+     * @return the modified folder path if the policy validation results in a modification, otherwise returns the original folder path
+     * @throws ServiceLayerException if the folder creation is denied by policy or if there is an error during validation
+     */
+    private String validateCreateFolder(String site, String folderPath) throws ServiceLayerException {
+        Action action = new Action();
+        action.setType(Type.CREATE);
+        action.setTarget(folderPath);
+        List<ValidationResult> results = null;
+        try {
+            results = policyService.validate(site, List.of(action));
+            boolean denied = results.stream().anyMatch(result -> !result.isAllowed());
+            if (denied) {
+                throw new ServiceLayerException(format(
+                        "Folder creation denied by policy for site '%s' path '%s'", site, folderPath));
+            }
+            var modified = results.stream()
+                    .filter(result -> isNotEmpty(result.getModifiedValue()))
+                    .findFirst();
+            if (modified.isPresent()) {
+                ValidationResult result = modified.get();
+                Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+                validateValue(pathValidator, result.getModifiedValue(), REQUEST_PARAM_PATH);
+                return result.getModifiedValue();
+            }
+
+            return folderPath;
+        } catch (ConfigurationException e) {
+            throw new ServiceLayerException(format("Error while validating folder creation for site '%s' path '%s'", site, folderPath), e);
+        } catch (ValidationException e) {
+            throw new ServiceLayerException(format("Validation error while validating folder creation for site '%s' path '%s'", site, folderPath), e);
+        }
+    }
+
     @Override
     @Valid
     @ValidateAction(type = Type.CREATE)
@@ -712,7 +759,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                 @ValidateSecurePathParam @ActionTargetPath String path,
                                 @ValidateStringParam @ActionTargetFilename String name)
             throws ServiceLayerException, UserNotFoundException {
+        String modifiedValue = validateCreateFolder(site,path + FILE_SEPARATOR + name);
+        path = getFullPathNoEndSeparator(modifiedValue);
+        name = getName(modifiedValue);
         String folderPath = path + FILE_SEPARATOR + name;
+
+        if (_contentRepository.contentExists(site, folderPath)) {
+            throw new ContentExistException(format("Folder '%s' already exists in site '%s'", folderPath, site));
+        }
+
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId == null) {
             return false;
@@ -2841,10 +2896,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.contentServiceV2 = contentServiceV2;
     }
 
+    public void setPolicyService(PolicyServiceInternal policyService) {
+        this.policyService = policyService;
+    }
+
     /**
      * Simple Object to hold result of calculating target paths for copy/cut and paste operation.
      */
-    protected class PastedPathMap {
+    protected static class PastedPathMap {
         protected String filePath;
         protected String fileName;
         protected String fileFolder;

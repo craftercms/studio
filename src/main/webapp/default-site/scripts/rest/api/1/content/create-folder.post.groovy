@@ -15,6 +15,7 @@
  */
 
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v2.exception.content.ContentExistException
 import scripts.api.ContentServices
 
 def site = request.getParameter("site_id")
@@ -38,12 +39,17 @@ try {
     invalidParams = true
     paramsList.add("site_id")
 }
-
+def result = [:]
 if (invalidParams) {
     response.setStatus(400)
     result.message = "Invalid parameter(s): " + paramsList
 } else {
-    def context = ContentServices.createContext(applicationContext, request)
-    result = ContentServices.createFolder(site, path, name, context)
+    try {
+        def context = ContentServices.createContext(applicationContext, request)
+        result = ContentServices.createFolder(site, path, name, context)
+    } catch (ContentExistException e) {
+        response.setStatus(409)
+        result.message = e.getMessage()
+    }
 }
 return result
