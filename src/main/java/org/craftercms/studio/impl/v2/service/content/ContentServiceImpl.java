@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
 import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
-import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
@@ -314,7 +313,7 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
-	public void assertNotInWorkflow(@SiteId String siteId, List<String> paths, boolean includeChildren) throws ContentInPublishQueueException {
+	public void assertNotInWorkflow(@SiteId String siteId, List<String> paths, boolean includeChildren) throws ServiceLayerException {
 		contentServiceInternal.assertNotInWorkflow(siteId, paths, includeChildren);
 	}
 

@@ -72,6 +72,8 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishDAO.ACTIVE_APPROVA
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.PROCESSING;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
@@ -247,10 +249,21 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@Override
-	public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final List<String> paths, final boolean includeChildren) {
-		return publishDao.getItemPackages(siteId, null, paths,
-			PublishPackage.PackageState.READY.value + PublishPackage.PackageState.PROCESSING.value,
-			ACTIVE_APPROVAL_STATES, includeChildren);
+	public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final List<String> paths, final boolean includeChildren) throws ServiceLayerException {
+		Collection<PublishPackage> itemPackages = publishDao.getItemPackages(siteId, null, paths,
+				READY.value + PROCESSING.value,
+				ACTIVE_APPROVAL_STATES, includeChildren);
+		if (CollectionUtils.isEmpty(itemPackages)) {
+			return itemPackages;
+		}
+		for (PublishPackage p : itemPackages) {
+			try {
+				p.setAvailableActions(publishPackageAvailableActionResolver.getPublishPackageAvailableActions(p));
+			} catch (UserNotFoundException e) {
+				throw new ServiceLayerException("Failed to get current user while calculating available actions for publish package with id " + p.getId(), e);
+			}
+		}
+		return itemPackages;
 	}
 
 	@Override
