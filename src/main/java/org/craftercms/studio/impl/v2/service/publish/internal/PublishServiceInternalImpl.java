@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.publish.InvalidTargetException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActionResolver;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
@@ -553,11 +554,12 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	/**
 	 * Routes the request to the appropriate method based on the site's publishing repo status.
 	 */
-	private long routePackageSubmission(final String siteId, final String publishingTarget,
+	protected long routePackageSubmission(final String siteId, final String publishingTarget,
 										final List<PublishRequestPath> paths, final List<String> commitIds,
 										final Instant schedule, final String title, final String comment,
 										final boolean requestApproval, final boolean publishAll)
 		throws ServiceLayerException, AuthenticationException {
+		validateTarget(siteId, publishingTarget);
 		Site site = siteService.getSite(siteId);
 		String lockKey = getSandboxRepoLockKey(site.getSiteId());
 		generalLockService.lock(lockKey);
@@ -577,6 +579,29 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 				paths, commitIds, requestApproval, schedule, title, comment);
 		} finally {
 			generalLockService.unlock(lockKey);
+		}
+	}
+
+	/**
+	 * Validate the publishing target. If the target is not valid, an exception will be thrown.
+	 *
+	 * @param siteId           the site id
+	 * @param publishingTarget the publishing target to validate
+	 * @throws SiteNotFoundException  if the site is not found
+	 * @throws InvalidTargetException if the publishing target is not valid for the site
+	 */
+	protected void validateTarget(String siteId, String publishingTarget) throws SiteNotFoundException, InvalidTargetException {
+		String liveTarget = servicesConfig.getLiveEnvironment(siteId);
+		if (!CS.equals(publishingTarget, liveTarget)) {
+			if (!servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+				throw new InvalidTargetException(format("Invalid publishing target '%s'. The only valid target for site '%s' is: '%s'",
+						publishingTarget, siteId, liveTarget), liveTarget);
+			}
+			String stagingTarget = servicesConfig.getStagingEnvironment(siteId);
+			if (!CS.equals(publishingTarget, stagingTarget)) {
+				throw new InvalidTargetException(format("Invalid publishing target '%s'. Valid targets for site '%s' are: '%s' and '%s'",
+						publishingTarget, siteId, liveTarget, stagingTarget), liveTarget, stagingTarget);
+			}
 		}
 	}
 

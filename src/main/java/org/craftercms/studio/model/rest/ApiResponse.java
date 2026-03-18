@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -113,6 +113,8 @@ public class ApiResponse {
 		"Check the current publish package state", StringUtils.EMPTY);
 	public static final ApiResponse EMPTY_CHANGESET = new ApiResponse(7010, "Empty changeset",
 		"Site repository already contains the specified content in the given path", StringUtils.EMPTY);
+	public static final ApiResponse INVALID_PUBLISH_TARGET = new ApiResponse(7011, "Invalid publish target",
+		"Check if you sent in the right publish target", StringUtils.EMPTY);
 
 	// 8000 - 9000
 	public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",
