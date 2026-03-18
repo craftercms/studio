@@ -1524,7 +1524,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public void assertNotInWorkflow(final String siteId, final List<String> paths, final boolean includeChildren)
-			throws ContentInPublishQueueException {
+			throws ServiceLayerException {
 		Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, paths, includeChildren);
 		if (CollectionUtils.isNotEmpty(packagesForItems)) {
 			throw new ContentInPublishQueueException("Unable to edit content that is part of an active publish package", packagesForItems);

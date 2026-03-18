@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -142,7 +142,7 @@ public class WorkflowController {
 	@GetMapping(value = PATH_PARAM_SITE + AFFECTED_PACKAGES, produces = APPLICATION_JSON_VALUE)
 	public ResultList<PublishPackage> getWorkflowAffectedPackages(@ValidSiteId @PathVariable String site,
 																  @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path,
-																  @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) {
+																  @RequestParam(value = REQUEST_PARAM_INCLUDE_CHILDREN, required = false) boolean includeChildren) throws ServiceLayerException {
 		Collection<PublishPackage> affectedPackages = emptyIfNull(publishService.getActivePackagesForItems(site, List.of(path), includeChildren));
 		ResultList<PublishPackage> result = new ResultList<>();
 		result.setEntities(RESULT_KEY_PACKAGES, affectedPackages);

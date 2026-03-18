@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -232,7 +232,7 @@ public interface PublishService {
 	 * @param includeChildren whether to include the children of the paths in the search
 	 * @return the READY or PROCESSING packages containing the items
 	 */
-	Collection<PublishPackage> getActivePackagesForItems(String siteId, List<String> paths, boolean includeChildren);
+	Collection<PublishPackage> getActivePackagesForItems(String siteId, List<String> paths, boolean includeChildren) throws ServiceLayerException;
 
 	/**
 	 * Publish the deletion of the given paths.
