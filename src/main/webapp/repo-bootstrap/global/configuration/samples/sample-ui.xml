@@ -428,6 +428,92 @@
 			</setups>
 		</configuration>
 	</widget>
+	<widget id="craftercms.components.ContentTypeManagement">
+		<configuration>
+			<objectTypes id="page">
+				<descriptor>
+					<name>Page</name>
+					<type>page</type>
+					<fields>
+						<file-name>
+							<defaultValue />
+							<description />
+							<helpText />
+							<id>file-name</id>
+							<name>Page URL</name>
+							<type>file-name</type>
+						</file-name>
+						<internal-name>
+							<defaultValue />
+							<description />
+							<helpText />
+							<id>internal-name</id>
+							<name>Internal Name</name>
+							<type>input</type>
+						</internal-name>
+						<navLabel>
+							<defaultValue />
+							<description />
+							<helpText />
+							<id>navLabel</id>
+							<name>Nav Label</name>
+							<type>input</type>
+						</navLabel>
+						<placeInNav>
+							<defaultValue />
+							<description />
+							<helpText />
+							<id>placeInNav</id>
+							<name>Place In Nav</name>
+							<type>page-nav-order</type>
+						</placeInNav>
+					</fields>
+					<sections title="System Properties">
+						<id>defaultSection</id>
+						<color>rgba(255,0,0,.7)</color>
+						<title>System Properties</title>
+						<expandByDefault>true</expandByDefault>
+						<fields>file-name</fields>
+						<fields>internal-name</fields>
+						<fields>placeInNav</fields>
+						<fields>navLabel</fields>
+					</sections>
+				</descriptor>
+			</objectTypes>
+			<objectTypes id="component">
+				<descriptor>
+					<name>Component</name>
+					<type>component</type>
+					<fields>
+						<file-name>
+							<defaultValue />
+							<description />
+							<helpText />
+							<id>file-name</id>
+							<name>Component ID</name>
+							<type>auto-filename</type>
+						</file-name>
+						<internal-name>
+							<defaultValue />
+							<description />
+							<helpText />
+							<id>internal-name</id>
+							<name>Internal Name</name>
+							<type>input</type>
+						</internal-name>
+					</fields>
+					<sections title="System Properties">
+						<id>defaultSection</id>
+						<color>rgba(255,0,0,.7)</color>
+						<title>System Properties</title>
+						<expandByDefault>true</expandByDefault>
+						<fields>file-name</fields>
+						<fields>internal-name</fields>
+					</sections>
+				</descriptor>
+			</objectTypes>
+		</configuration>
+	</widget>
 	<references>
 		<reference id="craftercms.siteTools">
 			<tools>

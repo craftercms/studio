@@ -459,6 +459,23 @@ public class XsltTest {
 		testXsltTemplate(template, content, expected, params);
 	}
 
+	@DataProvider(name = "ui5001TestData")
+	public Object[][] ui5001TestData() {
+		return new Object[][]{
+				new Object[] {
+						new ClassPathResource("crafter/studio/upgrade/5.0.x/config/ui/ui-v5.0.0.1.xslt"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/ui/v5.0/5.0.0.1/input.xml"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/ui/v5.0/5.0.0.1/expected.xml"),
+						emptyMap()
+				}
+		};
+	}
+
+	@Test(dataProvider = "ui5001TestData")
+	public void ui5001Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
 	private void testXsltTemplate(Resource template, Resource content, Resource expected, Map<String, Object> params)
 		throws IOException, TransformerException {
 		try (InputStream templateIs = template.getInputStream();
