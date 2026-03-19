@@ -245,19 +245,19 @@ public class ContentServiceInternalImplTest {
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 
 		// Mock repository behavior
-		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet(), anyString())).thenReturn("commit-id");
 
 		// Mock lifecycle execution
 		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
 
 		runInMockStatics(() -> {
-			WriteContentResult result = serviceInternal.write(SITE_ID, PATH, contentStream);
+			WriteContentResult result = serviceInternal.write(SITE_ID, PATH, contentStream, null);
 
 			// Verify behavior
 			assertNotNull(result);
 			assertEquals(1, result.getItems().size());
 		});
-		verify(contentRepository, times(1)).writeContent(eq(SITE_ID), anyCollection(), anySet());
+		verify(contentRepository, times(1)).writeContent(eq(SITE_ID), anyCollection(), anySet(), null);
 	}
 
 	@Test(expected = ServiceLayerException.class)
@@ -268,7 +268,7 @@ public class ContentServiceInternalImplTest {
 		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
 
 		// Call the method
-		serviceInternal.write(SITE_ID, PATH, contentStream);
+		serviceInternal.write(SITE_ID, PATH, contentStream, null);
 	}
 
 	@Test(expected = ContentInPublishQueueException.class)
@@ -288,7 +288,7 @@ public class ContentServiceInternalImplTest {
 		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
 
 		// Call the method
-		serviceInternal.write(SITE_ID, PATH, contentStream);
+		serviceInternal.write(SITE_ID, PATH, contentStream, null);
 	}
 
 	@Test(expected = ActionDeniedException.class)
@@ -303,7 +303,7 @@ public class ContentServiceInternalImplTest {
 		doReturn(lifecycleContent).when(serviceInternal).runLifecycle(eq(SITE_ID), any(), eq(PATH), any(), any(), any());
 
 		// Call the method
-		serviceInternal.write(SITE_ID, PATH, contentStream);
+		serviceInternal.write(SITE_ID, PATH, contentStream, null);
 	}
 
 	@Test
@@ -709,7 +709,7 @@ public class ContentServiceInternalImplTest {
 		when(contentRepository.getContentByCommitId(SITE_ID, "/site/website/test1", "COMMIT123")).thenReturn(Optional.of(resource));
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 
-		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("new-commit-id");
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet(), anyString())).thenReturn("new-commit-id");
 		when(itemService.getItem(SITE_ID, "/site/website", false)).thenReturn(mock(Item.class));
 		doReturn(true).when(contentRepository).contentExists(SITE_ID, "/site/website");
 
@@ -721,7 +721,8 @@ public class ContentServiceInternalImplTest {
 		verify(serviceInternal).writeInternal(
 				eq(SITE_ID),
 				eq("/site/website/test1"),
-				any(LifecycleContent.class)
+				any(LifecycleContent.class),
+				anyString()
 		);
 	}
 
@@ -738,11 +739,12 @@ public class ContentServiceInternalImplTest {
 	@Test
 	public void testEntitlementsUpdate() throws Exception {
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
-		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet(), anyString())).thenReturn("commit-id");
 		runInMockStatics(() -> serviceInternal.write(
 				SITE_ID,
 				PATH,
-				contentStream
+				contentStream,
+				null
 		));
 
 		verify(entitlementValidator, times(1)).validateEntitlement(
@@ -758,11 +760,12 @@ public class ContentServiceInternalImplTest {
 		when(itemService.getItem(SITE_ID, "/sample", false)).thenReturn(parentItem);
 		when(contentRepository.contentExists(SITE_ID, "/sample")).thenReturn(true);
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
-		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet(), anyString())).thenReturn("commit-id");
 		runInMockStatics(() -> serviceInternal.write(
 				SITE_ID,
 				NON_EXIST_CONTENT_PATH,
-				contentStream
+				contentStream,
+				null
 		));
 
 		verify(entitlementValidator, times(1)).validateEntitlement(
@@ -778,7 +781,7 @@ public class ContentServiceInternalImplTest {
 		when(itemService.getItem(SITE_ID, "/sample", false)).thenReturn(parentItem);
 		when(contentRepository.contentExists(SITE_ID, "/sample")).thenReturn(true);
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
-		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet())).thenReturn("commit-id");
+		when(contentRepository.writeContent(eq(SITE_ID), anyCollection(), anySet(), null)).thenReturn("commit-id");
 
 		doAnswer(a -> {
 			LifecycleContent lifecycleContent = (LifecycleContent) a.getArguments()[1];
@@ -794,7 +797,8 @@ public class ContentServiceInternalImplTest {
 		runInMockStatics(() -> serviceInternal.write(
 				SITE_ID,
 				NON_EXIST_CONTENT_PATH,
-				contentStream
+				contentStream,
+				null
 		));
 
 		verify(entitlementValidator, times(1)).validateEntitlement(
@@ -864,13 +868,14 @@ public class ContentServiceInternalImplTest {
 			ServiceLayerException exception = assertThrows(ServiceLayerException.class, () -> serviceInternal.write(
 					SITE_ID,
 					NON_EXIST_CONTENT_PATH,
-					contentStream
+					contentStream,
+					anyString()
 			));
 			EntitlementException entitlementException = throwableOfType(exception, EntitlementException.class);
 			assertNotNull("Exception thrown should be EntitlementException", entitlementException);
 		});
 
-		verify(contentRepository, never()).writeContent(eq(SITE_ID), anyCollection(), anySet());
+		verify(contentRepository, never()).writeContent(eq(SITE_ID), anyCollection(), anySet(), anyString());
 	}
 
 	/**

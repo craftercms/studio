@@ -263,9 +263,9 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteReady
 	@ValidateAction(type = Type.CREATE)
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public WriteContentResult write(@SiteId String siteId, @ContentPath @ActionTargetPath String path, InputStream content)
+	public WriteContentResult write(@SiteId String siteId, @ContentPath @ActionTargetPath String path, InputStream content, String comment)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		return contentServiceInternal.write(siteId, path, content);
+		return contentServiceInternal.write(siteId, path, content, comment);
 	}
 
 	@Override

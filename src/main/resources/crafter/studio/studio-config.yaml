@@ -46,7 +46,7 @@ studio.repo.commitMessagePrologue:
 # Repository commit postscript message
 studio.repo.commitMessagePostscript:
 # Sandbox repository write commit message
-studio.repo.sandbox.write.commitMessage: "User {username} wrote content {path}"
+studio.repo.sandbox.write.commitMessage: "User {username} wrote content {path}. \n{userComment}"
 # Published repository commit message
 studio.repo.published.commitMessage: "Publish event triggered by {username} on {datetime} via {source}.\n\nPublish note from user: \"{message}\"\n\nCommit ID: {commit_id}\n\nPackage ID: {package_id}"
 # Commit message to mark commit not to process when syncing database
