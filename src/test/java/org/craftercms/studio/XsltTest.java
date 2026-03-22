@@ -425,6 +425,7 @@ public class XsltTest {
 	public void depResolver5001Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
 		testXsltTemplate(template, content, expected, params);
 	}
+
 	@DataProvider(name = "globalPermissions50010TestData")
 	public Object[][] globalPermissions50010TestData() {
 		return new Object[][]{

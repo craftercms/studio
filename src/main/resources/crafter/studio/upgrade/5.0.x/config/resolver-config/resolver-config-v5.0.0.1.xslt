@@ -53,7 +53,7 @@
 								<xsl:text>href=["'](\/((?!index\.xml)[^"'?#])+((?!index\.xml)[^"'?#\/])+)([^"']*)["']</xsl:text>
 							</xsl:element>
 							<xsl:element name="replace">
-								<xsl:text>/site/website$1</xsl:text>
+								<xsl:text>/site/website$1/index.xml</xsl:text>
 							</xsl:element>
 						</xsl:element>
 					</xsl:element>
