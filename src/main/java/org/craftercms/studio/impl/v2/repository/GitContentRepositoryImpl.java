@@ -1658,7 +1658,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
+	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders, String userComment)
 		throws ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
@@ -1680,8 +1680,9 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			PersonIdent user = helper.getCurrentUserIdent();
 			String username = SecurityUtils.getCurrentUsername();
 			String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
-				.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
-				.replace(REPO_COMMIT_MESSAGE_PATH_VAR, paths.getFirst());
+					.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
+					.replace(REPO_COMMIT_MESSAGE_PATH_VAR, paths.getFirst())
+					.replace(REPO_COMMIT_MESSAGE_USER_COMMENT_VAR, defaultIfEmpty(userComment, "")); // Avoid "null" in the commit message if the comment is null
 			String commitId = helper.commitFiles(repo, siteId, comment, user, paths.toArray(new String[]{}));
 			if (commitId != null) {
 				persistCommit(siteId, commitId);
@@ -1851,8 +1852,9 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			PersonIdent user = helper.getCurrentUserIdent();
 			String username = SecurityUtils.getCurrentUsername();
 			String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
-				.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
-				.replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
+					.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
+					.replace(REPO_COMMIT_MESSAGE_PATH_VAR, path)
+					.replace(REPO_COMMIT_MESSAGE_USER_COMMENT_VAR, ""); // Avoid "null" in the commit message if the comment is null;
 			String commitId = helper.commitFiles(repo, siteId, comment, user, path);
 			if (commitId != null) {
 				persistCommit(siteId, commitId);

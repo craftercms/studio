@@ -4599,6 +4599,9 @@ paths:
                                 path:
                                     type: string
                                     description: content item path (including filename)
+                                comment:
+                                    type: string
+                                    description: user comment for the upload action
                                 file:
                                     type: string
                                     format: binary
@@ -4660,6 +4663,9 @@ paths:
                                 path:
                                     type: string
                                     description: content item path (including filename)
+                                comment:
+                                    type: string
+                                    description: user comment for the write action
                                 content:
                                     type: string
                                     description: the item content

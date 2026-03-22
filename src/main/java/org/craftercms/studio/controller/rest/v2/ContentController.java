@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -75,6 +76,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.craftercms.studio.model.rest.content.WriteContentRequest.WRITE_COMMENT_MAX_LENGTH;
 import static org.springframework.http.MediaType.*;
 
 @Validated
@@ -263,22 +265,25 @@ public class ContentController {
 	public ResponseEntity<Result> write(@PathVariable @ValidSiteId String siteId,
 										@Valid @RequestBody WriteContentRequest writeContentRequest)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		return writeContent(siteId, writeContentRequest.getPath(), IOUtils.toInputStream(writeContentRequest.getContent(), UTF_8));
+		return writeContent(siteId, writeContentRequest.getPath(), IOUtils.toInputStream(writeContentRequest.getContent(), UTF_8),
+				writeContentRequest.getComment());
 	}
 
 	@PutMapping(value = SITE_ID, consumes = MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<Result> upload(@PathVariable @ValidSiteId String siteId,
 										 @RequestParam MultipartFile file,
-										 @NotEmpty @ValidNewContentPath @RequestPart(REQUEST_PARAM_PATH) String path)
+										 @NotEmpty @ValidNewContentPath @RequestPart(REQUEST_PARAM_PATH) String path,
+										 @RequestParam(required = false) @Size(max = WRITE_COMMENT_MAX_LENGTH) String comment)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException, IOException {
-		return writeContent(siteId, path, file.getInputStream());
+		return writeContent(siteId, path, file.getInputStream(), comment);
 	}
 
 	private ResponseEntity<Result> writeContent(final String siteId,
 												final String path,
-												final InputStream content)
+												final InputStream content,
+												final String comment)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		WriteContentResult writeResult = contentService.write(siteId, path, content);
+		WriteContentResult writeResult = contentService.write(siteId, path, content, comment);
 		boolean isNew = writeResult.getItems().stream()
 				.filter(i -> StringUtils.equals(i.path(), path))
 				.map(WriteContentResult.WriteContentResultItem::operation)

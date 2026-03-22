@@ -497,7 +497,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
 				.replaceAll(PATTERN_MODULE, module);
 		String configPath = Paths.get(configBasePath, path).toString();
-		contentService.write(siteId, configPath, content);
+		contentService.write(siteId, configPath, content, null);
 		generateAuditLog(siteId, configPath);
 		dependencyService.upsertDependencies(siteId, configPath);
 	}
@@ -577,7 +577,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 							.replaceAll(PATTERN_ENVIRONMENT, environment);
 			if (contentService.contentExists(siteId, configBasePath)) {
 				String configPath = Paths.get(configBasePath, path).toString();
-				contentService.write(siteId, configPath, content);
+				contentService.write(siteId, configPath, content, null);
 			} else {
 				writeDefaultConfiguration(siteId, module, path, content);
 			}
