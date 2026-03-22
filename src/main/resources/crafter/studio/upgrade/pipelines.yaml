@@ -590,6 +590,14 @@ pipelines:
                 operations:
                     -   type: dbScriptUpgrader
                         filename: upgrade/5.0.x/5.0.0.13-to-5.0.0.14.sql
+            -   currentVersion: 5.0.0.14
+                nextVersion: 5.0.0.15
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file
 
     # Pipeline to upgrade site repositories
     site:
