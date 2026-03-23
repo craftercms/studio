@@ -1924,6 +1924,68 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
+    /api/2/sites:
+        post:
+            tags:
+                - sites
+            summary: Create a site. It can be created from a blueprint or from a remote repository.
+            description: 'Required Permission: "create_site"'
+            operationId: createSiteFromBlueprint
+            requestBody:
+                description: The site information
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            discriminator:
+                                propertyName: sourceType
+                                mapping:
+                                    blueprint: '#/components/schemas/CreateSiteFromBlueprintRequest'
+                                    remote: '#/components/schemas/CreateSiteFromRemoteRequest'
+                            oneOf:
+                                - $ref: '#/components/schemas/CreateSiteFromBlueprintRequest'
+                                - $ref: '#/components/schemas/CreateSiteFromRemoteRequest'
+                        examples:
+                            createFromBlueprint:
+                                summary: Create a site from a blueprint
+                                value:
+                                    siteId: "my-site"
+                                    name: "My Site"
+                                    description: "This is my site"
+                                    sourceType: "blueprint"
+                                    blueprint: "org.craftercms.blueprint.empty"
+                            createFromRemote:
+                                summary: Create a site from a remote repository
+                                value:
+                                    siteId: "my-site"
+                                    name: "My Site"
+                                    description: "This is my site"
+                                    sourceType: "remote"
+                                    remoteUrl: "http://myrepo.com/repo.git"
+                                    remoteName: "origin"
+                                    remoteBranch: "branch123"
+                                    authentication:
+                                        username: "myuser"
+                                        password: "mypassword"
+            responses:
+                '201':
+                    description: Created
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
     /api/2/sites/create_site_from_marketplace:
         post:
             tags:
@@ -4087,50 +4149,50 @@ paths:
 
     /api/2/configuration/content-type/form_controller:
         get:
-          tags:
-            - configuration
-          summary: Get the form controller (if it exists) script of a given content type
-          description: 'Required permission "content_read"'
-          operationId: getContentTypeFormController
-          parameters:
-            - name: siteId
-              in: query
-              description: site ID
-              required: true
-              schema:
-                type: string
-            - name: contentTypeId
-              in: query
-              required: true
-              schema:
-                type: string
-          responses:
-            '200':
-              description: 'OK'
-              content:
-                '*/*':
+            tags:
+                - configuration
+            summary: Get the form controller (if it exists) script of a given content type
+            description: 'Required permission "content_read"'
+            operationId: getContentTypeFormController
+            parameters:
+                - name: siteId
+                  in: query
+                  description: site ID
+                  required: true
                   schema:
-                    type: string
-                    format: binary
-                    description: The content of the form controller file
-              headers:
-                Content-Type:
-                  description: The MIME type of the form controller file
+                      type: string
+                - name: contentTypeId
+                  in: query
+                  required: true
                   schema:
-                    type: string
-                Content-Length:
-                  description: The size in bytes of the form controller file
-                  schema:
-                    type: integer
-                    format: int64
-            '400':
-              $ref: '#/components/responses/BadRequest'
-            '401':
-              $ref: '#/components/responses/Unauthorized'
-            '404':
-              $ref: '#/components/responses/NotFound'
-            '500':
-              $ref: '#/components/responses/InternalServerError'
+                      type: string
+            responses:
+                '200':
+                    description: 'OK'
+                    content:
+                        '*/*':
+                            schema:
+                                type: string
+                                format: binary
+                                description: The content of the form controller file
+                    headers:
+                        Content-Type:
+                            description: The MIME type of the form controller file
+                            schema:
+                                type: string
+                        Content-Length:
+                            description: The size in bytes of the form controller file
+                            schema:
+                                type: integer
+                                format: int64
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
 
     /api/2/configuration/content-type/delete:
         post:
@@ -8836,6 +8898,99 @@ components:
                 - blueprintId
                 - blueprintVersion
 
+        CreateSiteRequest:
+            type: object
+            properties:
+                sourceType:
+                    type: string
+                    description: The source of the site to create. Possible values are blueprint and remote
+                    enum:
+                        - blueprint
+                        - remote
+                siteId:
+                    type: string
+                    description: Site ID to use
+                name:
+                    type: string
+                    description: Site name
+                description:
+                    type: string
+                    description: Site description
+                sandboxBranch:
+                    type: string
+                    description: Name for sandbox branch (default master)
+                siteParams:
+                    type: object
+                    description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
+                    additionalProperties:
+                        type: string
+            required:
+                - siteId
+                - name
+                - sourceType
+
+        CreateSiteFromBlueprintRequest:
+            allOf:
+                -   $ref: '#/components/schemas/CreateSiteRequest'
+                -   type: object
+                    properties:
+                        blueprint:
+                            type: string
+                            description: The ID of the blueprint to use
+                    required:
+                        - blueprint
+
+        CreateSiteFromRemoteRequest:
+            allOf:
+                -   $ref: '#/components/schemas/CreateSiteRequest'
+                -   type: object
+                    properties:
+                        remoteUrl:
+                            type: string
+                            description: URL of the remote repository
+                        remoteName:
+                            type: string
+                            description: Name of the remote repository (default origin)
+                        remoteBranch:
+                            type: string
+                            description: Name of the branch to use from the remote repository (default master)
+                        authentication:
+                            $ref: '#/components/schemas/CreateSiteRemoteAuth'
+                    required:
+                        - url
+
+        CreateSiteRemoteAuth:
+            oneOf:
+                -   type: object
+                    properties:
+                        username:
+                            type: string
+                            description: Username for basic authentication
+                        password:
+                            type: string
+                            description: Password for basic authentication
+                    required:
+                        - username
+                        - password
+                -   type: object
+                    properties:
+                        username:
+                            type: string
+                            description: Username for basic authentication
+                        token:
+                            type: string
+                            description: authentication token
+                    required:
+                        - username
+                        - token
+                -   type: object
+                    properties:
+                        privateKey:
+                            type: string
+                            description: Private key
+                    required:
+                        - privateKey
+
         PluginRecord:
             type: object
             properties:
@@ -9292,49 +9447,49 @@ components:
                 lastCleanup: null
 
         RemoteRepository:
-                type: object
-                properties:
-                    siteId:
-                        type: string
-                        description: site identifier
-                    remoteName:
-                        type: string
-                        description: remote repository name
-                    remoteUrl:
-                        type: string
-                        format: URL
-                        description: URL to access remote repository
-                    authenticationType:
-                        type: string
-                        description: >-
-                            Authentication type to use to access remote repository
-    
-                            Possible values:
-    
-                              - none: no authentication
-    
-                              - basic: username and password authentication
-    
-                              - token: token authentication
-    
-                              - key: key-based authentication
-                    remoteUsername:
-                        type: string
-                        description: username to use to access remote repository
-                    remotePassword:
-                        type: string
-                        description: password to use to access remote repository
-                    remoteToken:
-                        type: string
-                        description: token to use to access remote repository
-                    remotePrivateKey:
-                        type: string
-                        description: private key to access
-                required:
-                    - siteId
-                    - remoteName
-                    - remoteUrl
-                    - authenticationType
+            type: object
+            properties:
+                siteId:
+                    type: string
+                    description: site identifier
+                remoteName:
+                    type: string
+                    description: remote repository name
+                remoteUrl:
+                    type: string
+                    format: URL
+                    description: URL to access remote repository
+                authenticationType:
+                    type: string
+                    description: >-
+                        Authentication type to use to access remote repository
+                        
+                        Possible values:
+                        
+                          - none: no authentication
+                        
+                          - basic: username and password authentication
+                        
+                          - token: token authentication
+                        
+                          - key: key-based authentication
+                remoteUsername:
+                    type: string
+                    description: username to use to access remote repository
+                remotePassword:
+                    type: string
+                    description: password to use to access remote repository
+                remoteToken:
+                    type: string
+                    description: token to use to access remote repository
+                remotePrivateKey:
+                    type: string
+                    description: private key to access
+            required:
+                - siteId
+                - remoteName
+                - remoteUrl
+                - authenticationType
 
         RemoteRepositoryInfo:
             type: object
