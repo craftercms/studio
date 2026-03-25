@@ -416,7 +416,7 @@ public class ExceptionHandlers {
 	public ResultList<ValidationFieldError> handleMethodArgumentNotValidException(HttpServletRequest request,
 										      MethodArgumentNotValidException e) {
 		ApiResponse response = new ApiResponse(INVALID_PARAMS);
-		handleExceptionInternal(request, e, response);
+		handleExceptionInternal(request, e, response, DEBUG);
 		ResultList<ValidationFieldError> result = new ResultList<>();
 		result.setResponse(response);
 		result.setEntities(RESULT_KEY_VALIDATION_ERRORS,
