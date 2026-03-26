@@ -73,7 +73,7 @@ import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
-import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+import org.craftercms.studio.model.rest.marketplace.CreateSiteFromMarketplaceRequest;
 import org.dom4j.*;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
@@ -443,7 +443,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 	}
 
 	@Override
-	public void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
+	public void createSite(CreateSiteFromMarketplaceRequest request) throws RemoteRepositoryNotFoundException,
 		InvalidRemoteRepositoryException, InvalidRemoteUrlException,
 		ServiceLayerException, InvalidRemoteRepositoryCredentialsException {
 

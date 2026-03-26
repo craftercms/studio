@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
 
@@ -187,5 +188,11 @@ public class SitesServiceImpl implements SitesService {
 	@Override
 	public void garbageCollectRepositories() {
 		sitesServiceInternal.garbageCollectRepositories();
+	}
+
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
+	public void createSite(CreateSiteRequest request) throws ServiceLayerException {
+		sitesServiceInternal.createSite(request);
 	}
 }

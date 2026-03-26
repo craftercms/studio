@@ -17,15 +17,18 @@
 package org.craftercms.studio.impl.v2.service.site.internal;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.entitlements.exception.EntitlementException;
+import org.craftercms.commons.entitlements.model.EntitlementType;
+import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
@@ -39,10 +42,15 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
+import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
 import org.jspecify.annotations.NonNull;
@@ -54,6 +62,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.ConstructorProperties;
 import java.io.FileReader;
@@ -80,6 +89,9 @@ import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
+import static org.craftercms.studio.impl.v2.utils.db.DBUtils.runAfterCommit;
+import static org.craftercms.studio.impl.v2.utils.db.DBUtils.runAfterRollback;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
 public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
@@ -96,7 +108,12 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private ConfigurationService configurationService;
 	private final AuditService auditService;
 	private final TaskManager taskManager;
+	private final EntitlementValidator entitlementValidator;
+	private final UserService userService;
+
+	private StudioUpgradeManager upgradeManager;
 	private StudioBlobStoreResolver blobStoreResolver;
+	private ContentService contentService;
 	private ApplicationContext applicationContext;
 
 	@ConstructorProperties({"descriptorReader",
@@ -104,13 +121,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			"siteDao",
 			"retryingDatabaseOperationFacade",
 			"deployer",
-			"auditService", "taskManager"})
+			"auditService", "taskManager",
+			"entitlementValidator", "userService"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
 									StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
 									SiteDAO siteDao,
 									RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 									Deployer deployer,
-									AuditService auditService, TaskManager taskManager) {
+									AuditService auditService, TaskManager taskManager,
+									EntitlementValidator entitlementValidator, UserService userService){
 		this.descriptorReader = descriptorReader;
 		this.studioConfiguration = studioConfiguration;
 		this.siteFeedMapper = siteFeedMapper;
@@ -119,6 +138,8 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		this.deployer = deployer;
 		this.auditService = auditService;
 		this.taskManager = taskManager;
+		this.entitlementValidator = entitlementValidator;
+		this.userService = userService;
 	}
 
 	@Override
@@ -580,6 +601,185 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	/**
+	 * Check a site with the given id and name can be created,
+	 * and that the entitlements allowed the creation of a new site.
+	 */
+	private void checkCanCreateSite(String siteId, String name) throws ServiceLayerException {
+		if (siteDao.exists(siteId) || siteDao.existsByName(name)) {
+			throw new SiteAlreadyExistsException();
+		}
+		try {
+			entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
+		} catch (EntitlementException e) {
+			throw new ServiceLayerException(format("Failed to perform create site '%s' operation due to entitlement validation failure", siteId), e);
+		}
+	}
+
+	@Override
+	@Transactional
+	public void createSite(CreateSiteRequest request) throws ServiceLayerException {
+		logger.info("Create site with params: '{}'", request);
+		checkCanCreateSite(request.getSiteId(), request.getName());
+
+		switch (request) {
+			case CreateSiteRequest.RemoteSource remoteRequest -> {
+				// TODO: implement site creation from remote source
+			}
+			case CreateSiteRequest.BlueprintSource blueprintRequest -> createSiteFromBlueprint(blueprintRequest);
+		}
+	}
+
+	/**
+	 * Cleanup method to be called after a failed site creation, to delete any possible created resource
+	 * like deployer targets or site repository, and to invalidate the configuration cache.
+	 *
+	 * @param siteId site id
+	 */
+	protected void cleanupFailedSiteCreation(String siteId) {
+		deployer.deleteTargets(siteId);
+		blobAwareRepository.deleteSite(siteId);
+		configurationService.invalidateConfiguration(siteId);
+		// No need to clean the database since the creation is transactional
+	}
+
+	/**
+	 * Create a new site based on a blueprint.
+	 * @param request the request object containing the blueprint id and site parameters
+	 * @throws ServiceLayerException if the blueprint is not found, if the parameters are not valid, or if any error occurs during site creation
+	 */
+	protected void createSiteFromBlueprint(CreateSiteRequest.BlueprintSource request) throws ServiceLayerException {
+		String blueprintId = request.getBlueprintId();
+		PluginDescriptor descriptor = getBlueprintDescriptor(blueprintId);
+		if (descriptor == null) {
+			throw new BlueprintNotFoundException(request.getBlueprintId());
+		}
+		logger.debug("Validate the parameters for blueprint '{}'", request.getBlueprintId());
+		validatePluginParameters(descriptor.getPlugin(), request.getSiteParams());
+
+		String siteId = request.getSiteId();
+		createDeployerTargets(siteId, blueprintId);
+
+		// Create site repo
+		String commitId = createSiteRepoFromBlueprint(request, blueprintId);
+
+		String siteUuid = UUID.randomUUID().toString();
+		addSiteUuidFile(siteId, siteUuid);
+		createSiteInDb(request, siteId, siteUuid, commitId);
+
+		upgradeSite(siteId);
+
+		String currentUsername = getCurrentUsername();
+		try {
+			contentService.processCreatedFiles(siteId, userService.getUserByGitName(currentUsername));
+		} catch (UserNotFoundException e) {
+			// This should not really happen since it is the current user
+			throw new ServiceLayerException(format("Failed to process created files for site '%s' after creation. User '%s' not found.", siteId, currentUsername), e);
+		}
+
+		// Configure blobstores
+		logger.info("Site '{}' based on blueprint '{}' has been created", siteId, blueprintId);
+
+		// This will trigger the deployer and the repository watcher
+		runAfterCommit(() -> applicationContext.publishEvent(new SiteReadyEvent(siteId, siteUuid)));
+		runAfterRollback(() -> cleanupFailedSiteCreation(siteId));
+
+		retryingDatabaseOperationFacade.retry(()->siteDao.setSiteState(siteId, READY));
+
+		auditSiteCreate(siteId, request.getName(), blueprintId);
+	}
+
+	/**
+	 * Insert an audit log entry for site creation, with the blueprint used as audit parameter
+	 *
+	 * @param siteId      the created site id
+	 * @param siteName    the created site name
+	 * @param blueprintId the blueprint used to create the site
+	 */
+	protected void auditSiteCreate(final String siteId, final String siteName, final String blueprintId) {
+		Site globalSite = siteDao.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+		AuditLog auditLog = createAuditLogEntry();
+		auditLog.setOperation(OPERATION_CREATE);
+		auditLog.setSiteId(globalSite.getId());
+		auditLog.setActorId(getCurrentUsername());
+		auditLog.setPrimaryTargetId(siteId);
+		auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+		auditLog.setPrimaryTargetValue(siteName);
+		List<AuditLogParameter> auditLogParameters = new ArrayList<>();
+		AuditLogParameter auditLogParameter = new AuditLogParameter();
+		auditLogParameter.setTargetId(siteId);
+		auditLogParameter.setTargetType(TARGET_TYPE_BLUEPRINT);
+		auditLogParameter.setTargetValue(blueprintId);
+		auditLogParameters.add(auditLogParameter);
+
+		auditLog.setParameters(auditLogParameters);
+		auditService.insertAuditLog(auditLog);
+	}
+
+	/**
+	 * Call the upgrade manager on a newly created site
+	 * @param siteId site id
+	 * @throws ServiceLayerException if the upgrade process fails
+	 */
+	protected void upgradeSite(String siteId) throws ServiceLayerException {
+		logger.info("Upgrade newly created site '{}'", siteId);
+		try {
+			upgradeManager.upgrade(siteId);
+		} catch (UpgradeException e) {
+			throw new ServiceLayerException(format("Failed to upgrade site '%s'", siteId), e);
+		}
+	}
+
+	/**
+	 * Create a new site in the database
+	 */
+	protected void createSiteInDb(CreateSiteRequest.BlueprintSource request, String siteId,
+								  String siteUuid, String lastCommitId) {
+		logger.info("Create site '{}' in the database", siteId);
+		Site site = new Site();
+		site.setSiteId(siteId);
+		site.setSiteUuid(siteUuid);
+		site.setName(request.getName());
+		site.setDescription(request.getDescription());
+		site.setPublishingStatus(PublishStatus.READY);
+		site.setSandboxBranch(request.getSandboxBranch());
+		site.setLastCommitId(lastCommitId);
+		retryingDatabaseOperationFacade.retry(() -> siteDao.createSite(site));
+	}
+
+	/**
+	 * Create the site repository based on the blueprint content.
+	 * @param request the request object containing the blueprint id and site parameters
+	 * @param blueprintId the blueprint id
+	 * @return the last commit id of the created site repository
+	 * @throws ServiceLayerException if any error occurs during the site repository creation
+	 */
+	protected String createSiteRepoFromBlueprint(CreateSiteRequest.BlueprintSource request, String blueprintId) throws ServiceLayerException {
+		logger.info("Create site repository for site '{}' based on blueprint '{}'", request.getSiteId(), blueprintId);
+		String siteId = request.getSiteId();
+		String creator = SecurityUtils.getCurrentUsername();
+		return blobAwareRepository.createSiteFromBlueprint(getBlueprintLocation(blueprintId), siteId, request.getSandboxBranch(),
+				request.getSiteParams(), creator);
+	}
+
+	/**
+	 * Create the depljoyer targets for a newly created site
+	 * @throws DeployerTargetException if any error occurs during the deployer target creation
+	 */
+	protected void createDeployerTargets(String siteId, String blueprintId) throws DeployerTargetException {
+		// Create the site in the preview deployer
+		logger.info("Create the deployer targets for site '{}'", siteId);
+		try {
+			deployer.createTargets(siteId);
+		} catch (Exception e) {
+			logger.error("Failed to create site '{}' based on blueprint '{}'. The deployer targets " +
+					"couldn't be created. Rolling back site creation.", siteId, blueprintId, e);
+			throw new DeployerTargetException(format("Failed to create site '%s' based on blueprint '%s'. " +
+							"The deployer targets couldn't be created. Rolling back site creation.",
+					siteId, blueprintId), e);
+		}
+	}
+
+	/**
 	 * Creates an audit log entry for the site duplication operation, including the source site as audit params
 	 *
 	 * @param sourceSiteId the source site id
@@ -611,14 +811,20 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 *
 	 * @param site     site id
 	 * @param siteUuid site uuid
-	 * @throws IOException if the file cannot be written
+	 * @throws ServiceLayerException if the file cannot be written
 	 */
-	protected void addSiteUuidFile(final String site, final String siteUuid) throws IOException {
-		Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-			studioConfiguration.getProperty(SITES_REPOS_PATH), site,
-			StudioConstants.SITE_UUID_FILENAME);
-		String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
-		Files.write(path, toWrite.getBytes());
+	protected void addSiteUuidFile(final String site, final String siteUuid) throws ServiceLayerException {
+		logger.info("Adding site uuid file for site '{}'", site);
+		try {
+			Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+					studioConfiguration.getProperty(SITES_REPOS_PATH), site,
+					StudioConstants.SITE_UUID_FILENAME);
+			String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
+			Files.write(path, toWrite.getBytes());
+		} catch (IOException e) {
+			logger.error("Failed to write site uuid file for site '{}'", site, e);
+			throw new ServiceLayerException(format("Failed to write site uuid file for site '%s'", site), e);
+		}
 	}
 
 	@Override
@@ -638,6 +844,19 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Lazy
 	public void setBlobStoreResolver(StudioBlobStoreResolver blobStoreResolver) {
 		this.blobStoreResolver = blobStoreResolver;
+	}
+
+	@Autowired
+	@Lazy
+	public void setUpgradeManager(StudioUpgradeManager upgradeManager) {
+		this.upgradeManager = upgradeManager;
+	}
+
+	@Autowired
+	@Lazy
+	@Qualifier("contentServiceInternal")
+	public void setContentService(ContentService contentService) {
+		this.contentService = contentService;
 	}
 
 	@Autowired

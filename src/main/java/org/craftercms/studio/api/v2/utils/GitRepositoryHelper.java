@@ -872,11 +872,10 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @param message       commit message
 	 * @param sandboxBranch sandbox branch name
 	 * @param creator       site creator
-	 * @return true if successful, false otherwise
+	 * @return the commit id of the performed commit
 	 */
-	public boolean performInitialCommit(String site, String message, String sandboxBranch, String creator) {
-		boolean toReturn = true;
-
+	@NonNull
+	public String performInitialCommit(String site, String message, String sandboxBranch, String creator) throws ServiceLayerException {
 		Repository repo = getRepository(site, GitRepositories.SANDBOX, sandboxBranch);
 		String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
 		generalLockService.lock(gitLockKey);
@@ -884,24 +883,25 @@ public class GitRepositoryHelper implements DisposableBean {
 			StatusCommand statusCommand = git.status();
 			Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
-			if (status.hasUncommittedChanges() || !status.isClean()) {
-				AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
-				retryingRepositoryOperationFacade.call(addCommand);
-				CommitCommand commitCommand = git.commit()
-					.setMessage(message);
-				User user = userService.getUserByIdOrUsername(-1, creator);
-				commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
-				retryingRepositoryOperationFacade.call(commitCommand);
+			if (!status.hasUncommittedChanges() && status.isClean()) {
+				throw new ServiceLayerException(format("No changes to commit for site '%s'", site));
 			}
+			AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
+			retryingRepositoryOperationFacade.call(addCommand);
+			CommitCommand commitCommand = git.commit()
+				.setMessage(message);
+			User user = userService.getUserByIdOrUsername(-1, creator);
+			commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
+			RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
+
 			checkoutSandboxBranch(site, repo, sandboxBranch);
-		} catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
+			return commit.getName();
+		} catch (GitAPIException | UserNotFoundException e) {
 			logger.error("Failed to create the initial commit for site '{}'", site, e);
-			toReturn = false;
+			throw new ServiceLayerException(format("Failed to create the initial commit for site '%s'", site), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
-
-		return toReturn;
 	}
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")

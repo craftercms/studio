@@ -67,6 +67,7 @@ import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -349,12 +350,15 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
-										   Map<String, String> params, String creator) {
+	@NonNull
+	public String createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
+										   Map<String, String> params, String creator) throws ServiceLayerException {
+		String commit = null;
 		boolean toReturn;
 		String gitLockKey = helper.getSandboxRepoLockKey(site);
 		generalLockService.lock(gitLockKey);
 		try {
+			// TODO make all these methods throw exceptions on failure instead of returning a boolean
 			// create git repository for site content
 			toReturn = helper.createSandboxRepository(site, sandboxBranch);
 
@@ -378,14 +382,14 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 			if (toReturn) {
 				// commit everything so it is visible
-				toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
+				commit = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
 					sandboxBranch, creator);
 			}
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
 
-		return toReturn;
+		return commit;
 	}
 
 	/**
@@ -538,8 +542,9 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				if (toReturn) {
 					// Commit everything so it is visible
 					logger.debug("Perform initial commit for site '{}'", siteId);
-					toReturn = helper.performInitialCommit(siteId,
+					helper.performInitialCommit(siteId,
 						helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch, creator);
+					toReturn = true;
 				}
 			} else {
 				logger.error("Failed to create site '{}' by cloning remote repository '{} ({})'",

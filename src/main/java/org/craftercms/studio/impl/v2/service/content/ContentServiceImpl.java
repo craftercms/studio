@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
 import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.service.content.ContentService;
@@ -337,6 +338,12 @@ public class ContentServiceImpl implements ContentService {
 	public List<ContentItem> getContentItemsByStates(@SiteId String siteId, long statesBitMap,
 													 List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
 		return contentServiceInternal.getContentItemsByStates(siteId, statesBitMap, systemTypes, sortFields, offset, limit);
+	}
+
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
+	public void processCreatedFiles(String siteId, User creator) throws ServiceLayerException {
+		contentServiceInternal.processCreatedFiles(siteId, creator);
 	}
 
 	@SuppressWarnings("unused")

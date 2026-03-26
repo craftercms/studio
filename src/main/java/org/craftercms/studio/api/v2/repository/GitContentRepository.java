@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
 
@@ -252,10 +253,11 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param sandboxBranch     sandbox branch name
 	 * @param params            site parameters
 	 * @param creator           site creator
-	 * @return true if successful, false otherwise
+	 * @return the last commit id of the created site repository after the operation
 	 */
-	boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-									Map<String, String> params, String creator);
+	@NonNull
+	String createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
+									Map<String, String> params, String creator) throws ServiceLayerException;
 
 	/**
 	 * Create new site as a clone from remote repository

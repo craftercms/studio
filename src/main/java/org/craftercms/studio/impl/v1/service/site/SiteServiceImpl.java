@@ -42,7 +42,6 @@ import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -202,7 +201,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 		try {
 			logger.info("Initialize site '{}' with blueprint '{}'", siteName, blueprintId);
-			success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params, creator);
+			createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params, creator);
 			ZonedDateTime now = DateUtils.getCurrentTime();
 
 			logger.debug("Add the site UUID to site '{}'", siteName);
@@ -224,7 +223,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 			// Add default groups
 			logger.debug("Add the default groups to site '{}'", siteName);
-			addDefaultGroupsForNewSite();
 
 			logger.debug("Add audit log to site '{}'", siteName);
 			insertCreateSiteAuditLog(siteId, siteName, blueprintId, creator);
@@ -453,18 +451,15 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		logger.debug("Finished processing created files for site '{}'", siteId);
 	}
 
-	protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteId, String sandboxBranch,
+	protected void createSiteFromBlueprintGit(String blueprintLocation, String siteId, String sandboxBranch,
 						     Map<String, String> params, String creator)
 		throws Exception {
-		boolean success;
 
 		// create site with git repo
-		success = contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
+		contentRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
 
 		String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
 		replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", siteId);
-
-		return success;
 	}
 
 	protected void replaceFileContentGit(String site, String path, String replace) throws Exception {
@@ -476,26 +471,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		InputStream contentToWrite = IOUtils.toInputStream(contentAsString, UTF_8);
 
 		contentRepository.writeContent(site, path, contentToWrite);
-	}
-
-	private void addDefaultGroupsForNewSite() {
-		List<String> defaultGroups = getDefaultGroups();
-		for (String group : defaultGroups) {
-			String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
-			try {
-				if (!groupService.groupExists(-1, group)) {
-					try {
-						groupService.createGroup(DEFAULT_ORGANIZATION_ID, group, description, false);
-					} catch (GroupAlreadyExistsException e) {
-						throw new IllegalStateException(e);
-					}
-				} else {
-					logger.info("Default group '{}' was not created since it already exists", group);
-				}
-			} catch (ServiceLayerException e) {
-				logger.error("Failed to create group '{}'", group, e);
-			}
-		}
 	}
 
 	@Override
@@ -629,8 +604,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 			// Add default groups
 			logger.info("Add default groups to site '{}'", siteId);
-			addDefaultGroupsForNewSite();
-
 
 			insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch, creator);
 
@@ -772,10 +745,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	@Override
 	public void setSiteState(String siteId, String state) {
 		retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, state));
-	}
-
-	public List<String> getDefaultGroups() {
-		return Arrays.asList(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_GROUPS).split(","));
 	}
 
 	@Override

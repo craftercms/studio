@@ -24,8 +24,8 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
-import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.task.PublishTask;
 
@@ -231,4 +231,13 @@ public interface SitesService {
 	 * Git Garbage collect global repository all site repositories (sandbox and published)
 	 */
 	void garbageCollectRepositories();
+
+	/**
+	 * Create a site with the given information
+	 *
+	 * @param request the site information
+	 * @throws SiteAlreadyExistsException if a site with the same ID already exists
+	 * @throws InvalidParametersException if the given parameters are invalid
+	 */
+	void createSite(CreateSiteRequest request) throws ServiceLayerException;
 }

@@ -84,7 +84,7 @@ public class SitesServiceInternalImplTest {
 	protected AuditService auditService;
 
 	@Before
-	public void setUp() throws IOException {
+	public void setUp() throws IOException, ServiceLayerException {
 		sitesServiceInternal.setApplicationContext(applicationContext);
 		sitesServiceInternal.setBlobAwareRepository(contentRepository);
 		sitesServiceInternal.setConfigurationService(configurationService);

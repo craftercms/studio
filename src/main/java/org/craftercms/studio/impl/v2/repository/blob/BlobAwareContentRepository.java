@@ -584,8 +584,9 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	// Start API 2
 
 	@Override
-	public boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-										   Map<String, String> params, String creator) {
+	@NonNull
+	public String createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
+										   Map<String, String> params, String creator) throws ServiceLayerException {
 		return localRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
 	}
 
