@@ -8919,11 +8919,6 @@ components:
                 sandboxBranch:
                     type: string
                     description: Name for sandbox branch (default master)
-                siteParams:
-                    type: object
-                    description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
-                    additionalProperties:
-                        type: string
             required:
                 - siteId
                 - name
@@ -8934,11 +8929,16 @@ components:
                 -   $ref: '#/components/schemas/CreateSiteRequest'
                 -   type: object
                     properties:
-                        blueprint:
+                        blueprintId:
                             type: string
                             description: The ID of the blueprint to use
+                        siteParams:
+                            type: object
+                            description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
+                            additionalProperties:
+                                type: string
                     required:
-                        - blueprint
+                        - blueprintId
 
         CreateSiteFromRemoteRequest:
             allOf:
