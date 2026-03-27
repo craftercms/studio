@@ -63,6 +63,7 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
@@ -429,15 +430,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public List<ItemVersion> getContentVersionHistory(final String siteId, final String path) throws ServiceLayerException {
-		try {
-			Site site = siteService.getSite(siteId);
+		Site site = siteService.getSite(siteId);
 
-			List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
-			populateAuthor(site, history.stream().map(ItemVersion::getRepositoryVersion).toList(), path);
-			return history;
-		} catch (IOException | GitAPIException e) {
-			throw new ServiceLayerException(format("Error getting content version history for site '%s' path '%s'", siteId, path), e);
-		}
+		List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
+		populateAuthor(site, history.stream().map(ItemVersion::getRepositoryVersion).toList(), path);
+		return history;
 	}
 
 	/**
@@ -468,14 +465,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public Collection<RepositoryVersion> getHistory(String siteId, String start, int limit) throws ServiceLayerException {
-		try {
-			Site site = siteService.getSite(siteId);
-			List<RepositoryVersion> history = contentRepository.getHistory(siteId, start, limit);
-			populateAuthor(site, history, null);
-			return history;
-		} catch (IOException e) {
-			throw new ServiceLayerException(format("Error getting repository history for site '%s'", siteId), e);
-		}
+		Site site = siteService.getSite(siteId);
+		List<RepositoryVersion> history = contentRepository.getHistory(siteId, start, limit);
+		populateAuthor(site, history, null);
+		return history;
 	}
 
 	/**
@@ -1896,7 +1889,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void unlockContent(String siteId, String path) throws ContentNotFoundException {
+	public void unlockContent(String siteId, String path) throws ContentNotFoundException, RepositoryException {
 		logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
 		generalLockService.lockContentItem(siteId, path);
 		try {

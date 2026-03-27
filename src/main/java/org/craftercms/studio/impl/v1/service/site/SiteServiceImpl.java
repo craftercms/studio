@@ -540,7 +540,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			// create site by cloning remote git repo
 			logger.info("Create site '{}' by cloning the remote '{}' url '{}' branch '{}'",
 				siteId, remoteName, remoteUrl, remoteBranch);
-			success = contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
+			contentRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
 				remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
 				remotePrivateKey, params, createAsOrphan, creator);
 
@@ -555,12 +555,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 			throw e;
 		}
 
-		if (!success) {
-//			contentRepository.removeRemoteRepositoriesForSite(siteId);
-			contentRepository.deleteSite(siteId);
-			throw new ServiceLayerException("Failed to create site: " + siteId + " ID: " + siteId + " as clone from " +
-				"remote repository: " + remoteName + " (" + remoteUrl + ")");
-		}
+//		if (!success) {
+////			contentRepository.removeRemoteRepositoriesForSite(siteId);
+//			contentRepository.deleteSite(siteId);
+//			throw new ServiceLayerException("Failed to create site: " + siteId + " ID: " + siteId + " as clone from " +
+//				"remote repository: " + remoteName + " (" + remoteUrl + ")");
+//		}
 
 		// Create the site in the preview deployer
 		try {

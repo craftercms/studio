@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.site.SiteDetails;
@@ -125,7 +126,7 @@ public interface SitesService {
 	 * @param siteId site identifier
 	 * @return publishing status
 	 */
-	PublishStatus getPublishingStatus(String siteId) throws SiteNotFoundException;
+	PublishStatus getPublishingStatus(String siteId) throws SiteNotFoundException, RepositoryException;
 
 	/**
 	 * Get the progress of a publishing task, if the package is being published. Null otherwise
@@ -230,7 +231,7 @@ public interface SitesService {
 	/**
 	 * Git Garbage collect global repository all site repositories (sandbox and published)
 	 */
-	void garbageCollectRepositories();
+	void garbageCollectRepositories() throws RepositoryException;
 
 	/**
 	 * Create a site with the given information

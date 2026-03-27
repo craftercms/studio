@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
@@ -486,7 +487,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
-	public PublishStatus getPublishingStatus(String siteId) {
+	public PublishStatus getPublishingStatus(String siteId) throws RepositoryException {
 		PublishStatus publishStatus = new PublishStatus();
 		Site site = siteDao.getSite(siteId);
 		publishStatus.setEnabled(site.getPublishingEnabled());
@@ -592,12 +593,12 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
-	public void garbageCollectRepositories() {
+	public void garbageCollectRepositories() throws RepositoryException {
 		blobAwareRepository.garbageCollectGitRepositories(EMPTY);
-		getSitesByState(READY).forEach(site -> {
+		for (Site site : getSitesByState(READY)) {
 			String siteId = site.getSiteId();
 			blobAwareRepository.garbageCollectGitRepositories(siteId);
-		});
+		}
 	}
 
 	/**

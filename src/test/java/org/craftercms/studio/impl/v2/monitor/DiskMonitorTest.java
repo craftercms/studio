@@ -16,6 +16,7 @@
 package org.craftercms.studio.impl.v2.monitor;
 
 import org.craftercms.commons.monitoring.DiskInfo;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.monitoring.DiskStatus;
 import org.junit.Test;
@@ -58,7 +59,7 @@ public class DiskMonitorTest {
 	}
 
 	@Test
-	public void noPreviousAlarmHighUsageTest() {
+	public void noPreviousAlarmHighUsageTest() throws RepositoryException {
 		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo mockInfo = mock(DiskInfo.class);
@@ -76,7 +77,7 @@ public class DiskMonitorTest {
 	}
 
 	@Test
-	public void noPreviousAlarmMiddleUsageTest() {
+	public void noPreviousAlarmMiddleUsageTest() throws RepositoryException {
 		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo mockInfo = mock(DiskInfo.class);
@@ -95,7 +96,7 @@ public class DiskMonitorTest {
 	}
 
 	@Test
-	public void previousAlarmLowUsageTest() {
+	public void previousAlarmLowUsageTest() throws RepositoryException {
 		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo previousMockInfo = mock(DiskInfo.class);
@@ -124,7 +125,7 @@ public class DiskMonitorTest {
 	}
 
 	@Test
-	public void previousAlarmMiddleUsageTest() {
+	public void previousAlarmMiddleUsageTest() throws RepositoryException {
 		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo previousMockInfo = mock(DiskInfo.class);
@@ -153,7 +154,7 @@ public class DiskMonitorTest {
 	}
 
 	@Test
-	public void previousAlarmHighUsageTest() {
+	public void previousAlarmHighUsageTest() throws RepositoryException {
 		DiskMonitor diskMonitor = getDiskMonitor(85, 95);
 
 		DiskInfo previousMockInfo = mock(DiskInfo.class);

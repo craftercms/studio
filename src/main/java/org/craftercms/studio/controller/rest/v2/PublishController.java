@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.PublishService.CalculatedPublishPackageResult;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -151,7 +152,7 @@ public class PublishController {
 
 	@GetMapping(PATH_PARAM_SITE + STATUS)
 	public ResultOne<PublishStatus> getPublishingStatus(@PathVariable @ValidSiteId String site)
-		throws SiteNotFoundException {
+			throws SiteNotFoundException, RepositoryException {
 		PublishStatus status = sitesService.getPublishingStatus(site);
 		ResultOne<PublishStatus> result = new ResultOne<>();
 		result.setEntity(RESULT_KEY_PUBLISH_STATUS, status);
@@ -161,7 +162,7 @@ public class PublishController {
 
 	@GetMapping(value = AVAILABLE_TARGETS, produces = APPLICATION_JSON_VALUE)
 	public AvailablePublishingTargets getAvailablePublishingTargets(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
-		throws SiteNotFoundException {
+			throws SiteNotFoundException, RepositoryException {
 		var availableTargets = publishService.getAvailablePublishingTargets(siteId);
 		var published = publishService.isSitePublished(siteId);
 		AvailablePublishingTargets availablePublishingTargets = new AvailablePublishingTargets();
@@ -174,7 +175,7 @@ public class PublishController {
 	@Valid
 	@GetMapping(value = HAS_INITIAL_PUBLISH, produces = APPLICATION_JSON_VALUE)
 	public ResultOne<Boolean> hasInitialPublish(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
-		throws SiteNotFoundException {
+			throws SiteNotFoundException, RepositoryException {
 		var published = publishService.isSitePublished(siteId);
 		ResultOne<Boolean> result = new ResultOne<>();
 		result.setResponse(OK);

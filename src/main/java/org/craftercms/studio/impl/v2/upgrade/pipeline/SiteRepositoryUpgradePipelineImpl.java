@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -147,6 +148,8 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 					git.close();
 				}
 			}
+		} catch (RepositoryException e) {
+			throw new UpgradeException(String.format("Failed to access the repository for site '%s'", siteId), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}

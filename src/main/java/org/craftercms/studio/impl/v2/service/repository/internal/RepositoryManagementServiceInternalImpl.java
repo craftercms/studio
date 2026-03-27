@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.git.NoMergeStateException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -272,7 +273,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	}
 
 	@Override
-	public List<RemoteRepositoryInfo> listRemotes(String siteId) throws SiteNotFoundException {
+	public List<RemoteRepositoryInfo> listRemotes(String siteId) throws SiteNotFoundException, RepositoryException {
 		Site site = siteService.getSite(siteId);
 		String sandboxBranch = site.getSandboxBranch();
 		List<RemoteRepositoryInfo> res = new ArrayList<>();
@@ -631,10 +632,17 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
 	@Override
 	public boolean removeRemote(@SiteId String siteId, String remoteName)
-		throws SiteNotFoundException, RemoteNotRemovableException {
-		boolean toRet = doRemoveRemote(siteId, remoteName);
-		insertRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
-		return toRet;
+			throws SiteNotFoundException, RemoteNotRemovableException {
+		// TODO: make this throw an exception instead of returning a boolean
+		try {
+			doRemoveRemote(siteId, remoteName);
+			return true;
+		} catch (ServiceLayerException e) {
+			logger.error("Failed to remove remote '{}' from site '{}'", remoteName, siteId, e);
+			return false;
+		} finally {
+			insertRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
+		}
 	}
 
 	private boolean doPushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
@@ -716,7 +724,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		}
 	}
 
-	private boolean doRemoveRemote(String siteId, String remoteName) throws RemoteNotRemovableException {
+	private void doRemoveRemote(String siteId, String remoteName) throws RemoteNotRemovableException, ServiceLayerException {
 		if (!isRemovableRemote(siteId, remoteName)) {
 			throw new RemoteNotRemovableException("Remote repository " + remoteName + " is not removable");
 		}
@@ -747,8 +755,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 				retryingRepositoryOperationFacade.call(delBranch);
 			}
 		} catch (GitAPIException e) {
-			logger.error("Failed to remove the remote '{}' from site '{}'", remoteName, siteId, e);
-			return false;
+			throw new ServiceLayerException(format("Failed to remove the remote '%s' from site '%s'", remoteName, siteId), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
@@ -760,8 +767,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		params.put("siteId", siteId);
 		params.put("remoteName", remoteName);
 		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDao.deleteRemoteRepository(params));
-
-		return true;
 	}
 
 	@SuppressWarnings("unused")

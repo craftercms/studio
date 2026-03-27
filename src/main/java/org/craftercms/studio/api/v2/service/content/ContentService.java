@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.rest.content.*;
@@ -230,7 +231,7 @@ public interface ContentService {
 	 * @param siteId site identifier
 	 * @param path   item path
 	 */
-	void unlockContent(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException;
+	void unlockContent(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException, RepositoryException;
 
 	/**
 	 * Get content for commit id

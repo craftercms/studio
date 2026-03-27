@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
 import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository;
 import org.craftercms.studio.api.v2.repository.PublishItemTO;
@@ -369,7 +370,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public void createEmptyFiles(String siteId, Collection<String> paths) {
+	public void createEmptyFiles(String siteId, Collection<String> paths) throws RepositoryException {
 		localRepository.createEmptyFiles(siteId, paths);
 	}
 
@@ -469,7 +470,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public List<ItemVersion> getContentItemHistory(String site, String path) throws GitAPIException, ServiceLayerException, IOException {
+	public List<ItemVersion> getContentItemHistory(String site, String path) throws ServiceLayerException {
 		logger.debug("Get version history for site '{}' path '{}'", site, path);
 		try {
 			if (pointersExist(site, path)) {
@@ -557,7 +558,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public void lockItem(String site, String path) {
+	public void lockItem(String site, String path) throws RepositoryException {
 		localRepository.lockItem(site, path);
 	}
 
@@ -572,12 +573,12 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public String getRepoLastCommitId(String site) {
+	public String getRepoLastCommitId(String site) throws RepositoryException {
 		return localRepository.getRepoLastCommitId(site);
 	}
 
 	@Override
-	public void garbageCollectGitRepositories(String siteId) {
+	public void garbageCollectGitRepositories(String siteId) throws RepositoryException {
 		localRepository.garbageCollectGitRepositories(siteId);
 	}
 
@@ -596,7 +597,8 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+	@NonNull
+	public String createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
 										 String remoteBranch, boolean singleBranch, String authenticationType,
 										 String remoteUsername, String remotePassword, String remoteToken,
 										 String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
@@ -609,7 +611,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public boolean removeRemote(String siteId, String remoteName) {
+	public boolean removeRemote(String siteId, String remoteName) throws RepositoryException {
 		return localRepository.removeRemote(siteId, remoteName);
 	}
 
@@ -619,7 +621,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) {
+	public List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) throws RepositoryException {
 		return localRepository.getSubtreeItems(site, path, repoType, branch).stream()
 				.map(this::getOriginalPath)
 				.collect(toList());
@@ -641,7 +643,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public boolean isTargetPublished(final String siteId, final String target) throws IOException {
+	public boolean isTargetPublished(final String siteId, final String target) throws RepositoryException, IOException {
 		return localRepository.isTargetPublished(siteId, target);
 	}
 
@@ -654,17 +656,12 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public String getPreviousCommitId(String siteId, String commitId) {
-		return localRepository.getPreviousCommitId(siteId, commitId);
-	}
-
-	@Override
-	public void unlockItem(String site, String path) {
+	public void unlockItem(String site, String path) throws RepositoryException {
 		localRepository.unlockItem(site, path);
 	}
 
 	@Override
-	public boolean publishedRepositoryExists(String siteId) {
+	public boolean publishedRepositoryExists(String siteId) throws RepositoryException {
 		return localRepository.publishedRepositoryExists(siteId);
 	}
 
@@ -807,17 +804,17 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException {
+	public List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws RepositoryException {
 		return localRepository.getCommitIdsBetween(siteId, commitFrom, commitTo);
 	}
 
 	@Override
-	public List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws IOException {
+	public List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws RepositoryException {
 		return localRepository.getHistory(siteId, commitFrom, limit);
 	}
 
 	@Override
-	public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException {
+	public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws RepositoryException {
 		return localRepository.getIntroducedCommits(site, baseCommit, commitId);
 	}
 
@@ -828,7 +825,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 
 	@Override
 	public void updateRef(final String siteId, final long packageId,
-						  final String commitId, final String target) throws IOException {
+						  final String commitId, final String target) throws RepositoryException {
 		localRepository.updateRef(siteId, packageId, commitId, target);
 	}
 

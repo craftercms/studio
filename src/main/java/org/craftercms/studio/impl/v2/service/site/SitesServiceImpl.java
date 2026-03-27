@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskProgress;
@@ -103,7 +104,7 @@ public class SitesServiceImpl implements SitesService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
-	public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
+	public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException, RepositoryException {
 		return sitesServiceInternal.getPublishingStatus(siteId);
 	}
 
@@ -186,7 +187,7 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	public void garbageCollectRepositories() {
+	public void garbageCollectRepositories() throws RepositoryException {
 		sitesServiceInternal.garbageCollectRepositories();
 	}
 

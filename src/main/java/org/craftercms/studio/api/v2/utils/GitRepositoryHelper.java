@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.git.cli.CommitterIdentityUnknownException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.task.TaskProgress;
@@ -151,7 +152,7 @@ public class GitRepositoryHelper implements DisposableBean {
 		return String.join(":", type.toString(), siteId);
 	}
 
-	public Repository getRepository(String siteId, GitRepositories gitRepository) {
+	public Repository getRepository(String siteId, GitRepositories gitRepository) throws RepositoryException {
 		return getRepository(siteId, gitRepository, null);
 	}
 
@@ -198,7 +199,7 @@ public class GitRepositoryHelper implements DisposableBean {
 		}
 	}
 
-	public Repository getRepository(String siteId, GitRepositories repoType, String sandboxBranch) {
+	public Repository getRepository(String siteId, GitRepositories repoType, String sandboxBranch) throws RepositoryException {
 		String cacheKey = getRepoCacheKey(siteId, repoType);
 		Repository repo = repositoryCache.getIfPresent(cacheKey);
 
@@ -563,11 +564,8 @@ public class GitRepositoryHelper implements DisposableBean {
 	 *
 	 * @param site          site to create
 	 * @param sandboxBranch sandbox branch name
-	 * @return true if successful, false otherwise
 	 */
-	public boolean createSandboxRepository(String site, String sandboxBranch) {
-		boolean toReturn;
-
+	public void createSandboxRepository(String site, String sandboxBranch) throws RepositoryException {
 		// Build a path for the site/sandbox
 		Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
 
@@ -577,19 +575,15 @@ public class GitRepositoryHelper implements DisposableBean {
 		try {
 			Repository sandboxRepo = createGitRepository(siteSandboxPath);
 
-			toReturn = (sandboxRepo != null);
-
-			if (toReturn) {
-				toReturn = checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
-				if (toReturn) {
-					repositoryCache.put(getRepoCacheKey(site, SANDBOX), sandboxRepo);
-				}
+			if (sandboxRepo == null) {
+				throw new RepositoryException(format("Failed to create the sandbox repository for site '%s'", site));
 			}
+
+			checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
+			repositoryCache.put(getRepoCacheKey(site, SANDBOX), sandboxRepo);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
-
-		return toReturn;
 	}
 
 	/**
@@ -710,7 +704,7 @@ public class GitRepositoryHelper implements DisposableBean {
 		return sb.toString();
 	}
 
-	private boolean checkoutSandboxBranch(String site, Repository sandboxRepo, String sandboxBranch) {
+	private void checkoutSandboxBranch(String site, Repository sandboxRepo, String sandboxBranch) throws RepositoryException {
 		String sandboxBranchName = sandboxBranch;
 		if (StringUtils.isEmpty(sandboxBranchName)) {
 			sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
@@ -740,16 +734,13 @@ public class GitRepositoryHelper implements DisposableBean {
 					.setForceRefUpdate(true);
 				retryingRepositoryOperationFacade.call(checkoutCommand);
 			}
-			return true;
 		} catch (GitAPIException | IOException e) {
 			logger.error("Failed to checkout the sandbox branch '{}' in site '{}'", sandboxBranchName, site, e);
-			return false;
+			throw new RepositoryException(format("Failed to checkout the sandbox branch '%s' in site '%s'", sandboxBranchName, site), e);
 		}
 	}
 
-	public boolean copyContentFromBlueprint(String blueprintLocation, String site) {
-		boolean toReturn = true;
-
+	public void copyContentFromBlueprint(String blueprintLocation, String site) throws RepositoryException {
 		// Build a path to the Sandbox repo we'll be copying to
 		Path siteRepoPath = buildRepoPath(GitRepositories.SANDBOX, site);
 		// Build a path to the blueprint
@@ -760,74 +751,70 @@ public class GitRepositoryHelper implements DisposableBean {
 		try {
 			Files.walkFileTree(blueprintPath, opts, Integer.MAX_VALUE, tc);
 		} catch (IOException e) {
-			logger.error("Failed to copy the files from blueprint '{}' to site '{}'", blueprintLocation, site, e);
-			toReturn = false;
+			throw new RepositoryException(format("Failed to copy the files from blueprint '%s' to site '%s'", blueprintLocation, site), e);
 		}
-
-		return toReturn;
 	}
 
-	public boolean updateSiteNameConfigVar(String site) {
-		boolean toReturn = true;
-		if (!replaceSiteNameVariable(site,
-			Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
-				studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
-				studioConfiguration.getProperty(CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME)))) {
-			toReturn = false;
-		} else if (!replaceSiteNameVariable(site,
-			Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
-				studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
-				studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME)))) {
-			toReturn = false;
-		} else if (!replaceSiteNameVariable(site,
-			Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
-				studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
-				studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME)))) {
-			toReturn = false;
-		}
-		return toReturn;
+	/**
+	 * Update the {siteName} variable in the site configuration files with the actual site name.
+	 * It updates the general configuration file (site-config.xml), the permission mappings file and the role mappings file.
+	 * @param site the site id
+	 * @throws RepositoryException if there is an error while updating the configuration files
+	 */
+	public void updateSiteNameConfigVar(String site) throws RepositoryException {
+		replaceSiteNameVariable(site,
+				Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
+						studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
+						studioConfiguration.getProperty(CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME)));
+		replaceSiteNameVariable(site,
+				Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
+						studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
+						studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME)));
+		replaceSiteNameVariable(site,
+				Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
+						studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
+						studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME)));
 	}
 
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	protected boolean replaceSiteNameVariable(String site, Path path) {
-		boolean toReturn;
+	protected void replaceSiteNameVariable(String site, Path path) throws RepositoryException {
 		Charset charset = StandardCharsets.UTF_8;
 		try {
 			String content = Files.readString(path, charset);
 			content = content.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
 			Files.writeString(path, content, charset);
-			toReturn = true;
 		} catch (IOException e) {
-			logger.error("Failed to replace the _sitename_ variable inside the configuration file '{}' in site '{}'",
-				path, site);
-			toReturn = false;
+			throw new RepositoryException(format("Failed to replace the _sitename_ variable inside the configuration file '%s' in site '%s'",
+				path, site), e);
 		}
-		return toReturn;
 	}
 
-	public boolean replaceParameters(String siteId, Map<String, String> parameters) {
+	/**
+	 * Replace the parameters in the configuration files with the given values.
+	 * @param siteId the site id
+	 * @param parameters the parameters to replace, where the key is the parameter name and the value is the parameter value
+	 * @throws RepositoryException if there is an error while replacing the parameters in the configuration files
+	 */
+	public void replaceParameters(String siteId, Map<String, String> parameters) throws RepositoryException {
 		if (MapUtils.isEmpty(parameters)) {
 			logger.debug("Skip parameter replacement in site '{}'", siteId);
-			return true;
+			return;
 		}
 		String configRootPath = FilenameUtils.getPath(
-			studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH));
+				studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH));
 		Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
 		Path configFolder = siteSandboxPath.resolve(configRootPath);
 		try {
 			Files.walkFileTree(configFolder, new StrSubstitutorVisitor(parameters));
-			return true;
 		} catch (IOException e) {
-			logger.error("Failed to find parameters in the configuration files in site '{}'", siteId, e);
-			return false;
+			throw new RepositoryException(format("Failed to find parameters in the configuration files in site '%s'", siteId), e);
 		}
 	}
 
-	public boolean addGitIgnoreFiles(String siteId) {
+	public void addGitIgnoreFiles(String siteId) throws RepositoryException {
 		List<HierarchicalConfiguration<ImmutableNode>> ignores = studioConfiguration.getSubConfigs(REPO_IGNORE_FILES);
 		if (CollectionUtils.isEmpty(ignores)) {
 			logger.debug("No ignore files will be added to site '{}'", siteId);
-			return true;
+			return;
 		}
 
 		logger.debug("Add ignore files to site '{}'", siteId);
@@ -854,15 +841,12 @@ public class GitRepositoryHelper implements DisposableBean {
 				try (InputStream in = ignoreFile.getInputStream()) {
 					Files.copy(in, actualFile);
 				} catch (IOException e) {
-					logger.error("Failed to write the git ignore file at '{}' in site '{}'", repoFolder, siteId, e);
-					return false;
+					throw new RepositoryException(format("Failed to write the git ignore file at '%s' in site '%s'", repoFolder, siteId), e);
 				}
 			} else {
 				logger.debug("The repository already contains a git ignore file at '{}' in site '{}'", actualFolder, siteId);
 			}
 		}
-
-		return true;
 	}
 
 	/**
@@ -905,7 +889,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	}
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")
-	public boolean createSiteCloneRemoteGitRepo(String siteId, String remoteName,
+	public void createSiteCloneRemoteGitRepo(String siteId, String remoteName,
 						    String remoteUrl, String remoteBranch, boolean singleBranch,
 						    String authenticationType, String remoteUsername, String remotePassword,
 						    String remoteToken, String remotePrivateKey, boolean createAsOrphan,
@@ -913,7 +897,6 @@ public class GitRepositoryHelper implements DisposableBean {
 		throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
 		RemoteRepositoryNotFoundException, ServiceLayerException {
 
-		boolean toRet = true;
 		// prepare a new folder for the cloned repository
 		Path siteSandboxPath = buildRepoPath(SANDBOX, siteId);
 		File localPath = siteSandboxPath.toFile();
@@ -961,15 +944,13 @@ public class GitRepositoryHelper implements DisposableBean {
 				Files.deleteIfExists(tempKey);
 			}
 		} catch (GitAPIException | IOException | UserNotFoundException | CryptoException e) {
-			logger.error("Failed to create the repository for site '{}' with path '{}'", siteId, siteSandboxPath, e);
-			toRet = false;
+			throw new RepositoryException(format("Failed to create the repository for site '%s' with path '%s'", siteId, siteSandboxPath), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 			if (cloneResult != null) {
 				cloneResult.close();
 			}
 		}
-		return toRet;
 	}
 
 	/**
@@ -1315,7 +1296,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @param siteId site identifier
 	 * @param gitRepository git repository type
 	 */
-	public void performGitGarbageCollection(String siteId, GitRepositories gitRepository) {
+	public void performGitGarbageCollection(String siteId, GitRepositories gitRepository) throws RepositoryException {
 		Repository repo = getRepository(siteId, gitRepository);
 		if (repo == null) {
 			logger.info("Skip git gc for site '{}' repository '{}' as the repository is not found.", siteId, gitRepository);
@@ -1341,7 +1322,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	 *
 	 * @param site the site id, or empty for global
 	 */
-	private void reloadSiteSandboxRepository(final String site) {
+	private void reloadSiteSandboxRepository(final String site) throws RepositoryException {
 		String cacheKey;
 		GitRepositories repoType = SANDBOX;
 		if (isEmpty(site)) {
