@@ -346,7 +346,7 @@ public class GitRepositoryHelper implements DisposableBean {
 		return repository;
 	}
 
-	public boolean isRemoteValid(Git git, String remote, String authenticationType,
+	public boolean isRemoteValid(Git git, String remote, AuthenticationType authenticationType,
 				     String remoteUsername, String remotePassword, String remoteToken,
 				     String remotePrivateKey)
 		throws CryptoException, IOException, ServiceLayerException, GitAPIException {
@@ -377,7 +377,7 @@ public class GitRepositoryHelper implements DisposableBean {
 			remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, decrypt);
 	}
 
-	public void setAuthenticationForCommand(TransportCommand<?, ?> gitCommand, String authenticationType,
+	public void setAuthenticationForCommand(TransportCommand<?, ?> gitCommand, AuthenticationType authenticationType,
 						String username, String password, String token, String privateKey,
 						Path tempKey, boolean decrypt)
 		throws CryptoException, ServiceLayerException, IOException {
@@ -856,30 +856,24 @@ public class GitRepositoryHelper implements DisposableBean {
 	 * @param message       commit message
 	 * @param sandboxBranch sandbox branch name
 	 * @param creator       site creator
-	 * @return the commit id of the performed commit
 	 */
-	@NonNull
-	public String performInitialCommit(String site, String message, String sandboxBranch, String creator) throws ServiceLayerException {
+	public void performInitialCommit(String site, String message, String sandboxBranch, String creator) throws ServiceLayerException {
 		Repository repo = getRepository(site, GitRepositories.SANDBOX, sandboxBranch);
 		String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
 		generalLockService.lock(gitLockKey);
 		try (Git git = new Git(repo)) {
 			StatusCommand statusCommand = git.status();
 			Status status = retryingRepositoryOperationFacade.call(statusCommand);
-
-			if (!status.hasUncommittedChanges() && status.isClean()) {
-				throw new ServiceLayerException(format("No changes to commit for site '%s'", site));
+			if (status.hasUncommittedChanges() || !status.isClean()) {
+				AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
+				retryingRepositoryOperationFacade.call(addCommand);
+				CommitCommand commitCommand = git.commit()
+						.setMessage(message);
+				User user = userService.getUserByIdOrUsername(-1, creator);
+				commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
+				retryingRepositoryOperationFacade.call(commitCommand);
 			}
-			AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
-			retryingRepositoryOperationFacade.call(addCommand);
-			CommitCommand commitCommand = git.commit()
-				.setMessage(message);
-			User user = userService.getUserByIdOrUsername(-1, creator);
-			commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
-			RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
-
 			checkoutSandboxBranch(site, repo, sandboxBranch);
-			return commit.getName();
 		} catch (GitAPIException | UserNotFoundException e) {
 			logger.error("Failed to create the initial commit for site '{}'", site, e);
 			throw new ServiceLayerException(format("Failed to create the initial commit for site '%s'", site), e);
@@ -891,7 +885,7 @@ public class GitRepositoryHelper implements DisposableBean {
 	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public void createSiteCloneRemoteGitRepo(String siteId, String remoteName,
 						    String remoteUrl, String remoteBranch, boolean singleBranch,
-						    String authenticationType, String remoteUsername, String remotePassword,
+						    AuthenticationType authenticationType, String remoteUsername, String remotePassword,
 						    String remoteToken, String remotePrivateKey, boolean createAsOrphan,
 						    String creator)
 		throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import java.util.Map;
@@ -40,14 +41,15 @@ import java.util.Map;
 public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteSource, CreateSiteRequest.BlueprintSource {
 	@NotEmpty
 	@ValidSiteId
-	private String siteId;
+	protected String siteId;
 	@NotEmpty
 	@Size(max = 255)
-	private String name;
+	protected String name;
 	@Size(max = 4000)
-	private String description;
+	protected String description;
 	@Size(max = 255)
-	private String sandboxBranch;
+	protected String sandboxBranch;
+	protected Map<String, String> siteParams;
 
 	public String getDescription() {
 		return description;
@@ -81,19 +83,63 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 		this.siteId = siteId;
 	}
 
+	public Map<String, String> getSiteParams() {
+		return siteParams;
+	}
+
+	public void setSiteParams(Map<String, String> siteParams) {
+		this.siteParams = siteParams;
+	}
+
 	/**
 	 * CreateSiteRequest with a remote repository as source
 	 */
 	public static final class RemoteSource extends CreateSiteRequest {
 		@NotEmpty
-		private String repositoryUrl;
+		private String remoteUrl;
+		private String remoteName;
+		private String remoteBranch;
+		private boolean createAsOrphan;
+		private RemoteAuthentication authentication;
 
-		public String getRepositoryUrl() {
-			return repositoryUrl;
+		public String getRemoteUrl() {
+			return remoteUrl;
 		}
 
-		public void setRepositoryUrl(String repositoryUrl) {
-			this.repositoryUrl = repositoryUrl;
+		public void setRemoteUrl(String remoteUrl) {
+			this.remoteUrl = remoteUrl;
+		}
+
+		public String getRemoteBranch() {
+			return remoteBranch;
+		}
+
+		public void setRemoteBranch(String remoteBranch) {
+			this.remoteBranch = remoteBranch;
+		}
+
+		public String getRemoteName() {
+			return remoteName;
+		}
+
+		public void setRemoteName(String remoteName) {
+			this.remoteName = remoteName;
+		}
+
+		public boolean isCreateAsOrphan() {
+			return createAsOrphan;
+		}
+
+		public void setCreateAsOrphan(boolean createAsOrphan) {
+			this.createAsOrphan = createAsOrphan;
+		}
+
+		public RemoteAuthentication getAuthentication() {
+			return authentication;
+		}
+
+		public void setAuthentication(RemoteAuthentication authentication) {
+			this.authentication = authentication;
 		}
 
 		@Override
@@ -103,7 +149,7 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 					", name='" + getName() + '\'' +
 					", description='" + getDescription() + '\'' +
 					", sandboxBranch='" + getSandboxBranch() + '\'' +
-					", repositoryUrl='" + repositoryUrl + '\'' +
+					", remoteUrl='" + remoteUrl + '\'' +
 					'}';
 		}
 	}
@@ -114,7 +160,6 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 	public static final class BlueprintSource extends CreateSiteRequest {
 		@NotEmpty
 		private String blueprintId;
-		private Map<String,String> siteParams;
 
 		public String getBlueprintId() {
 			return blueprintId;
@@ -122,14 +167,6 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 
 		public void setBlueprintId(String blueprintId) {
 			this.blueprintId = blueprintId;
-		}
-
-		public Map<String, String> getSiteParams() {
-			return siteParams;
-		}
-
-		public void setSiteParams(Map<String, String> siteParams) {
-			this.siteParams = siteParams;
 		}
 
 		@Override
@@ -142,6 +179,55 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 					", blueprint='" + blueprintId + '\'' +
 					", siteParams=" + siteParams +
 					'}';
+		}
+	}
+
+	public static class RemoteAuthentication {
+		// TODO: fix for lowercase values
+		private AuthenticationType type;
+		private String username;
+		private String password;
+		private String token;
+		private String privateKey;
+
+		public AuthenticationType getType() {
+			return type;
+		}
+
+		public void setType(AuthenticationType type) {
+			this.type = type;
+		}
+
+		public String getPassword() {
+			return password;
+		}
+
+		public void setPassword(String password) {
+			this.password = password;
+		}
+
+		public String getPrivateKey() {
+			return privateKey;
+		}
+
+		public void setPrivateKey(String privateKey) {
+			this.privateKey = privateKey;
+		}
+
+		public String getToken() {
+			return token;
+		}
+
+		public void setToken(String token) {
+			this.token = token;
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public void setUsername(String username) {
+			this.username = username;
 		}
 	}
 }

@@ -1965,6 +1965,7 @@ paths:
                                     remoteName: "origin"
                                     remoteBranch: "branch123"
                                     authentication:
+                                        authenticationType: "basic"
                                         username: "myuser"
                                         password: "mypassword"
             responses:
@@ -8919,6 +8920,11 @@ components:
                 sandboxBranch:
                     type: string
                     description: Name for sandbox branch (default master)
+                siteParams:
+                    type: object
+                    description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
+                    additionalProperties:
+                        type: string
             required:
                 - siteId
                 - name
@@ -8932,11 +8938,6 @@ components:
                         blueprintId:
                             type: string
                             description: The ID of the blueprint to use
-                        siteParams:
-                            type: object
-                            description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
-                            additionalProperties:
-                                type: string
                     required:
                         - blueprintId
 
@@ -8960,36 +8961,46 @@ components:
                         - url
 
         CreateSiteRemoteAuth:
-            oneOf:
+            allOf:
                 -   type: object
                     properties:
-                        username:
+                        authenticationType:
                             type: string
-                            description: Username for basic authentication
-                        password:
-                            type: string
-                            description: Password for basic authentication
+                            description: the authentication type to use
+                            enum:
+                                - none
+                                - basic
+                                - token
+                                - key
                     required:
-                        - username
-                        - password
-                -   type: object
-                    properties:
-                        username:
-                            type: string
-                            description: Username for basic authentication
-                        token:
-                            type: string
-                            description: authentication token
-                    required:
-                        - username
-                        - token
-                -   type: object
-                    properties:
-                        privateKey:
-                            type: string
-                            description: Private key
-                    required:
-                        - privateKey
+                        - authenticationType
+                -   oneOf:
+                    -   type: object
+                        properties:
+                            username:
+                                type: string
+                                description: Username for basic authentication
+                            password:
+                                type: string
+                                description: Password for basic authentication
+                        required:
+                            - username
+                            - password
+                    -   type: object
+                        properties:
+                            token:
+                                type: string
+                                description: authentication token
+                        required:
+                            - username
+                            - token
+                    -   type: object
+                        properties:
+                            privateKey:
+                                type: string
+                                description: Private key
+                        required:
+                            - privateKey
 
         PluginRecord:
             type: object

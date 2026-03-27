@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,11 +16,11 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import org.craftercms.commons.git.utils.AuthenticationType;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 
 import java.io.Serializable;
 
@@ -37,8 +37,8 @@ public class RemoteRepository implements Serializable {
 	@ValidateNoTagsParam
 	private String remoteUrl;
 	@NotEmpty
-	@Size(max = 16)
-	private String authenticationType;
+//	@Size(max = 16)
+	private AuthenticationType authenticationType;
 	@Size(max = 255)
 	@ValidateNoTagsParam
 	private String remoteUsername;
@@ -80,11 +80,11 @@ public class RemoteRepository implements Serializable {
 		this.remoteUrl = remoteUrl;
 	}
 
-	public String getAuthenticationType() {
+	public AuthenticationType getAuthenticationType() {
 		return authenticationType;
 	}
 
-	public void setAuthenticationType(String authenticationType) {
+	public void setAuthenticationType(AuthenticationType authenticationType) {
 		this.authenticationType = authenticationType;
 	}
 

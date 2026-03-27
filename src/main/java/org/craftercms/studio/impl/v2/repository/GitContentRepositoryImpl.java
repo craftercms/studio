@@ -22,6 +22,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -351,8 +352,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	@NonNull
-	public String createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
+	public void createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
 										  Map<String, String> params, String creator) throws ServiceLayerException {
 		String gitLockKey = helper.getSandboxRepoLockKey(site);
 		generalLockService.lock(gitLockKey);
@@ -371,7 +371,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			helper.addGitIgnoreFiles(site);
 
 			// commit everything so it is visible
-			return helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
+			helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
 					sandboxBranch, creator);
 		} finally {
 			generalLockService.unlock(gitLockKey);
@@ -488,9 +488,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	@NonNull
-	public String createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
-										String remoteBranch, boolean singleBranch, String authenticationType,
+	public void createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+										String remoteBranch, boolean singleBranch, AuthenticationType authenticationType,
 										String remoteUsername, String remotePassword, String remoteToken,
 										String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
 										String creator)
@@ -525,7 +524,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 			// Commit everything so it is visible
 			logger.debug("Perform initial commit for site '{}'", siteId);
-			return helper.performInitialCommit(siteId,
+			helper.performInitialCommit(siteId,
 					helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch, creator);
 		} finally {
 			generalLockService.unlock(gitLockKey);
@@ -571,14 +570,14 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	private void insertRemoteToDb(String siteId, String remoteName, String remoteUrl,
-								  String authenticationType, String remoteUsername, String remotePassword,
+								  AuthenticationType authenticationType, String remoteUsername, String remotePassword,
 								  String remoteToken, String remotePrivateKey) throws CryptoException {
 		logger.debug("Insert git remote '{}' in site '{}' into the database", remoteName, siteId);
 		Map<String, String> params = new HashMap<>();
 		params.put("siteId", siteId);
 		params.put("remoteName", remoteName);
 		params.put("remoteUrl", remoteUrl);
-		params.put("authenticationType", authenticationType);
+		params.put("authenticationType", authenticationType.getValue());
 		params.put("remoteUsername", remoteUsername);
 
 		if (StringUtils.isNotEmpty(remotePassword)) {

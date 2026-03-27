@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v1.service.site;
 
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -85,7 +86,7 @@ public interface SiteService {
 	 */
 	void createSiteWithRemoteOption(String siteId, String siteName, String sandboxBranch, String description,
 					String blueprintName, String remoteName, String remoteUrl, String remoteBranch,
-					boolean singleBranch, String authenticationType, String remoteUsername,
+					boolean singleBranch, AuthenticationType authenticationType, String remoteUsername,
 					String remotePassword, String remoteToken, String remotePrivateKey,
 					String createOption, Map<String, String> params, boolean createAsOrphan)
 		throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,

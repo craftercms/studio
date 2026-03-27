@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -27,8 +28,6 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.jspecify.annotations.NonNull;
 import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
 
@@ -245,10 +244,8 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param sandboxBranch     sandbox branch name
 	 * @param params            site parameters
 	 * @param creator           site creator
-	 * @return the last commit id of the created site repository after the operation
 	 */
-	@NonNull
-	String createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
+	void createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
 									Map<String, String> params, String creator) throws ServiceLayerException;
 
 	/**
@@ -268,15 +265,13 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param params             site parameters
 	 * @param createAsOrphan     create as orphan
 	 * @param creator            site creator
-	 * @return the last commit id of the created site repository after the operation
 	 * @throws InvalidRemoteRepositoryException            invalid remote repository
 	 * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
 	 * @throws RemoteRepositoryNotFoundException           remote repository not found
 	 * @throws ServiceLayerException                       general service error
 	 */
-	@NonNull
-	String createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
-								  String remoteBranch, boolean singleBranch, String authenticationType,
+	void createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+								  String remoteBranch, boolean singleBranch, AuthenticationType authenticationType,
 								  String remoteUsername, String remotePassword, String remoteToken,
 								  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
 								  String creator)

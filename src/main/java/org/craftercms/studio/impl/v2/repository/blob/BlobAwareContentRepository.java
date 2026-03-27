@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
@@ -54,7 +55,6 @@ import org.craftercms.studio.api.v2.task.TaskProgress.Stage;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.task.PublishTask;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -585,10 +585,9 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	// Start API 2
 
 	@Override
-	@NonNull
-	public String createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
+	public void createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
 										   Map<String, String> params, String creator) throws ServiceLayerException {
-		return localRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
+		localRepository.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
 	}
 
 	@Override
@@ -597,15 +596,14 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	@NonNull
-	public String createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
-										 String remoteBranch, boolean singleBranch, String authenticationType,
+	public void createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+										 String remoteBranch, boolean singleBranch, AuthenticationType authenticationType,
 										 String remoteUsername, String remotePassword, String remoteToken,
 										 String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
 										 String creator)
 			throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
 			RemoteRepositoryNotFoundException, ServiceLayerException {
-		return localRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
+		localRepository.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
 				singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
 				params, createAsOrphan, creator);
 	}

@@ -101,7 +101,7 @@ public class SitesController {
 	@PostMapping
 	@ResponseStatus(code = HttpStatus.CREATED)
 	public Result createSite(@Valid @RequestBody CreateSiteRequest request)
-			throws ServiceLayerException {
+			throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException {
 		sitesService.createSite(request);
 		Result result = new Result();
 		result.setResponse(ApiResponse.CREATED);

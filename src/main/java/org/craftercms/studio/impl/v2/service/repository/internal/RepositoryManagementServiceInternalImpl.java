@@ -69,12 +69,12 @@ import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -228,7 +228,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		params.put("siteId", siteId);
 		params.put("remoteName", remoteRepository.getRemoteName());
 		params.put("remoteUrl", remoteRepository.getRemoteUrl());
-		params.put("authenticationType", remoteRepository.getAuthenticationType());
+		params.put("authenticationType", remoteRepository.getAuthenticationType().getValue());
 		params.put("remoteUsername", remoteRepository.getRemoteUsername());
 
 		if (isNotEmpty(remoteRepository.getRemotePassword())) {

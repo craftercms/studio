@@ -30,6 +30,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -484,7 +485,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 		String blueprintName,
 		@ValidateStringParam String remoteName,
 		@ValidateStringParam String remoteUrl,
-		String remoteBranch, boolean singleBranch, String authenticationType,
+		String remoteBranch, boolean singleBranch, AuthenticationType authenticationType,
 		String remoteUsername, String remotePassword, String remoteToken,
 		String remotePrivateKey,
 		@ValidateStringParam String createOption,
@@ -520,7 +521,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 	@SuppressWarnings("deprecation")
 	private void createSiteCloneRemote(String siteId, String siteName, String sandboxBranch, String description,
 					   String remoteName, String remoteUrl, String remoteBranch, boolean singleBranch,
-					   String authenticationType, String remoteUsername, String remotePassword,
+					   AuthenticationType authenticationType, String remoteUsername, String remotePassword,
 					   String remoteToken, String remotePrivateKey, Map<String, String> params,
 					   boolean createAsOrphan)
 		throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,

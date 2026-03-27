@@ -23,6 +23,9 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.RequireSiteState;
@@ -193,7 +196,7 @@ public class SitesServiceImpl implements SitesService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
-	public void createSite(CreateSiteRequest request) throws ServiceLayerException {
+	public void createSite(CreateSiteRequest request) throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException {
 		sitesServiceInternal.createSite(request);
 	}
 }
