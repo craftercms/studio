@@ -21,8 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.craftercms.commons.git.utils.AuthenticationType;
 import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CreateSiteRequestTest {
 
@@ -122,6 +121,24 @@ public class CreateSiteRequestTest {
 		CreateSiteRequest.RemoteSource remoteRequest = (CreateSiteRequest.RemoteSource) request;
 		assertEquals(AuthenticationType.TOKEN, remoteRequest.getAuthentication().getType());
 		assertEquals("the secret token", remoteRequest.getAuthentication().getToken());
+	}
+
+	@Test
+	public void testSingleBranchDefault() throws JsonProcessingException {
+		String requestJson = """
+				{
+				  "siteId": "test-site",
+				  "name": "Test Site",
+				  "description": "A site created from a remote repository",
+				  "sourceType": "remote",
+				  "remoteUrl": "http://example.com/repo.git"
+				}
+				""";
+		ObjectMapper objectMapper = new ObjectMapper();
+		CreateSiteRequest request = objectMapper.readValue(requestJson, CreateSiteRequest.class);
+		assertInstanceOf(CreateSiteRequest.RemoteSource.class, request);
+		CreateSiteRequest.RemoteSource remoteRequest = (CreateSiteRequest.RemoteSource) request;
+		assertTrue(remoteRequest.isSingleBranch());
 	}
 
 }

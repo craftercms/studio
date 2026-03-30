@@ -17,6 +17,7 @@
 package org.craftercms.studio.model.rest.sites;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -102,6 +103,7 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 		private String remoteName;
 		private String remoteBranch;
 		private boolean createAsOrphan;
+		private boolean singleBranch = true;
 		private RemoteAuthentication authentication;
 
 		public String getRemoteUrl() {
@@ -134,6 +136,14 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 
 		public void setCreateAsOrphan(boolean createAsOrphan) {
 			this.createAsOrphan = createAsOrphan;
+		}
+
+		public boolean isSingleBranch() {
+			return singleBranch;
+		}
+
+		public void setSingleBranch(boolean singleBranch) {
+			this.singleBranch = singleBranch;
 		}
 
 		public RemoteAuthentication getAuthentication() {

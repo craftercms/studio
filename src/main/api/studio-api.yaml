@@ -8858,6 +8858,9 @@ components:
                         createAsOrphan:
                             type: boolean
                             description: Indicates if the remote repository should be added as an orphan repository, without fetching its history (default false)
+                        singleBranch:
+                            type: boolean
+                            description: Indicates if only the specified branch should be fetched from the remote repository (default true)
                         authentication:
                             $ref: '#/components/schemas/CreateSiteRemoteAuth'
                     required:

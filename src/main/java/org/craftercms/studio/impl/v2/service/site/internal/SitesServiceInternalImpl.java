@@ -688,7 +688,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		String siteId = request.getSiteId();
 		CreateSiteRequest.RemoteAuthentication auth = request.getAuthentication();
 		blobAwareRepository.createSiteCloneRemote(request.getSiteId(), request.getSandboxBranch(), request.getRemoteName(),
-				request.getRemoteUrl(), request.getRemoteBranch(), false, auth.getType(), auth.getUsername(),
+				request.getRemoteUrl(), request.getRemoteBranch(), request.isSingleBranch(), auth.getType(), auth.getUsername(),
 				auth.getPassword(), auth.getToken(), auth.getPrivateKey(), request.getSiteParams(), request.isCreateAsOrphan(),
 				getCurrentUsername());
 
