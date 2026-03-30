@@ -2279,106 +2279,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/1/services/api/1/site/create.json:
-        post:
-            tags:
-                - sites
-            summary: Create a Crafter Studio project.
-            description: 'Required Role: "Admin"'
-            operationId: createSite
-            requestBody:
-                description: Project/site details
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                site_id:
-                                    description: Project/Site ID to use
-                                    type: string
-                                    example: my-editorial
-                                name:
-                                    type: string
-                                    description: Label to use for the project/site
-                                sandbox_branch:
-                                    type: string
-                                    description: "Name for sandbox branch (default: master)"
-                                description:
-                                    type: string
-                                    description: Project/Site description
-                                    example: "My very first site!"
-                                blueprint:
-                                    type: string
-                                    description: "Blueprint to use for bootstrapping the project/site \n\n <i>Required if</i> `use_remote` <i>is false</i>"
-                                    example: "org.craftercms.blueprint.empty"
-                                use_remote:
-                                    type: boolean
-                                    description: Use remote repository option if true, otherwise false
-                                    example: false
-                                remote_name:
-                                    type: string
-                                    description: "Remote repository name (default: origin)"
-                                remote_url:
-                                    type: string
-                                    description: "Remote repository URL \n\n <i>Required if</i> `use_remote` <i>is true</i>"
-                                remote_branch:
-                                    type: string
-                                    description: Branch to clone repo from
-                                single_branch:
-                                    type: string
-                                    description: Clone single branch if true, otherwise clone all
-                                authentication_type:
-                                    type: string
-                                    description: "Authentication type to use to access remote repository \n\n \t none: No authentication \n\n \t basic: username password authentication \n\n \t token: username token authentication \n\n \t key: key-based authentication \n\n <i>Required if</i> `authentication_type` <i>to be used is not</i> `none`"
-                                remote_username:
-                                    type: string
-                                    description: "Username to access remote repository \n\n <i>Required if</i> `authentication_type` <i>is set to</i> `basic`"
-                                remote_password:
-                                    type: string
-                                    description: "Password to access remote repository \n\n <i>Required if</i> `authentication_type` <i>is set to</i> `basic`"
-                                remote_token:
-                                    type: string
-                                    description: "Token to use to access remote repository \n\n <i>Required if</i> `authentication_type` <i>is set to</i> `token`"
-                                remote_private_key:
-                                    type: string
-                                    description: Private key to access remote repository
-                                create_option:
-                                    type: string
-                                    description: "Create options for remote repository: \n\n `clone`: clone from remote repository <i>Required if</i> `use_remote` <i>is true</i>"
-                                site_params:
-                                    type: object
-                                    description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
-                                create_as_orphan:
-                                    type: boolean
-                                    description: Create the project/site from a remote repository as orphan (no git history) - default is false
-                            required:
-                                - site_id
-                                - name
-            responses:
-                '201':
-                    description: Created
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                                        example: OK
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '403':
-                    $ref: '#/components/responses/api1Forbidden'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '409':
-                    $ref: '#/components/responses/api1Conflict'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
     /api/1/services/api/1/site/monitor-content.json:
         get:
             tags:
@@ -8955,6 +8855,9 @@ components:
                         remoteBranch:
                             type: string
                             description: Name of the branch to use from the remote repository (default master)
+                        createAsOrphan:
+                            type: boolean
+                            description: Indicates if the remote repository should be added as an orphan repository, without fetching its history (default false)
                         authentication:
                             $ref: '#/components/schemas/CreateSiteRemoteAuth'
                     required:
