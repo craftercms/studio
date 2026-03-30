@@ -139,7 +139,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 									RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 									Deployer deployer,
 									AuditService auditService, TaskManager taskManager,
-									EntitlementValidator entitlementValidator, UserService userService){
+									EntitlementValidator entitlementValidator, UserService userService) {
 		this.descriptorReader = descriptorReader;
 		this.studioConfiguration = studioConfiguration;
 		this.siteFeedMapper = siteFeedMapper;
