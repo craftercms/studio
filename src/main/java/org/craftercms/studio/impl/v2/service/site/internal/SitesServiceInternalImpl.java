@@ -626,7 +626,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public void createSite(CreateSiteRequest request) throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException {
 		logger.info("Create site with params: '{}'", request);
 		checkCanCreateSite(request.getSiteId(), request.getName());
@@ -752,7 +752,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		deployer.deleteTargets(siteId);
 		blobAwareRepository.deleteSite(siteId);
 		configurationService.invalidateConfiguration(siteId);
-		siteDao.deleteSiteRelatedItems(siteId);
 	}
 
 	/**
