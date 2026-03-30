@@ -19,9 +19,11 @@ package org.craftercms.studio.model.rest.sites;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.git.utils.AuthenticationType;
+import org.craftercms.commons.jackson.CaseInsensitiveEnumDeserializer;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import java.util.Map;
@@ -183,7 +185,7 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 	}
 
 	public static class RemoteAuthentication {
-		// TODO: fix for lowercase values
+		@JsonDeserialize(using = CaseInsensitiveEnumDeserializer.class)
 		private AuthenticationType type;
 		private String username;
 		private String password;

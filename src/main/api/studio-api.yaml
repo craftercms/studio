@@ -8867,7 +8867,7 @@ components:
             allOf:
                 -   type: object
                     properties:
-                        authenticationType:
+                        type:
                             type: string
                             description: the authentication type to use
                             enum:
@@ -8876,7 +8876,7 @@ components:
                                 - token
                                 - key
                     required:
-                        - authenticationType
+                        - type
                 -   oneOf:
                     -   type: object
                         properties:

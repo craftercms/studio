@@ -18,9 +18,11 @@ package org.craftercms.studio.model.rest.sites;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class CreateSiteRequestTest {
 
@@ -43,6 +45,83 @@ public class CreateSiteRequestTest {
 		assertEquals("Test Site", blueprintRequest.getName());
 		assertEquals("A site created from a blueprint", blueprintRequest.getDescription());
 		assertEquals("test-blueprint", blueprintRequest.getBlueprintId());
+	}
+
+	@Test
+	public void testCreateSiteFromRemote() throws JsonProcessingException {
+		String requestJson = """
+				{
+				  "siteId": "test-site",
+				  "name": "Test Site",
+				  "description": "A site created from a remote repository",
+				  "sourceType": "remote",
+				  "remoteUrl": "http://example.com/repo.git",
+				  "remoteName": "origin",
+				  "remoteBranch": "main",
+				  "authentication": {
+					  "type": "none"
+				  }
+				}
+				""";
+		ObjectMapper objectMapper = new ObjectMapper();
+		CreateSiteRequest request = objectMapper.readValue(requestJson, CreateSiteRequest.class);
+		assertInstanceOf(CreateSiteRequest.RemoteSource.class, request);
+		CreateSiteRequest.RemoteSource remoteRequest = (CreateSiteRequest.RemoteSource) request;
+		assertEquals("test-site", remoteRequest.getSiteId());
+		assertEquals("Test Site", remoteRequest.getName());
+		assertEquals("A site created from a remote repository", remoteRequest.getDescription());
+		assertEquals("http://example.com/repo.git", remoteRequest.getRemoteUrl());
+		assertEquals("origin", remoteRequest.getRemoteName());
+		assertEquals("main", remoteRequest.getRemoteBranch());
+		assertEquals(AuthenticationType.NONE, remoteRequest.getAuthentication().getType());
+	}
+
+	@Test
+	public void testCreateSiteFromRemoteBasicAuth() throws JsonProcessingException {
+		String requestJson = """
+				{
+				  "siteId": "test-site",
+				  "name": "Test Site",
+				  "description": "A site created from a remote repository",
+				  "sourceType": "remote",
+				  "remoteUrl": "http://example.com/repo.git",
+				  "authentication": {
+					  "type": "basic",
+					  "username": "user",
+					  "password": "pass"
+				  }
+				}
+				""";
+		ObjectMapper objectMapper = new ObjectMapper();
+		CreateSiteRequest request = objectMapper.readValue(requestJson, CreateSiteRequest.class);
+		assertInstanceOf(CreateSiteRequest.RemoteSource.class, request);
+		CreateSiteRequest.RemoteSource remoteRequest = (CreateSiteRequest.RemoteSource) request;
+		assertEquals(AuthenticationType.BASIC, remoteRequest.getAuthentication().getType());
+		assertEquals("user", remoteRequest.getAuthentication().getUsername());
+		assertEquals("pass", remoteRequest.getAuthentication().getPassword());
+	}
+
+	@Test
+	public void testCreateSiteFromRemoteTokenAuth() throws JsonProcessingException {
+		String requestJson = """
+				{
+				  "siteId": "test-site",
+				  "name": "Test Site",
+				  "description": "A site created from a remote repository",
+				  "sourceType": "remote",
+				  "remoteUrl": "http://example.com/repo.git",
+				  "authentication": {
+					  "type": "token",
+					  "token": "the secret token"
+				  }
+				}
+				""";
+		ObjectMapper objectMapper = new ObjectMapper();
+		CreateSiteRequest request = objectMapper.readValue(requestJson, CreateSiteRequest.class);
+		assertInstanceOf(CreateSiteRequest.RemoteSource.class, request);
+		CreateSiteRequest.RemoteSource remoteRequest = (CreateSiteRequest.RemoteSource) request;
+		assertEquals(AuthenticationType.TOKEN, remoteRequest.getAuthentication().getType());
+		assertEquals("the secret token", remoteRequest.getAuthentication().getToken());
 	}
 
 }
