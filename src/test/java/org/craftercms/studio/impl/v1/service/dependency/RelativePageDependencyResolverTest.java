@@ -102,7 +102,7 @@ public class RelativePageDependencyResolverTest {
 
 		assertEquals(pageDeps.size(), 2);
 		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/page1/index.xml")));
-		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/articles/page1")));
+		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/articles/page1/index.xml")));
 	}
 
 	@Test
@@ -119,7 +119,7 @@ public class RelativePageDependencyResolverTest {
 		assertNotNull(deps);
 		Set<DependencyResolver.ResolvedDependency> pageDeps = deps.get("page");
 		assertEquals(pageDeps.size(), 1);
-		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/sitemap/custom/path")));
+		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/sitemap/custom/path/index.xml")));
 	}
 
 	@Test
@@ -136,7 +136,7 @@ public class RelativePageDependencyResolverTest {
 		assertNotNull(deps);
 		Set<DependencyResolver.ResolvedDependency> pageDeps = deps.get("page");
 		assertEquals(pageDeps.size(), 1);
-		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/page1/path")));
+		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/page1/path/index.xml")));
 	}
 
 	@Test
@@ -153,6 +153,6 @@ public class RelativePageDependencyResolverTest {
 		assertNotNull(deps);
 		Set<DependencyResolver.ResolvedDependency> pageDeps = deps.get("page");
 		assertEquals(pageDeps.size(), 1);
-		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/page1/path")));
+		assertTrue(pageDeps.stream().anyMatch(d -> d.path().equals("/site/website/page1/path/index.xml")));
 	}
 }
