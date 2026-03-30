@@ -33,7 +33,7 @@ public class CreateSiteRequestTest {
 				  "name": "Test Site",
 				  "description": "A site created from a blueprint",
 				  "sourceType": "blueprint",
-				  "blueprint": "test-blueprint"
+				  "blueprintId": "test-blueprint"
 				}
 				""";
 		ObjectMapper objectMapper = new ObjectMapper();
