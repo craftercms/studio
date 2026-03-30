@@ -686,6 +686,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException,
 			RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException {
 		String siteId = request.getSiteId();
+		if (isEmpty(request.getSandboxBranch())) {
+			logger.debug("Use the default sandbox branch for site '{}'", siteId);
+			request.setSandboxBranch(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+		}
+		if (isEmpty(request.getRemoteName())) {
+			logger.debug("Use the default remote name for site '{}'", siteId);
+			request.setRemoteName(studioConfiguration.getProperty(REPO_DEFAULT_REMOTE_NAME));
+		}
+
 		CreateSiteRequest.RemoteAuthentication auth = request.getAuthentication();
 		blobAwareRepository.createSiteCloneRemote(request.getSiteId(), request.getSandboxBranch(), request.getRemoteName(),
 				request.getRemoteUrl(), request.getRemoteBranch(), request.isSingleBranch(), auth.getType(), auth.getUsername(),
