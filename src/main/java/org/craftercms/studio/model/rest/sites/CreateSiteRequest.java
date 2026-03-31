@@ -195,12 +195,19 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 	}
 
 	public static class RemoteAuthentication {
+
+		public static final RemoteAuthentication NONE = new RemoteAuthentication(AuthenticationType.NONE);
+
 		@JsonDeserialize(using = CaseInsensitiveEnumDeserializer.class)
 		private AuthenticationType type;
 		private String username;
 		private String password;
 		private String token;
 		private String privateKey;
+
+		public RemoteAuthentication(AuthenticationType type) {
+			this.type = type;
+		}
 
 		public AuthenticationType getType() {
 			return type;

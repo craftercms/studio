@@ -628,7 +628,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void createSite(CreateSiteRequest request) throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException {
-		logger.info("Create site with params: '{}'", request);
+		logger.debug("Create site with params: '{}'", request);
 		checkCanCreateSite(request.getSiteId(), request.getName());
 
 		runAfterRollback(() -> cleanupFailedSiteCreation(request.getSiteId()));

@@ -58,6 +58,7 @@ import java.util.UUID;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_ENABLED;
+import static org.craftercms.studio.model.rest.sites.CreateSiteRequest.RemoteAuthentication.NONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -300,9 +301,7 @@ public class SitesServiceInternalImplTest {
 			request.setRemoteUrl("http://example.com/repo.git");
 			request.setRemoteName("origin");
 			request.setRemoteBranch("main");
-			CreateSiteRequest.RemoteAuthentication auth = new CreateSiteRequest.RemoteAuthentication();
-			auth.setType(AuthenticationType.NONE);
-			request.setAuthentication(auth);
+			request.setAuthentication(NONE);
 
 			sitesServiceInternal.createSite(request);
 

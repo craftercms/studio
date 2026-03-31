@@ -29,7 +29,6 @@ import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringSubstitutor;
-import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
@@ -39,7 +38,6 @@ import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.rest.RestTemplate;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -74,6 +72,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteFromMarketplaceRequest;
+import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.dom4j.*;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
@@ -118,11 +117,13 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.apache.commons.lang.text.StrSubstitutor.replace;
 import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_MODULE;
 import static org.craftercms.studio.api.v2.service.marketplace.Constants.SOURCE_GIT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.*;
 import static org.craftercms.studio.impl.v2.utils.XsltUtils.executeTemplate;
+import static org.craftercms.studio.model.rest.sites.CreateSiteRequest.RemoteAuthentication.NONE;
 
 /**
  * Internal implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace
@@ -313,6 +314,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 		this.url = url;
 	}
 
+	@SuppressWarnings("unused")
 	public void setPluginRegistryPath(String pluginRegistryPath) {
 		this.pluginRegistryPath = pluginRegistryPath;
 	}
@@ -321,6 +323,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 		this.showPending = showPending;
 	}
 
+	@SuppressWarnings("unused")
 	public void setPluginsFolder(final String pluginsFolder) {
 		this.pluginsFolder = pluginsFolder;
 	}
@@ -454,23 +457,36 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 			logger.debug("Use the default sandbox branch for site '{}'", request.getSiteId());
 			request.setSandboxBranch(studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH));
 		}
-
 		if (isEmpty(request.getRemoteName())) {
 			logger.debug("Use the default remote name for site '{}'", request.getSiteId());
 			request.setRemoteName(studioConfiguration.getProperty(StudioConfiguration.REPO_DEFAULT_REMOTE_NAME));
 		}
 
-		MarketplacePlugin plugin = getDescriptor(request.getBlueprintId(), request.getBlueprintVersion());
-
-		validatePluginParameters(plugin, request.getSiteParams());
-
-		siteService.createSiteWithRemoteOption(request.getSiteId(), request.getName(), request.getSandboxBranch(),
-			request.getDescription(), request.getBlueprintId(), request.getRemoteName(),
-			plugin.getUrl(), plugin.getRef(), false, AuthenticationType.NONE, null,
-			null, null, null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getSiteParams(),
-			true);
+		CreateSiteRequest.RemoteSource createFromRemoteRequest = getCreateFromRemoteRequest(request);
+		sitesServiceInternal.createSite(createFromRemoteRequest);
 
 		logger.info("Site '{}' was created successfully", request.getSiteId());
+	}
+
+	/**
+	 * Build the CreateSiteRequest.RemoteSource object for the given CreateSiteFromMarketplaceRequest, validating the
+	 * request parameters and the plugin descriptor in the process
+	 */
+	protected CreateSiteRequest.RemoteSource getCreateFromRemoteRequest(CreateSiteFromMarketplaceRequest request) throws MarketplaceException {
+		MarketplacePlugin plugin = getDescriptor(request.getBlueprintId(), request.getBlueprintVersion());
+		validatePluginParameters(plugin, request.getSiteParams());
+
+		CreateSiteRequest.RemoteSource createFromRemoteRequest = new CreateSiteRequest.RemoteSource();
+		createFromRemoteRequest.setSiteId(request.getSiteId());
+		createFromRemoteRequest.setName(request.getName());
+		createFromRemoteRequest.setDescription(request.getDescription());
+		createFromRemoteRequest.setSiteParams(request.getSiteParams());
+		createFromRemoteRequest.setSandboxBranch(request.getSandboxBranch());
+		createFromRemoteRequest.setRemoteUrl(plugin.getUrl());
+		createFromRemoteRequest.setRemoteName(request.getRemoteName());
+		createFromRemoteRequest.setRemoteBranch(plugin.getRef());
+		createFromRemoteRequest.setAuthentication(NONE);
+		return createFromRemoteRequest;
 	}
 
 	@Override
@@ -528,16 +544,13 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 			createPluginConfig(siteDir, pluginIdPath, parameters, changedFiles);
 
 			Path temp = Files.createTempDirectory("plugin-" + marketplacePlugin.getId());
-			switch (marketplacePlugin.getSource()) {
-				case SOURCE_GIT:
-					clonePluginFromGit(marketplacePlugin, temp);
-					break;
-				default:
-					throw new IncompatiblePluginException(
+			if (!marketplacePlugin.getSource().equals(SOURCE_GIT)) {
+				throw new IncompatiblePluginException(
 						format("Plugin '%s' version '%s' from source '%s' can't be installed in site '%s' " +
-								"because the source of the plugin is not supported",
-							marketplacePlugin.getId(), pluginVersion, marketplacePlugin.getSource(), siteId));
+										"because the source of the plugin is not supported",
+								marketplacePlugin.getId(), pluginVersion, marketplacePlugin.getSource(), siteId));
 			}
+			clonePluginFromGit(marketplacePlugin, temp);
 
 			try (InputStream is = Files.newInputStream(temp.resolve(pluginDescriptorFilename))) {
 				// Load the plugin descriptor from the temp directory
@@ -672,7 +685,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 		Path registryFile = repoDir.resolve(pluginRegistryPath);
 		try (OutputStream os = Files.newOutputStream(registryFile)) {
 			mapper.writeValue(os, registry);
-			logger.debug("Successfully updated the plugin registry in site '{}'", siteId);
+			logger.debug("Successfully added the plugin '{}' to the registry in site '{}'", plugin.getId(), siteId);
 		} catch (JsonProcessingException e) {
 			logger.error("Failed to update the plugin registry in site '{}'", siteId, e);
 			throw new MarketplaceRegistryException(format("Failed to update the plugin registry in site '%s'",
@@ -691,7 +704,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 		Path registryFile = repoDir.resolve(pluginRegistryPath);
 		try (OutputStream os = Files.newOutputStream(registryFile)) {
 			mapper.writeValue(os, registry);
-			logger.debug("Successfully updated the plugin registry in site '{}'", siteId);
+			logger.debug("Successfully removed the plugin '{}' from the registry in site '{}'", pluginId, siteId);
 		} catch (JsonProcessingException e) {
 			logger.error("Failed to update the plugin registry in site '{}'", siteId);
 			throw new MarketplaceRegistryException(format("Failed to update the plugin registry in site '%s'",
@@ -875,7 +888,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 			parameters.forEach(config::addProperty);
 		}
 
-		String configPath = removeStart(getPluginConfigurationPath(studioConfiguration, pluginId), File.separator);
+		String configPath = CS.removeStart(getPluginConfigurationPath(studioConfiguration, pluginId), File.separator);
 		Path configFile = siteDir.resolve(configPath);
 		Files.createDirectories(configFile.getParent());
 		try (Writer writer = Files.newBufferedWriter(configFile, CREATE)) {
@@ -887,7 +900,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 	protected void removePluginConfig(Path siteDir, String pluginId,
 					  List<String> changedFiles) throws IOException {
 
-		String configPath = removeStart(getPluginConfigurationPath(studioConfiguration, pluginId), File.separator);
+		String configPath = CS.removeStart(getPluginConfigurationPath(studioConfiguration, pluginId), File.separator);
 		Path configFile = siteDir.resolve(configPath);
 		Files.deleteIfExists(configFile);
 		changedFiles.add(configPath);
@@ -908,7 +921,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 		Set<String> dependantItems = new TreeSet<>();
 		List<String> contentTypePaths = record.get().getFiles().stream()
 			.map(FileRecord::getPath)
-			.map(p -> prependIfMissing(p, File.separator))
+			.map(p -> CS.prependIfMissing(p, File.separator))
 			.filter(contentTypeRegex.asMatchPredicate())
 			.collect(toList());
 
@@ -1014,8 +1027,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 						List<Node> children = docRoot.selectNodes(root.getName());
 						if (CollectionUtils.isNotEmpty(children) && children.size() == 1) {
 							parentXpath += File.separator + root.getName();
-							root = root.getChildren().get(0);
-							docRoot = children.get(0);
+							root = root.getChildren().getFirst();
+							docRoot = children.getFirst();
 						} else {
 							completed = true;
 						}
@@ -1081,7 +1094,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 			} else {
 				logger.debug("Site '{}' does not have the template '{}', it will be created", siteId, includePath);
 			}
-			if (isEmpty(fileContent) || !contains(fileContent, includeComment)) {
+			if (isEmpty(fileContent) || !CS.contains(fileContent, includeComment)) {
 				logger.debug("Wire the plugin template '{}' into '{}' in site '{}'",
 					pluginPath, includePath, siteId);
 				String newLine =
@@ -1131,7 +1144,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 				List<String> lines = Files.readAllLines(hookFile);
 				// remove the lines related to the given plugin
 				List<String> newLines = lines.stream()
-					.filter(not(line -> contains(line, pluginId)))
+					.filter(not(line -> CS.contains(line, pluginId)))
 					.collect(toList());
 				// write the changes if any
 				if (newLines.size() < lines.size()) {
@@ -1184,7 +1197,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 	protected String getConfigurationPath(String module, String filePath) {
 		String basePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
 			.replaceAll(PATTERN_MODULE, module);
-		return Path.of(removeStart(basePath, File.separator), filePath).toString();
+		return Path.of(CS.removeStart(basePath, File.separator), filePath).toString();
 	}
 
 
