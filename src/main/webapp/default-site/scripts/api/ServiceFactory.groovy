@@ -22,7 +22,6 @@ import scripts.api.impl.content.SpringContentTypeServices
 import scripts.api.impl.content.SpringPageNavigationOrderServices
 import scripts.api.impl.security.SpringSecurityServices
 import scripts.api.impl.site.SpringSiteServices
-import scripts.api.impl.dependency.SpringDependencyServices
 import scripts.api.impl.user.SpringUserServices
 
 /**
@@ -79,17 +78,6 @@ class ServiceFactory {
 	 */
 	static getSiteServices(context) {
 		return new SpringSiteServices(context)
-	}
-
-
-	/**
-	 * return the implementation for deps services
-	 *
-	 * @param context site context
-	 * @return Deps Services
-	 */
-	static getDependencyServices(context) {
-		return new SpringDependencyServices(context)
 	}
 
 	/**
