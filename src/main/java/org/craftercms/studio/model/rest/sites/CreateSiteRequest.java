@@ -205,6 +205,9 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 		private String token;
 		private String privateKey;
 
+		public RemoteAuthentication() {
+		}
+
 		public RemoteAuthentication(AuthenticationType type) {
 			this.type = type;
 		}
