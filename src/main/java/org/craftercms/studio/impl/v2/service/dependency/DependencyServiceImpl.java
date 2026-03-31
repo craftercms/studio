@@ -80,7 +80,8 @@ public class DependencyServiceImpl implements DependencyService {
 	}
 
 	@Override
-	public Collection<LightItem> getHardDependencies(String site, Collection<String> paths) throws SiteNotFoundException {
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<LightItem> getHardDependencies(@SiteId String site, Collection<String> paths) throws SiteNotFoundException {
 		return dependencyServiceInternal.getHardDependencies(site, paths);
 	}
 
@@ -138,7 +139,7 @@ public class DependencyServiceImpl implements DependencyService {
 
 	@Override
 	@RequireSiteExists
-	public void validateDependencies(String siteId) {
+	public void validateDependencies(@SiteId String siteId) {
 		dependencyServiceInternal.validateDependencies(siteId);
 	}
 
@@ -152,8 +153,15 @@ public class DependencyServiceImpl implements DependencyService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public Collection<LightItem> getDependencies(String siteId, String path) {
+	public Collection<LightItem> getDependencies(@SiteId String siteId, String path) {
 		return dependencyServiceInternal.getDependencies(siteId, path);
+	}
+
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<String> getDependencyPaths(@SiteId String siteId, String path) {
+		return dependencyServiceInternal.getDependencyPaths(siteId, path);
 	}
 
 	@Override

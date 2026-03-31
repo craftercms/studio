@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -83,8 +82,7 @@ public class DependencyController {
 	public ResultOne<Collection<LightItem>> getDependencies(@PathVariable @ValidSiteId String site,
 															@RequestBody @Valid GetDependenciesRequestBody request)
 			throws ServiceLayerException {
-		// TODO: implement
-		Collection<LightItem> items = Collections.emptyList();
+		Collection<LightItem> items = dependencyService.getDependencies(site, request.getPath());
 		var result = new ResultOne<Collection<LightItem>>();
 		result.setResponse(OK);
 		result.setEntity(RESULT_KEY_ITEMS, items);

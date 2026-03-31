@@ -113,11 +113,20 @@ public interface DependencyService {
 	List<LightItem> getItemSpecificDependencies(String siteId, Collection<String> paths);
 
 	/**
-	 * Get all valid dependencies for given path.
+	 * Get all valid dependency paths for the given path.
 	 *
 	 * @param siteId the site id
 	 * @param path   source path to get dependencies for
-	 * @return collection of {@link LightItem} dependencies for given path
+	 * @return collection of paths of the dependencies for given path
+	 */
+	Collection<String> getDependencyPaths(String siteId, String path);
+
+	/**
+	 * Get dependency items for given path
+	 *
+	 * @param siteId the site id
+	 * @param path   source path to get dependencies for
+	 * @return collection of {@link LightItem} that are dependencies for given path
 	 */
 	Collection<LightItem> getDependencies(String siteId, String path);
 
