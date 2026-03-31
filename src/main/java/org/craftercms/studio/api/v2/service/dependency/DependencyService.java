@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -47,6 +47,8 @@ public interface DependencyService {
 	 * Get the publishing soft dependencies of a list of items. A soft
 	 * dependency is:
 	 * * an edited, shared (not item specific) dependency
+	 * <p>
+	 * This method will NOT get transitive soft dependencies.
 	 *
 	 * @param site  Site to operate on
 	 * @param paths List of paths to items to retrieve deps for

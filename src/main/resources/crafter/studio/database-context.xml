@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -108,11 +108,6 @@
 	<!-- MyBatis Mappers -->
 	<bean id="studio.retryingDatabaseOperationFacade"
 	      class="org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl">
-	</bean>
-
-	<bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-		<property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.DependencyMapper"/>
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
 	</bean>
 
 	<bean id="daoUtils" class="org.mybatis.spring.mapper.MapperFactoryBean">
