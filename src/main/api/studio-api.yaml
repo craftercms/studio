@@ -5471,6 +5471,13 @@ paths:
             summary: Get list of publish dependencies for given content paths
             description: 'Required permission "content_read"'
             operationId: getPublishDependencies
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: site ID
+                    required: true
+                    schema:
+                        type: string
             requestBody:
                 required: true
                 content:
@@ -5478,16 +5485,12 @@ paths:
                         schema:
                             type: object
                             properties:
-                                siteId:
-                                    description: Site ID
-                                    type: string
                                 paths:
                                     description: Content paths to get dependencies for
                                     type: array
                                     items:
                                         type: string
                             required:
-                                - siteId
                                 - paths
             responses:
                 '200':
@@ -5505,11 +5508,11 @@ paths:
                                             hardDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
+                                                    $ref: '#/components/schemas/LightItem'
                                             softDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
+                                                    $ref: '#/components/schemas/LightItem'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
