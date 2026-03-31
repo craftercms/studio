@@ -208,7 +208,7 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 		public RemoteAuthentication() {
 		}
 
-		public RemoteAuthentication(AuthenticationType type) {
+		private RemoteAuthentication(AuthenticationType type) {
 			this.type = type;
 		}
 
