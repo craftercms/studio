@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,11 +25,13 @@ import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.model.config.TranslationConfiguration;
+import org.craftercms.studio.model.i18n.Language;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -261,4 +263,11 @@ public interface ConfigurationService {
 	 * @throws ServiceLayerException if an error occurs while reading the groups
 	 */
 	List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException;
+
+	/**
+	 * Get the available languages in the system.
+	 *
+	 * @return the list of available languages
+	 */
+	Collection<Language> getAvailableLanguages() throws ServiceLayerException;
 }
