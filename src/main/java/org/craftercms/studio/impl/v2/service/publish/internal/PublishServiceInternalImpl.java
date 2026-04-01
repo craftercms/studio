@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.dal.publish.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
+import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;

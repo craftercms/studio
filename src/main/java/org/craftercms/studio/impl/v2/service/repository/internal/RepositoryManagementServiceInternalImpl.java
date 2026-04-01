@@ -32,6 +32,10 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryDAO;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.dal.repository.RepositoryStatus;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
@@ -224,37 +228,25 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		// TODO: SJ: Avoid using string literals
 		logger.debug("Insert the remote repository '{}' from site '{}' into the database",
 			remoteRepository.getRemoteName(), siteId);
-		Map<String, String> params = new HashMap<>();
-		params.put("siteId", siteId);
-		params.put("remoteName", remoteRepository.getRemoteName());
-		params.put("remoteUrl", remoteRepository.getRemoteUrl());
-		params.put("authenticationType", remoteRepository.getAuthenticationType().getValue());
-		params.put("remoteUsername", remoteRepository.getRemoteUsername());
-
+		remoteRepository.setSiteId(siteId);
 		if (isNotEmpty(remoteRepository.getRemotePassword())) {
 			logger.trace("Encrypt the password before inserting into the database for site '{}'", siteId);
 			String hashedPassword = encryptor.encrypt(remoteRepository.getRemotePassword());
-			params.put("remotePassword", hashedPassword);
-		} else {
-			params.put("remotePassword", remoteRepository.getRemotePassword());
+			remoteRepository.setRemotePassword(hashedPassword);
 		}
 		if (isNotEmpty(remoteRepository.getRemoteToken())) {
 			logger.trace("Encrypt the token before inserting into the database for site '{}'", siteId);
 			String hashedToken = encryptor.encrypt(remoteRepository.getRemoteToken());
-			params.put("remoteToken", hashedToken);
-		} else {
-			params.put("remoteToken", remoteRepository.getRemoteToken());
+			remoteRepository.setRemoteToken(hashedToken);
 		}
 		if (isNotEmpty(remoteRepository.getRemotePrivateKey())) {
 			logger.trace("Encrypt the private key before inserting into the database for site '{}'", siteId);
 			String hashedPrivateKey = encryptor.encrypt(remoteRepository.getRemotePrivateKey());
-			params.put("remotePrivateKey", hashedPrivateKey);
-		} else {
-			params.put("remotePrivateKey", remoteRepository.getRemotePrivateKey());
+			remoteRepository.setRemotePrivateKey(hashedPrivateKey);
 		}
 
 		logger.debug("Insert the site remote record into database for site '{}'", siteId);
-		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDao.insertRemoteRepository(params));
+		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDao.insertRemoteRepository(remoteRepository));
 	}
 
 	@Override

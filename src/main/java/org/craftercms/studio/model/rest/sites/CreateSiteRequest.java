@@ -196,7 +196,7 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 
 	public static class RemoteAuthentication {
 
-		public static final RemoteAuthentication NONE = new RemoteAuthentication(AuthenticationType.NONE);
+		public static final RemoteAuthentication NONE = new RemoteAuthentication(AuthenticationType.none);
 
 		@JsonDeserialize(using = CaseInsensitiveEnumDeserializer.class)
 		private AuthenticationType type;

@@ -41,7 +41,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.git.MergeInProgressException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
@@ -397,21 +397,21 @@ public class GitRepositoryHelper implements DisposableBean {
 		}
 		TypeBasedAuthConfiguratorBuilder builder = authConfiguratorFactory.forType(authenticationType);
 		switch (authenticationType) {
-			case AuthenticationType.NONE:
+			case AuthenticationType.none:
 				logger.debug("No authentication");
 				break;
-			case AuthenticationType.BASIC:
+			case AuthenticationType.basic:
 				logger.debug("Basic authentication");
 				builder
 					.withUsername(username)
 					.withPassword(passwordValue);
 				break;
-			case AuthenticationType.TOKEN:
+			case AuthenticationType.token:
 				logger.debug("Token based authentication");
 				builder
 					.withUsername(tokenValue);
 				break;
-			case AuthenticationType.PRIVATE_KEY:
+			case AuthenticationType.private_key:
 				logger.debug("Private key authentication");
 				Files.writeString(tempKey, privateKeyValue);
 				tempKey.toFile().deleteOnExit();

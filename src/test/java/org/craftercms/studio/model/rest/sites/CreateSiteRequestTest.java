@@ -72,7 +72,7 @@ public class CreateSiteRequestTest {
 		assertEquals("http://example.com/repo.git", remoteRequest.getRemoteUrl());
 		assertEquals("origin", remoteRequest.getRemoteName());
 		assertEquals("main", remoteRequest.getRemoteBranch());
-		assertEquals(AuthenticationType.NONE, remoteRequest.getAuthentication().getType());
+		assertEquals(AuthenticationType.none, remoteRequest.getAuthentication().getType());
 	}
 
 	@Test
@@ -95,7 +95,7 @@ public class CreateSiteRequestTest {
 		CreateSiteRequest request = objectMapper.readValue(requestJson, CreateSiteRequest.class);
 		assertInstanceOf(CreateSiteRequest.RemoteSource.class, request);
 		CreateSiteRequest.RemoteSource remoteRequest = (CreateSiteRequest.RemoteSource) request;
-		assertEquals(AuthenticationType.BASIC, remoteRequest.getAuthentication().getType());
+		assertEquals(AuthenticationType.basic, remoteRequest.getAuthentication().getType());
 		assertEquals("user", remoteRequest.getAuthentication().getUsername());
 		assertEquals("pass", remoteRequest.getAuthentication().getPassword());
 	}
@@ -119,7 +119,7 @@ public class CreateSiteRequestTest {
 		CreateSiteRequest request = objectMapper.readValue(requestJson, CreateSiteRequest.class);
 		assertInstanceOf(CreateSiteRequest.RemoteSource.class, request);
 		CreateSiteRequest.RemoteSource remoteRequest = (CreateSiteRequest.RemoteSource) request;
-		assertEquals(AuthenticationType.TOKEN, remoteRequest.getAuthentication().getType());
+		assertEquals(AuthenticationType.token, remoteRequest.getAuthentication().getType());
 		assertEquals("the secret token", remoteRequest.getAuthentication().getToken());
 	}
 

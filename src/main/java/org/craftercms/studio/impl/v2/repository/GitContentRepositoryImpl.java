@@ -40,6 +40,9 @@ import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem.Action;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryDAO;
+import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
@@ -69,7 +72,6 @@ import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
-import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -98,7 +100,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
+import static org.craftercms.studio.api.v2.dal.repository.RepoOperation.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -573,37 +575,37 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 								  AuthenticationType authenticationType, String remoteUsername, String remotePassword,
 								  String remoteToken, String remotePrivateKey) throws CryptoException {
 		logger.debug("Insert git remote '{}' in site '{}' into the database", remoteName, siteId);
-		Map<String, String> params = new HashMap<>();
-		params.put("siteId", siteId);
-		params.put("remoteName", remoteName);
-		params.put("remoteUrl", remoteUrl);
-		params.put("authenticationType", authenticationType.getValue());
-		params.put("remoteUsername", remoteUsername);
+		RemoteRepository remote = new RemoteRepository();
+		remote.setSiteId(siteId);
+		remote.setRemoteName(remoteName);
+		remote.setRemoteUrl(remoteUrl);
+		remote.setAuthenticationType(authenticationType);
+		remote.setRemoteUsername(remoteUsername);
 
 		if (StringUtils.isNotEmpty(remotePassword)) {
 			// Encrypt password before inserting to database
 			String hashedPassword = encryptor.encrypt(remotePassword);
-			params.put("remotePassword", hashedPassword);
+			remote.setRemotePassword(hashedPassword);
 		} else {
-			params.put("remotePassword", remotePassword);
+			remote.setRemotePassword(remotePassword);
 		}
 		if (StringUtils.isNotEmpty(remoteToken)) {
 			// Encrypt token before inserting to database
 			String hashedToken = encryptor.encrypt(remoteToken);
-			params.put("remoteToken", hashedToken);
+			remote.setRemoteToken(hashedToken);
 		} else {
-			params.put("remoteToken", remoteToken);
+			remote.setRemoteToken(remoteToken);
 		}
 		if (StringUtils.isNotEmpty(remotePrivateKey)) {
 			// Encrypt private key before inserting to database
 			String hashedPrivateKey = encryptor.encrypt(remotePrivateKey);
-			params.put("remotePrivateKey", hashedPrivateKey);
+			remote.setRemotePrivateKey(hashedPrivateKey);
 		} else {
-			params.put("remotePrivateKey", remotePrivateKey);
+			remote.setRemotePrivateKey(remotePrivateKey);
 		}
 
 		// Insert site remote record into database
-		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(params));
+		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(remote));
 	}
 
 	@Override

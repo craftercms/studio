@@ -306,7 +306,7 @@ public class SitesServiceInternalImplTest {
 			sitesServiceInternal.createSite(request);
 
 			verify(contentRepository).createSiteCloneRemote(eq("new-site"), nullable(String.class), eq("origin"), eq("http://example.com/repo.git"),
-					nullable(String.class), eq(true), eq(AuthenticationType.NONE), nullable(String.class), nullable(String.class),
+					nullable(String.class), eq(true), eq(AuthenticationType.none), nullable(String.class), nullable(String.class),
 					nullable(String.class), nullable(String.class), argThat(m -> m == null || m.isEmpty()), eq(false), eq("user123"));
 		}
 	}
