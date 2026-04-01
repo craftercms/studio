@@ -38,12 +38,6 @@
 		  AND remote_name = #{remoteName} limit 0, 1
 	</select>
 
-	<select id="listRemoteRepositories" resultMap="RemoteRepositoryMap" parameterType="java.util.Map">
-		SELECT *
-		FROM remote_repository
-		WHERE site_id = #{siteId}
-	</select>
-
 	<insert id="insertRemoteRepository" parameterType="org.craftercms.studio.api.v2.dal.repository.RemoteRepository">
 		INSERT INTO remote_repository (site_id, remote_name, remote_url, authentication_type,
 					       remote_username, remote_password, remote_token, remote_private_key)

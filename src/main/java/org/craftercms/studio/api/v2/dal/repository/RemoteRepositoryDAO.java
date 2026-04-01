@@ -18,7 +18,6 @@ package org.craftercms.studio.api.v2.dal.repository;
 
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.REPOSITORY;
@@ -35,6 +34,4 @@ public interface RemoteRepositoryDAO {
 	void insertRemoteRepository(@Param(REPOSITORY) RemoteRepository repository);
 
 	void deleteRemoteRepository(Map params);
-
-	List<RemoteRepository> listRemoteRepositories(Map params);
 }
