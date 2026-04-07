@@ -16,8 +16,11 @@
 package org.craftercms.studio.impl.v1.util;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.impl.v2.utils.TimeUtils;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -28,20 +31,23 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 
 
 public class ContentUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(ContentUtils.class);
+
+	private static final String AUTHORING_URL_FORMAT = "%s/preview/#/?page=%s&site=%s";
 
 	/**
 	 * Release a resource
@@ -187,5 +193,66 @@ public class ContentUtils {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Get the authoring URL for a given content item path, based on the configured patterns for the site.
+	 *
+	 * @param servicesConfig {@link ServicesConfig} instance to get the configured patterns for the site and the authoring URL
+	 * @param site           the site for which to get the authoring URL
+	 * @param previewUri      the preview URI for the content item, e.g.: "/articles/test1/"
+	 * @return the authoring URL for the given content item path, or null if the path matches any of the patterns that should not have a preview URL
+	 * @throws SiteNotFoundException if the site is not found in the configuration
+	 */
+	public static String getAuthoringUrl(ServicesConfig servicesConfig, String site, String previewUri) throws SiteNotFoundException {
+		if (previewUri != null) {
+			previewUri = format(AUTHORING_URL_FORMAT, servicesConfig.getAuthoringUrl(site), previewUri, site);
+		}
+		return previewUri;
+	}
+
+	/**
+	 * Get the preview URL for a given content item path, based on the configured patterns for the site.
+	 * If the path matches any of the patterns that should not have a preview URL, null is returned.
+	 *
+	 * @param servicesConfig {@link ServicesConfig} instance to get the configured patterns for the site
+	 * @param site           the site for which to get the preview URL
+	 * @param path           the content item path for which to get the preview URL
+	 * @return the preview URL for the given content item path, or null if the path matches any of the patterns that should not have a preview URL
+	 * @throws SiteNotFoundException if the site is not found in the configuration
+	 */
+	public static String getPreviewUrl(ServicesConfig servicesConfig, String site, String path) throws SiteNotFoundException {
+		String replacePattern;
+		boolean isPage = false;
+		if (matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(site))) {
+			return null;
+		} else if (matchesPatterns(path, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
+			return null;
+		} else if (matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
+				CS.endsWith(path, FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+			return null;
+		} else if (matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
+			return null;
+		} else if (matchesPatterns(path, List.of(CONTENT_TYPE_CONFIG_REGEX))) {
+			return null;
+		} else if (matchesPatterns(path, servicesConfig.getAssetPatterns(site))) {
+			replacePattern = StringUtils.EMPTY;
+		} else if (matchesPatterns(path, servicesConfig.getDocumentPatterns(site))) {
+			replacePattern = DmConstants.ROOT_PATTERN_DOCUMENTS;
+		} else {
+			replacePattern = DmConstants.ROOT_PATTERN_PAGES;
+			isPage = true;
+		}
+
+		String browserUri = path.replaceFirst(replacePattern, "");
+		browserUri = browserUri.replaceFirst(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
+		if (browserUri.isEmpty()) {
+			browserUri = FILE_SEPARATOR;
+		}
+		// TODO: come up with a better way of doing this.
+		if (isPage) {
+			browserUri = browserUri.replaceFirst("\\.xml", ".html");
+		}
+		return browserUri;
 	}
 }

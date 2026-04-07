@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,12 +23,14 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.FacetRangeTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
 import org.craftercms.studio.model.search.*;
 import org.opensearch.client.json.JsonData;
@@ -41,6 +43,7 @@ import org.opensearch.client.opensearch._types.query_dsl.TextQueryType;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Highlight;
+import org.slf4j.Logger;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -56,7 +59,9 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Internal implementation of {@link org.craftercms.studio.api.v2.service.search.SearchService}
@@ -65,6 +70,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
  */
 public class SearchServiceInternalImpl implements SearchService {
 
+	private final static Logger logger = getLogger(SearchServiceInternalImpl.class);
 	public static final String CONFIG_KEY_FIELDS = "studio.search.fields.search";
 	public static final String CONFIG_KEY_FACETS = "studio.search.facets";
 	public static final String CONFIG_KEY_TYPES = "studio.search.types";
@@ -292,8 +298,7 @@ public class SearchServiceInternalImpl implements SearchService {
 	 * @param highlights the highlights returned by OpenSearch
 	 * @return the search item object
 	 */
-	//TODO: Implement previewUrl for supported types
-	protected SearchResultItem processSearchHit(Map<String, Object> source, Map<String, List<String>> highlights,
+	protected SearchResultItem processSearchHit(String siteId, Map<String, Object> source, Map<String, List<String>> highlights,
 						    List<String> additionalFields) {
 		SearchResultItem item = new SearchResultItem();
 		item.setPath((String) source.get(pathFieldName));
@@ -311,6 +316,11 @@ public class SearchServiceInternalImpl implements SearchService {
 		item.setMimeType(getMimeType(source));
 		item.setSnippets(getItemSnippets(highlights));
 		item.setAdditionalFields(additionalFields.stream().collect(toMap(identity(), source::get)));
+		try {
+			item.setPreviewUrl(ContentUtils.getPreviewUrl(servicesConfig, siteId, item.getPath()));
+		} catch (SiteNotFoundException e) {
+			logger.error("Error getting preview url for item {}, site not found", item.getPath(), e);
+		}
 		return item;
 	}
 
@@ -414,14 +424,14 @@ public class SearchServiceInternalImpl implements SearchService {
 	 * @return the search result object
 	 */
 	@SuppressWarnings("unchecked,rawtypes")
-	protected SearchResult processResults(SearchResponse<Map> response, Map<String, FacetTO> siteFacets,
+	protected SearchResult processResults(String siteId, SearchResponse<Map> response, Map<String, FacetTO> siteFacets,
 					      List<String> additionalFields) {
 		SearchResult result = new SearchResult();
 		result.setTotal(response.hits().total().value());
 
 		List<SearchResultItem> items = response.hits().hits().stream()
 			.filter(hit -> Objects.nonNull(hit.source()))
-			.map(hit -> processSearchHit(hit.source(), hit.highlight(), additionalFields))
+			.map(hit -> processSearchHit(siteId, hit.source(), hit.highlight(), additionalFields))
 			.collect(Collectors.toList());
 
 		result.setItems(items);
@@ -481,7 +491,7 @@ public class SearchServiceInternalImpl implements SearchService {
 					)
 				);
 				// Remove the quoted section from the keywords to continue processing
-				rawKeywords = StringUtils.remove(rawKeywords, matcher.group(1));
+				rawKeywords = CS.remove(rawKeywords, matcher.group(1));
 			}
 
 
@@ -572,7 +582,7 @@ public class SearchServiceInternalImpl implements SearchService {
 
 		try {
 			SearchResponse<Map> response = searchService.search(siteId, request, Map.class);
-			return processResults(response, siteFacets, params.getAdditionalFields());
+			return processResults(siteId, response, siteFacets, params.getAdditionalFields());
 		} catch (IOException e) {
 			throw new ServiceLayerException("Error connecting to OpenSearch", e);
 		} catch (Exception e) {

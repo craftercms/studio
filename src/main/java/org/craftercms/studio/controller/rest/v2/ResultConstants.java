@@ -112,6 +112,11 @@ public final class ResultConstants {
 	public static final String RESULT_KEY_PROPERTIES = "properties";
 
 	/**
+	 * Site Controller
+	 */
+	public static final String RESULT_KEY_MONITORS = "monitors";
+
+	/**
 	 * Exception Handler
 	 */
 	public static final String RESULT_KEY_PERSON = "person";
