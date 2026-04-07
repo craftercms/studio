@@ -2321,7 +2321,7 @@ paths:
             tags:
                 - sites
             summary: Get all sites monitor information
-            description: 'Required permission "content_read"'
+            description: 'Required global permission "content_read"'
             operationId: monitorAllSites
             responses:
                 '200':
@@ -8584,6 +8584,18 @@ components:
                 name:
                     type: string
                     description: 'Name of the monitor'
+                paths:
+                    type: array
+                    description: 'List of monitored paths'
+                    items:
+                        $ref: '#/components/schemas/SiteMonitorPath'
+
+        SiteMonitorPath:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'Name of the monitored path'
                 emails:
                     type: string
                     description: 'Comma-separated list of email addresses to send the monitor reports to'
