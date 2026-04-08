@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.content;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -31,11 +32,9 @@ import org.craftercms.studio.model.site.SiteMonitor;
 import org.slf4j.Logger;
 
 import java.beans.ConstructorProperties;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.getAuthoringUrl;
 import static org.opensearch.core.common.util.CollectionUtils.isEmpty;
@@ -66,13 +65,21 @@ public class ContentMonitorImpl implements ContentMonitor {
 		Collection<SiteMonitor> results = new ArrayList<>();
 		ContentMonitorConfigTO monitorConfig = servicesConfig.getMonitorConfig(siteId);
 		for (ContentMonitorConfigTO.ContentMonitorTO monitor : monitorConfig.getMonitors()) {
+			if (isEmpty(monitor.paths())) {
+				logger.warn("No paths configured for monitor '{}', skipping", monitor.name());
+				continue;
+			}
+			if (StringUtils.isEmpty(monitor.query())) {
+				logger.warn("No query configured for monitor '{}', skipping", monitor.name());
+				continue;
+			}
 			SearchParams searchParams = new SearchParams();
 			searchParams.setQuery(monitor.query());
 			Collection<SiteMonitor.SiteMonitorPath> monitorPaths = new ArrayList<>(monitor.paths().size());
 			List<SearchResultItem> items = searchService.search(siteId, searchParams).getItems();
 			for (ContentMonitorConfigTO.MonitorPathTO path : monitor.paths()) {
 				List<SearchResultItem> matchingItems = items.stream()
-						.filter(item -> item.getPath().matches(path.pattern()))
+						.filter(item -> StringUtils.isEmpty(path.pattern()) || item.getPath().matches(path.pattern()))
 						.toList();
 				if (!matchingItems.isEmpty()) {
 					List<SiteMonitor.SiteMonitorItem> list = new ArrayList<>();
@@ -118,13 +125,33 @@ public class ContentMonitorImpl implements ContentMonitor {
 		} else {
 			logger.info("Content monitor matches found for {} sites, sending notifications", allSitesMonitors.sites().size());
 			allSitesMonitors.sites().forEach(site -> site.monitors().forEach(monitor -> monitor.getPaths().forEach(path -> {
-				if (!isEmpty(path.items())) {
-					notificationService.notify(site.siteId(), Arrays.stream(path.emails().split(",")).toList(),
-							path.emailTemplate(),
-							Pair.of("monitorName", monitor.getName()),
-							Pair.of("items", path.items()));
+				if (isEmpty(path.items())) {
+					logger.info("No items matching path pattern '{}' for monitor '{}' in site '{}', skipping notification",
+							path.name(), monitor.getName(), site.siteId());
+					return;
 				}
+
+				Collection<String> emails = getEmails(path);
+				if(isEmpty(emails)) {
+					logger.warn("No emails configured for path pattern '{}' for monitor '{}' in site '{}', skipping notification",
+							path.name(), monitor.getName(), site.siteId());
+					return;
+				}
+				notificationService.notify(site.siteId(), emails,
+						path.emailTemplate(),
+						Pair.of("monitorName", monitor.getName()),
+						Pair.of("items", path.items()));
 			})));
 		}
+	}
+
+	/**
+	 * Helper method to get the list of emails from the comma separated string configured for the path pattern
+	 */
+	private Collection<String> getEmails(SiteMonitor.SiteMonitorPath path) {
+		if (StringUtils.isEmpty(path.emails())) {
+			return emptyList();
+		}
+		return Arrays.stream(path.emails().split(",")).toList();
 	}
 }

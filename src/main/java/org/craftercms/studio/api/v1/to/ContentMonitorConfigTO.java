@@ -36,6 +36,7 @@ public class ContentMonitorConfigTO {
 		this.monitors = emptyList();
 	}
 
+	@SuppressWarnings("unused")
 	public ContentMonitorConfigTO(Collection<ContentMonitorTO> contentMonitors) {
 		this.monitors = contentMonitors;
 	}

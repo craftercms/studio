@@ -328,7 +328,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 		try {
 			monitorConfigs = new XmlMapper().readValue(monitoringNode.asXML(), ContentMonitorConfigTO.class);
 		} catch (JsonProcessingException e) {
-			LOGGER.error("Error loading content monitor configuration for site '{}'", site);
+			LOGGER.error("Error loading content monitor configuration for site '{}': '{}'", site, e.getMessage());
 			LOGGER.debug("Error loading content monitor configuration for site '{}' at {}", site, getConfigFileName(), e);
 		}
 		if (monitorConfigs == null) {
