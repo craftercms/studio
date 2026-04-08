@@ -304,16 +304,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 						getStringList(configNode.selectNodes(SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS));
 					siteConfig.setProtectedFolderPatterns(protectedFolderPatterns);
 
-					Node monitoringNode = configNode.selectSingleNode(SITE_CONFIG_XML_ELEMENT_CONTENT_MONITORING);
-					ContentMonitorConfigTO monitorConfigs;//loadMonitorConfig(configNode.selectSingleNode(SITE_CONFIG_XML_ELEMENT_CONTENT_MONITORING));
-					try {
-						monitorConfigs = new XmlMapper().readValue(monitoringNode.asXML(), ContentMonitorConfigTO.class);
-					} catch (JsonProcessingException e) {
-						LOGGER.error("Error loading content monitor configuration for site '{}'", site);
-						LOGGER.debug("Error loading content monitor configuration for site '{}' at {}", site, getConfigFileName(), e);
-						monitorConfigs = new ContentMonitorConfigTO();
-					}
-					siteConfig.setContentMonitorConfig(monitorConfigs);
+					loadMonitoringConfigs(site, configNode, siteConfig);
 					configurationCache.put(cacheKey, siteConfig);
 				}
 			} catch (ServiceLayerException e) {
@@ -321,6 +312,29 @@ public class ServicesConfigImpl implements ServicesConfig {
 			}
 		}
 		return siteConfig;
+	}
+
+	/**
+	 * Loads the content monitor configuration for the site
+	 */
+	protected void loadMonitoringConfigs(String site, Node configNode, SiteConfigTO siteConfig) {
+		Node monitoringNode = configNode.selectSingleNode(SITE_CONFIG_XML_ELEMENT_CONTENT_MONITORING);
+		if (monitoringNode == null) {
+			LOGGER.warn("No content monitor configuration found for site '{}'", site);
+			siteConfig.setContentMonitorConfig(new ContentMonitorConfigTO());
+			return;
+		}
+		ContentMonitorConfigTO monitorConfigs = null;
+		try {
+			monitorConfigs = new XmlMapper().readValue(monitoringNode.asXML(), ContentMonitorConfigTO.class);
+		} catch (JsonProcessingException e) {
+			LOGGER.error("Error loading content monitor configuration for site '{}'", site);
+			LOGGER.debug("Error loading content monitor configuration for site '{}' at {}", site, getConfigFileName(), e);
+		}
+		if (monitorConfigs == null) {
+			monitorConfigs = new ContentMonitorConfigTO();
+		}
+		siteConfig.setContentMonitorConfig(monitorConfigs);
 	}
 
 	protected void loadSiteUrlsConfiguration(SiteConfigTO siteConfig, Node configNode) {
