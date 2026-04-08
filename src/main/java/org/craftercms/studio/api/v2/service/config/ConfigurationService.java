@@ -190,11 +190,6 @@ public interface ConfigurationService {
 	TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException;
 
 	/**
-	 * This method holds logic for API 1, can be deleted when API 1 get configuration is removed
-	 */
-	Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException;
-
-	/**
 	 * Builds the key for a given file
 	 *
 	 * @param siteId      the id of the site

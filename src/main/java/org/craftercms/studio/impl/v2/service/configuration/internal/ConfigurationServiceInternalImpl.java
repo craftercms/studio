@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.service.configuration.internal;
 import com.google.common.cache.Cache;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.config.YamlConfiguration;
@@ -81,6 +80,8 @@ import static java.util.Collections.emptyMap;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.Strings.CI;
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
@@ -351,7 +352,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		return content;
 	}
 
-	private InputStream getDefaultConfiguration(String siteId, String module, String path) throws ContentNotFoundException, IOException {
+	private InputStream getDefaultConfiguration(String siteId, String module, String path) throws ContentNotFoundException {
 		long startTime = 0;
 		if (logger.isTraceEnabled()) {
 			startTime = System.currentTimeMillis();
@@ -429,7 +430,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 					String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
 							.replaceAll(PATTERN_MODULE, module);
 
-					if (startsWithIgnoreCase(path, configBasePath)) {
+					if (CI.startsWith(path, configBasePath)) {
 						fullPath = path;
 					} else {
 						fullPath = Paths.get(configBasePath, path).toString();
@@ -475,8 +476,8 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 			throw new IllegalStateException(
 					format("Site '%s' does not have an plugin folder pattern configured", siteId));
 		}
-		if (!contains(basePath, PLACEHOLDER_TYPE) ||
-				!contains(basePath, PLACEHOLDER_NAME)) {
+		if (!CS.contains(basePath, PLACEHOLDER_TYPE) ||
+				!CS.contains(basePath, PLACEHOLDER_NAME)) {
 			throw new IllegalStateException(format(
 					"Plugin folder pattern for site '%s' does not contain all required placeholders", basePath));
 		}
@@ -586,7 +587,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 		}
 	}
 
-	private void generateAuditLog(String siteId, String path) throws SiteNotFoundException {
+	private void generateAuditLog(String siteId, String path) {
 		Site site = siteDao.getSite(siteId);
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_UPDATE);
@@ -681,7 +682,7 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	public void invalidateConfiguration(String siteId) {
 		logger.debug("Invalidate configuration cache in site '{}'", siteId);
 		configurationCache.asMap().keySet().stream()
-				.filter(key -> startsWithIgnoreCase(key, siteId + ":"))
+				.filter(key -> CI.startsWith(key, siteId + ":"))
 				.forEach(this::invalidateCache);
 	}
 
@@ -722,93 +723,6 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	protected void invalidateCache(String key) {
 		logger.debug("Invalidate cache key '{}'", key);
 		cacheInvalidators.forEach(invalidator -> invalidator.invalidate(configurationCache, key));
-	}
-
-	// Moved from SiteServiceImpl to be able to properly cache the object
-	// TODO: JM: Remove unused method?
-	@Override
-	@SuppressWarnings("unchecked")
-	public Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException {
-		String configPath = null;
-		String xmlCacheKey;
-		String env = null;
-		var useContentService = true;
-		if (StringUtils.isEmpty(site)) {
-			configPath = getGlobalConfigRoot() + path;
-			xmlCacheKey = configPath;
-		} else {
-			if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
-				configPath = getSitesConfigPath() + path;
-				// Write config received env = null so this needs to match
-				xmlCacheKey = getCacheKey(site, MODULE_STUDIO, path, null);
-			} else {
-				useContentService = false;
-				env = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
-				xmlCacheKey = getCacheKey(site, MODULE_STUDIO, path, env);
-			}
-		}
-
-		String finalConfigPath = configPath;
-		String finalEnv = env;
-
-		var objCacheKey = xmlCacheKey + ":map";
-		Map<String, Object> map = (Map<String, Object>) configurationCache.getIfPresent(objCacheKey);
-		if (map == null) {
-			Document doc = (Document) configurationCache.getIfPresent(xmlCacheKey);
-			if (doc == null) {
-				try {
-					logger.debug("Cache miss in site '{}' key '{}'", site, xmlCacheKey);
-					String configContent;
-					if (useContentService) {
-						configContent = ContentUtils.convertStreamToString(contentService.getContent(site, finalConfigPath));
-					} else {
-						configContent = getConfigurationAsString(site, MODULE_STUDIO, path, finalEnv);
-					}
-					configContent = configContent.replaceAll("\"\\n([\\s]+)?+", "\" ");
-					configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
-					configContent = configContent.replaceAll("<!--(.*?)-->", "");
-
-					doc = DocumentHelper.parseText(configContent);
-					configurationCache.put(xmlCacheKey, doc);
-				} catch (DocumentException | IOException e) {
-					throw new ServiceLayerException("Failed to load configuration", e);
-				}
-			}
-			map = createMap(doc.getRootElement());
-			configurationCache.put(objCacheKey, map);
-		}
-		return map;
-	}
-
-	@SuppressWarnings("rawtypes,unchecked")
-	private Map<String, Object> createMap(Element element) {
-		Map<String, Object> map = new HashMap<>();
-		for (int i = 0, size = element.nodeCount(); i < size; i++) {
-			Node currentNode = element.node(i);
-			if (currentNode instanceof Element currentElement) {
-				String key = currentElement.getName();
-				Object toAdd;
-				if (currentElement.isTextOnly()) {
-					toAdd = currentElement.getStringValue();
-				} else {
-					toAdd = createMap(currentElement);
-				}
-				if (map.containsKey(key)) {
-					Object value = map.get(key);
-					List listOfValues = new ArrayList<>();
-					if (value instanceof List) {
-						listOfValues = (List<Object>) value;
-					} else {
-						listOfValues.add(value);
-					}
-					listOfValues.add(toAdd);
-					map.put(key, listOfValues);
-				} else {
-					map.put(key, toAdd);
-				}
-			}
-		}
-		return map;
 	}
 
 	private String getGlobalConfigRoot() {

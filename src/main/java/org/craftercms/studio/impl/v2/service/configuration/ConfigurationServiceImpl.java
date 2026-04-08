@@ -191,11 +191,4 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 	public List<NormalizedGroup> getSiteGroups(String siteId) throws ServiceLayerException {
 		return configurationServiceInternal.getSiteGroups(siteId);
 	}
-
-	// Moved from SiteServiceImpl to be able to properly cache the object
-	// TODO: JM: Remove unused method?
-	@Override
-	public Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException {
-		return configurationServiceInternal.legacyGetConfiguration(site, path);
-	}
 }
