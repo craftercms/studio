@@ -17,15 +17,16 @@
 package org.craftercms.studio.model.rest.sites;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.jackson.CaseInsensitiveEnumDeserializer;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 
 import java.util.Map;
 
@@ -99,11 +100,16 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 	 */
 	public static final class RemoteSource extends CreateSiteRequest {
 		@NotEmpty
+		@Size(max = 2000)
+		@ValidateNoTagsParam
 		private String remoteUrl;
+		@Size(max = 50)
 		private String remoteName;
+		@Size(max = 255)
 		private String remoteBranch;
 		private boolean createAsOrphan;
 		private boolean singleBranch = true;
+		@NotNull
 		private RemoteAuthentication authentication;
 
 		public String getRemoteUrl() {
@@ -200,8 +206,12 @@ public sealed abstract class CreateSiteRequest permits CreateSiteRequest.RemoteS
 
 		@JsonDeserialize(using = CaseInsensitiveEnumDeserializer.class)
 		private AuthenticationType type;
+		@Size(max = 255)
+		@ValidateNoTagsParam
 		private String username;
+		@Size(max = 255)
 		private String password;
+		@Size(max = 255)
 		private String token;
 		private String privateKey;
 

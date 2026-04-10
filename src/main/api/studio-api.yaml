@@ -1965,7 +1965,7 @@ paths:
                                     remoteName: "origin"
                                     remoteBranch: "branch123"
                                     authentication:
-                                        authenticationType: "basic"
+                                        type: "basic"
                                         username: "myuser"
                                         password: "mypassword"
             responses:
@@ -8898,7 +8898,6 @@ components:
                                 type: string
                                 description: authentication token
                         required:
-                            - username
                             - token
                     -   type: object
                         properties:
