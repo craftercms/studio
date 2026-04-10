@@ -633,6 +633,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 		runAfterRollback(() -> cleanupFailedSiteCreation(request.getSiteId()));
 
+		if (isEmpty(request.getSandboxBranch())) {
+			logger.debug("Use the default sandbox branch for site '{}'", request.getSiteId());
+			request.setSandboxBranch(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
+		}
+
 		switch (request) {
 			case RemoteSource remoteRequest -> createSiteFromRemote(remoteRequest);
 			case BlueprintSource blueprintRequest -> createSiteFromBlueprint(blueprintRequest);
@@ -686,10 +691,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException,
 			RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException {
 		String siteId = request.getSiteId();
-		if (isEmpty(request.getSandboxBranch())) {
-			logger.debug("Use the default sandbox branch for site '{}'", siteId);
-			request.setSandboxBranch(studioConfiguration.getProperty(REPO_SANDBOX_BRANCH));
-		}
 		if (isEmpty(request.getRemoteName())) {
 			logger.debug("Use the default remote name for site '{}'", siteId);
 			request.setRemoteName(studioConfiguration.getProperty(REPO_DEFAULT_REMOTE_NAME));
