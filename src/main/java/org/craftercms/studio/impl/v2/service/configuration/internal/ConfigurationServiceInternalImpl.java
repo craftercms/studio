@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.service.configuration.internal;
 
 import com.google.common.cache.Cache;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
@@ -51,6 +52,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
+import org.craftercms.studio.model.i18n.Language;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.*;
 import org.jspecify.annotations.NonNull;
@@ -69,14 +71,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.unmodifiableCollection;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -101,6 +102,9 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	public static final String PLACEHOLDER_TYPE = "type";
 	public static final String PLACEHOLDER_NAME = "name";
 	public static final String PLACEHOLDER_ID = "id";
+
+	private static final String CONFIG_KEY_ID = "id";
+	private static final String CONFIG_KEY_LABEL = "label";
 
 	/* Translation Config */
 	public static final String CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE = "defaultLocaleCode";
@@ -723,6 +727,31 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 	protected void invalidateCache(String key) {
 		logger.debug("Invalidate cache key '{}'", key);
 		cacheInvalidators.forEach(invalidator -> invalidator.invalidate(configurationCache, key));
+	}
+
+	@Override
+	public Collection<Language> getAvailableLanguages() throws ServiceLayerException {
+		try {
+			return (Collection<Language>) configurationCache.get(CONFIGURATION_AVAILABLE_LANGUAGES, this::loadAvailableLanguages);
+		} catch (ExecutionException e) {
+			throw new ServiceLayerException("Failed to load available languages configuration", e);
+		}
+	}
+
+	/**
+	 * Loads the available languages from the configuration and returns them as a collection of {@link Language} objects.
+	 */
+	protected Collection<Language> loadAvailableLanguages() {
+		List<HierarchicalConfiguration<ImmutableNode>> languageNodes =
+				studioConfiguration.getSubConfigs(CONFIGURATION_AVAILABLE_LANGUAGES);
+
+		List<Language> languages = new ArrayList<>();
+		for (HierarchicalConfiguration<ImmutableNode> languageNode : languageNodes) {
+			String id = languageNode.getString(CONFIG_KEY_ID);
+			String label = languageNode.getString(CONFIG_KEY_LABEL);
+			languages.add(new Language(id, label));
+		}
+		return unmodifiableCollection(languages);
 	}
 
 	private String getGlobalConfigRoot() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -357,6 +357,9 @@ public interface StudioConfiguration {
 	// Blob
 	String BLOB_STORES_CONFIG_PATH = "studio.blob.config.path";
 	String BLOB_STORES_SERVERLESS_DEFAULT_CONFIG_PATH = "studio.blob.default.config.path";
+
+	// System
+	String CONFIGURATION_AVAILABLE_LANGUAGES = "studio.configuration.availableLanguages";
 
 	void loadConfig();
 

@@ -110,6 +110,7 @@ public final class ResultConstants {
 	 * System Controller
 	 */
 	public static final String RESULT_KEY_PROPERTIES = "properties";
+	public static final String RESULT_KEY_LANGUAGES = "languages";
 
 	/**
 	 * Site Controller

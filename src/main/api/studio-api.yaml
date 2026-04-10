@@ -2788,30 +2788,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/server/get-available-languages.json:
-        get:
-            tags:
-                - server
-            summary: Get available languages.
-            description: "Required role: N/A"
-            operationId: getAvailableLanguages
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: '#/components/schemas/AvailableLanguage'
-                                example:
-                                    -   id: en
-                                        label: English
-                                    -   id: es
-                                        label: Español
-                                    -   id: kr
-                                        label: 한국어
-
     /api/2/search/search:
         post:
             tags:
@@ -8257,6 +8233,38 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /api/2/system/available_languages:
+        get:
+            security: []
+            tags:
+                - system
+            summary: Get available languages in the system.
+            description: No permission required
+            operationId: getAvailableLanguages
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    languages:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/AvailableLanguage'
+                                        example:
+                                            -   id: en
+                                                label: English
+                                            -   id: es
+                                                label: Español
+                                            -   id: kr
+                                                label: 한국어
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
