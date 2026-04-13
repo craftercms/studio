@@ -1114,6 +1114,11 @@ studio.api.stripSuffixes.suffixes: .json,.xml
 # Urls to include for suffix stripping
 studio.api.stripSuffixes.includedUrls: /api/**,/refresh.json,/authType.json
 
+#################################################
+##            Content Monitoring               ##
+#################################################
+studio.monitoring.content.cron: '0 0 12 * * ?' # Every day at noon
+
 ###################################################
 ##              System Configuration             ##
 ###################################################

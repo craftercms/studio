@@ -194,13 +194,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 		return configurationServiceInternal.getSiteGroups(siteId);
 	}
 
-	// Moved from SiteServiceImpl to be able to properly cache the object
-	// TODO: JM: Remove unused method?
-	@Override
-	public Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException {
-		return configurationServiceInternal.legacyGetConfiguration(site, path);
-	}
-
 	@Override
 	public Collection<Language> getAvailableLanguages() throws ServiceLayerException {
 		return configurationServiceInternal.getAvailableLanguages();

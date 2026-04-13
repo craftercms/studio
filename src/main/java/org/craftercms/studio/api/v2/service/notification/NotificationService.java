@@ -50,7 +50,7 @@ public interface NotificationService {
 	 * @param params  parameters of the message this params will be used to process the message string.
 	 */
 	@SuppressWarnings("unchecked")
-	void notify(final String site, final List<String> toUsers, final String key, final Pair<String, Object>... params);
+	void notify(final String site, final Collection<String> toUsers, final String key, final Pair<String, Object>... params);
 
 	/**
 	 * Send a notification message to the submitter of a package that has been approved

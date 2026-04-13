@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.impl.v1.service.configuration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.cache.Cache;
 import jakarta.validation.Valid;
 import org.apache.commons.collections.CollectionUtils;
@@ -33,14 +35,15 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.NonNull;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
@@ -109,13 +112,13 @@ public class ServicesConfigImpl implements ServicesConfig {
 	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam String site,
 								      @ValidateStringParam String contentType) throws SiteNotFoundException {
 		if (contentType == null) {
-			return Collections.emptyList();
+			return emptyList();
 		}
 		ContentTypeConfigTO contentTypeConfig = contentTypesConfig.getContentTypeConfig(site, contentType);
 		if (contentTypeConfig != null) {
 			return contentTypeConfig.getCopyDepedencyPattern();
 		}
-		return Collections.emptyList();
+		return emptyList();
 	}
 
 	@Override
@@ -301,6 +304,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 						getStringList(configNode.selectNodes(SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS));
 					siteConfig.setProtectedFolderPatterns(protectedFolderPatterns);
 
+					loadMonitoringConfigs(site, configNode, siteConfig);
 					configurationCache.put(cacheKey, siteConfig);
 				}
 			} catch (ServiceLayerException e) {
@@ -308,6 +312,29 @@ public class ServicesConfigImpl implements ServicesConfig {
 			}
 		}
 		return siteConfig;
+	}
+
+	/**
+	 * Loads the content monitor configuration for the site
+	 */
+	protected void loadMonitoringConfigs(String site, Node configNode, SiteConfigTO siteConfig) {
+		Node monitoringNode = configNode.selectSingleNode(SITE_CONFIG_XML_ELEMENT_CONTENT_MONITORING);
+		if (monitoringNode == null) {
+			LOGGER.warn("No content monitor configuration found for site '{}'", site);
+			siteConfig.setContentMonitorConfig(new ContentMonitorConfigTO());
+			return;
+		}
+		ContentMonitorConfigTO monitorConfigs = null;
+		try {
+			monitorConfigs = new XmlMapper().readValue(monitoringNode.asXML(), ContentMonitorConfigTO.class);
+		} catch (JsonProcessingException e) {
+			LOGGER.error("Error loading content monitor configuration for site '{}': '{}'", site, e.getMessage());
+			LOGGER.debug("Error loading content monitor configuration for site '{}' at {}", site, getConfigFileName(), e);
+		}
+		if (monitorConfigs == null) {
+			monitorConfigs = new ContentMonitorConfigTO();
+		}
+		siteConfig.setContentMonitorConfig(monitorConfigs);
 	}
 
 	protected void loadSiteUrlsConfiguration(SiteConfigTO siteConfig, Node configNode) {
@@ -555,6 +582,12 @@ public class ServicesConfigImpl implements ServicesConfig {
 	public List<String> getProtectedFolderPatterns(String siteId) throws SiteNotFoundException {
 		SiteConfigTO config = loadConfiguration(siteId);
 		return config.getProtectedFolderPatterns();
+	}
+
+	@Override
+	public ContentMonitorConfigTO getMonitorConfig(String siteId) throws SiteNotFoundException {
+		SiteConfigTO config = loadConfiguration(siteId);
+		return config.getContentMonitorConfig();
 	}
 
 	@SuppressWarnings("unused")

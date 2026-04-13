@@ -161,6 +161,7 @@ public final class RequestMappingConstants {
 	/**
 	 * Site Controller
 	 */
+	public static final String MONITOR = "/monitor";
 
 
 	private RequestMappingConstants() {

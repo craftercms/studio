@@ -654,6 +654,7 @@
 		<ref bean="studioRepositoryCleanupJobTrigger"/>
 		<ref bean="accessTokenCleanupJobTrigger"/>
 		<ref bean="diskMonitoringJobTrigger"/>
+		<ref bean="contentMonitoringJobTrigger"/>
 	</util:list>
 
 	<bean id="studioRepositoryCleanupJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
@@ -680,6 +681,25 @@
 			  value="#{studioConfiguration.getProperty('studio.security.token.cleanup.cron')}"/>
 	</bean>
 
+	<!-- ////////////////////////////////////// -->
+	<!--          Content Monitoring            -->
+	<!-- ////////////////////////////////////// -->
+	<bean id="contentMonitor" class="org.craftercms.studio.impl.v2.content.ContentMonitorImpl">
+		<constructor-arg name="searchService" ref="searchServiceInternal"/>
+	</bean>
+
+	<bean id="contentMonitoringJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean"
+		depends-on="studioConfiguration, contentMonitor">
+		<property name="jobDetail">
+			<bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+				<property name="targetObject" ref="contentMonitor"/>
+				<property name="targetMethod" value="monitorAndNotify"/>
+				<property name="concurrent" value="false"/>
+			</bean>
+		</property>
+		<property name="cronExpression"
+				  value="#{studioConfiguration.getProperty('studio.monitoring.content.cron')}"/>
+	</bean>
 
 	<!-- ////////////////////////////////////// -->
 	<!--      Disk Monitoring                   -->
