@@ -66,11 +66,6 @@ class ContentServices {
 		return contentServicesImpl.getContentVersionAtPath(site, path, version)
 	}
 
-	static getContentType(context, site, type) {
-		def contentTypeServicesImpl = ServiceFactory.getContentTypeServices(context);
-		return contentTypeServicesImpl.getContentType(site, type)
-	}
-
 	static reorderItems(context, site, path, before, after) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context);
 		return contentServicesImpl.reorderItems(site, path, before, after);
