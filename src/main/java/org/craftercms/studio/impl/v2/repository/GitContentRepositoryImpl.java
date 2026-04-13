@@ -114,7 +114,6 @@ import static org.eclipse.jgit.revwalk.RevSort.*;
 public class GitContentRepositoryImpl implements GitContentRepository, GitPublishCapableRepository {
 
 	private static final Logger logger = LoggerFactory.getLogger(GitContentRepositoryImpl.class);
-	private static final String REFS_HEADS_FORMAT = "refs/heads/%s";
 
 	private GitRepositoryHelper helper;
 	private StudioConfiguration studioConfiguration;
@@ -1190,7 +1189,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		try {
 			logger.debug("Updating target branch '{}' in published repo for site '{}' package '{}' with new commit ID '{}'",
 				publishingTarget, siteId, packageId, newCommitId);
-			RefUpdate refUpdate = repo.updateRef(format(REFS_HEADS_FORMAT, publishingTarget));
+			RefUpdate refUpdate = repo.updateRef(helper.getBranchRefName(publishingTarget));
 			refUpdate.setNewObjectId(repo.resolve(newCommitId));
 			refUpdate.update();
 		} catch (IOException e) {

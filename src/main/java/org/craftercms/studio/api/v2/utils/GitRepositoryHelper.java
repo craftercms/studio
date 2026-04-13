@@ -41,8 +41,8 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
 import org.craftercms.studio.api.v2.exception.git.MergeInProgressException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.git.cli.CommitterIdentityUnknownException;
@@ -124,7 +124,8 @@ public class GitRepositoryHelper implements DisposableBean {
 	// firstname lastname
 	public static final String USERNAME_FORMAT = "%s %s";
 
-	public static final String REMOTE_BRANCH_REF_NAME_FORMAT = R_REMOTES + "%s/%s";
+	protected static final String REMOTE_BRANCH_REF_NAME_FORMAT = R_REMOTES + "%s/%s";
+	protected static final String REFS_HEADS_FORMAT = "refs/heads/%s";
 
 	private static final Logger logger = LoggerFactory.getLogger(GitRepositoryHelper.class);
 	private static final String GIT_CONFIG_PROPERTY_EMAIL = "email";
@@ -902,6 +903,7 @@ public class GitRepositoryHelper implements DisposableBean {
 			.setURI(remoteUrl)
 			.setDirectory(localPath)
 			.setRemote(remoteName)
+			.setBranchesToClone(singleBranch && remoteBranch != null ? List.of(getBranchRefName(remoteBranch)) : null)
 			.setCloneAllBranches(!singleBranch);
 		if (StringUtils.isNotEmpty(remoteBranch)) {
 			cloneCommand.setBranch(remoteBranch);
@@ -1516,5 +1518,15 @@ public class GitRepositoryHelper implements DisposableBean {
 	 */
 	public String getRemoteBranchRefName(final String remoteName, final String branchName) {
 		return format(REMOTE_BRANCH_REF_NAME_FORMAT, remoteName, branchName);
+	}
+
+	/**
+	 * Get a string like "refs/heads/BRANCH_NAME" for a local branch
+	 *
+	 * @param branchName the branch name
+	 * @return the local branch ref name
+	 */
+	public String getBranchRefName(final String branchName) {
+		return format(REFS_HEADS_FORMAT, branchName);
 	}
 }
