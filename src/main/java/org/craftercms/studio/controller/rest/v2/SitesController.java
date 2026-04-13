@@ -43,18 +43,20 @@ import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.DuplicateSiteRequest;
 import org.craftercms.studio.model.rest.sites.UpdateSiteRequest;
 import org.craftercms.studio.model.rest.sites.ValidatePolicyRequest;
+import org.craftercms.studio.model.site.AllSitesMonitors;
 import org.craftercms.studio.model.site.SiteDetails;
+import org.craftercms.studio.model.site.SiteMonitor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_BLUEPRINTS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULTS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @Validated
@@ -178,6 +180,24 @@ public class SitesController {
 		var result = new ResultOne<SiteDetails>();
 		result.setEntity(ResultConstants.RESULT_KEY_SITE, site);
 		result.setResponse(OK);
+		return result;
+	}
+
+	@GetMapping(SITE_ID + MONITOR)
+	public ResultList<SiteMonitor> monitorSite(@ValidSiteId @PathVariable String siteId) throws ServiceLayerException {
+		Collection<SiteMonitor> siteMonitors = sitesService.monitorSite(siteId);
+		ResultList<SiteMonitor> result = new ResultList<>();
+		result.setResponse(OK);
+		result.setEntities(RESULT_KEY_MONITORS, siteMonitors);
+		return result;
+	}
+
+	@GetMapping(MONITOR)
+	public ResultOne<AllSitesMonitors> monitorAllSites() {
+		AllSitesMonitors monitorResult = sitesService.monitorAllSites();
+		ResultOne<AllSitesMonitors> result = new ResultOne<>();
+		result.setResponse(OK);
+		result.setEntity(RESULT_KEY_SITES, monitorResult);
 		return result;
 	}
 }

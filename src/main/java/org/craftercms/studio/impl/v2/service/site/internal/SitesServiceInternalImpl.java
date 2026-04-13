@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.content.ContentMonitor;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
@@ -56,7 +57,9 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest.BlueprintSource;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest.RemoteSource;
+import org.craftercms.studio.model.site.AllSitesMonitors;
 import org.craftercms.studio.model.site.SiteDetails;
+import org.craftercms.studio.model.site.SiteMonitor;
 import org.craftercms.studio.model.task.PublishTask;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -124,6 +127,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private StudioUpgradeManager upgradeManager;
 	private StudioBlobStoreResolver blobStoreResolver;
 	private ContentService contentService;
+	private ContentMonitor contentMonitor;
 	private ApplicationContext applicationContext;
 
 	@ConstructorProperties({"descriptorReader",
@@ -275,7 +279,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 * Utility method to try a block of code, and then add to a list of exceptions if an exception is thrown during the execution
 	 *
 	 * @param operation          {@link Runnable} to execute
-	 * @param errorMessageFormat error message format, to be use with String.format and siteId parameter
+	 * @param errorMessageFormat error message format, to be used with {@link String#format(String, Object...)} and siteId parameter
 	 * @param siteId             siteId to use in the error message
 	 * @param exceptions         list of exceptions to add to if an exception is thrown
 	 */
@@ -875,6 +879,16 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		}
 	}
 
+	@Override
+	public Collection<SiteMonitor> monitorSite(String siteId) throws ServiceLayerException {
+		return contentMonitor.monitorSite(siteId);
+	}
+
+	@Override
+	public AllSitesMonitors monitorAllSites() {
+		return contentMonitor.monitorAllSites();
+	}
+
 	/**
 	 * Creates an audit log entry for the site duplication operation, including the source site as audit params
 	 *
@@ -938,6 +952,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 	@Autowired
 	@Lazy
+	@SuppressWarnings("unused")
 	public void setBlobStoreResolver(StudioBlobStoreResolver blobStoreResolver) {
 		this.blobStoreResolver = blobStoreResolver;
 	}
@@ -959,5 +974,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Lazy
 	public void setBlobAwareRepository(StudioBlobAwareContentRepository blobAwareRepository) {
 		this.blobAwareRepository = blobAwareRepository;
+	}
+
+	@Autowired
+	@Lazy
+	public void setContentMonitor(ContentMonitor contentMonitor) {
+		this.contentMonitor = contentMonitor;
 	}
 }

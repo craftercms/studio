@@ -39,10 +39,13 @@ import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
+import org.craftercms.studio.model.site.AllSitesMonitors;
 import org.craftercms.studio.model.site.SiteDetails;
+import org.craftercms.studio.model.site.SiteMonitor;
 import org.craftercms.studio.model.task.PublishTask;
 
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -198,5 +201,17 @@ public class SitesServiceImpl implements SitesService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
 	public void createSite(CreateSiteRequest request) throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException {
 		sitesServiceInternal.createSite(request);
+	}
+
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<SiteMonitor> monitorSite(@SiteId String siteId) throws ServiceLayerException {
+		return sitesServiceInternal.monitorSite(siteId);
+	}
+
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public AllSitesMonitors monitorAllSites() {
+		return sitesServiceInternal.monitorAllSites();
 	}
 }

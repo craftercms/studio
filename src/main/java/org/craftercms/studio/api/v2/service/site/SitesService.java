@@ -30,9 +30,12 @@ import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
+import org.craftercms.studio.model.site.AllSitesMonitors;
 import org.craftercms.studio.model.site.SiteDetails;
+import org.craftercms.studio.model.site.SiteMonitor;
 import org.craftercms.studio.model.task.PublishTask;
 
+import java.util.Collection;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -244,4 +247,19 @@ public interface SitesService {
 	 * @throws InvalidParametersException if the given parameters are invalid
 	 */
 	void createSite(CreateSiteRequest request) throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException;
+
+	/**
+	 * Get the site content monitors from configuration and execute them, returning the
+	 * matching results for each site monitor.
+	 *
+	 * @param siteId the site id
+	 * @return the list of results for the site monitoring
+	 */
+	Collection<SiteMonitor> monitorSite(String siteId) throws ServiceLayerException;
+
+	/**
+	 * Get the content monitors for all sites and execute them, returning the matching results for each site monitor.
+	 * @return the list of results for all site monitoring
+	 */
+	AllSitesMonitors monitorAllSites();
 }

@@ -16,6 +16,7 @@
 package org.craftercms.studio.api.v1.service.configuration;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.to.ContentMonitorConfigTO;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
@@ -189,4 +190,12 @@ public interface ServicesConfig {
 	 * @return list of configured protected folders patterns
 	 */
 	List<String> getProtectedFolderPatterns(String siteId) throws SiteNotFoundException;
+
+	/**
+	 * Get content monitor configuration for site
+	 * @param siteId site identifier
+	 * @return content monitor configuration
+	 * @throws SiteNotFoundException if site with given identifier is not found
+	 */
+	ContentMonitorConfigTO getMonitorConfig(String siteId) throws SiteNotFoundException;
 }

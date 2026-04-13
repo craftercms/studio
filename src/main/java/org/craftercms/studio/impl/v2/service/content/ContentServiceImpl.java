@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
+import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
 import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
 import org.craftercms.studio.api.v2.dal.User;
@@ -195,7 +196,7 @@ public class ContentServiceImpl implements ContentService {
 	@ValidateAction(type = Type.RENAME)
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
 	public void renameContent(@SiteId String site,
-							  @ContentPath @ActionTargetPath String path, String name)
+							  @ContentPath @ActionTargetPath String path, @ActionTargetFilename String name)
 			throws ServiceLayerException, UserNotFoundException, ValidationException, AuthenticationException {
 		contentServiceInternal.renameContent(site, path, name);
 	}
