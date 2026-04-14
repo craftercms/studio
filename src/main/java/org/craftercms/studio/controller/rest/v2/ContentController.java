@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
@@ -239,7 +240,7 @@ public class ContentController {
 
 	@PostMapping(ITEM_UNLOCK_BY_PATH)
 	public Result itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request)
-			throws ContentNotFoundException, SiteNotFoundException {
+			throws ContentNotFoundException, SiteNotFoundException, RepositoryException {
 		contentService.unlockContent(request.getSiteId(), request.getPath());
 		Result result = new Result();
 		result.setResponse(OK);

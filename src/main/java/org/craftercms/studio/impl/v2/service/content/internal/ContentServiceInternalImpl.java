@@ -20,7 +20,12 @@ import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.mutable.MutableLong;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -29,6 +34,7 @@ import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -57,6 +63,7 @@ import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
@@ -70,7 +77,9 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.api.v2.utils.function.ThrowingRunnable;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.impl.v2.utils.db.DBUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.AuthenticatedUser;
@@ -103,6 +112,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -123,7 +133,7 @@ import static org.apache.commons.io.FilenameUtils.*;
 import static org.apache.commons.io.file.PathUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.apache.commons.lang3.Strings.CS;
-import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
@@ -132,9 +142,11 @@ import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofSt
 import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
+import static org.craftercms.studio.api.v2.utils.DalUtils.MY_BATIS_QUERY_BATCH_SIZE;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.*;
 import static org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl.ContentItemIds.generate;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
@@ -186,6 +198,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private final ServicesConfig servicesConfig;
 	private final ActivityStreamService activityStreamService;
 	private final EntitlementValidator entitlementValidator;
+	private final SqlSessionFactory sqlSessionFactory;
 
 	@ConstructorProperties({"transactionManager", "studioConfiguration", "siteService",
 			"retryingDatabaseOperationFacade", "publishService",
@@ -194,7 +207,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			"contentRepository", "contentLifecycle",
 			"auditService", "assetLifecycle",
 			"servicesConfig", "activityStreamService",
-			"entitlementValidator"})
+			"entitlementValidator", "sqlSessionFactory"})
 	public ContentServiceInternalImpl(PlatformTransactionManager transactionManager, StudioConfiguration studioConfiguration,
 									  SitesService siteService,
 									  RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, PublishService publishService,
@@ -205,7 +218,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 									  GitContentRepository contentRepository, ContentLifecycle contentLifecycle,
 									  AuditService auditService, ContentLifecycle assetLifecycle,
 									  ServicesConfig servicesConfig, ActivityStreamService activityStreamService,
-									  EntitlementValidator entitlementValidator) {
+									  EntitlementValidator entitlementValidator, SqlSessionFactory sqlSessionFactory) {
 		this.transactionManager = transactionManager;
 		this.studioConfiguration = studioConfiguration;
 		this.siteService = siteService;
@@ -224,6 +237,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		this.servicesConfig = servicesConfig;
 		this.activityStreamService = activityStreamService;
 		this.entitlementValidator = entitlementValidator;
+		this.sqlSessionFactory = sqlSessionFactory;
 	}
 
 	@Override
@@ -416,15 +430,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public List<ItemVersion> getContentVersionHistory(final String siteId, final String path) throws ServiceLayerException {
-		try {
-			Site site = siteService.getSite(siteId);
+		Site site = siteService.getSite(siteId);
 
-			List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
-			populateAuthor(site, history.stream().map(ItemVersion::getRepositoryVersion).toList(), path);
-			return history;
-		} catch (IOException | GitAPIException e) {
-			throw new ServiceLayerException(format("Error getting content version history for site '%s' path '%s'", siteId, path), e);
-		}
+		List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
+		populateAuthor(site, history.stream().map(ItemVersion::getRepositoryVersion).toList(), path);
+		return history;
 	}
 
 	/**
@@ -455,14 +465,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public Collection<RepositoryVersion> getHistory(String siteId, String start, int limit) throws ServiceLayerException {
-		try {
-			Site site = siteService.getSite(siteId);
-			List<RepositoryVersion> history = contentRepository.getHistory(siteId, start, limit);
-			populateAuthor(site, history, null);
-			return history;
-		} catch (IOException e) {
-			throw new ServiceLayerException(format("Error getting repository history for site '%s'", siteId), e);
-		}
+		Site site = siteService.getSite(siteId);
+		List<RepositoryVersion> history = contentRepository.getHistory(siteId, start, limit);
+		populateAuthor(site, history, null);
+		return history;
 	}
 
 	/**
@@ -858,6 +864,141 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 		return CONTENT_TYPE_FILE;
 	}
+
+	@Override
+	public void processCreatedFiles(String siteId, User creator) throws ServiceLayerException {
+		Site site = siteService.getSite(siteId);
+		ZonedDateTime now = ZonedDateTime.now();
+		logger.debug("Processing created files for site '{}'", siteId);
+
+		MutableLong itemCount = new MutableLong(0);
+		try (SqlSession sqlSession = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
+			ItemDAO itemDao = sqlSession.getMapper(ItemDAO.class);
+			DependencyDAO dependencyDao = sqlSession.getMapper(DependencyDAO.class);
+			ThrowingRunnable checkCounter = getCheckCounterFunction(sqlSession, itemCount, siteId);
+			contentRepository.forAllSitePaths(siteId,
+					directory -> {
+						processCreatedDirectory(itemDao, site.getSiteId(), directory, creator.getId(), now);
+						checkCounter.run();
+					},
+					file -> {
+						processCreatedFile(itemDao, dependencyDao, sqlSession, site, file, creator.getId(), now);
+						checkCounter.run();
+					}
+			);
+			sqlSession.commit();
+			logger.debug("Update parent ID for created items for site '{}'", siteId);
+			itemService.updateParentId(siteId);
+			logger.debug("Validate dependencies for site '{}'", siteId);
+			dependencyService.validateDependencies(siteId);
+		} catch (Exception e) {
+			logger.error("Failed to update database for processing created files in site '{}'", siteId, e);
+			throw new ServiceLayerException(format("Failed to update database for processing created files in site '%s'", siteId), e);
+		}
+		logger.debug("Finished processing created files for site '{}'", siteId);
+	}
+
+	/**
+	 * Return a Runnable that will check if the counter has exceeded the batch size and if so,
+	 * execute the queries and reset the counter
+	 *
+	 * @param sqlSession   sql session instance
+	 * @param counter      The counter to check
+	 * @return runnable
+	 */
+	private ThrowingRunnable getCheckCounterFunction(final SqlSession sqlSession, final MutableLong counter, final String siteId) {
+		return () -> {
+			counter.increment();
+			if (counter.longValue() >= MY_BATIS_QUERY_BATCH_SIZE) {
+				logger.debug("Executing batch of items for site '{}'", siteId);
+				sqlSession.flushStatements();
+				logger.debug("Executed batch of items for site '{}'", siteId);
+				counter.setValue(0);
+			}
+		};
+	}
+
+	private void processCreatedDirectory(ItemDAO itemDao, String siteId, String directory,
+										 long userId, ZonedDateTime now) {
+		String label = new File(directory).getName();
+		Item item = itemService.instantiateItem(siteId, directory)
+				.withPreviewUrl(null)
+				.withState(0L)
+				.withLockedBy(null)
+				.withCreatedBy(userId)
+				.withCreatedOn(now)
+				.withLastModifiedBy(userId)
+				.withLastModifiedOn(now)
+				.withLastPublishedOn(null)
+				.withLabel(label)
+				.withContentTypeId(null)
+				.withSystemType(CONTENT_TYPE_FOLDER)
+				.withMimeType(null)
+				.withLocaleCode(Locale.US.toString())
+				.withTranslationSourceId(null)
+				.withSize(0L)
+				.build();
+		itemDao.upsertEntry(item);
+	}
+
+	private void processCreatedFile(ItemDAO itemDao, DependencyDAO dependencyDao, SqlSession sqlSession,
+									Site site, String path, long userId, ZonedDateTime now) throws SiteNotFoundException {
+		// Item
+		String label = FilenameUtils.getName(path);
+		String contentTypeId = EMPTY;
+		boolean disabled = false;
+		if (StringUtils.endsWith(path, XML_PATTERN)) {
+			try {
+				Document contentDoc = ContentUtils.convertStreamToXml(getContent(site.getSiteId(), path));
+				if (contentDoc != null) {
+					Element rootElement = contentDoc.getRootElement();
+					String internalName = rootElement.valueOf(StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE);
+					if (isNotEmpty(internalName)) {
+						label = internalName;
+					}
+					contentTypeId = rootElement.valueOf(StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE);
+					disabled = Boolean.parseBoolean(rootElement.valueOf(StudioXmlConstants.DOCUMENT_ELM_DISABLED));
+				}
+			} catch (DocumentException | ContentNotFoundException e) {
+				logger.error("Failed to extract metadata from XML file at site '{}' path '{}'",
+						site.getSiteId(), path, e);
+			}
+		}
+		String previewUrl = null;
+		if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
+				StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+			previewUrl = itemService.getBrowserUrl(site.getSiteId(), path);
+		}
+		long state = ItemState.NEW.value;
+		if (disabled) {
+			state = state | ItemState.DISABLED.value;
+		}
+
+		if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
+			Item item = itemService.instantiateItem(site.getSiteId(), path)
+					.withPreviewUrl(previewUrl)
+					.withState(state)
+					.withLockedBy(null)
+					.withCreatedBy(userId)
+					.withCreatedOn(now)
+					.withLastModifiedBy(userId)
+					.withLastModifiedOn(now)
+					.withLastPublishedOn(null)
+					.withLabel(label)
+					.withContentTypeId(contentTypeId)
+					.withSystemType(getContentTypeClass(site.getSiteId(), path))
+					.withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(path)))
+					.withLocaleCode(Locale.US.toString())
+					.withTranslationSourceId(null)
+					.withSize(contentRepository.getContentSize(site.getSiteId(), path))
+					.build();
+			itemDao.upsertEntry(item);
+
+			DependencyUtils.updateDependencies(site.getSiteId(), path, null, dependencyService, dependencyDao,
+					sqlSession, false, false);
+		}
+	}
+
 
 	private WriteContentResult createFolderInternal(String siteId, String path)
 			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
@@ -1748,7 +1889,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void unlockContent(String siteId, String path) throws ContentNotFoundException {
+	public void unlockContent(String siteId, String path) throws ContentNotFoundException, RepositoryException {
 		logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
 		generalLockService.lockContentItem(siteId, path);
 		try {

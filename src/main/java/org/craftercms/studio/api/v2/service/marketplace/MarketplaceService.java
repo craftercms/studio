@@ -28,7 +28,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
-import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+import org.craftercms.studio.model.rest.marketplace.CreateSiteFromMarketplaceRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -65,7 +65,7 @@ public interface MarketplaceService {
 	 * @throws ServiceLayerException                       if there is any unexpected error
 	 * @throws InvalidRemoteRepositoryCredentialsException if there is any error with the credentials
 	 */
-	void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
+	void createSite(CreateSiteFromMarketplaceRequest request) throws RemoteRepositoryNotFoundException,
 		InvalidRemoteRepositoryException, InvalidRemoteUrlException,
 		ServiceLayerException, InvalidRemoteRepositoryCredentialsException;
 

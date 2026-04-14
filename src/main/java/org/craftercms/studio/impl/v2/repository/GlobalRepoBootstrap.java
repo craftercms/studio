@@ -108,7 +108,7 @@ public class GlobalRepoBootstrap implements ServletContextAware {
 		// Copy the global config defaults to the global site
 		// Build a path to the bootstrap repo (the repo that ships with Studio)
 		String bootstrapFolderPath = this.servletContext.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH +
-			FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH);
+				FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH);
 		Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
 
 		logger.info("Bootstrap with baseline @'{}'", source.toFile());
@@ -116,29 +116,31 @@ public class GlobalRepoBootstrap implements ServletContextAware {
 		// Copy the bootstrap repo to the global repo
 		Path globalConfigPath = helper.buildGlobalRepoPath();
 		TreeCopier tc = new TreeCopier(source,
-			globalConfigPath);
+				globalConfigPath);
 		EnumSet<FileVisitOption> opts = EnumSet.of(FOLLOW_LINKS);
 		Files.walkFileTree(source, opts, MAX_VALUE, tc);
 
 		Path studioManifestLocation = Paths.get(this.servletContext.getRealPath(STUDIO_MANIFEST_LOCATION));
 		if (Files.exists(studioManifestLocation)) {
 			FileUtils.copyFile(studioManifestLocation.toFile(),
-				Paths.get(globalConfigPath.toAbsolutePath().toString(),
-					studioConfiguration.getProperty(BLUE_PRINTS_PATH), BLUEPRINTS_MF_FILENAME).toFile());
+					Paths.get(globalConfigPath.toAbsolutePath().toString(),
+							studioConfiguration.getProperty(BLUE_PRINTS_PATH), BLUEPRINTS_MF_FILENAME).toFile());
 		}
-		Repository globalConfigRepo = helper.getRepository(EMPTY, GLOBAL);
-		try (Git git = new Git(globalConfigRepo)) {
-			StatusCommand statusCommand = git.status();
-			Status status = retryingRepositoryOperationFacade.call(statusCommand);
+		try {
+			Repository globalConfigRepo = helper.getRepository(EMPTY, GLOBAL);
+			try (Git git = new Git(globalConfigRepo)) {
+				StatusCommand statusCommand = git.status();
+				Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
-			if (status.hasUncommittedChanges() || !status.isClean()) {
-				// Commit everything
-				// TODO: Consider what to do with the commitId in the future
-				AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
-				retryingRepositoryOperationFacade.call(addCommand);
+				if (status.hasUncommittedChanges() || !status.isClean()) {
+					// Commit everything
+					// TODO: Consider what to do with the commitId in the future
+					AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
+					retryingRepositoryOperationFacade.call(addCommand);
 
-				helper.commitFiles(globalConfigRepo, EMPTY, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
-					helper.getAuthorIdent(GIT_REPO_USER_USERNAME), EMPTY);
+					helper.commitFiles(globalConfigRepo, EMPTY, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
+							helper.getAuthorIdent(GIT_REPO_USER_USERNAME), EMPTY);
+				}
 			}
 		} catch (GitAPIException | ServiceLayerException | UserNotFoundException e) {
 			logger.error("Failed to create the initial commit for the global repository", e);

@@ -14,28 +14,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package scripts.api
+package org.craftercms.studio.api.v2.dal.repository;
 
-import groovy.util.logging.Log
-import scripts.api.ServiceFactory
+import org.apache.ibatis.annotations.Param;
 
-/**
- * Site Services
- */
-@Log
-class SiteServices {
+import java.util.Map;
+
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.REPOSITORY;
+
+public interface RemoteRepositoryDAO {
+
+	RemoteRepository getRemoteRepository(Map params);
 
 	/**
-	 * create the context object
-	 * @param applicationContext - studio application's contect (spring container etc)
-	 * @param request - web request if in web request context
+	 * Inserts a new remote repository.
+	 *
+	 * @param repository the remote repository to insert
 	 */
-	static createContext(applicationContext, request) {
-		return ServiceFactory.createContext(applicationContext, request)
-	}
+	void insertRemoteRepository(@Param(REPOSITORY) RemoteRepository repository);
 
-	static getSitesPerUser(context, start, number) {
-		def siteServicesImpl = ServiceFactory.getSiteServices(context)
-		return siteServicesImpl.getSitesPerUser(start, number)
-	}
+	void deleteRemoteRepository(Map params);
 }

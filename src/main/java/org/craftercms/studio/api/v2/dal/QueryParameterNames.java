@@ -269,6 +269,11 @@ public final class QueryParameterNames {
 	 */
 	public static final String PROPERTY_NAMES = "propertyNames";
 
+	/**
+	 * Repository
+	 */
+	public static final String REPOSITORY = "repository";
+
 	private QueryParameterNames() {
 	}
 }

@@ -35,8 +35,10 @@ import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
 import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
@@ -176,7 +178,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
 	public void unlockContent(@SiteId String siteId,
 							  @ProtectedResourceId(PATH_RESOURCE_ID) String path)
-			throws ContentNotFoundException, SiteNotFoundException {
+			throws ContentNotFoundException, SiteNotFoundException, RepositoryException {
 		contentServiceInternal.unlockContent(siteId, path);
 	}
 
@@ -338,6 +340,12 @@ public class ContentServiceImpl implements ContentService {
 	public List<ContentItem> getContentItemsByStates(@SiteId String siteId, long statesBitMap,
 													 List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
 		return contentServiceInternal.getContentItemsByStates(siteId, statesBitMap, systemTypes, sortFields, offset, limit);
+	}
+
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
+	public void processCreatedFiles(String siteId, User creator) throws ServiceLayerException {
+		contentServiceInternal.processCreatedFiles(siteId, creator);
 	}
 
 	@SuppressWarnings("unused")

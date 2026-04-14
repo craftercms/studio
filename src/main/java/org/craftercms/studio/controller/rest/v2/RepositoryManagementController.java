@@ -28,9 +28,9 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
-import org.craftercms.studio.api.v2.dal.RepositoryStatus;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.dal.repository.RepositoryStatus;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.model.rest.*;

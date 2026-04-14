@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -23,10 +24,10 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
 
@@ -51,7 +52,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param revstr   A git object references expression (e.g.: HEAD, branch name, commit id)
 	 * @return list of site content items paths
 	 */
-	default List<String> getItemPaths(String site, GitRepositories repoType, String revstr) {
+	default List<String> getItemPaths(String site, GitRepositories repoType, String revstr) throws RepositoryException {
 		return getSubtreeItems(site, "", repoType, revstr);
 	}
 
@@ -64,7 +65,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param revstr   A git object references expression (e.g.: HEAD, branch name, commit id)
 	 * @return list of item paths contained in the subtree
 	 */
-	List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String revstr);
+	List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String revstr) throws RepositoryException;
 
 	/**
 	 * Get a list of operations since the commit ID provided (compare that commit to HEAD)
@@ -113,7 +114,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param remoteName remote name
 	 * @return true if operation was successful
 	 */
-	boolean removeRemote(String siteId, String remoteName);
+	boolean removeRemote(String siteId, String remoteName) throws RepositoryException;
 
 	/**
 	 * Get last commit id from repository for given site.
@@ -121,7 +122,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param site site id, or null for global repository
 	 * @return last commit id (current HEAD)
 	 */
-	String getRepoLastCommitId(String site);
+	String getRepoLastCommitId(String site) throws RepositoryException;
 
 	/**
 	 * Execute consumers for all site paths for the given site
@@ -147,15 +148,6 @@ public interface GitContentRepository extends ContentRepository {
 	}
 
 	/**
-	 * Get the previous commit id from repository for given a site id and a commit id
-	 *
-	 * @param siteId   site identifier
-	 * @param commitId commit Id
-	 * @return previous commit id
-	 */
-	String getPreviousCommitId(String siteId, String commitId);
-
-	/**
 	 * return a specific version of the content
 	 *
 	 * @param site     site id where the operation will be executed
@@ -171,7 +163,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param siteId site identifier
 	 * @return true if PUBLISHED repository exists, otherwise false
 	 */
-	boolean publishedRepositoryExists(String siteId);
+	boolean publishedRepositoryExists(String siteId) throws RepositoryException;
 
 	/*
 	 * Get the history of a content item. <br/>
@@ -182,7 +174,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @throws IOException if there is any error reading the git log or getting diffs between commits
 	 * @throws GitAPIException if there is any error while executing git commands
 	 */
-	List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException, ServiceLayerException;
+	List<ItemVersion> getContentItemHistory(String site, String path) throws ServiceLayerException;
 
 	/**
 	 * Get the commits between two commit ids.
@@ -193,9 +185,9 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param commitFrom the older commit id
 	 * @param commitTo   the newer commit id
 	 * @return list of commit ids between commitFrom (not included) and commitTo (inclusive)
-	 * @throws IOException if there is any error reading the git log
+	 * @throws RepositoryException if there is any error reading the git log
 	 */
-	List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException;
+	List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws RepositoryException;
 
 	/**
 	 * Get the repository history for the given site
@@ -207,9 +199,9 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param commitFrom the commit id to start from
 	 * @param limit      maximum number of versions to return
 	 * @return list of repository versions
-	 * @throws IOException if there is any error reading the git log
+	 * @throws RepositoryException if there is any error reading the git log
 	 */
-	List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws IOException;
+	List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws RepositoryException;
 
 	/**
 	 * Get the new commits introduced by <code>commitId</code> into <code>baseCommit</code>.<br/>
@@ -220,7 +212,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param baseCommit the commit id to compare against
 	 * @param commitId   the commit id to compare
 	 */
-	List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException;
+	List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws RepositoryException;
 
 	/**
 	 * Validates that all commits in the collection are valid for publishing and return a sorted list.
@@ -242,7 +234,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param commitId  the commit id to update the target branch to
 	 * @param target    the target branch to update
 	 */
-	void updateRef(String siteId, long packageId, String commitId, String target) throws IOException;
+	void updateRef(String siteId, long packageId, String commitId, String target) throws RepositoryException;
 
 	/**
 	 * Create a new site based on a blueprint
@@ -252,10 +244,9 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param sandboxBranch     sandbox branch name
 	 * @param params            site parameters
 	 * @param creator           site creator
-	 * @return true if successful, false otherwise
 	 */
-	boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-									Map<String, String> params, String creator);
+	void createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
+									Map<String, String> params, String creator) throws ServiceLayerException;
 
 	/**
 	 * Create new site as a clone from remote repository
@@ -274,14 +265,13 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param params             site parameters
 	 * @param createAsOrphan     create as orphan
 	 * @param creator            site creator
-	 * @return true if success
 	 * @throws InvalidRemoteRepositoryException            invalid remote repository
 	 * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
 	 * @throws RemoteRepositoryNotFoundException           remote repository not found
 	 * @throws ServiceLayerException                       general service error
 	 */
-	boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
-								  String remoteBranch, boolean singleBranch, String authenticationType,
+	void createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+								  String remoteBranch, boolean singleBranch, AuthenticationType authenticationType,
 								  String remoteUsername, String remotePassword, String remoteToken,
 								  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
 								  String creator)
@@ -304,7 +294,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param site site id where the operation will be executed
 	 * @param path path of the item
 	 */
-	void lockItem(String site, String path); // TODO: SJ: Change to have a return
+	void lockItem(String site, String path) throws RepositoryException; // TODO: SJ: Change to have a return
 
 	/**
 	 * unlock an item
@@ -312,7 +302,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param site site id where the operation will be executed
 	 * @param path path of the item
 	 */
-	void unlockItem(String site, String path);
+	void unlockItem(String site, String path) throws RepositoryException;
 
 	/**
 	 * Deletes the underlying git repositories for a site
@@ -354,7 +344,7 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param target the publishing target
 	 * @return true if the target has been published, false otherwise
 	 */
-	boolean isTargetPublished(String siteId, String target) throws IOException;
+	boolean isTargetPublished(String siteId, String target) throws RepositoryException, IOException;
 
 	/**
 	 * Delete a list of items from the site repository
@@ -375,14 +365,14 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param siteId site id
 	 * @param paths  list of paths to create and commit to git
 	 */
-	void createEmptyFiles(String siteId, Collection<String> paths);
+	void createEmptyFiles(String siteId, Collection<String> paths) throws RepositoryException;
 
 	/**
 	 * Performs a garbage collect all repositories for the given site
 	 *
 	 * @param siteId site identifier
 	 */
-	void garbageCollectGitRepositories(String siteId);
+	void garbageCollectGitRepositories(String siteId) throws RepositoryException;
 
 	/**
 	 * Get the children of a repository folder

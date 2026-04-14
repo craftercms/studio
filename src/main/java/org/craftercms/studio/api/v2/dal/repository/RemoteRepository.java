@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,13 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.dal;
+package org.craftercms.studio.api.v2.dal.repository;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import org.craftercms.commons.git.utils.AuthenticationType;
+import org.craftercms.commons.jackson.CaseInsensitiveEnumDeserializer;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
 
@@ -36,9 +39,9 @@ public class RemoteRepository implements Serializable {
 	@Size(max = 2000)
 	@ValidateNoTagsParam
 	private String remoteUrl;
-	@NotEmpty
-	@Size(max = 16)
-	private String authenticationType;
+	@NotNull
+	@JsonDeserialize(using = CaseInsensitiveEnumDeserializer.class)
+	private AuthenticationType authenticationType;
 	@Size(max = 255)
 	@ValidateNoTagsParam
 	private String remoteUsername;
@@ -80,11 +83,11 @@ public class RemoteRepository implements Serializable {
 		this.remoteUrl = remoteUrl;
 	}
 
-	public String getAuthenticationType() {
+	public AuthenticationType getAuthenticationType() {
 		return authenticationType;
 	}
 
-	public void setAuthenticationType(String authenticationType) {
+	public void setAuthenticationType(AuthenticationType authenticationType) {
 		this.authenticationType = authenticationType;
 	}
 

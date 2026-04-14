@@ -47,38 +47,10 @@
 		<parameter property="state" jdbcType="VARCHAR"/>
 	</parameterMap>
 
-	<select id="getSite" resultMap="SiteFeedMap" parameterType="java.util.Map">
-		SELECT *
-		FROM site
-		WHERE site_id = #{siteId}
-		  and deleted = 0
-	</select>
-
-	<insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
-		insert into site (site_uuid, site_id, name, description, deleted,
-				  publishing_status, sandbox_branch)
-		values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{deleted},
-			#{publishingStatus}, #{sandboxBranch})
-	</insert>
-
-	<update id="updateLastCommitId" parameterType="java.util.Map">
-		UPDATE site
-		SET last_commit_id = #{lastCommitId}
-		WHERE site_id = #{siteId}
-		  AND deleted = 0
-	</update>
-
 	<select id="exists" parameterType="java.lang.String" resultType="int">
 		SELECT count(1)
 		FROM site
 		WHERE site_id = #{siteId}
-		  AND deleted = 0
-	</select>
-
-	<select id="existsByName" parameterType="java.lang.String" resultType="int">
-		SELECT count(1)
-		FROM site
-		WHERE name = #{name}
 		  AND deleted = 0
 	</select>
 
@@ -120,13 +92,6 @@
 		ORDER BY site_id
 	</select>
 
-	<update id="updatePublishingStatus" parameterType="java.util.Map">
-		UPDATE site
-		SET publishing_status = #{publishingStatus}
-		WHERE site_id = #{siteId}
-		  AND deleted = 0
-	</update>
-
 	<update id="updateSite">
 		UPDATE site
 		<set>
@@ -134,12 +99,5 @@
 			<if test="description != null">description = #{description}</if>
 		</set>
 		WHERE site_id = #{siteId} AND deleted = 0
-	</update>
-
-	<update id="setSiteState">
-		UPDATE site
-		SET state = #{state}
-		WHERE site_id = #{siteId}
-		  AND deleted = 0
 	</update>
 </mapper>
