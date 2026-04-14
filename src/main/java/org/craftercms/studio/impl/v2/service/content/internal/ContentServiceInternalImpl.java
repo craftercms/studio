@@ -596,10 +596,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public WriteContentResult write(final String siteId, final String path, final InputStream content)
+	public WriteContentResult write(final String siteId, final String path, final InputStream content, String comment)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		LifecycleOperation operation = contentExists(siteId, path) ? UPDATE : NEW;
-		return doWrite(siteId, path, content, operation);
+		return doWrite(siteId, path, content, operation, comment);
 	}
 
 	/**
@@ -649,6 +649,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	protected WriteContentResult doWrite(final String siteId, final String path,
 										 final InputStream content, final LifecycleOperation operation)
+			throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+		return doWrite(siteId, path, content, operation, null);
+	}
+
+	protected WriteContentResult doWrite(final String siteId, final String path,
+										 final InputStream content, final LifecycleOperation operation, final String comment)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		WriteContentResult writeContentResult;
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
@@ -669,7 +675,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				affectedPaths.addAll(lifecycleItemPaths);
 				String transactionId = format(WRITE_TRANSACTION_FORMAT, siteId);
 				writeContentResult = runWriteInTransaction(transactionId,
-						() -> writeInternal(siteId, path, lifecycleContent));
+						() -> writeInternal(siteId, path, lifecycleContent, comment));
 			} catch (IOException e) {
 				logger.error("Failed to write content at site '{}' path '{}'", siteId, path, e);
 				throw new ServiceLayerException(format("Failed to write content at site '%s' path '%s'", siteId, path), e);
@@ -1157,7 +1163,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	protected WriteContentResult writeInternal(final String siteId, final String path,
-											   final LifecycleContent lifecycleContent)
+											   final LifecycleContent lifecycleContent, final String comment)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		Map<String, ContentLifecycleItem> lifecycleResultItems = lifecycleContent.getItems();
 		Map<String, LifecycleOperation> operationsByPath = getOperationsByPath(siteId, List.of(lifecycleContent.getRepoPath()),
@@ -1165,7 +1171,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		validateEntitlements(operationsByPath);
 		Set<String> missingFolders = getMissingFolders(siteId, operationsByPath);
 		// Write to the repository and commit.
-		String commitId = contentRepository.writeContent(siteId, lifecycleResultItems.values(), missingFolders);
+		String commitId = contentRepository.writeContent(siteId, lifecycleResultItems.values(), missingFolders, comment);
 
 		List<WriteContentResultItem> writeResultItems = lifecycleResultItems.values().stream()
 				.map(item -> new WriteContentResultItem(item.repoPath(), operationsByPath.get(item.repoPath()), item.amended()))
@@ -1524,7 +1530,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public void assertNotInWorkflow(final String siteId, final List<String> paths, final boolean includeChildren)
-			throws ContentInPublishQueueException {
+			throws ServiceLayerException {
 		Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, paths, includeChildren);
 		if (CollectionUtils.isNotEmpty(packagesForItems)) {
 			throw new ContentInPublishQueueException("Unable to edit content that is part of an active publish package", packagesForItems);

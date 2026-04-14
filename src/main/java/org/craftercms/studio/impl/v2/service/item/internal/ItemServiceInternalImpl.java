@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.slf4j.Logger;
@@ -152,42 +153,7 @@ public class ItemServiceInternalImpl implements ItemService {
 
 	@Override
 	public String getBrowserUrl(String site, String path) throws SiteNotFoundException {
-		String replacePattern;
-		boolean isPage = false;
-		if (matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(site))) {
-			return null;
-		} else if (matchesPatterns(path, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
-			return null;
-		} else if (matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
-			CS.endsWith(path, FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
-			return null;
-		} else if (matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
-			return null;
-		} else if (matchesPatterns(path, List.of(CONTENT_TYPE_CONFIG_REGEX))) {
-			return null;
-		} else if (matchesPatterns(path, servicesConfig.getAssetPatterns(site))) {
-			replacePattern = StringUtils.EMPTY;
-		} else if (matchesPatterns(path, servicesConfig.getDocumentPatterns(site))) {
-			replacePattern = DmConstants.ROOT_PATTERN_DOCUMENTS;
-		} else {
-			replacePattern = DmConstants.ROOT_PATTERN_PAGES;
-			isPage = true;
-		}
-
-		return getBrowserUri(path, replacePattern, isPage);
-	}
-
-	protected String getBrowserUri(String uri, String replacePattern, boolean isPage) {
-		String browserUri = uri.replaceFirst(replacePattern, "");
-		browserUri = browserUri.replaceFirst(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
-		if (browserUri.isEmpty()) {
-			browserUri = FILE_SEPARATOR;
-		}
-		// TODO: come up with a better way of doing this.
-		if (isPage) {
-			browserUri = browserUri.replaceFirst("\\.xml", ".html");
-		}
-		return browserUri;
+		return ContentUtils.getPreviewUrl(servicesConfig, site, path);
 	}
 
 	@Override

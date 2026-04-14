@@ -154,7 +154,7 @@ public interface ContentService {
 	 * @param includeChildren if true, check if any children of the paths are part of a publish package
 	 * @throws ContentInPublishQueueException if the content is part of a publish package
 	 */
-	void assertNotInWorkflow(String siteId, List<String> paths, boolean includeChildren) throws ContentInPublishQueueException;
+	void assertNotInWorkflow(String siteId, List<String> paths, boolean includeChildren) throws ServiceLayerException;
 
 
 	/**
@@ -342,10 +342,11 @@ public interface ContentService {
 	 * @param siteId  the site id
 	 * @param path    the content path
 	 * @param content the content to write
+	 * @param comment the user comment to associate with the content write operation
 	 * @return the result of the write operation, which includes affected paths
 	 * @throws ServiceLayerException if an error occurs while writing the content
 	 */
-	WriteContentResult write(String siteId, String path, InputStream content) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+	WriteContentResult write(String siteId, String path, InputStream content, String comment) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Copy content from sourcePath to targetPath.

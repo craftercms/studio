@@ -2316,38 +2316,85 @@ paths:
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/site/monitor-content.json:
+    /api/2/sites/monitor:
         get:
             tags:
                 - sites
-            summary: Get all projects/sites content monitors
-            description: "Required role: none"
-            operationId: monitorContent
+            summary: Get all sites monitor information
+            description: 'Required global permission "content_read"'
+            operationId: monitorAllSites
             responses:
                 '200':
                     description: OK
                     content:
                         application/json:
                             schema:
-                                type: array
-                                items:
-                                    type: object
-                                    properties:
-                                        site_id:
-                                            type: string
-                                        contentMonitoring:
-                                            type: object
-                                            properties:
-                                                monitors:
-                                                    type: array
-                                                    items:
-                                                        type: string
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    sites:
+                                        type: array
+                                        items:
+                                            allOf:
+                                                -   type: object
+                                                    properties:
+                                                        siteId:
+                                                            type: string
+                                                            description: 'Site ID'
+                                                        monitors:
+                                                            type: array
+                                                            items:
+                                                                $ref: '#/components/schemas/SiteMonitor'
                 '400':
-                    $ref: '#/components/responses/api1BadRequest'
+                    $ref: '#/components/responses/BadRequest'
                 '401':
-                    $ref: '#/components/responses/api1Unauthorized'
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
                 '500':
-                    $ref: '#/components/responses/api1InternalServerError'
+                    $ref: '#/components/responses/InternalServerError'
+
+    /api/2/sites/{siteId}/monitor:
+        get:
+            tags:
+                - sites
+            summary: Get site monitor information
+            description: 'Required permission "content_read"'
+            operationId: monitorContent
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: Project/Site ID to use
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    monitors:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/SiteMonitor'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
 
     /api/1/services/api/1/dependency/get-dependant.json:
         post:
@@ -2740,30 +2787,6 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/server/get-available-languages.json:
-        get:
-            tags:
-                - server
-            summary: Get available languages.
-            description: "Required role: N/A"
-            operationId: getAvailableLanguages
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: '#/components/schemas/AvailableLanguage'
-                                example:
-                                    -   id: en
-                                        label: English
-                                    -   id: es
-                                        label: Español
-                                    -   id: kr
-                                        label: 한국어
 
     /api/2/search/search:
         post:
@@ -4599,6 +4622,9 @@ paths:
                                 path:
                                     type: string
                                     description: content item path (including filename)
+                                comment:
+                                    type: string
+                                    description: user comment for the upload action
                                 file:
                                     type: string
                                     format: binary
@@ -4660,6 +4686,9 @@ paths:
                                 path:
                                     type: string
                                     description: content item path (including filename)
+                                comment:
+                                    type: string
+                                    description: user comment for the write action
                                 content:
                                     type: string
                                     description: the item content
@@ -8207,6 +8236,38 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
+    /api/2/system/available_languages:
+        get:
+            security: []
+            tags:
+                - system
+            summary: Get available languages in the system.
+            description: No permission required
+            operationId: getAvailableLanguages
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    languages:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/AvailableLanguage'
+                                        example:
+                                            -   id: en
+                                                label: English
+                                            -   id: es
+                                                label: Español
+                                            -   id: kr
+                                                label: 한국어
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
 components:
     schemas:
         ApiResponse:
@@ -8525,6 +8586,45 @@ components:
                 - publishedRepoCreated
                 - state
 
+        SiteMonitor:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'Name of the monitor'
+                paths:
+                    type: array
+                    description: 'List of monitored paths'
+                    items:
+                        $ref: '#/components/schemas/SiteMonitorPath'
+
+        SiteMonitorPath:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'Name of the monitored path'
+                emails:
+                    type: string
+                    description: 'Comma-separated list of email addresses to send the monitor reports to'
+                items:
+                    type: array
+                    description: 'List of items reported by the monitor'
+                    items:
+                        $ref: '#/components/schemas/SiteMonitorItem'
+
+        SiteMonitorItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 'ID of the monitor item'
+                label:
+                    type: string
+                    description: 'Label of the item'
+                url:
+                    type: string
+                    description: 'Preview URL of the item'
 
         MenuItem:
             type: object

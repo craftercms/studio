@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -462,7 +462,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	 * @throws GitAPIException                if an error occurs while trying to calculate the changes
 	 * @throws ContentInPublishQueueException if the changes contains paths included in active (SUBMITTED or APPROVED ready packages) publish packages
 	 */
-	private void assertChangesNotInPublishQueue(final String siteId, final Git git, final ObjectId newCommitId) throws IOException, GitAPIException, ContentInPublishQueueException {
+	private void assertChangesNotInPublishQueue(final String siteId, final Git git, final ObjectId newCommitId) throws IOException, GitAPIException, ServiceLayerException {
 		logger.debug("Checking if the fetched changes are in the publish queue");
 		List<DiffEntry> diffEntries = getMergeChanges(git, newCommitId);
 		List<String> removedPaths = new LinkedList<>();

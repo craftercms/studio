@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,7 @@
 package org.craftercms.studio.model.rest.content;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 
 /**
@@ -24,10 +25,14 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
  */
 public class WriteContentRequest {
 
+	public static final int WRITE_COMMENT_MAX_LENGTH = 500;
+
 	@NotEmpty
 	@ValidExistingContentPath
 	private String path;
 	private String content;
+	@Size(max = WRITE_COMMENT_MAX_LENGTH)
+	private String comment;
 
 	public String getContent() {
 		return content;
@@ -43,5 +48,13 @@ public class WriteContentRequest {
 
 	public void setPath(final String path) {
 		this.path = path;
+	}
+
+	public @Size String getComment() {
+		return comment;
+	}
+
+	public void setComment(@Size String comment) {
+		this.comment = comment;
 	}
 }

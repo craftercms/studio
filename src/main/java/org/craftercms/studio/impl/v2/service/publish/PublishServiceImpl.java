@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -152,7 +152,7 @@ public class PublishServiceImpl implements PublishService {
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
 	public Collection<PublishPackage> getActivePackagesForItems(@SiteId final String siteId, final List<String> paths,
-																final boolean includeChildren) {
+																final boolean includeChildren) throws ServiceLayerException {
 		return publishServiceInternal.getActivePackagesForItems(siteId, paths, includeChildren);
 	}
 

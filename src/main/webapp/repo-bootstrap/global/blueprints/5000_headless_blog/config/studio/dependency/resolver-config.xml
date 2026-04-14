@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License version 3 as published by
@@ -22,7 +22,7 @@
 -->
 
 <dependency-resolver>
-	<version>5.0.0.7</version>
+	<version>5.0.0.1</version>
 	<item-types>
 		<item-type>
 			<!-- name of type -->
@@ -46,7 +46,7 @@
 								<transform>
 									<!-- This will match the link so the first group contains drops trailing slash or "index.xml" -->
 									<match>href=["'](\/((?!index\.xml)[^"'?#])+((?!index\.xml)[^"'?#\/])+)([^"']*)["']</match>
-									<replace>/site/website$1</replace>
+									<replace>/site/website$1/index.xml</replace>
 								</transform>
 							</transforms>
 						</pattern>
@@ -140,7 +140,7 @@
 								<transform>
 									<!-- This will match the link so the first group contains drops trailing slash or "index.xml" -->
 									<match>href=["'](\/((?!index\.xml)[^"'?#])+((?!index\.xml)[^"'?#\/])+)([^"']*)["']</match>
-									<replace>/site/website$1</replace>
+									<replace>/site/website$1/index.xml</replace>
 								</transform>
 							</transforms>
 						</pattern>
@@ -233,7 +233,7 @@
 								<transform>
 									<!-- This will match the link so the first group contains drops trailing slash or "index.xml" -->
 									<match>href=["'](\/((?!index\.xml)[^"'?#])+((?!index\.xml)[^"'?#\/])+)([^"']*)["']</match>
-									<replace>/site/website$1</replace>
+									<replace>/site/website$1/index.xml</replace>
 								</transform>
 							</transforms>
 						</pattern>

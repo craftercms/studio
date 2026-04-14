@@ -35,13 +35,16 @@ import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.publish.InvalidTargetException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActionResolver;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.jspecify.annotations.NonNull;
@@ -72,6 +75,8 @@ import static org.craftercms.studio.api.v2.dal.publish.PublishDAO.ACTIVE_APPROVA
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.APPROVED;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState.SUBMITTED;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.PROCESSING;
+import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageState.READY;
 import static org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.SUBMIT;
@@ -101,16 +106,18 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	private final SitesService siteService;
 	private final GeneralLockService generalLockService;
 	private final PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
+	private final ActivityStreamService activityService;
 
 	@ConstructorProperties({"contentRepository", "retryingDatabaseOperationFacade", "itemService", "servicesConfig",
 			"auditService", "dependencyService", "publishDao", "itemTargetDao", "siteService",
-			"generalLockService", "publishPackageAvailableActionResolver"})
+			"generalLockService", "publishPackageAvailableActionResolver", "activityService"})
 	public PublishServiceInternalImpl(GitContentRepository contentRepository, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 									  ItemService itemService, ServicesConfig servicesConfig, AuditService auditService,
 									  DependencyService dependencyService, PublishDAO publishDao,
 									  ItemTargetDAO itemTargetDao,
 									  SitesService siteService, GeneralLockService generalLockService,
-									  PublishPackageAvailableActionResolver publishPackageAvailableActionResolver) {
+									  PublishPackageAvailableActionResolver publishPackageAvailableActionResolver,
+									  ActivityStreamService activityService) {
 		this.contentRepository = contentRepository;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.itemService = itemService;
@@ -122,6 +129,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		this.siteService = siteService;
 		this.generalLockService = generalLockService;
 		this.publishPackageAvailableActionResolver = publishPackageAvailableActionResolver;
+		this.activityService = activityService;
 	}
 
 	@Override
@@ -247,10 +255,21 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@Override
-	public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final List<String> paths, final boolean includeChildren) {
-		return publishDao.getItemPackages(siteId, null, paths,
-			PublishPackage.PackageState.READY.value + PublishPackage.PackageState.PROCESSING.value,
-			ACTIVE_APPROVAL_STATES, includeChildren);
+	public Collection<PublishPackage> getActivePackagesForItems(final String siteId, final List<String> paths, final boolean includeChildren) throws ServiceLayerException {
+		Collection<PublishPackage> itemPackages = publishDao.getItemPackages(siteId, null, paths,
+				READY.value + PROCESSING.value,
+				ACTIVE_APPROVAL_STATES, includeChildren);
+		if (CollectionUtils.isEmpty(itemPackages)) {
+			return itemPackages;
+		}
+		for (PublishPackage p : itemPackages) {
+			try {
+				p.setAvailableActions(publishPackageAvailableActionResolver.getPublishPackageAvailableActions(p));
+			} catch (UserNotFoundException e) {
+				throw new ServiceLayerException("Failed to get current user while calculating available actions for publish package with id " + p.getId(), e);
+			}
+		}
+		return itemPackages;
 	}
 
 	@Override
@@ -373,7 +392,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * @param p         the publish package
 	 * @param operation the audit operation
 	 */
-	private void auditPublishSubmission(final PublishPackage p, final String operation) {
+	private void auditPublishSubmission(final PublishPackage p, final String operation) throws AuthenticationException {
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(operation);
 		auditLog.setActorId(getCurrentUsername());
@@ -389,6 +408,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 		auditLog.setParameters(List.of(commentParam));
 		auditService.insertAuditLog(auditLog);
+
+		activityService.insertActivity(p.getSiteId(), SecurityUtils.getCurrentUser().getId(), operation, DateUtils.getCurrentTime(), null, Long.toString(p.getId()));
 	}
 
 	/**
@@ -540,11 +561,12 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	/**
 	 * Routes the request to the appropriate method based on the site's publishing repo status.
 	 */
-	private long routePackageSubmission(final String siteId, final String publishingTarget,
+	protected long routePackageSubmission(final String siteId, final String publishingTarget,
 										final List<PublishRequestPath> paths, final List<String> commitIds,
 										final Instant schedule, final String title, final String comment,
 										final boolean requestApproval, final boolean publishAll)
 		throws ServiceLayerException, AuthenticationException {
+		validateTarget(siteId, publishingTarget);
 		Site site = siteService.getSite(siteId);
 		String lockKey = getSandboxRepoLockKey(site.getSiteId());
 		generalLockService.lock(lockKey);
@@ -564,6 +586,29 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 				paths, commitIds, requestApproval, schedule, title, comment);
 		} finally {
 			generalLockService.unlock(lockKey);
+		}
+	}
+
+	/**
+	 * Validate the publishing target. If the target is not valid, an exception will be thrown.
+	 *
+	 * @param siteId           the site id
+	 * @param publishingTarget the publishing target to validate
+	 * @throws SiteNotFoundException  if the site is not found
+	 * @throws InvalidTargetException if the publishing target is not valid for the site
+	 */
+	protected void validateTarget(String siteId, String publishingTarget) throws SiteNotFoundException, InvalidTargetException {
+		String liveTarget = servicesConfig.getLiveEnvironment(siteId);
+		if (!CS.equals(publishingTarget, liveTarget)) {
+			if (!servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+				throw new InvalidTargetException(format("Invalid publishing target '%s'. The only valid target for site '%s' is: '%s'",
+						publishingTarget, siteId, liveTarget), liveTarget);
+			}
+			String stagingTarget = servicesConfig.getStagingEnvironment(siteId);
+			if (!CS.equals(publishingTarget, stagingTarget)) {
+				throw new InvalidTargetException(format("Invalid publishing target '%s'. Valid targets for site '%s' are: '%s' and '%s'",
+						publishingTarget, siteId, liveTarget, stagingTarget), liveTarget, stagingTarget);
+			}
 		}
 	}
 
@@ -621,10 +666,10 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			PublishPackage publishPackage = submitPublishPackage(site, target, packageType, requestApproval,
 				schedule, title, comment, publishItems);
 
-			auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH:OPERATION_PUBLISH);
+			auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
 
 			applicationContext.publishEvent(new WorkflowEvent(getAuthentication(),
-				site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT:DIRECT_PUBLISH));
+					site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : DIRECT_PUBLISH));
 			if (!requestApproval) {
 				notifyPublisher(publishPackage, site);
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachable
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
 import org.craftercms.studio.api.v2.exception.publish.InvalidPackageStateException;
+import org.craftercms.studio.api.v2.exception.publish.InvalidTargetException;
 import org.craftercms.studio.api.v2.exception.publish.PackageAlreadyApprovedException;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.repository.InvalidRemoteException;
@@ -415,7 +416,7 @@ public class ExceptionHandlers {
 	public ResultList<ValidationFieldError> handleMethodArgumentNotValidException(HttpServletRequest request,
 										      MethodArgumentNotValidException e) {
 		ApiResponse response = new ApiResponse(INVALID_PARAMS);
-		handleExceptionInternal(request, e, response);
+		handleExceptionInternal(request, e, response, DEBUG);
 		ResultList<ValidationFieldError> result = new ResultList<>();
 		result.setResponse(response);
 		result.setEntities(RESULT_KEY_VALIDATION_ERRORS,
@@ -638,6 +639,17 @@ public class ExceptionHandlers {
 		ResultOne<Long> result = new ResultOne<>();
 		result.setResponse(response);
 		result.setEntity(RESULT_KEY_PACKAGE, e.getPackageId());
+		return result;
+	}
+
+	@ExceptionHandler
+	@ResponseStatus(BAD_REQUEST)
+	public Result handleException(HttpServletRequest request, InvalidTargetException e) {
+		ApiResponse response = new ApiResponse(ApiResponse.INVALID_PUBLISH_TARGET);
+		handleExceptionInternal(request, e, response);
+		ResultOne<String[]> result = new ResultOne<>();
+		result.setResponse(response);
+		result.setEntity(RESULT_KEY_VALID_TARGETS, e.getValidTargets());
 		return result;
 	}
 
