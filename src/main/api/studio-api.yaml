@@ -3899,7 +3899,7 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/configuration/content-type/{siteId}/allowed_types:
+    /api/2/configuration/content-types/{siteId}/allowed_types:
         get:
             tags:
                 - contentTypes
@@ -3946,11 +3946,11 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/configuration/content_type/{siteId}:
+    /api/2/configuration/content_types/{siteId}:
         get:
             tags:
                 - contentTypes
-            summary: Get content type configuration file for a given content type
+            summary: Get content type configuration file for a given content type. It gets all content types if no contentTypeId is provided
             description: 'Required permission "content_read"'
             operationId: getContentTypeConfiguration
             parameters:
@@ -3974,8 +3974,10 @@ paths:
                                 properties:
                                     response:
                                         $ref: '#/components/schemas/ApiResponse'
-                                    contentType:
-                                        $ref: '#/components/schemas/ContentType'
+                                    contentTypes:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/ContentType'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
