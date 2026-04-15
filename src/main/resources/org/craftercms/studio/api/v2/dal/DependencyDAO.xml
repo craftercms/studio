@@ -243,12 +243,22 @@
 		</foreach>
 	</select>
 
-	<select id="getDependencies" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+	<select id="getDependencyPaths">
 		SELECT target_path as path
 		FROM dependency
 		WHERE site = #{siteId}
 		AND valid = 1
 		AND source_path = #{path}
+	</select>
+
+	<select id="getDependencies" resultMap="org.craftercms.studio.api.v2.dal.ItemDAO.LightItemMap">
+		SELECT d.target_path as path, i.label AS meta_label, i.mime_type AS meta_mime_type, i.system_type AS meta_system_type
+		FROM dependency d
+		INNER JOIN site s ON s.site_id = d.site
+		INNER JOIN item i ON i.path = d.target_path AND i.site_id = s.id
+		WHERE d.site = #{siteId}
+		AND d.valid = 1
+		AND d.source_path = #{path}
 	</select>
 
 	<delete id="deleteItemDependencies" parameterType="java.util.Map">

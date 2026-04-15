@@ -2360,90 +2360,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/1/services/api/1/dependency/get-dependant.json:
-        post:
-            tags:
-                - dependency
-            summary: Get dependant content items.
-            description: "Required role: N/A"
-            operationId: getDependant
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /templates/web/pages/home.ftl
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                                example:
-                                    message: "OK"
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/dependency/get-simple-dependencies.json:
-        post:
-            tags:
-                - dependency
-            summary: Get simple dependencies.
-            description: "Required role: N/A"
-            operationId: getSimpleDependencies
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/index.xml
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                                example:
-                                    message: "OK"
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
     /api/1/services/api/1/content/get-content-type.json:
         get:
             tags:
@@ -5535,13 +5451,20 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/dependency/dependencies:
+    /api/2/dependency/{siteId}/publish_dependencies:
         post:
             tags:
                 - dependency
-            summary: Get list of dependencies for given content paths
+            summary: Get list of publish dependencies for given content paths
             description: 'Required permission "content_read"'
-            operationId: getDependencies
+            operationId: getPublishDependencies
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: site ID
+                    required: true
+                    schema:
+                        type: string
             requestBody:
                 required: true
                 content:
@@ -5549,16 +5472,12 @@ paths:
                         schema:
                             type: object
                             properties:
-                                siteId:
-                                    description: Site ID
-                                    type: string
                                 paths:
                                     description: Content paths to get dependencies for
                                     type: array
                                     items:
                                         type: string
                             required:
-                                - siteId
                                 - paths
             responses:
                 '200':
@@ -5576,11 +5495,11 @@ paths:
                                             hardDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
+                                                    $ref: '#/components/schemas/LightItem'
                                             softDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
+                                                    $ref: '#/components/schemas/LightItem'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -5597,6 +5516,58 @@ paths:
             summary: Get list of dependent items for given content path
             description: 'Required permission "content_read"'
             operationId: getDependentItems
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: site ID
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                path:
+                                    description: Content path to get dependencies for
+                                    type: string
+                            required:
+                                - path
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    items:
+                                        type: object
+                                        properties:
+                                            items:
+                                                type: array
+                                                items:
+                                                    $ref: '#/components/schemas/LightItem'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+                    
+    /api/2/dependency/{siteId}/dependencies:
+        post:
+            tags:
+                - dependency
+            summary: Get list of dependencies for given content path
+            description: 'Required permission "content_read"'
+            operationId: getDependencies
             parameters:
                 -   name: siteId
                     in: path

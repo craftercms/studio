@@ -1114,9 +1114,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		if (copyDepConfigs.isEmpty()) {
 			return copyDependencies; // No copy dependencies config to process
 		}
-		Collection<LightItem> allDependencies = dependencyService.getDependencies(siteId, sourcePath);
-		for (LightItem dependency : allDependencies) {
-			String dependencyPath = dependency.getPath();
+		Collection<String> allDependencies = dependencyService.getDependencyPaths(siteId, sourcePath);
+		for (String dependency : allDependencies) {
+			String dependencyPath = dependency;
 			if (copyDependencies.containsKey(dependencyPath)) {
 				// Skip if already included (some of these are item-specific processed above)
 				continue;

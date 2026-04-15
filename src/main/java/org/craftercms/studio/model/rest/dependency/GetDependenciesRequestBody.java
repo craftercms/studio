@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,34 +16,23 @@
 
 package org.craftercms.studio.model.rest.dependency;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import java.util.Set;
-
-public class GetSoftDependenciesRequestBody {
+/**
+ * Request body for getting dependencies of a path
+ */
+public class GetDependenciesRequestBody {
 
 	@NotEmpty
-	@ValidSiteId
-	private String siteId;
-	@NotEmpty
-	private Set<@ValidExistingContentPath @NotBlank String> paths;
+	@ValidExistingContentPath
+	private String path;
 
-	public String getSiteId() {
-		return siteId;
+	public String getPath() {
+		return path;
 	}
 
-	public void setSiteId(String siteId) {
-		this.siteId = siteId;
-	}
-
-	public Set<String> getPaths() {
-		return paths;
-	}
-
-	public void setPaths(Set<String> paths) {
-		this.paths = paths;
+	public void setPath(String path) {
+		this.path = path;
 	}
 }
