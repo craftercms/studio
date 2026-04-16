@@ -116,6 +116,7 @@ public abstract class StudioUtils {
 	 * @throws IOException if an error occurs while creating the file
 	 */
 	public static Path createTempFile(String name) throws IOException {
+		Files.createDirectories(getStudioTemporaryFilesRoot());
 		return Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), "." +
 			FilenameUtils.getExtension(name));
 	}
