@@ -24,7 +24,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -34,9 +33,10 @@ import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import java.util.*;
-
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisionVoter {
 
@@ -75,37 +75,6 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 			}
 
 			return sites.contains(siteId);
-		} catch (UserNotFoundException e) {
-			logger.info("User '{}' is not a member of site '{}'", currentUser.getUsername(), siteId, e);
-			return false;
-		} catch (ServiceLayerException e) {
-			logger.warn("Failed to get site membership for user '{}' site '{}'", currentUser.getUsername(), siteId, e);
-			return false;
-		}
-	}
-
-	protected boolean isSiteAdmin(String siteId, User currentUser) {
-		try {
-			int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
-			List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
-
-			Map<String, Long> sites = new HashMap<>();
-			for (SiteFeed site : sitesFeed) {
-				sites.put(site.getSiteId(), site.getId());
-			}
-
-			boolean toRet = sites.containsKey(siteId);
-			if (toRet) {
-				List<Group> userGroups = userService.getUserGroups(sites.get(siteId), currentUser.getUsername());
-				for (Group g : userGroups) {
-					if (g.getGroupName().equals(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP))) {
-						toRet = true;
-						break;
-					}
-				}
-				toRet = userGroups.contains(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP));
-			}
-			return toRet;
 		} catch (UserNotFoundException e) {
 			logger.info("User '{}' is not a member of site '{}'", currentUser.getUsername(), siteId, e);
 			return false;

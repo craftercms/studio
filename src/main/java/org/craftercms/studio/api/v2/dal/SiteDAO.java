@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v2.service.item.ItemService;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 
 public interface SiteDAO {
 
@@ -59,6 +60,14 @@ public interface SiteDAO {
 	 * @return true if the site exists, false otherwise
 	 */
 	boolean exists(@Param(SITE_ID) String siteId);
+
+	/**
+	 * Checks if a non-deleted site exists with the given name
+	 *
+	 * @param name the site name
+	 * @return true if the site exists, false otherwise
+	 */
+	boolean existsByName(@Param(NAME) String name);
 
 	/**
 	 * Enables/disables publishing for the given site
@@ -138,4 +147,18 @@ public interface SiteDAO {
 				   @Param(NAME) String name, @Param(DESC) String description,
 				   @Param(SANDBOX_BRANCH) String sandboxBranch, @Param(UUID) String siteUuid);
 
+	/**
+	 * Create a new site in the database
+	 *
+	 * @param site the site to create
+	 */
+	void createSite(Site site);
+
+	/**
+	 * Update the site state
+	 *
+	 * @param siteId     the site id
+	 * @param stateReady the new state
+	 */
+	void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String stateReady);
 }

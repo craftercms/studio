@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,7 @@ package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -118,6 +119,8 @@ public class SiteConfigTO implements Serializable {
 	protected boolean requirePeerReview = false;
 
 	protected List<String> protectedFolderPatterns;
+
+	protected ContentMonitorConfigTO contentMonitorConfig;
 
 	/**
 	 * @return the WEM project
@@ -268,5 +271,13 @@ public class SiteConfigTO implements Serializable {
 
 	public void setProtectedFolderPatterns(List<String> protectedFolderPatterns) {
 		this.protectedFolderPatterns = protectedFolderPatterns;
+	}
+
+	public ContentMonitorConfigTO getContentMonitorConfig() {
+		return contentMonitorConfig;
+	}
+
+	public void setContentMonitorConfig(ContentMonitorConfigTO contentMonitorConfig) {
+		this.contentMonitorConfig = contentMonitorConfig;
 	}
 }

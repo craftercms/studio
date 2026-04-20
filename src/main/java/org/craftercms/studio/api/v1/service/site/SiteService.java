@@ -17,16 +17,10 @@
 package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.*;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Note: consider renaming
@@ -38,86 +32,12 @@ import java.util.Map;
 public interface SiteService {
 
 	/**
-	 * Create a new site based on an existing blueprint
-	 *
-	 * @param blueprintName  blueprint name to create site
-	 * @param siteId         site identifier
-	 * @param siteName       site name
-	 * @param sandboxBranch  sandbox branch name
-	 * @param desc           description
-	 * @param params         site parameters
-	 * @param createAsOrphan create the site from a remote repository as orphan (no git history)
-	 * @throws SiteAlreadyExistsException      site already exists
-	 * @throws SiteCreationException           error during site creation process
-	 * @throws DeployerTargetException         error creating deployer targets
-	 * @throws BlueprintNotFoundException      blueprint not found
-	 * @throws MissingPluginParameterException missing mandatory blueprint parameters
-	 */
-	void createSiteFromBlueprint(String blueprintName, String siteId, String siteName, String sandboxBranch,
-				     String desc, Map<String, String> params, boolean createAsOrphan)
-		throws ServiceLayerException;
-
-	/**
-	 * Create a new site with remote option (clone from remote or push to remote repository)
-	 *
-	 * @param siteId             site identifier
-	 * @param siteName           the name of the site
-	 * @param sandboxBranch      sandbox branch name
-	 * @param description        description
-	 * @param blueprintName      name of the blueprint to create site
-	 * @param remoteName         remote repository name
-	 * @param remoteUrl          remote repository url
-	 * @param remoteBranch       remote repository branch to create site from
-	 * @param singleBranch       clone single branch if true, otherwise clone whole repo
-	 * @param authenticationType remote repository authentication type
-	 * @param remoteUsername     remote repository username to use for authentication
-	 * @param remotePassword     remote repository username to use for authentication
-	 * @param remoteToken        remote repository username to use for authentication
-	 * @param remotePrivateKey   remote repository username to use for authentication
-	 * @param createOption       remote repository username to use for authentication
-	 * @param params             site parameters
-	 * @param createAsOrphan     create the site from a remote repository as orphan (no git history)
-	 * @throws ServiceLayerException                       general service error
-	 * @throws InvalidRemoteRepositoryException            invalid remote repository
-	 * @throws InvalidRemoteRepositoryCredentialsException invalid credentials for remote repository
-	 * @throws RemoteRepositoryNotFoundException           remote repository not found
-	 * @throws InvalidRemoteUrlException                   invalid remote url
-	 */
-	void createSiteWithRemoteOption(String siteId, String siteName, String sandboxBranch, String description,
-					String blueprintName, String remoteName, String remoteUrl, String remoteBranch,
-					boolean singleBranch, String authenticationType, String remoteUsername,
-					String remotePassword, String remoteToken, String remotePrivateKey,
-					String createOption, Map<String, String> params, boolean createAsOrphan)
-		throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-		RemoteRepositoryNotFoundException, InvalidRemoteUrlException;
-
-	/**
-	 * remove a site from the system
-	 *
-	 * @param siteId site identifier
-	 * @return true if successfully deleted, otherwise false
-	 * @deprecated use {@link org.craftercms.studio.api.v2.service.site.SitesService#deleteSite(String)} instead
-	 */
-	@Deprecated
-	boolean deleteSite(String siteId);
-
-	void updateLastCommitId(String site, String commitId);
-
-	/**
 	 * Check if site already exists
 	 *
 	 * @param site site ID
 	 * @return true if site exists, false otherwise
 	 */
 	boolean exists(String site);
-
-	/**
-	 * Check if site already exists
-	 *
-	 * @param name site name in DB
-	 * @return true if site exists, false otherwise
-	 */
-	boolean existsByName(String name);
 
 	/**
 	 * Get total number of sites that user is allowed access to for given username
@@ -134,8 +54,9 @@ public interface SiteService {
 	 *
 	 * @param start  start position for pagination
 	 * @param number number of sites per page
-	 * @return number of sites
-	 * @throws UserNotFoundException
+	 * @return the list of sites
+	 * @throws ServiceLayerException general service error
+	 * @throws UserNotFoundException user not found
 	 */
 	List<SiteFeed> getSitesPerUser(int start, int number) throws UserNotFoundException,
 			ServiceLayerException;
@@ -146,22 +67,10 @@ public interface SiteService {
 	 * @param username username
 	 * @param start    start position for pagination
 	 * @param number   number of sites per page
-	 * @return number of sites
+	 * @return the list of sites
 	 * @throws UserNotFoundException user not found
 	 * @throws ServiceLayerException general service error
 	 */
 	List<SiteFeed> getSitesPerUser(String username, int start, int number) throws UserNotFoundException,
 		ServiceLayerException;
-
-	/**
-	 * Get site feed for given site
-	 *
-	 * @param siteId site id
-	 * @return SiteFeed object for the requested site
-	 * @throws SiteNotFoundException site not found
-	 */
-	SiteFeed getSite(String siteId) throws SiteNotFoundException;
-
-	void setSiteState(String siteId, String state);
-
 }

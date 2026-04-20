@@ -33,9 +33,11 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -352,7 +354,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param commitFrom The last previously synced commit id
 	 * @param commitTo   The new synced commit id
 	 */
-	private void auditChangesFromGit(final Site site, final String commitFrom, final String commitTo) throws GitAPIException, IOException {
+	private void auditChangesFromGit(final Site site, final String commitFrom, final String commitTo) throws RepositoryException {
 		AuditLog auditLogEntry = createAuditLogEntry();
 		auditLogEntry.setSiteId(site.getId());
 		auditLogEntry.setOperation(OPERATION_GIT_CHANGES);
@@ -364,22 +366,16 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		auditLogEntry.setPrimaryTargetType(TARGET_TYPE_SITE);
 		auditLogEntry.setPrimaryTargetValue(site.getName());
 
-		try {
-			List<String> commitIds = contentRepository.getIntroducedCommits(site.getSiteId(), commitFrom, commitTo);
-			List<AuditLogParameter> auditParameters = new ArrayList<>();
-			for (String commitId : commitIds) {
-				AuditLogParameter auditParameter = new AuditLogParameter();
-				auditParameter.setTargetId(commitId);
-				auditParameter.setTargetType(TARGET_TYPE_SYNCED_COMMIT);
-				auditParameter.setTargetValue(commitId);
-				auditParameters.add(auditParameter);
-			}
-			auditLogEntry.setParameters(auditParameters);
-		} catch (IOException | GitAPIException e) {
-			logger.error("Failed to calculate introduced commits for site '{}' from commit '{}' to commit '{}'",
-				site.getSiteId(), commitFrom, commitTo, e);
-			throw e;
+		List<String> commitIds = contentRepository.getIntroducedCommits(site.getSiteId(), commitFrom, commitTo);
+		List<AuditLogParameter> auditParameters = new ArrayList<>();
+		for (String commitId : commitIds) {
+			AuditLogParameter auditParameter = new AuditLogParameter();
+			auditParameter.setTargetId(commitId);
+			auditParameter.setTargetType(TARGET_TYPE_SYNCED_COMMIT);
+			auditParameter.setTargetValue(commitId);
+			auditParameters.add(auditParameter);
 		}
+		auditLogEntry.setParameters(auditParameters);
 		auditService.insertAuditLog(auditLogEntry);
 	}
 
@@ -414,7 +410,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param site site id
 	 * @param paths list of created paths to resolve missing empty files
 	 */
-	private void addMissingEmptyFiles(Site site, List<String> paths) {
+	private void addMissingEmptyFiles(Site site, List<String> paths) throws RepositoryException {
 		if (CollectionUtils.isEmpty(paths)) {
 			return;
 		}

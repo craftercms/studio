@@ -32,10 +32,15 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryDAO;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.dal.repository.RepositoryStatus;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.git.NoMergeStateException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryNotFoundException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -68,12 +73,12 @@ import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.lang.NonNull;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -223,37 +228,25 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		// TODO: SJ: Avoid using string literals
 		logger.debug("Insert the remote repository '{}' from site '{}' into the database",
 			remoteRepository.getRemoteName(), siteId);
-		Map<String, String> params = new HashMap<>();
-		params.put("siteId", siteId);
-		params.put("remoteName", remoteRepository.getRemoteName());
-		params.put("remoteUrl", remoteRepository.getRemoteUrl());
-		params.put("authenticationType", remoteRepository.getAuthenticationType());
-		params.put("remoteUsername", remoteRepository.getRemoteUsername());
-
+		remoteRepository.setSiteId(siteId);
 		if (isNotEmpty(remoteRepository.getRemotePassword())) {
 			logger.trace("Encrypt the password before inserting into the database for site '{}'", siteId);
 			String hashedPassword = encryptor.encrypt(remoteRepository.getRemotePassword());
-			params.put("remotePassword", hashedPassword);
-		} else {
-			params.put("remotePassword", remoteRepository.getRemotePassword());
+			remoteRepository.setRemotePassword(hashedPassword);
 		}
 		if (isNotEmpty(remoteRepository.getRemoteToken())) {
 			logger.trace("Encrypt the token before inserting into the database for site '{}'", siteId);
 			String hashedToken = encryptor.encrypt(remoteRepository.getRemoteToken());
-			params.put("remoteToken", hashedToken);
-		} else {
-			params.put("remoteToken", remoteRepository.getRemoteToken());
+			remoteRepository.setRemoteToken(hashedToken);
 		}
 		if (isNotEmpty(remoteRepository.getRemotePrivateKey())) {
 			logger.trace("Encrypt the private key before inserting into the database for site '{}'", siteId);
 			String hashedPrivateKey = encryptor.encrypt(remoteRepository.getRemotePrivateKey());
-			params.put("remotePrivateKey", hashedPrivateKey);
-		} else {
-			params.put("remotePrivateKey", remoteRepository.getRemotePrivateKey());
+			remoteRepository.setRemotePrivateKey(hashedPrivateKey);
 		}
 
 		logger.debug("Insert the site remote record into database for site '{}'", siteId);
-		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDao.insertRemoteRepository(params));
+		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDao.insertRemoteRepository(remoteRepository));
 	}
 
 	@Override
@@ -272,7 +265,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	}
 
 	@Override
-	public List<RemoteRepositoryInfo> listRemotes(String siteId) throws SiteNotFoundException {
+	public List<RemoteRepositoryInfo> listRemotes(String siteId) throws SiteNotFoundException, RepositoryException {
 		Site site = siteService.getSite(siteId);
 		String sandboxBranch = site.getSandboxBranch();
 		List<RemoteRepositoryInfo> res = new ArrayList<>();
@@ -631,10 +624,17 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
 	@Override
 	public boolean removeRemote(@SiteId String siteId, String remoteName)
-		throws SiteNotFoundException, RemoteNotRemovableException {
-		boolean toRet = doRemoveRemote(siteId, remoteName);
-		insertRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
-		return toRet;
+			throws SiteNotFoundException, RemoteNotRemovableException {
+		// TODO: make this throw an exception instead of returning a boolean
+		try {
+			doRemoveRemote(siteId, remoteName);
+			return true;
+		} catch (ServiceLayerException e) {
+			logger.error("Failed to remove remote '{}' from site '{}'", remoteName, siteId, e);
+			return false;
+		} finally {
+			insertRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
+		}
 	}
 
 	private boolean doPushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
@@ -716,7 +716,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		}
 	}
 
-	private boolean doRemoveRemote(String siteId, String remoteName) throws RemoteNotRemovableException {
+	private void doRemoveRemote(String siteId, String remoteName) throws RemoteNotRemovableException, ServiceLayerException {
 		if (!isRemovableRemote(siteId, remoteName)) {
 			throw new RemoteNotRemovableException("Remote repository " + remoteName + " is not removable");
 		}
@@ -747,8 +747,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 				retryingRepositoryOperationFacade.call(delBranch);
 			}
 		} catch (GitAPIException e) {
-			logger.error("Failed to remove the remote '{}' from site '{}'", remoteName, siteId, e);
-			return false;
+			throw new ServiceLayerException(format("Failed to remove the remote '%s' from site '%s'", remoteName, siteId), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
@@ -760,8 +759,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 		params.put("siteId", siteId);
 		params.put("remoteName", remoteName);
 		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDao.deleteRemoteRepository(params));
-
-		return true;
 	}
 
 	@SuppressWarnings("unused")

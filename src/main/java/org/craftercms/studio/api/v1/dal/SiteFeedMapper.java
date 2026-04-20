@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,15 +25,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface SiteFeedMapper {
 
-	SiteFeed getSite(Map params);
-
-	boolean createSite(SiteFeed siteFeed);
-
-	void updateLastCommitId(Map params);
-
 	Integer exists(String siteId);
-
-	Integer existsByName(String name);
 
 	/**
 	 * Checks if there is a site, different than the siteId, using the given name
@@ -59,7 +51,5 @@ public interface SiteFeedMapper {
 	 * @return the number of changed rows
 	 */
 	int updateSite(@Param(SITE_ID) String siteId, @Param(NAME) String name, @Param(DESC) String description);
-
-	void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String state);
 
 }

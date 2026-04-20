@@ -103,6 +103,25 @@
 		  AND deleted = 0
 	</select>
 
+	<select id="existsByName" parameterType="java.lang.String" resultType="boolean">
+		SELECT count(1)
+		FROM site
+		WHERE name = #{name}
+		AND deleted = 0
+	</select>
+
+	<insert id="createSite" parameterType="org.craftercms.studio.api.v2.dal.Site" flushCache="true">
+		INSERT INTO site (site_uuid, site_id, name, description, publishing_status, sandbox_branch)
+		VALUES (#{siteUuid}, #{siteId}, #{name}, #{description}, #{publishingStatus}, #{sandboxBranch})
+	</insert>
+
+	<update id="setSiteState">
+		UPDATE site
+		SET state = #{state}
+		WHERE site_id = #{siteId}
+		  AND deleted = 0
+	</update>
+
 	<update id="enablePublishing" parameterType="java.util.Map">
 		UPDATE site
 		SET publishing_enabled = #{enabled}

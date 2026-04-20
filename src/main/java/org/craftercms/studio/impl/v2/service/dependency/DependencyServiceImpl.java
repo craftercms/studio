@@ -80,7 +80,8 @@ public class DependencyServiceImpl implements DependencyService {
 	}
 
 	@Override
-	public Collection<LightItem> getHardDependencies(String site, Collection<String> paths) throws SiteNotFoundException {
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<LightItem> getHardDependencies(@SiteId String site, @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) throws SiteNotFoundException {
 		return dependencyServiceInternal.getHardDependencies(site, paths);
 	}
 
@@ -105,61 +106,68 @@ public class DependencyServiceImpl implements DependencyService {
 
 	@Override
 	@RequireSiteExists
-	public void invalidateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
+	public void invalidateDependencies(@SiteId String siteId, @ContentPath String targetPath) throws ServiceLayerException {
 		dependencyServiceInternal.invalidateDependencies(siteId, targetPath);
 	}
 
 	@Override
 	@RequireSiteExists
-	public void validateDependencies(@SiteId String siteId, String targetPath) throws ServiceLayerException {
+	public void validateDependencies(@SiteId String siteId, @ContentPath String targetPath) throws ServiceLayerException {
 		dependencyServiceInternal.validateDependencies(siteId, targetPath);
 	}
 
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public boolean isValidDependencySource(@SiteId final String siteId, final String path) throws SiteNotFoundException {
+	public boolean isValidDependencySource(@SiteId final String siteId, @ContentPath final String path) throws SiteNotFoundException {
 		return dependencyServiceInternal.isValidDependencySource(siteId, path);
 	}
 
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public void updateDependenciesOnTreeDelete(@SiteId String siteId, String path) {
+	public void updateDependenciesOnTreeDelete(@SiteId String siteId, @ContentPath String path) {
 		dependencyServiceInternal.updateDependenciesOnTreeDelete(siteId, path);
 	}
 
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public void validateDependenciesForTree(@SiteId final String siteId, final String path) {
+	public void validateDependenciesForTree(@SiteId final String siteId, @ContentPath final String path) {
 		dependencyServiceInternal.validateDependenciesForTree(siteId, path);
 	}
 
 	@Override
 	@RequireSiteExists
-	public void validateDependencies(String siteId) {
+	public void validateDependencies(@SiteId String siteId) {
 		dependencyServiceInternal.validateDependencies(siteId);
 	}
 
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public List<LightItem> getItemSpecificDependencies(@SiteId String siteId, Collection<String> paths) {
+	public List<LightItem> getItemSpecificDependencies(@SiteId String siteId, @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) {
 		return dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);
 	}
 
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public Collection<LightItem> getDependencies(String siteId, String path) {
+	public Collection<LightItem> getDependencies(@SiteId String siteId, @ContentPath String path) {
 		return dependencyServiceInternal.getDependencies(siteId, path);
 	}
 
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(@SiteId String site, String sourcePath) throws SiteNotFoundException {
+	public Collection<String> getDependencyPaths(@SiteId String siteId, @ContentPath String path) {
+		return dependencyServiceInternal.getDependencyPaths(siteId, path);
+	}
+
+	@Override
+	@RequireSiteExists
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Map<String, Set<DependencyResolver.ResolvedDependency>> resolveDependencies(@SiteId String site, @ContentPath String sourcePath) throws SiteNotFoundException {
 		return dependencyServiceInternal.resolveDependencies(site, sourcePath);
 	}
 }

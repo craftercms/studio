@@ -32,17 +32,21 @@ import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.dal.publish.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.PackageType;
+import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
 import org.craftercms.studio.api.v2.event.publish.RequestPublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.publish.InvalidTargetException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActionResolver;
+import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.jspecify.annotations.NonNull;
@@ -104,16 +108,18 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	private final SitesService siteService;
 	private final GeneralLockService generalLockService;
 	private final PublishPackageAvailableActionResolver publishPackageAvailableActionResolver;
+	private final ActivityStreamService activityService;
 
 	@ConstructorProperties({"contentRepository", "retryingDatabaseOperationFacade", "itemService", "servicesConfig",
 			"auditService", "dependencyService", "publishDao", "itemTargetDao", "siteService",
-			"generalLockService", "publishPackageAvailableActionResolver"})
+			"generalLockService", "publishPackageAvailableActionResolver", "activityService"})
 	public PublishServiceInternalImpl(GitContentRepository contentRepository, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 									  ItemService itemService, ServicesConfig servicesConfig, AuditService auditService,
 									  DependencyService dependencyService, PublishDAO publishDao,
 									  ItemTargetDAO itemTargetDao,
 									  SitesService siteService, GeneralLockService generalLockService,
-									  PublishPackageAvailableActionResolver publishPackageAvailableActionResolver) {
+									  PublishPackageAvailableActionResolver publishPackageAvailableActionResolver,
+									  ActivityStreamService activityService) {
 		this.contentRepository = contentRepository;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.itemService = itemService;
@@ -125,6 +131,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 		this.siteService = siteService;
 		this.generalLockService = generalLockService;
 		this.publishPackageAvailableActionResolver = publishPackageAvailableActionResolver;
+		this.activityService = activityService;
 	}
 
 	@Override
@@ -179,7 +186,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	}
 
 	@Override
-	public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+	public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws RepositoryException {
 		// Site is published if PUBLISHED repo exists
 		return contentRepository.publishedRepositoryExists(siteId);
 	}
@@ -387,7 +394,7 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 	 * @param p         the publish package
 	 * @param operation the audit operation
 	 */
-	private void auditPublishSubmission(final PublishPackage p, final String operation) {
+	private void auditPublishSubmission(final PublishPackage p, final String operation) throws AuthenticationException {
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(operation);
 		auditLog.setActorId(getCurrentUsername());
@@ -403,6 +410,8 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 
 		auditLog.setParameters(List.of(commentParam));
 		auditService.insertAuditLog(auditLog);
+
+		activityService.insertActivity(p.getSiteId(), SecurityUtils.getCurrentUser().getId(), operation, DateUtils.getCurrentTime(), null, Long.toString(p.getId()));
 	}
 
 	/**
@@ -659,10 +668,10 @@ public class PublishServiceInternalImpl implements PublishService, ApplicationCo
 			PublishPackage publishPackage = submitPublishPackage(site, target, packageType, requestApproval,
 				schedule, title, comment, publishItems);
 
-			auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH:OPERATION_PUBLISH);
+			auditPublishSubmission(publishPackage, requestApproval ? OPERATION_REQUEST_PUBLISH : OPERATION_PUBLISH);
 
 			applicationContext.publishEvent(new WorkflowEvent(getAuthentication(),
-				site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT:DIRECT_PUBLISH));
+					site.getSiteId(), publishPackage.getId(), requestApproval ? SUBMIT : DIRECT_PUBLISH));
 			if (!requestApproval) {
 				notifyPublisher(publishPackage, site);
 			}

@@ -17,9 +17,17 @@
 package org.craftercms.studio.impl.v2.service.site.internal;
 
 
+import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.git.utils.AuthenticationType;
+import org.craftercms.commons.plugin.model.BlueprintDescriptor;
+import org.craftercms.commons.plugin.model.Plugin;
+import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
@@ -27,13 +35,19 @@ import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobAwareContentRepository;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
+import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
@@ -44,6 +58,7 @@ import java.util.UUID;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_ENABLED;
+import static org.craftercms.studio.model.rest.sites.CreateSiteRequest.RemoteAuthentication.NONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -74,6 +89,14 @@ public class SitesServiceInternalImplTest {
 	StudioConfiguration studioConfiguration;
 	@Mock
 	ApplicationContext applicationContext;
+	@Mock
+	EntitlementValidator entitlementValidator;
+	@Mock
+	UserService userService;
+	@Mock
+	ContentService contentService;
+	@Mock
+	StudioUpgradeManager upgradeManager;
 	@Spy
 	@InjectMocks
 	SitesServiceInternalImpl sitesServiceInternal;
@@ -84,10 +107,12 @@ public class SitesServiceInternalImplTest {
 	protected AuditService auditService;
 
 	@Before
-	public void setUp() throws IOException {
+	public void setUp() throws IOException, ServiceLayerException {
 		sitesServiceInternal.setApplicationContext(applicationContext);
 		sitesServiceInternal.setBlobAwareRepository(contentRepository);
 		sitesServiceInternal.setConfigurationService(configurationService);
+		sitesServiceInternal.setUpgradeManager(upgradeManager);
+		sitesServiceInternal.setContentService(contentService);
 		Site site = new Site();
 		site.setSiteId(SITE_ID);
 		site.setName("Site 1");
@@ -196,7 +221,7 @@ public class SitesServiceInternalImplTest {
 	@Test
 	public void duplicateAlreadyTakenNameTest() {
 		assertThrows(SiteAlreadyExistsException.class, () ->
-			sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, USED_SITE_NAME, "The new site", "main_branch", false));
+				sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, USED_SITE_NAME, "The new site", "main_branch", false));
 	}
 
 	@Test
@@ -234,7 +259,55 @@ public class SitesServiceInternalImplTest {
 		doThrow(new RestClientException("test")).when(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
 
 		assertThrows(ServiceLayerException.class, () ->
-			sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false));
+				sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false));
 		verify(sitesServiceInternal).deleteSite(NEW_SITE_ID);
+	}
+
+	@Test
+	public void createSiteTest() throws InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, ServiceLayerException, InvalidRemoteRepositoryException {
+		try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+			securityUtils.when(SecurityUtils::getCurrentUsername).thenReturn("user123");
+			when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
+
+
+			PluginDescriptor pluginDescriptor = new PluginDescriptor();
+			pluginDescriptor.setBlueprint(new BlueprintDescriptor.Blueprint());
+			Plugin plugin = new Plugin();
+			pluginDescriptor.setPlugin(plugin);
+			doReturn(pluginDescriptor).when(sitesServiceInternal).getBlueprintDescriptor("test-blueprint");
+
+			CreateSiteRequest.BlueprintSource request = new CreateSiteRequest.BlueprintSource();
+			request.setSiteId("new-site");
+			request.setName("New Site");
+			request.setDescription("A new site created from a blueprint");
+			request.setBlueprintId("test-blueprint");
+
+			sitesServiceInternal.createSite(request);
+
+			verify(contentRepository).createSiteFromBlueprint(eq(""), eq("new-site"), nullable(String.class), argThat(m -> m == null || m.isEmpty()), eq("user123"));
+		}
+	}
+
+	@Test
+	public void createSiteFromRemoteTest() throws InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, ServiceLayerException, InvalidRemoteRepositoryException {
+		try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+			securityUtils.when(SecurityUtils::getCurrentUsername).thenReturn("user123");
+			when(studioConfiguration.getProperty(SERVERLESS_DELIVERY_ENABLED, Boolean.class, false)).thenReturn(false);
+
+			CreateSiteRequest.RemoteSource request = new CreateSiteRequest.RemoteSource();
+			request.setSiteId("new-site");
+			request.setName("New Site");
+			request.setDescription("A new site created from a remote repository");
+			request.setRemoteUrl("http://example.com/repo.git");
+			request.setRemoteName("origin");
+			request.setRemoteBranch("main");
+			request.setAuthentication(NONE);
+
+			sitesServiceInternal.createSite(request);
+
+			verify(contentRepository).createSiteCloneRemote(eq("new-site"), nullable(String.class), eq("origin"), eq("http://example.com/repo.git"),
+					nullable(String.class), eq(true), eq(AuthenticationType.none), nullable(String.class), nullable(String.class),
+					nullable(String.class), nullable(String.class), argThat(m -> m == null || m.isEmpty()), eq(false), eq("user123"));
+		}
 	}
 }

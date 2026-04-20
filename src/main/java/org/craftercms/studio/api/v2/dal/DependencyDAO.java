@@ -218,6 +218,15 @@ public interface DependencyDAO {
 														@Param(REGEX) List<String> regex);
 
 	/**
+	 * Get all valid dependency paths for given path.
+	 *
+	 * @param siteId the site id
+	 * @param path   the content path to get dependencies for
+	 * @return a collection of
+	 */
+	Collection<String> getDependencyPaths(@Param(SITE_ID) String siteId, @Param(PATH) String path);
+
+	/**
 	 * Get all valid dependencies for given path.
 	 *
 	 * @param siteId the site id

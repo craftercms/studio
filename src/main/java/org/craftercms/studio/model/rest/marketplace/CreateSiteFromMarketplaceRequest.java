@@ -33,7 +33,7 @@ import java.util.Map;
  * @author joseross
  * @since 3.1.4
  */
-public class CreateSiteRequest {
+public class CreateSiteFromMarketplaceRequest {
 
 	@NotBlank
 	private String blueprintId;

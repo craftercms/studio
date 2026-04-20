@@ -22,6 +22,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -39,10 +40,14 @@ import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem.Action;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryDAO;
+import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.*;
 import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -95,7 +100,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
+import static org.craftercms.studio.api.v2.dal.repository.RepoOperation.Action.*;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
 import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -109,7 +114,6 @@ import static org.eclipse.jgit.revwalk.RevSort.*;
 public class GitContentRepositoryImpl implements GitContentRepository, GitPublishCapableRepository {
 
 	private static final Logger logger = LoggerFactory.getLogger(GitContentRepositoryImpl.class);
-	private static final String REFS_HEADS_FORMAT = "refs/heads/%s";
 
 	private GitRepositoryHelper helper;
 	private StudioConfiguration studioConfiguration;
@@ -129,7 +133,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	private TaskManager taskManager;
 
 	@Override
-	public List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) {
+	public List<String> getSubtreeItems(String site, String path, GitRepositories repoType, String branch) throws RepositoryException {
 		final List<String> retItems = new ArrayList<>();
 		String rootPath;
 		if (path.endsWith(FILE_SEPARATOR + INDEX_FILE)) {
@@ -349,43 +353,30 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
-										   Map<String, String> params, String creator) {
-		boolean toReturn;
+	public void createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
+										  Map<String, String> params, String creator) throws ServiceLayerException {
 		String gitLockKey = helper.getSandboxRepoLockKey(site);
 		generalLockService.lock(gitLockKey);
 		try {
 			// create git repository for site content
-			toReturn = helper.createSandboxRepository(site, sandboxBranch);
+			helper.createSandboxRepository(site, sandboxBranch);
 
-			if (toReturn) {
-				// copy files from blueprint
-				toReturn = helper.copyContentFromBlueprint(blueprintLocation, site);
-			}
+			// copy files from blueprint
+			helper.copyContentFromBlueprint(blueprintLocation, site);
 
-			if (toReturn) {
-				// update site name variable inside config files
-				toReturn = helper.updateSiteNameConfigVar(site);
-			}
+			// update site name variable inside config files
+			helper.updateSiteNameConfigVar(site);
 
-			if (toReturn) {
-				toReturn = helper.replaceParameters(site, params);
-			}
+			helper.replaceParameters(site, params);
 
-			if (toReturn) {
-				toReturn = helper.addGitIgnoreFiles(site);
-			}
+			helper.addGitIgnoreFiles(site);
 
-			if (toReturn) {
-				// commit everything so it is visible
-				toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
+			// commit everything so it is visible
+			helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
 					sandboxBranch, creator);
-			}
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
-
-		return toReturn;
 	}
 
 	/**
@@ -403,7 +394,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	 * @param sandboxBranchName sandbox repository branch name
 	 * @throws IOException if an I/O error occurs while verifying branch existence
 	 */
-	private void ensureEnvironmentBranch(String site, String environment, Repository repo, String sandboxBranchName) throws IOException, SiteNotFoundException {
+	private void ensureEnvironmentBranch(String site, String environment, Repository repo, String sandboxBranchName) throws IOException, SiteNotFoundException, RepositoryException {
 		if (branchExists(repo, environment)) {
 			return;
 		}
@@ -490,69 +481,59 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					}
 				}
 			}
-		} catch (IOException e) {
+		} catch (IOException | RepositoryException e) {
 			logger.info("Commit ID '{}' doesn't exist in repo '{}' for site '{}'", commitId, repoType, site);
+			logger.debug("Error while checking if commit ID '{}' exists in repo '{}' for site '{}'", commitId, repoType, site, e);
 		}
 		return toRet;
 	}
 
 	@Override
-	public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
-										 String remoteBranch, boolean singleBranch, String authenticationType,
-										 String remoteUsername, String remotePassword, String remoteToken,
-										 String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
-										 String creator)
-		throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-		RemoteRepositoryNotFoundException, ServiceLayerException {
-		boolean toReturn;
+	public void createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
+										String remoteBranch, boolean singleBranch, AuthenticationType authenticationType,
+										String remoteUsername, String remotePassword, String remoteToken,
+										String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
+										String creator)
+			throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
+			RemoteRepositoryNotFoundException, ServiceLayerException {
 
 		// Clone the remote git repository
 		logger.debug("Creating site '{}' as a clone of remote repository '{} ({})'", siteId, remoteName, remoteUrl);
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId);
 		generalLockService.lock(gitLockKey);
 		try {
-			toReturn = helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteBranch,
-				singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-				createAsOrphan, creator);
+			helper.createSiteCloneRemoteGitRepo(siteId, remoteName, remoteUrl, remoteBranch,
+					singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
+					createAsOrphan, creator);
 
-			if (toReturn) {
-				try {
-					if (createAsOrphan) {
-						removeRemote(siteId, remoteName);
-					} else {
-						insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
+			try {
+				if (createAsOrphan) {
+					removeRemote(siteId, remoteName);
+				} else {
+					insertRemoteToDb(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,
 							remoteToken, remotePrivateKey);
-					}
-				} catch (CryptoException e) {
-					throw new ServiceLayerException(e);
 				}
-
-				// Update the siteName variable inside the config files
-				logger.debug("Update siteName configuration variables for site '{}'", siteId);
-				toReturn = helper.updateSiteNameConfigVar(siteId);
-
-				if (toReturn) {
-					toReturn = helper.replaceParameters(siteId, params);
-				}
-
-				if (toReturn) {
-					// Commit everything so it is visible
-					logger.debug("Perform initial commit for site '{}'", siteId);
-					toReturn = helper.performInitialCommit(siteId,
-						helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch, creator);
-				}
-			} else {
-				logger.error("Failed to create site '{}' by cloning remote repository '{} ({})'",
-					siteId, remoteName, remoteUrl);
+			} catch (CryptoException e) {
+				throw new ServiceLayerException(e);
 			}
+
+			// Update the siteName variable inside the config files
+			logger.debug("Update siteName configuration variables for site '{}'", siteId);
+			helper.updateSiteNameConfigVar(siteId);
+
+			helper.replaceParameters(siteId, params);
+
+			// Commit everything so it is visible
+			logger.debug("Perform initial commit for site '{}'", siteId);
+			helper.performInitialCommit(siteId,
+					helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch, creator);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
-		return toReturn;
 	}
 
 	@Override
-	public boolean removeRemote(String siteId, String remoteName) {
+	public boolean removeRemote(String siteId, String remoteName) throws RepositoryException {
 		logger.debug("Remove remote '{}' from the sandbox repo in the site '{}'", remoteName, siteId);
 		Repository repo = helper.getRepository(siteId, SANDBOX);
 		try (Git git = new Git(repo)) {
@@ -590,40 +571,40 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	private void insertRemoteToDb(String siteId, String remoteName, String remoteUrl,
-								  String authenticationType, String remoteUsername, String remotePassword,
+								  AuthenticationType authenticationType, String remoteUsername, String remotePassword,
 								  String remoteToken, String remotePrivateKey) throws CryptoException {
 		logger.debug("Insert git remote '{}' in site '{}' into the database", remoteName, siteId);
-		Map<String, String> params = new HashMap<>();
-		params.put("siteId", siteId);
-		params.put("remoteName", remoteName);
-		params.put("remoteUrl", remoteUrl);
-		params.put("authenticationType", authenticationType);
-		params.put("remoteUsername", remoteUsername);
+		RemoteRepository remote = new RemoteRepository();
+		remote.setSiteId(siteId);
+		remote.setRemoteName(remoteName);
+		remote.setRemoteUrl(remoteUrl);
+		remote.setAuthenticationType(authenticationType);
+		remote.setRemoteUsername(remoteUsername);
 
 		if (StringUtils.isNotEmpty(remotePassword)) {
 			// Encrypt password before inserting to database
 			String hashedPassword = encryptor.encrypt(remotePassword);
-			params.put("remotePassword", hashedPassword);
+			remote.setRemotePassword(hashedPassword);
 		} else {
-			params.put("remotePassword", remotePassword);
+			remote.setRemotePassword(remotePassword);
 		}
 		if (StringUtils.isNotEmpty(remoteToken)) {
 			// Encrypt token before inserting to database
 			String hashedToken = encryptor.encrypt(remoteToken);
-			params.put("remoteToken", hashedToken);
+			remote.setRemoteToken(hashedToken);
 		} else {
-			params.put("remoteToken", remoteToken);
+			remote.setRemoteToken(remoteToken);
 		}
 		if (StringUtils.isNotEmpty(remotePrivateKey)) {
 			// Encrypt private key before inserting to database
 			String hashedPrivateKey = encryptor.encrypt(remotePrivateKey);
-			params.put("remotePrivateKey", hashedPrivateKey);
+			remote.setRemotePrivateKey(hashedPrivateKey);
 		} else {
-			params.put("remotePrivateKey", remotePrivateKey);
+			remote.setRemotePrivateKey(remotePrivateKey);
 		}
 
 		// Insert site remote record into database
-		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(params));
+		retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(remote));
 	}
 
 	@Override
@@ -740,7 +721,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public String getRepoLastCommitId(final String site) {
+	public String getRepoLastCommitId(final String site) throws RepositoryException {
 		String toReturn = EMPTY;
 		String gitLockKey = helper.getSandboxRepoLockKey(site, true);
 		generalLockService.lock(gitLockKey);
@@ -753,7 +734,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				}
 			}
 		} catch (IOException e) {
-			logger.error("Failed to get the last commit ID in site '{}'", site, e);
+			throw new RepositoryException(format("Failed to get the last commit ID in site '%s'", site), e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
@@ -768,7 +749,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public boolean isTargetPublished(String siteId, String target) throws IOException {
+	public boolean isTargetPublished(String siteId, String target) throws IOException, RepositoryException {
 		Repository repo = helper.getRepository(siteId, PUBLISHED);
 		return branchExists(repo, target);
 	}
@@ -846,7 +827,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public void createEmptyFiles(String siteId, Collection<String> paths) {
+	public void createEmptyFiles(String siteId, Collection<String> paths) throws RepositoryException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
 		try {
@@ -950,6 +931,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		generalLockService.lock(gitLockKey);
 		try {
 			helper.performGitGarbageCollection(EMPTY, GLOBAL);
+		} catch (RepositoryException e) {
+			logger.error("Failed to perform git garbage collection for the global repository", e);
 		} finally {
 			generalLockService.unlock(gitLockKey);
 		}
@@ -968,6 +951,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		try {
 			logger.info("Garbage collect the SANDBOX repository for site '{}'", siteId);
 			helper.performGitGarbageCollection(siteId, SANDBOX);
+		} catch (RepositoryException e) {
+			logger.error("Failed to perform git garbage collection for the SANDBOX repository in site '{}'", siteId, e);
 		} finally {
 			generalLockService.unlock(gitLockKeySandbox);
 		}
@@ -977,6 +962,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		try {
 			logger.info("Garbage collect the PUBLISHED repository for site '{}'", siteId);
 			helper.performGitGarbageCollection(siteId, PUBLISHED);
+		} catch (RepositoryException e) {
+			logger.error("Failed to perform git garbage collection for the PUBLISHED repository in site '{}'", siteId, e);
 		} finally {
 			generalLockService.unlock(gitLockKeyPublished);
 		}
@@ -995,7 +982,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					return objectLoader.getSize();
 				}
 			}
-		} catch (IOException e) {
+		} catch (IOException | RepositoryException e) {
 			logger.error("Failed to get content size for path '{}' in site '{}'", path, site, e);
 		}
 		return -1L;
@@ -1024,39 +1011,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public String getPreviousCommitId(String siteId, String commitId) {
-		String toReturn = EMPTY;
-		try {
-			Repository repository = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
-			if (repository != null) {
-				ObjectId head = repository.resolve(HEAD);
-				try (Git git = new Git(repository)) {
-					LogCommand logCommand = git.log().add(head);
-					Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
-					Iterator<RevCommit> iterator = commits.iterator();
-					boolean found = false;
-					while (!found && iterator.hasNext()) {
-						RevCommit revCommit = iterator.next();
-						if (CS.equals(commitId, revCommit.getName())) {
-							found = true;
-							if (iterator.hasNext()) {
-								revCommit = iterator.next();
-								toReturn = revCommit.getName();
-							}
-						}
-					}
-				}
-			}
-		} catch (IOException | GitAPIException e) {
-			logger.error("Failed to get the previous commit ID in site '{}' commit ID '{}'",
-				siteId, commitId, e);
-		}
-
-		return toReturn;
-	}
-
-	@Override
-	public void lockItem(String site, String path) {
+	public void lockItem(String site, String path) throws RepositoryException {
 		String gitLockKey = helper.getSandboxRepoLockKey(site, true);
 		Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
 		generalLockService.lock(gitLockKey);
@@ -1083,7 +1038,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public void unlockItem(String site, String path) {
+	public void unlockItem(String site, String path) throws RepositoryException {
 		String gitLockKey = helper.getSandboxRepoLockKey(site, true);
 		Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
 		generalLockService.lock(gitLockKey);
@@ -1127,7 +1082,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					}
 				}
 			}
-		} catch (IOException e) {
+		} catch (IOException | RepositoryException e) {
 			logger.error("Failed to get content from file at site '{}' path '{}' with commit ID '{}'",
 				site, path, commitId, e);
 		}
@@ -1135,7 +1090,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public boolean publishedRepositoryExists(String siteId) {
+	public boolean publishedRepositoryExists(String siteId) throws RepositoryException {
 		return Objects.nonNull(helper.getRepository(siteId, PUBLISHED));
 	}
 
@@ -1173,7 +1128,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		}
 	}
 
-	private void createEnvironmentBranch(String siteId, String startPoint, String environment) {
+	private void createEnvironmentBranch(String siteId, String startPoint, String environment) throws RepositoryException {
 		Repository repository = helper.getRepository(siteId, PUBLISHED);
 		try (Git git = new Git(repository)) {
 			CreateBranchCommand createBranchCommand = git.branchCreate().setName(environment).setStartPoint(startPoint);
@@ -1227,16 +1182,18 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 
 	@Override
 	public void updateRef(final String siteId, final long packageId,
-						  final String newCommitId, final String publishingTarget) throws IOException {
+						  final String newCommitId, final String publishingTarget) throws RepositoryException {
 		Repository repo = helper.getRepository(siteId, PUBLISHED);
 		String repoLockKey = helper.getPublishedRepoLockKey(siteId);
 		generalLockService.lock(repoLockKey);
 		try {
 			logger.debug("Updating target branch '{}' in published repo for site '{}' package '{}' with new commit ID '{}'",
 				publishingTarget, siteId, packageId, newCommitId);
-			RefUpdate refUpdate = repo.updateRef(format(REFS_HEADS_FORMAT, publishingTarget));
+			RefUpdate refUpdate = repo.updateRef(helper.getBranchRefName(publishingTarget));
 			refUpdate.setNewObjectId(repo.resolve(newCommitId));
 			refUpdate.update();
+		} catch (IOException e) {
+			throw new RepositoryException(format("Failed to update ref for site '%s' package '%s'", siteId, packageId), e);
 		} finally {
 			generalLockService.unlock(repoLockKey);
 		}
@@ -1329,7 +1286,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException {
+	public List<ItemVersion> getContentItemHistory(String site, String path) throws RepositoryException {
 		List<ItemVersion> versionHistory = new ArrayList<>();
 		final String gitPath = helper.getGitPath(path);
 		String repoLockKey = helper.getSandboxRepoLockKey(site);
@@ -1367,6 +1324,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					break;
 				}
 			}
+		} catch (GitAPIException | IOException e) {
+			throw new RepositoryException(format("Failed to get content item history for site '%s' path '%s'", site, path), e);
 		} finally {
 			generalLockService.unlock(repoLockKey);
 		}
@@ -1374,7 +1333,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public List<String> getCommitIdsBetween(final String site, final String commitFrom, final String commitTo) throws IOException {
+	public List<String> getCommitIdsBetween(final String site, final String commitFrom, final String commitTo) throws RepositoryException {
 		List<String> result = new ArrayList<>();
 		String repoLockKey = helper.getSandboxRepoLockKey(site);
 		Repository repo = helper.getRepository(site, SANDBOX);
@@ -1403,6 +1362,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			for (RevCommit revCommit : revWalk) {
 				result.add(revCommit.getName());
 			}
+		} catch (IOException e) {
+			throw new RepositoryException(format("Failed to get commit IDs between '%s' and '%s' for site '%s'", commitFrom, commitTo, site), e);
 		} finally {
 			generalLockService.unlock(repoLockKey);
 		}
@@ -1410,7 +1371,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws IOException {
+	public List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws RepositoryException {
 		List<RepositoryVersion> versionHistory = new ArrayList<>();
 		String repoLockKey = helper.getSandboxRepoLockKey(siteId);
 		Repository repo = helper.getRepository(siteId, SANDBOX);
@@ -1438,6 +1399,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			for (RevCommit revCommit : revWalk) {
 				versionHistory.add(new RepositoryVersion(revCommit));
 			}
+		} catch (IOException e) {
+			throw new RepositoryException(format("Failed to get history for site '%s' from commit '%s'", siteId, commitFrom), e);
 		} finally {
 			generalLockService.unlock(repoLockKey);
 		}
@@ -1445,7 +1408,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException {
+	public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws RepositoryException {
 		List<String> result = new ArrayList<>();
 		String repoLockKey = helper.getSandboxRepoLockKey(site);
 		Repository repo = helper.getRepository(site, SANDBOX);
@@ -1455,6 +1418,8 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			RevCommit revCommit = repo.parseCommit(repo.resolve(commitId));
 
 			git.log().addRange(revCommitBase, revCommit).call().forEach(commit -> result.add(commit.getName()));
+		} catch (IOException | GitAPIException e) {
+			throw new RepositoryException(format("Failed to get introduced commits between '%s' and '%s' for site '%s'", baseCommit, commitId, site), e);
 		} finally {
 			generalLockService.unlock(repoLockKey);
 		}
@@ -1658,7 +1623,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders)
+	public String writeContent(String siteId, Collection<? extends ContentWriteItem> writeItems, Set<String> newFolders, String userComment)
 		throws ServiceLayerException, UserNotFoundException {
 		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
 		generalLockService.lock(gitLockKey);
@@ -1680,8 +1645,9 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			PersonIdent user = helper.getCurrentUserIdent();
 			String username = SecurityUtils.getCurrentUsername();
 			String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
-				.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
-				.replace(REPO_COMMIT_MESSAGE_PATH_VAR, paths.getFirst());
+					.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
+					.replace(REPO_COMMIT_MESSAGE_PATH_VAR, paths.getFirst())
+					.replace(REPO_COMMIT_MESSAGE_USER_COMMENT_VAR, defaultIfEmpty(userComment, "")); // Avoid "null" in the commit message if the comment is null
 			String commitId = helper.commitFiles(repo, siteId, comment, user, paths.toArray(new String[]{}));
 			if (commitId != null) {
 				persistCommit(siteId, commitId);
@@ -1833,7 +1799,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				}
 			}
 			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'", site, path));
-		} catch (IOException e) {
+		} catch (IOException | RepositoryException e) {
 			logger.error("Failed to get the content item at site '{}' path '{}' from HEAD",
 				site, path, e);
 			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'", site, path), e);
@@ -1851,8 +1817,9 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 			PersonIdent user = helper.getCurrentUserIdent();
 			String username = SecurityUtils.getCurrentUsername();
 			String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
-				.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
-				.replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
+					.replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
+					.replace(REPO_COMMIT_MESSAGE_PATH_VAR, path)
+					.replace(REPO_COMMIT_MESSAGE_USER_COMMENT_VAR, ""); // Avoid "null" in the commit message if the comment is null;
 			String commitId = helper.commitFiles(repo, siteId, comment, user, path);
 			if (commitId != null) {
 				persistCommit(siteId, commitId);

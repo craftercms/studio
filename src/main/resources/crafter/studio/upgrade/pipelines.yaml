@@ -595,6 +595,14 @@ pipelines:
                 operations:
                     -   type: globalRepoUpgrader
                         files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                                dest: /configuration/samples/sample-studio-config-override.yaml
+                        commitDetails: Update sample studio override config file
+            -   currentVersion: 5.0.0.15
+                nextVersion: 5.0.0.16
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
                             -   src: repo-bootstrap/global/configuration/samples/sample-ui.xml
                                 dest: configuration/samples/sample-ui.xml
                         commitDetails: Update sample file for ui.xml

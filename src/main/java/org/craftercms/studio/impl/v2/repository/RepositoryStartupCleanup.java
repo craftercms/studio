@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.repository;
 import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
@@ -70,6 +71,8 @@ public class RepositoryStartupCleanup {
 			try {
 				unlockRepository(siteId, SANDBOX);
 				removeIndexIfCorrupted(siteId, SANDBOX);
+			} catch (RepositoryException e) {
+				logger.error("Error unlocking git repository for site '{}'", siteId, e);
 			} finally {
 				generalLockService.unlock(gitLockKeySandbox);
 			}
@@ -91,7 +94,7 @@ public class RepositoryStartupCleanup {
 		}
 	}
 
-	protected void removeIndexIfCorrupted(String siteId, GitRepositories repository) {
+	protected void removeIndexIfCorrupted(String siteId, GitRepositories repository) throws RepositoryException {
 		logger.debug("Checking if repository '{}' for site '{}' is corrupted", repository, siteId);
 		Repository repo = helper.getRepository(siteId, repository);
 		if (repo == null) {

@@ -155,12 +155,14 @@ public final class StudioConstants {
 	public static final String SITE_CONFIG_XML_ELEMENT_LOCALE = "locale";
 	public static final String SITE_CONFIG_XML_ELEMENT_DATE_TIME_FORMAT_OPTIONS = "dateTimeFormatOptions";
 	public static final String SITE_CONFIG_XML_ELEMENT_TIME_ZONE = "timeZone";
+	public static final String SITE_CONFIG_XML_ELEMENT_CONTENT_MONITORING = "contentMonitoring";
 
 	/**
 	 * Repository commit messages variables
 	 */
 	public static final String REPO_COMMIT_MESSAGE_USERNAME_VAR = "{username}";
 	public static final String REPO_COMMIT_MESSAGE_PATH_VAR = "{path}";
+	public static final String REPO_COMMIT_MESSAGE_USER_COMMENT_VAR = "{userComment}";
 
 	public static final int DEFAULT_ORGANIZATION_ID = 1;
 

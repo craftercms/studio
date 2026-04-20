@@ -1924,6 +1924,69 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
+    /api/2/sites:
+        post:
+            tags:
+                - sites
+            summary: Create a site. It can be created from a blueprint or from a remote repository.
+            description: 'Required Permission: "create_site"'
+            operationId: createSiteFromBlueprint
+            requestBody:
+                description: The site information
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            discriminator:
+                                propertyName: sourceType
+                                mapping:
+                                    blueprint: '#/components/schemas/CreateSiteFromBlueprintRequest'
+                                    remote: '#/components/schemas/CreateSiteFromRemoteRequest'
+                            oneOf:
+                                - $ref: '#/components/schemas/CreateSiteFromBlueprintRequest'
+                                - $ref: '#/components/schemas/CreateSiteFromRemoteRequest'
+                        examples:
+                            createFromBlueprint:
+                                summary: Create a site from a blueprint
+                                value:
+                                    siteId: "my-site"
+                                    name: "My Site"
+                                    description: "This is my site"
+                                    sourceType: "blueprint"
+                                    blueprint: "org.craftercms.blueprint.empty"
+                            createFromRemote:
+                                summary: Create a site from a remote repository
+                                value:
+                                    siteId: "my-site"
+                                    name: "My Site"
+                                    description: "This is my site"
+                                    sourceType: "remote"
+                                    remoteUrl: "http://myrepo.com/repo.git"
+                                    remoteName: "origin"
+                                    remoteBranch: "branch123"
+                                    authentication:
+                                        type: "basic"
+                                        username: "myuser"
+                                        password: "mypassword"
+            responses:
+                '201':
+                    description: Created
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '409':
+                    $ref: '#/components/responses/Conflict'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
     /api/2/sites/create_site_from_marketplace:
         post:
             tags:
@@ -2216,160 +2279,62 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/1/services/api/1/site/create.json:
-        post:
-            tags:
-                - sites
-            summary: Create a Crafter Studio project.
-            description: 'Required Role: "Admin"'
-            operationId: createSite
-            requestBody:
-                description: Project/site details
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                site_id:
-                                    description: Project/Site ID to use
-                                    type: string
-                                    example: my-editorial
-                                name:
-                                    type: string
-                                    description: Label to use for the project/site
-                                sandbox_branch:
-                                    type: string
-                                    description: "Name for sandbox branch (default: master)"
-                                description:
-                                    type: string
-                                    description: Project/Site description
-                                    example: "My very first site!"
-                                blueprint:
-                                    type: string
-                                    description: "Blueprint to use for bootstrapping the project/site \n\n <i>Required if</i> `use_remote` <i>is false</i>"
-                                    example: "org.craftercms.blueprint.empty"
-                                use_remote:
-                                    type: boolean
-                                    description: Use remote repository option if true, otherwise false
-                                    example: false
-                                remote_name:
-                                    type: string
-                                    description: "Remote repository name (default: origin)"
-                                remote_url:
-                                    type: string
-                                    description: "Remote repository URL \n\n <i>Required if</i> `use_remote` <i>is true</i>"
-                                remote_branch:
-                                    type: string
-                                    description: Branch to clone repo from
-                                single_branch:
-                                    type: string
-                                    description: Clone single branch if true, otherwise clone all
-                                authentication_type:
-                                    type: string
-                                    description: "Authentication type to use to access remote repository \n\n \t none: No authentication \n\n \t basic: username password authentication \n\n \t token: username token authentication \n\n \t key: key-based authentication \n\n <i>Required if</i> `authentication_type` <i>to be used is not</i> `none`"
-                                remote_username:
-                                    type: string
-                                    description: "Username to access remote repository \n\n <i>Required if</i> `authentication_type` <i>is set to</i> `basic`"
-                                remote_password:
-                                    type: string
-                                    description: "Password to access remote repository \n\n <i>Required if</i> `authentication_type` <i>is set to</i> `basic`"
-                                remote_token:
-                                    type: string
-                                    description: "Token to use to access remote repository \n\n <i>Required if</i> `authentication_type` <i>is set to</i> `token`"
-                                remote_private_key:
-                                    type: string
-                                    description: Private key to access remote repository
-                                create_option:
-                                    type: string
-                                    description: "Create options for remote repository: \n\n `clone`: clone from remote repository <i>Required if</i> `use_remote` <i>is true</i>"
-                                site_params:
-                                    type: object
-                                    description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
-                                create_as_orphan:
-                                    type: boolean
-                                    description: Create the project/site from a remote repository as orphan (no git history) - default is false
-                            required:
-                                - site_id
-                                - name
-            responses:
-                '201':
-                    description: Created
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                                        example: OK
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '403':
-                    $ref: '#/components/responses/api1Forbidden'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '409':
-                    $ref: '#/components/responses/api1Conflict'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
 
-    /api/1/services/api/1/site/monitor-content.json:
+    /api/2/sites/monitor:
         get:
             tags:
                 - sites
-            summary: Get all projects/sites content monitors
-            description: "Required role: none"
+            summary: Get all sites monitor information
+            description: 'Required global permission "content_read"'
+            operationId: monitorAllSites
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    sites:
+                                        type: array
+                                        items:
+                                            allOf:
+                                                -   type: object
+                                                    properties:
+                                                        siteId:
+                                                            type: string
+                                                            description: 'Site ID'
+                                                        monitors:
+                                                            type: array
+                                                            items:
+                                                                $ref: '#/components/schemas/SiteMonitor'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /api/2/sites/{siteId}/monitor:
+        get:
+            tags:
+                - sites
+            summary: Get site monitor information
+            description: 'Required permission "content_read"'
             operationId: monitorContent
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    type: object
-                                    properties:
-                                        site_id:
-                                            type: string
-                                        contentMonitoring:
-                                            type: object
-                                            properties:
-                                                monitors:
-                                                    type: array
-                                                    items:
-                                                        type: string
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/dependency/get-dependant.json:
-        post:
-            tags:
-                - dependency
-            summary: Get dependant content items.
-            description: "Required role: N/A"
-            operationId: getDependant
             parameters:
-                -   name: site_id
-                    in: query
+                -   name: siteId
+                    in: path
                     description: Project/Site ID to use
                     required: true
                     schema:
                         type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /templates/web/pages/home.ftl
             responses:
                 '200':
                     description: OK
@@ -2378,60 +2343,22 @@ paths:
                             schema:
                                 type: object
                                 properties:
-                                    message:
-                                        type: string
-                                example:
-                                    message: "OK"
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    monitors:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/SiteMonitor'
                 '400':
-                    $ref: '#/components/responses/api1BadRequest'
+                    $ref: '#/components/responses/BadRequest'
                 '401':
-                    $ref: '#/components/responses/api1Unauthorized'
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
                 '404':
-                    $ref: '#/components/responses/api1NotFound'
+                    $ref: '#/components/responses/NotFound'
                 '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/dependency/get-simple-dependencies.json:
-        post:
-            tags:
-                - dependency
-            summary: Get simple dependencies.
-            description: "Required role: N/A"
-            operationId: getSimpleDependencies
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/index.xml
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    message:
-                                        type: string
-                                example:
-                                    message: "OK"
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/api1Unauthorized'
-                '404':
-                    $ref: '#/components/responses/api1NotFound'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
+                    $ref: '#/components/responses/InternalServerError'
 
     /api/1/services/api/1/content/get-content-type.json:
         get:
@@ -2740,30 +2667,6 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '500':
                     $ref: '#/components/responses/api1InternalServerError'
-
-    /api/1/services/api/1/server/get-available-languages.json:
-        get:
-            tags:
-                - server
-            summary: Get available languages.
-            description: "Required role: N/A"
-            operationId: getAvailableLanguages
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: '#/components/schemas/AvailableLanguage'
-                                example:
-                                    -   id: en
-                                        label: English
-                                    -   id: es
-                                        label: Español
-                                    -   id: kr
-                                        label: 한국어
 
     /api/2/search/search:
         post:
@@ -4087,50 +3990,50 @@ paths:
 
     /api/2/configuration/content-type/form_controller:
         get:
-          tags:
-            - configuration
-          summary: Get the form controller (if it exists) script of a given content type
-          description: 'Required permission "content_read"'
-          operationId: getContentTypeFormController
-          parameters:
-            - name: siteId
-              in: query
-              description: site ID
-              required: true
-              schema:
-                type: string
-            - name: contentTypeId
-              in: query
-              required: true
-              schema:
-                type: string
-          responses:
-            '200':
-              description: 'OK'
-              content:
-                '*/*':
+            tags:
+                - configuration
+            summary: Get the form controller (if it exists) script of a given content type
+            description: 'Required permission "content_read"'
+            operationId: getContentTypeFormController
+            parameters:
+                - name: siteId
+                  in: query
+                  description: site ID
+                  required: true
                   schema:
-                    type: string
-                    format: binary
-                    description: The content of the form controller file
-              headers:
-                Content-Type:
-                  description: The MIME type of the form controller file
+                      type: string
+                - name: contentTypeId
+                  in: query
+                  required: true
                   schema:
-                    type: string
-                Content-Length:
-                  description: The size in bytes of the form controller file
-                  schema:
-                    type: integer
-                    format: int64
-            '400':
-              $ref: '#/components/responses/BadRequest'
-            '401':
-              $ref: '#/components/responses/Unauthorized'
-            '404':
-              $ref: '#/components/responses/NotFound'
-            '500':
-              $ref: '#/components/responses/InternalServerError'
+                      type: string
+            responses:
+                '200':
+                    description: 'OK'
+                    content:
+                        '*/*':
+                            schema:
+                                type: string
+                                format: binary
+                                description: The content of the form controller file
+                    headers:
+                        Content-Type:
+                            description: The MIME type of the form controller file
+                            schema:
+                                type: string
+                        Content-Length:
+                            description: The size in bytes of the form controller file
+                            schema:
+                                type: integer
+                                format: int64
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
 
     /api/2/configuration/content-type/delete:
         post:
@@ -4599,6 +4502,9 @@ paths:
                                 path:
                                     type: string
                                     description: content item path (including filename)
+                                comment:
+                                    type: string
+                                    description: user comment for the upload action
                                 file:
                                     type: string
                                     format: binary
@@ -4660,6 +4566,9 @@ paths:
                                 path:
                                     type: string
                                     description: content item path (including filename)
+                                comment:
+                                    type: string
+                                    description: user comment for the write action
                                 content:
                                     type: string
                                     description: the item content
@@ -5542,13 +5451,20 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/dependency/dependencies:
+    /api/2/dependency/{siteId}/publish_dependencies:
         post:
             tags:
                 - dependency
-            summary: Get list of dependencies for given content paths
+            summary: Get list of publish dependencies for given content paths
             description: 'Required permission "content_read"'
-            operationId: getDependencies
+            operationId: getPublishDependencies
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: site ID
+                    required: true
+                    schema:
+                        type: string
             requestBody:
                 required: true
                 content:
@@ -5556,16 +5472,12 @@ paths:
                         schema:
                             type: object
                             properties:
-                                siteId:
-                                    description: Site ID
-                                    type: string
                                 paths:
                                     description: Content paths to get dependencies for
                                     type: array
                                     items:
                                         type: string
                             required:
-                                - siteId
                                 - paths
             responses:
                 '200':
@@ -5583,11 +5495,11 @@ paths:
                                             hardDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
+                                                    $ref: '#/components/schemas/LightItem'
                                             softDependencies:
                                                 type: array
                                                 items:
-                                                    type: string
+                                                    $ref: '#/components/schemas/LightItem'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -5604,6 +5516,58 @@ paths:
             summary: Get list of dependent items for given content path
             description: 'Required permission "content_read"'
             operationId: getDependentItems
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: site ID
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                path:
+                                    description: Content path to get dependencies for
+                                    type: string
+                            required:
+                                - path
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    items:
+                                        type: object
+                                        properties:
+                                            items:
+                                                type: array
+                                                items:
+                                                    $ref: '#/components/schemas/LightItem'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+                    
+    /api/2/dependency/{siteId}/dependencies:
+        post:
+            tags:
+                - dependency
+            summary: Get list of dependencies for given content path
+            description: 'Required permission "content_read"'
+            operationId: getDependencies
             parameters:
                 -   name: siteId
                     in: path
@@ -8207,6 +8171,38 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
+    /api/2/system/available_languages:
+        get:
+            security: []
+            tags:
+                - system
+            summary: Get available languages in the system.
+            description: No permission required
+            operationId: getAvailableLanguages
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    languages:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/AvailableLanguage'
+                                        example:
+                                            -   id: en
+                                                label: English
+                                            -   id: es
+                                                label: Español
+                                            -   id: kr
+                                                label: 한국어
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
 components:
     schemas:
         ApiResponse:
@@ -8525,6 +8521,45 @@ components:
                 - publishedRepoCreated
                 - state
 
+        SiteMonitor:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'Name of the monitor'
+                paths:
+                    type: array
+                    description: 'List of monitored paths'
+                    items:
+                        $ref: '#/components/schemas/SiteMonitorPath'
+
+        SiteMonitorPath:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: 'Name of the monitored path'
+                emails:
+                    type: string
+                    description: 'Comma-separated list of email addresses to send the monitor reports to'
+                items:
+                    type: array
+                    description: 'List of items reported by the monitor'
+                    items:
+                        $ref: '#/components/schemas/SiteMonitorItem'
+
+        SiteMonitorItem:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: 'ID of the monitor item'
+                label:
+                    type: string
+                    description: 'Label of the item'
+                url:
+                    type: string
+                    description: 'Preview URL of the item'
 
         MenuItem:
             type: object
@@ -8829,6 +8864,114 @@ components:
                 - siteId
                 - blueprintId
                 - blueprintVersion
+
+        CreateSiteRequest:
+            type: object
+            properties:
+                sourceType:
+                    type: string
+                    description: The source of the site to create. Possible values are blueprint and remote
+                    enum:
+                        - blueprint
+                        - remote
+                siteId:
+                    type: string
+                    description: Site ID to use
+                name:
+                    type: string
+                    description: Site name
+                description:
+                    type: string
+                    description: Site description
+                sandboxBranch:
+                    type: string
+                    description: Name for sandbox branch (default master)
+                siteParams:
+                    type: object
+                    description: Object containing all parameters for the blueprint. It should include all required parameters from the descriptor
+                    additionalProperties:
+                        type: string
+            required:
+                - siteId
+                - name
+                - sourceType
+
+        CreateSiteFromBlueprintRequest:
+            allOf:
+                -   $ref: '#/components/schemas/CreateSiteRequest'
+                -   type: object
+                    properties:
+                        blueprintId:
+                            type: string
+                            description: The ID of the blueprint to use
+                    required:
+                        - blueprintId
+
+        CreateSiteFromRemoteRequest:
+            allOf:
+                -   $ref: '#/components/schemas/CreateSiteRequest'
+                -   type: object
+                    properties:
+                        remoteUrl:
+                            type: string
+                            description: URL of the remote repository
+                        remoteName:
+                            type: string
+                            description: Name of the remote repository (default origin)
+                        remoteBranch:
+                            type: string
+                            description: Name of the branch to use from the remote repository (default master)
+                        createAsOrphan:
+                            type: boolean
+                            description: Indicates if the remote repository should be added as an orphan repository, without fetching its history (default false)
+                        singleBranch:
+                            type: boolean
+                            description: Indicates if only the specified branch should be fetched from the remote repository (default true)
+                        authentication:
+                            $ref: '#/components/schemas/CreateSiteRemoteAuth'
+                    required:
+                        - url
+
+        CreateSiteRemoteAuth:
+            allOf:
+                -   type: object
+                    properties:
+                        type:
+                            type: string
+                            description: the authentication type to use
+                            enum:
+                                - none
+                                - basic
+                                - token
+                                - key
+                    required:
+                        - type
+                -   oneOf:
+                    -   type: object
+                        properties:
+                            username:
+                                type: string
+                                description: Username for basic authentication
+                            password:
+                                type: string
+                                description: Password for basic authentication
+                        required:
+                            - username
+                            - password
+                    -   type: object
+                        properties:
+                            token:
+                                type: string
+                                description: authentication token
+                        required:
+                            - token
+                    -   type: object
+                        properties:
+                            privateKey:
+                                type: string
+                                description: Private key
+                        required:
+                            - privateKey
 
         PluginRecord:
             type: object
@@ -9286,49 +9429,49 @@ components:
                 lastCleanup: null
 
         RemoteRepository:
-                type: object
-                properties:
-                    siteId:
-                        type: string
-                        description: site identifier
-                    remoteName:
-                        type: string
-                        description: remote repository name
-                    remoteUrl:
-                        type: string
-                        format: URL
-                        description: URL to access remote repository
-                    authenticationType:
-                        type: string
-                        description: >-
-                            Authentication type to use to access remote repository
-    
-                            Possible values:
-    
-                              - none: no authentication
-    
-                              - basic: username and password authentication
-    
-                              - token: token authentication
-    
-                              - key: key-based authentication
-                    remoteUsername:
-                        type: string
-                        description: username to use to access remote repository
-                    remotePassword:
-                        type: string
-                        description: password to use to access remote repository
-                    remoteToken:
-                        type: string
-                        description: token to use to access remote repository
-                    remotePrivateKey:
-                        type: string
-                        description: private key to access
-                required:
-                    - siteId
-                    - remoteName
-                    - remoteUrl
-                    - authenticationType
+            type: object
+            properties:
+                siteId:
+                    type: string
+                    description: site identifier
+                remoteName:
+                    type: string
+                    description: remote repository name
+                remoteUrl:
+                    type: string
+                    format: URL
+                    description: URL to access remote repository
+                authenticationType:
+                    type: string
+                    description: >-
+                        Authentication type to use to access remote repository
+                        
+                        Possible values:
+                        
+                          - none: no authentication
+                        
+                          - basic: username and password authentication
+                        
+                          - token: token authentication
+                        
+                          - key: key-based authentication
+                remoteUsername:
+                    type: string
+                    description: username to use to access remote repository
+                remotePassword:
+                    type: string
+                    description: password to use to access remote repository
+                remoteToken:
+                    type: string
+                    description: token to use to access remote repository
+                remotePrivateKey:
+                    type: string
+                    description: private key to access
+            required:
+                - siteId
+                - remoteName
+                - remoteUrl
+                - authenticationType
 
         RemoteRepositoryInfo:
             type: object

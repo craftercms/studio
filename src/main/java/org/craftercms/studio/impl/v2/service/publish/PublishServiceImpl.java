@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.security.publish.PeerReviewCapable;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -198,7 +199,7 @@ public class PublishServiceImpl implements PublishService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public boolean isSitePublished(@SiteId String siteId) throws SiteNotFoundException {
+	public boolean isSitePublished(@SiteId String siteId) throws SiteNotFoundException, RepositoryException {
 		return publishServiceInternal.isSitePublished(siteId);
 	}
 

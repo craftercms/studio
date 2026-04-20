@@ -18,16 +18,15 @@ package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.test.util.BaseRepositoryTestCase;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
@@ -59,14 +58,14 @@ public class GitContentRepositoryImplTest extends BaseRepositoryTestCase {
 	}
 
 	@Test
-	public void contentHistoryFollowsRenameTest() throws GitAPIException, IOException {
+	public void contentHistoryFollowsRenameTest() throws RepositoryException {
 		List<ItemVersion> history = gitContentRepository.getContentItemHistory(SITE_NAME, RENAMED_2_FILE_NAME);
 		assertEquals("Most recent version name must be the same as the request path", history.get(0).getPath(), "/" + RENAMED_2_FILE_NAME);
 		assertEquals("Oldest version name should be the original path", history.get(history.size() - 1).getPath(), "/" + ORIGINAL_FILE_NAME);
 	}
 
 	@Test
-	public void cannotRevertBeforeRenamesTest() throws GitAPIException, IOException {
+	public void cannotRevertBeforeRenamesTest() throws RepositoryException {
 		List<ItemVersion> history = gitContentRepository.getContentItemHistory(SITE_NAME, RENAMED_2_FILE_NAME);
 		boolean renameFound = false;
 		for (ItemVersion itemVersion : history) {

@@ -34,23 +34,6 @@ class SiteServices {
 		return ServiceFactory.createContext(applicationContext, request)
 	}
 
-	static createSiteFromBlueprint(context, blueprintName, siteId, siteName, sandboxBranch, desc, params,
-				       createAsOrphan) {
-		def siteServicesImpl = ServiceFactory.getSiteServices(context)
-		return siteServicesImpl.createSiteFromBlueprint(blueprintName, siteId, siteName, sandboxBranch, desc, params,
-			createAsOrphan)
-	}
-
-	static createSiteWithRemoteOption(context, siteId, siteName, sandboxBranch, description, blueprint, remoteName,
-					  remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername,
-					  remotePassword, remoteToken, remotePrivateKey, createOption, params,
-					  createAsOrphan) {
-		def siteServicesImpl = ServiceFactory.getSiteServices(context)
-		return siteServicesImpl.createSiteWithRemoteOption(siteId, siteName, sandboxBranch, description, blueprint,
-			remoteName, remoteUrl, remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword,
-			remoteToken, remotePrivateKey, createOption, params, createAsOrphan)
-	}
-
 	static getSitesPerUser(context, start, number) {
 		def siteServicesImpl = ServiceFactory.getSiteServices(context)
 		return siteServicesImpl.getSitesPerUser(start, number)

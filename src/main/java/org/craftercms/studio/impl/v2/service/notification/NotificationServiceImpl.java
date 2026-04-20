@@ -176,7 +176,7 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	@SuppressWarnings("unchecked")
 	@Valid
-	public void notify(@ValidateStringParam final String site, final List<String> toUsers,
+	public void notify(@ValidateStringParam final String site, final Collection<String> toUsers,
 			   @ValidateStringParam final String key,
 			   final Pair<String, Object>... params) {
 		try {
@@ -363,7 +363,7 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 
-	protected void sendEmail(final String message, final String subject, final List<String> sendTo) {
+	protected void sendEmail(final String message, final String subject, final Collection<String> sendTo) {
 		EmailMessageTO emailMessage = new EmailMessageTO(subject, message, StringUtils.join(sendTo, ','));
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sending email message to '{}'. Subject '{}'. Content: '{}'", sendTo, subject, message);
