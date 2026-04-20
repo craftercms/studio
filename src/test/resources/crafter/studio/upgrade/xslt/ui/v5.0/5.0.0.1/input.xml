@@ -15,7 +15,6 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
-    <version>5.0.0.0</version>
     <widget
         id="craftercms.components.Preview"
         initialEditModeOn="true"

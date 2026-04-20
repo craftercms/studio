@@ -475,6 +475,168 @@
 					</sections>
 				</descriptor>
 			</objectTypes>
+			<controls id="repeat">
+				<icon id="@mui/icons-material/ReplayOutlined"/>
+			</controls>
+			<controls id="input">
+				<icon id="@mui/icons-material/DriveFileRenameOutlineOutlined"/>
+			</controls>
+			<controls id="input-email">
+				<icon id="@mui/icons-material/AlternateEmailOutlined"/>
+			</controls>
+			<controls id="input-link">
+				<icon id="@mui/icons-material/LinkOutlined"/>
+			</controls>
+			<controls id="input-phone">
+				<icon id="@mui/icons-material/PhoneAndroidOutlined"/>
+			</controls>
+			<controls id="numeric-input">
+				<icon id="@mui/icons-material/PinOutlined"/>
+			</controls>
+			<controls id="textarea">
+				<icon id="@mui/icons-material/NotesOutlined"/>
+			</controls>
+			<controls id="rte">
+				<icon id="@mui/icons-material/CodeOutlined"/>
+			</controls>
+			<controls id="dropdown">
+				<icon id="@mui/icons-material/ArrowDropDownOutlined"/>
+			</controls>
+			<controls id="time">
+				<icon id="@mui/icons-material/AccessTimeOutlined"/>
+			</controls>
+			<controls id="date-time">
+				<icon id="@mui/icons-material/CalendarMonthOutlined"/>
+			</controls>
+			<controls id="checkbox">
+				<icon id="@mui/icons-material/CheckBoxOutlined"/>
+			</controls>
+			<controls id="checkbox-group">
+				<icon id="@mui/icons-material/ChecklistOutlined"/>
+			</controls>
+			<controls id="node-selector">
+				<icon id="@mui/icons-material/ZoomInMapOutlined"/>
+			</controls>
+			<controls id="image-picker">
+				<icon id="@mui/icons-material/InsertPhotoOutlined"/>
+			</controls>
+			<controls id="video-picker">
+				<icon id="@mui/icons-material/VideocamOutlined"/>
+			</controls>
+			<controls id="transcoded-video-picker">
+				<icon id="@mui/icons-material/VideocamOutlined"/>
+			</controls>
+			<controls id="label">
+				<icon id="@mui/icons-material/SellOutlined"/>
+			</controls>
+			<controls id="page-nav-order">
+				<icon id="@mui/icons-material/ImportExportOutlined"/>
+			</controls>
+			<controls id="file-name">
+				<icon id="@mui/icons-material/InsertDriveFileOutlined"/>
+			</controls>
+			<controls id="auto-filename">
+				<icon id="@mui/icons-material/DescriptionOutlined"/>
+			</controls>
+			<controls id="internal-name">
+				<icon id="@mui/icons-material/FontDownloadOutlined"/>
+			</controls>
+			<controls id="locale-selector">
+				<icon id="@mui/icons-material/PublicOutlined"/>
+			</controls>
+			<controls id="disabled">
+				<icon id="@mui/icons-material/NotInterestedOutlined"/>
+			</controls>
+			<controls id="forcehttps">
+				<icon id="@mui/icons-material/HttpsOutlined"/>
+			</controls>
+			<controls id="uuid">
+				<icon id="@mui/icons-material/BadgeOutlined"/>
+			</controls>
+			<controls id="expired-date">
+				<icon id="@mui/icons-material/EventBusyOutlined"/>
+			</controls>
+			<datasources id="components">
+				<icon id="@mui/icons-material/ExtensionOutlined"/>
+			</datasources>
+			<datasources id="shared-content">
+				<icon id="@mui/icons-material/ShareOutlined"/>
+			</datasources>
+			<datasources id="embedded-content">
+				<icon id="@mui/icons-material/AdjustOutlined"/>
+			</datasources>
+			<datasources id="img-desktop-upload">
+				<icon id="@mui/icons-material/InsertPhotoOutlined"/>
+			</datasources>
+			<datasources id="img-repository-upload">
+				<icon id="@mui/icons-material/InsertPhotoOutlined"/>
+			</datasources>
+			<datasources id="file-desktop-upload">
+				<icon id="@mui/icons-material/UploadFileOutlined"/>
+			</datasources>
+			<datasources id="file-browse-repo">
+				<icon id="@mui/icons-material/PanToolAltOutlined"/>
+			</datasources>
+			<datasources id="WebDAV-repo">
+				<icon id="@mui/icons-material/DnsOutlined"/>
+			</datasources>
+			<datasources id="img-WebDAV-repo">
+				<icon id="@mui/icons-material/DnsOutlined"/>
+			</datasources>
+			<datasources id="video-WebDAV-repo">
+				<icon id="@mui/icons-material/DnsOutlined"/>
+			</datasources>
+			<datasources id="WebDAV-upload">
+				<icon id="@mui/icons-material/DnsOutlined"/>
+			</datasources>
+			<datasources id="img-WebDAV-upload">
+				<icon id="@mui/icons-material/DnsOutlined"/>
+			</datasources>
+			<datasources id="video-WebDAV-upload">
+				<icon id="@mui/icons-material/DnsOutlined"/>
+			</datasources>
+			<datasources id="S3-repo">
+				<icon id="@mui/icons-material/InsertDriveFileOutlined"/>
+			</datasources>
+			<datasources id="img-S3-repo">
+				<icon id="@mui/icons-material/InsertPhotoOutlined"/>
+			</datasources>
+			<datasources id="video-S3-repo">
+				<icon id="@mui/icons-material/VideocamOutlined"/>
+			</datasources>
+			<datasources id="S3-upload">
+				<icon id="@mui/icons-material/InsertDriveFileOutlined"/>
+			</datasources>
+			<datasources id="img-S3-upload">
+				<icon id="@mui/icons-material/InsertPhotoOutlined"/>
+			</datasources>
+			<datasources id="video-S3-upload">
+				<icon id="@mui/icons-material/VideocamOutlined"/>
+			</datasources>
+			<datasources id="video-S3-transcoding">
+				<icon id="@mui/icons-material/VideocamOutlined"/>
+			</datasources>
+			<datasources id="video-desktop-upload">
+				<icon id="@mui/icons-material/VideocamOutlined"/>
+			</datasources>
+			<datasources id="video-browse-repo">
+				<icon id="@mui/icons-material/VideocamOutlined"/>
+			</datasources>
+			<datasources id="key-value-list">
+				<icon id="@mui/icons-material/KeyOutlined"/>
+			</datasources>
+			<datasources id="simpleTaxonomy">
+				<icon id="@mui/icons-material/StyleOutlined"/>
+			</datasources>
+			<datasources id="audio-desktop-upload">
+				<icon id="@mui/icons-material/AudioFileOutlined"/>
+			</datasources>
+			<datasources id="audio-browse-repo">
+				<icon id="@mui/icons-material/AudioFileOutlined"/>
+			</datasources>
+			<datasources id="configured-list">
+				<icon id="@mui/icons-material/AudioFileOutlined"/>
+			</datasources>
 		</configuration>
 	</widget>
 	<references>
