@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
@@ -39,6 +40,7 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
+import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
 import org.dom4j.Node;
@@ -63,6 +65,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static java.nio.file.Files.walkFileTree;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.normalize;
@@ -92,13 +95,15 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	protected final String previewImageXPath;
 	protected final String defaultPreviewImagePath;
 	protected final String formControllerFilePath;
+	protected final ServicesConfig servicesConfig;
 	private final GitRepositoryHelper gitRepositoryHelper;
 
 	@ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
 		"contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
 		"contentTypesRootPath",
 		"templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
-		"formControllerFilePath", "gitRepositoryHelper"})
+		"formControllerFilePath", "gitRepositoryHelper",
+		"servicesConfig"})
 	public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
 										  ConfigurationService configurationService, ItemDAO itemDao, String contentTypeBasePathPattern,
 										  String contentTypeDefinitionFilename, String contentTypeConfigFilename,
@@ -106,7 +111,8 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 										  String controllerPattern, String controllerFormat,
 										  String previewImageXPath, String defaultPreviewImagePath,
 										  String formControllerFilePath,
-										  GitRepositoryHelper gitRepositoryHelper) {
+										  GitRepositoryHelper gitRepositoryHelper,
+										  ServicesConfig servicesConfig) {
 		this.contentTypeService = contentTypeService;
 		this.securityService = securityService;
 		this.configurationService = configurationService;
@@ -122,6 +128,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 		this.defaultPreviewImagePath = defaultPreviewImagePath;
 		this.formControllerFilePath = formControllerFilePath;
 		this.gitRepositoryHelper = gitRepositoryHelper;
+		this.servicesConfig = servicesConfig;
 	}
 
 	public void setContentService(ContentService contentService) {
@@ -150,6 +157,18 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 				return item;
 			})
 			.collect(toList());
+	}
+
+	@Override
+	public ContentType getContentType(String siteId, String contentTypeId) throws SiteNotFoundException {
+		// TODO: implement
+		return null;
+	}
+
+	@Override
+	public Collection<String> getAllowedContentTypes(String siteId, String path) {
+		// TODO: implement
+		return emptyList();
 	}
 
 	@Override

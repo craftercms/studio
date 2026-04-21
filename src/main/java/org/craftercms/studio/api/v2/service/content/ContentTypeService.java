@@ -17,9 +17,12 @@ package org.craftercms.studio.api.v2.service.content;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
@@ -109,4 +112,22 @@ public interface ContentTypeService {
 	 * @return List of quick creatable content types
 	 */
 	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException;
+
+	/**
+	 * Get the content type configuration for a given content type id
+	 *
+	 * @param siteId        the id of the site
+	 * @param contentTypeId the id of the content type
+	 * @return the content type configuration
+	 */
+	ContentType getContentType(String siteId, String contentTypeId) throws SiteNotFoundException;
+
+	/**
+	 * Get a collection of the ids of the content types allowed for the given site and path
+	 *
+	 * @param siteId the id of the site
+	 * @param path   the path of the content item to be created
+	 * @return a collection of the ids of the content types allowed for the given site and path
+	 */
+	Collection<String> getAllowedContentTypes(String siteId, String path);
 }

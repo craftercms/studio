@@ -15,20 +15,24 @@
   -->
 
 <content-type name="/page/article" is-wcm-type="true">
-	<label>Article</label>
-	<form>/page/article</form>
-	<form-path>simple</form-path>
-	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
-	<file-extension>xml</file-extension>
-	<content-as-folder>true</content-as-folder>
-	<previewable>true</previewable>
-	<quickCreate>true</quickCreate>
-	<quickCreatePath>/site/website/articles/{year}/{month}</quickCreatePath>
-	<noThumbnail>false</noThumbnail>
-	<image-thumbnail>page-article.png</image-thumbnail>
-	<paths>
+	<label>Article</label> -> already in form-definition - title
+	<form>/page/article</form>   -> content-type
+	<form-path>simple</form-path> -> not used
+	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path> -> not used
+	<file-extension>xml</file-extension> -> not used
+	<content-as-folder>true</content-as-folder> -> not used
+	<previewable>true</previewable> -> MIGRATE
+	<quickCreate>true</quickCreate>  -> already in form-definition
+	<quickCreatePath>/site/website/articles/{year}/{month}</quickCreatePath> -> already in form-definition
+	<noThumbnail>false</noThumbnail> -> not used
+	<image-thumbnail>page-article.png</image-thumbnail>  -> already in form-definition
+	<paths> -> MIGRATE
 		<includes>
 			<pattern>^/site/website/articles/.*</pattern>
 		</includes>
 	</paths>
+	Also MIGRATE:
+	delete-dependencies
+	copy-dependencies
+	allowed-roles
 </content-type>

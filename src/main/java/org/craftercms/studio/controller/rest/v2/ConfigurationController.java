@@ -16,10 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.Valid;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidConfigurationPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
@@ -28,9 +25,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.craftercms.studio.model.rest.Result;
@@ -38,9 +33,6 @@ import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.WriteConfigurationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,30 +43,28 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
-import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONFIG;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HISTORY;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @Validated
 @RestController
-@RequestMapping("/api/2/configuration")
+@RequestMapping(API_2 + CONFIGURATION)
 public class ConfigurationController {
 
 	private final ConfigurationService configurationService;
 	private final StudioConfiguration studioConfiguration;
-	private final ContentTypeService contentTypeService;
 	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
 
-	@ConstructorProperties({"configurationService", "studioConfiguration", "contentTypeService"})
-	public ConfigurationController(ConfigurationService configurationService, StudioConfiguration studioConfiguration,
-				       ContentTypeService contentTypeService) {
+	@ConstructorProperties({"configurationService", "studioConfiguration"})
+	public ConfigurationController(ConfigurationService configurationService, StudioConfiguration studioConfiguration) {
 		this.configurationService = configurationService;
 		this.studioConfiguration = studioConfiguration;
-		this.contentTypeService = contentTypeService;
 	}
 
-	@GetMapping("clear_cache")
+	@GetMapping(CLEAR_CACHE)
 	public Result clearCache(@ValidSiteId @RequestParam String siteId) {
 		configurationService.invalidateConfiguration(siteId);
 		var result = new Result();
@@ -82,7 +72,7 @@ public class ConfigurationController {
 		return result;
 	}
 
-	@GetMapping("/get_configuration")
+	@GetMapping(GET_CONFIGURATION)
 	@LogExecutionTime
 	public ResultOne<String> getConfiguration(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
 						  @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
@@ -102,7 +92,7 @@ public class ConfigurationController {
 		return result;
 	}
 
-	@PostMapping("/write_configuration")
+	@PostMapping(WRITE_CONFIGURATION)
 	public Result writeConfiguration(@Validated @RequestBody WriteConfigurationRequest wcRequest)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
@@ -118,7 +108,7 @@ public class ConfigurationController {
 		return result;
 	}
 
-	@GetMapping("/get_configuration_history")
+	@GetMapping(GET_CONFIGURATION_HISTORY)
 	public ResultOne<ConfigurationHistory> getConfigurationHistory(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
 								       @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
 								       @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
@@ -132,95 +122,12 @@ public class ConfigurationController {
 		return result;
 	}
 
-	@GetMapping("translation")
+	@GetMapping(TRANSLATION)
 	public ResultOne<TranslationConfiguration> getTranslationConfiguration(@ValidSiteId @RequestParam String siteId) throws ServiceLayerException {
 		ResultOne<TranslationConfiguration> result = new ResultOne<>();
 		result.setEntity(RESULT_KEY_CONFIG, configurationService.getTranslationConfiguration(siteId));
 		result.setResponse(OK);
 		return result;
-	}
-
-	@GetMapping("content-type/usage")
-	public ResultOne<Object> getContentTypeUsage(@ValidSiteId @RequestParam String siteId,
-						     @ValidConfigurationPath @RequestParam String contentType)
-		throws Exception {
-		var result = new ResultOne<>();
-		result.setResponse(OK);
-		result.setEntity(RESULT_KEY_USAGE, contentTypeService.getContentTypeUsage(siteId, contentType));
-
-		return result;
-	}
-
-	@GetMapping("content-type/form_controller")
-	public ResponseEntity<Resource> getContentTypeFormController(@ValidSiteId @RequestParam String siteId,
-																 @ValidConfigurationPath @RequestParam String contentTypeId) throws ServiceLayerException {
-		ImmutablePair<String, Resource> resource = contentTypeService.getContentTypeFormController(siteId, contentTypeId);
-		return getResourceResponse(resource.getKey(), resource.getValue());
-	}
-
-	@GetMapping("content-type/preview_image")
-	public ResponseEntity<Resource> getContentTypePreviewImage(@ValidSiteId @RequestParam String siteId,
-								   @ValidConfigurationPath @RequestParam String contentTypeId)
-		throws ServiceLayerException {
-		ImmutablePair<String, Resource> resource = contentTypeService.getContentTypePreviewImage(siteId, contentTypeId);
-		return getResourceResponse(resource.getKey(), resource.getValue());
-	}
-
-	private ResponseEntity<Resource> getResourceResponse(String name, Resource resource) {
-		String mimeType = StudioUtils.getMimeType(name);
-
-		return ResponseEntity
-			.ok()
-			.header(HttpHeaders.CONTENT_TYPE, mimeType)
-			.body(resource);
-	}
-
-	@PostMapping("content-type/delete")
-	public Result deleteContentType(@RequestBody @Valid DeleteContentTypeRequest request)
-		throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-		contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
-			request.isDeleteDependencies());
-		var result = new Result();
-		result.setResponse(DELETED);
-
-		return result;
-	}
-
-	@JsonIgnoreProperties
-	public static class DeleteContentTypeRequest {
-
-		@ValidSiteId
-		protected String siteId;
-
-		@ValidConfigurationPath
-		protected String contentType;
-
-		protected boolean deleteDependencies;
-
-		public String getSiteId() {
-			return siteId;
-		}
-
-		public void setSiteId(String siteId) {
-			this.siteId = siteId;
-		}
-
-		public String getContentType() {
-			return contentType;
-		}
-
-		public void setContentType(String contentType) {
-			this.contentType = contentType;
-		}
-
-		public boolean isDeleteDependencies() {
-			return deleteDependencies;
-		}
-
-		public void setDeleteDependencies(boolean deleteDependencies) {
-			this.deleteDependencies = deleteDependencies;
-		}
-
 	}
 
 }

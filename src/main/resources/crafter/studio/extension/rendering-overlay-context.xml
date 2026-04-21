@@ -139,6 +139,9 @@
 	<bean id="configurationController" class="org.craftercms.studio.controller.rest.v2.ConfigurationController">
 		<constructor-arg name="configurationService" ref="configurationService"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+	</bean>
+
+	<bean id="contentTypeController" class="org.craftercms.studio.controller.rest.v2.ContentTypeController">
 		<constructor-arg name="contentTypeService" ref="contentTypeService"/>
 	</bean>
 

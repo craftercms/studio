@@ -82,7 +82,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
 			try (InputStream templateIs = template.getInputStream();
 			     InputStream sourceIs = Files.newInputStream(file)) {
 				logger.info("Apply the XSLT template '{}' to file '{}' in site '{}'", template, path, site);
-				Map<String, Object> params = Map.of(PARAM_KEY_SITE, site, PARAM_KEY_VERSION, nextVersion);
+				Map<String, Object> params = getTemplateParameters(context, path);
 				XsltUtils.executeTemplate(templateIs, params, getURIResolver(context), sourceIs, os);
 				trackChangedFiles(path);
 			} catch (Exception e) {
@@ -93,6 +93,18 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
 		}
 	}
 
+	/**
+	 * Gets the parameters to be passed to the XSLT template. By default, it includes the site name and the next version,
+	 * but it can be overridden by subclasses to provide additional parameters if needed.
+	 *
+	 * @param context the upgrade context, which can be used to get additional information for the parameters if needed
+	 * @param path    the path of the file being upgraded
+	 * @return a map of parameter names and values to be passed to the XSLT template
+	 */
+	protected Map<String, Object> getTemplateParameters(StudioUpgradeContext context, String path) {
+		return Map.of(PARAM_KEY_SITE, context.getTarget(), PARAM_KEY_VERSION, nextVersion);
+	}
+
 	protected URIResolver getURIResolver(StudioUpgradeContext context) {
 		return (href, base) -> {
 			try {
@@ -101,7 +113,6 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
 				logger.info("Failed to create a resolver for referencing documents inside XSLT forms", e);
 				return null;
 			}
-
 		};
 	}
 }

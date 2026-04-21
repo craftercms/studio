@@ -207,4 +207,8 @@
 	<bean id="checkContentTypeControllerUpgrader" scope="prototype" parent="upgradeOperation"
 	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.ContentTypeControllerUpgradeOperation">
 	</bean>
+
+	<bean id="contentTypeConfigMergeUpgrader" scope="prototype" parent="upgradeOperation"
+	      class="org.craftercms.studio.impl.v2.upgrade.operations.contentType.ContentTypeConfigMergeUpgrader">
+	</bean>
 </beans>
