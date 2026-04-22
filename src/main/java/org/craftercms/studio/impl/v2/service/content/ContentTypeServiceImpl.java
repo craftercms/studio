@@ -19,7 +19,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.ContentPath;
@@ -122,14 +121,21 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public ContentType getContentType(@SiteId String siteId, String contentTypeId) throws SiteNotFoundException {
+	public Collection<ContentType> getAllContentTypes(@SiteId String siteId) throws ServiceLayerException {
+		return contentTypeServiceInternal.getAllContentTypes(siteId);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public ContentType getContentType(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
 		return contentTypeServiceInternal.getContentType(siteId, contentTypeId);
 	}
 
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public Collection<String> getAllowedContentTypes(@SiteId String siteId, @ContentPath String path) {
+	public Collection<String> getAllowedContentTypes(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException {
 		return contentTypeServiceInternal.getAllowedContentTypes(siteId, path);
 	}
 

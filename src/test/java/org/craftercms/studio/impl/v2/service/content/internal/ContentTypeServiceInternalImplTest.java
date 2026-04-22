@@ -16,12 +16,14 @@
 
 package org.craftercms.studio.impl.v2.service.content.internal;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.model.contentType.ContentType;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -31,8 +33,12 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -137,5 +143,20 @@ public class ContentTypeServiceInternalImplTest {
 		ImmutablePair<String, Resource> resultPair = service.getContentTypeFormController(SITE_ID, CONTENT_TYPE_WITH_FORM_CONTROLLER);
 		assertEquals(resultPair.getKey(), CONTENT_TYPE_WITH_FORM_CONTROLLER_FULL_FORM_CONTROLLER_PATH);
 		assertEquals(resultPair.getValue(), resource);
+	}
+
+	@Test
+	public void getContentTypeTest() throws ServiceLayerException, IOException {
+		InputStream inputStream = new ClassPathResource("crafter/studio/content-type/" + CONTENT_TYPE + "/form-definition.xml").getInputStream();
+		when(contentService.getContent(SITE_ID, CONTENT_TYPE_DEFINITION_PATH)).thenReturn(inputStream);
+		ContentType contentType = service.loadContentType(SITE_ID, CONTENT_TYPE);
+
+		String expectedJson = "{\"previewable\":true,\"imageThumbnail\":\"page-test1.png\",\"noThumbnail\":false,\"quickCreate\":true," +
+				"\"quickCreatePath\":\"/site/website/tests/{year}/{month}\",\"type\":\"unknown\",\"pathIncludes\":[\"^/site/website/tests/.*\"]," +
+				"\"pathExcludes\":[\"^/site/website/tests/excluded.*\",\"^/site/website/tests/excluded2.*\"],\"id\":\"myContentType\"," +
+				"\"title\":\"Test Content Type\",\"allowedRoles\":[{\"name\":\"author\"},{\"name\":\"admin\"}]," +
+				"\"deleteDependencies\":[{\"pattern\":\"^/site/website/articles/.*\",\"removeEmptyFolder\":true}]," +
+				"\"copyDependencies\":[{\"pattern\":\"^/site/website/articles/.*\",\"target\":\"/site/website/articles2\"}]}";
+		assertEquals(expectedJson, new ObjectMapper().writeValueAsString(contentType));
 	}
 }

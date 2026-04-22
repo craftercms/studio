@@ -21,6 +21,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.validation.annotations.param.ValidConfigurationPath;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -39,7 +40,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
+import java.util.Collection;
+import java.util.List;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
@@ -76,23 +80,30 @@ public class ContentTypeController {
 
 	@GetMapping(PREVIEW_IMAGE)
 	public ResponseEntity<Resource> getContentTypePreviewImage(@ValidSiteId @RequestParam String siteId,
-															   @ValidConfigurationPath @RequestParam String contentTypeId)
+															   @ValidConfigurationPath @ValidateSecurePathParam @RequestParam String contentTypeId)
 			throws ServiceLayerException {
 		ImmutablePair<String, Resource> resource = contentTypeService.getContentTypePreviewImage(siteId, contentTypeId);
 		return getResourceResponse(resource.getKey(), resource.getValue());
 	}
 
 	@GetMapping(SITE_ID)
-	public ResultOne<ContentType> getContentType(@ValidSiteId @PathVariable String siteId,
-														 @ValidConfigurationPath @RequestParam String contentTypeId) throws SiteNotFoundException {
-		var result = new ResultOne<ContentType>();
+	public ResultList<ContentType> getContentTypes(@ValidSiteId @PathVariable String siteId,
+												   @ValidConfigurationPath @RequestParam(required = false) String contentTypeId) throws ServiceLayerException {
+		var result = new ResultList<ContentType>();
 		result.setResponse(OK);
-		result.setEntity(RESULT_KEY_CONTENT_TYPE, contentTypeService.getContentType(siteId, contentTypeId));
+
+		Collection<ContentType> contentTypes;
+		if (isEmpty(contentTypeId)) {
+			contentTypes = contentTypeService.getAllContentTypes(siteId);
+		} else {
+			contentTypes = List.of(contentTypeService.getContentType(siteId, contentTypeId));
+		}
+		result.setEntities(RESULT_KEY_CONTENT_TYPES, contentTypes);
 		return result;
 	}
 
 	@GetMapping(SITE_ID + ALLOWED_TYPES)
-	public ResultList<String> getAllowedContentTypes(@ValidSiteId @PathVariable String siteId, @ValidExistingContentPath @RequestParam String path) {
+	public ResultList<String> getAllowedContentTypes(@ValidSiteId @PathVariable String siteId, @ValidExistingContentPath @RequestParam String path) throws ServiceLayerException {
 		ResultList<String> result = new ResultList<>();
 		result.setResponse(OK);
 		result.setEntities(RESULT_KEY_ALLOWED_TYPES, contentTypeService.getAllowedContentTypes(siteId, path));

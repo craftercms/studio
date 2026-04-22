@@ -16,15 +16,14 @@
 
 package org.craftercms.studio.model.contentType;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collection;
 
 /**
- * Represents a delete dependency for a content type.
+ * Represents the includes and excludes for content type paths.
  *
- * @param pattern           the pattern to match the dependencies to be deleted
- * @param removeEmptyFolder a flag indicating whether to remove empty folders after deletion
+ * @param includes the included path patterns for the content type
+ * @param excludes the excluded path patterns for the content type
  */
-public record DeleteDependency(String pattern,
-							   @JsonAlias("remove-empty-folder") boolean removeEmptyFolder) {
+public record PathIncludeExcludes(Collection<PathPattern> includes,
+								  Collection<PathPattern> excludes) {
 }

@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.utils.db;
 
+import org.craftercms.studio.impl.v2.utils.Wrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -158,19 +159,4 @@ public class DBUtils {
 		void run() throws Exception;
 	}
 
-	private static class Wrapper<T> {
-		private T value;
-
-		public T get() {
-			return value;
-		}
-
-		public void set(T value) {
-			this.value = value;
-		}
-
-		public boolean hasValue() {
-			return this.value != null;
-		}
-	}
 }

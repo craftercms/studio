@@ -14,17 +14,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.contentType;
-
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.craftercms.studio.impl.v2.utils;
 
 /**
- * Represents a delete dependency for a content type.
+ * A simple wrapper class to hold a value of type T. This can be used to work
+ * around the fact that Java does not to modify variables from within lambda expressions or anonymous classes.
  *
- * @param pattern           the pattern to match the dependencies to be deleted
- * @param removeEmptyFolder a flag indicating whether to remove empty folders after deletion
+ * @param <T>
  */
-public record DeleteDependency(String pattern,
-							   @JsonAlias("remove-empty-folder") boolean removeEmptyFolder) {
+public class Wrapper<T> {
+	private T value;
+
+	public T get() {
+		return value;
+	}
+
+	public void set(T value) {
+		this.value = value;
+	}
+
+	public boolean hasValue() {
+		return this.value != null;
+	}
 }

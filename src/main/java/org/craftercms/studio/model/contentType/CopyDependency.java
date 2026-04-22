@@ -24,5 +24,4 @@ package org.craftercms.studio.model.contentType;
  */
 public record CopyDependency(String pattern,
 							 String target) {
-
 }

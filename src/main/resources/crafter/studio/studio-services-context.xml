@@ -449,6 +449,7 @@
 		<constructor-arg name="formControllerFilePath"
 				 value="#{studioConfiguration.getProperty('studio.configuration.contentType.formControllerFilePath')}" />
 		<constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
+		<constructor-arg name="cache" ref="configurationCache"/>
 		<!-- TODO: Break circular dependency with this bean -->
 		<property name="contentService" ref="contentServiceInternal"/>
 	</bean>

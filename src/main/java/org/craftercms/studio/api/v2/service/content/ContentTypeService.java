@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
@@ -114,13 +113,21 @@ public interface ContentTypeService {
 	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException;
 
 	/**
+	 * Get all content types for the given site.
+	 * @param siteId the id of the site
+	 * @return a collection of content types
+	 * @throws SiteNotFoundException if the site with the given id does not exist
+	 */
+	Collection<ContentType> getAllContentTypes(String siteId) throws ServiceLayerException;
+
+	/**
 	 * Get the content type configuration for a given content type id
 	 *
 	 * @param siteId        the id of the site
 	 * @param contentTypeId the id of the content type
 	 * @return the content type configuration
 	 */
-	ContentType getContentType(String siteId, String contentTypeId) throws SiteNotFoundException;
+	ContentType getContentType(String siteId, String contentTypeId) throws ServiceLayerException;
 
 	/**
 	 * Get a collection of the ids of the content types allowed for the given site and path
@@ -129,5 +136,5 @@ public interface ContentTypeService {
 	 * @param path   the path of the content item to be created
 	 * @return a collection of the ids of the content types allowed for the given site and path
 	 */
-	Collection<String> getAllowedContentTypes(String siteId, String path);
+	Collection<String> getAllowedContentTypes(String siteId, String path) throws ServiceLayerException;
 }

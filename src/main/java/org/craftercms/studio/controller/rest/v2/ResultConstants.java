@@ -120,7 +120,7 @@ public final class ResultConstants {
 	/**
 	 * Content types controller
 	 */
-	public static final String RESULT_KEY_CONTENT_TYPE = "contentType";
+	public static final String RESULT_KEY_CONTENT_TYPES = "contentTypes";
 	public static final String RESULT_KEY_ALLOWED_TYPES = "allowedTypes";
 
 	/**

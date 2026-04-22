@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,11 +16,13 @@
 
 package org.craftercms.studio.impl.v2.service.content.internal;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.cache.Cache;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.lang.UrlUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -35,10 +37,13 @@ import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.Wrapper;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
@@ -53,28 +58,30 @@ import org.springframework.core.io.Resource;
 import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.nio.file.Files.walkFileTree;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.apache.commons.lang3.RegExUtils.replaceAll;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.Strings.CI;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
 
+/**
+ * Internal implementation of {@link org.craftercms.studio.api.v2.service.content.ContentTypeService}.
+ */
 public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api.v2.service.content.ContentTypeService {
 
 	private static final Logger logger = LoggerFactory.getLogger(ContentTypeServiceInternalImpl.class);
@@ -96,23 +103,27 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	protected final String defaultPreviewImagePath;
 	protected final String formControllerFilePath;
 	protected final ServicesConfig servicesConfig;
+	protected final StudioConfiguration studioConfiguration;
 	private final GitRepositoryHelper gitRepositoryHelper;
+	private final Cache<String, ContentType> cache;
+	private final XmlMapper xmlMapper;
 
 	@ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
-		"contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
-		"contentTypesRootPath",
-		"templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
-		"formControllerFilePath", "gitRepositoryHelper",
-		"servicesConfig"})
+			"contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
+			"contentTypesRootPath",
+			"templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
+			"formControllerFilePath", "gitRepositoryHelper",
+			"servicesConfig", "studioConfiguration",
+			"cache"})
 	public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
 										  ConfigurationService configurationService, ItemDAO itemDao, String contentTypeBasePathPattern,
 										  String contentTypeDefinitionFilename, String contentTypeConfigFilename,
 										  String contentTypesRootPath, String templateXPath,
 										  String controllerPattern, String controllerFormat,
 										  String previewImageXPath, String defaultPreviewImagePath,
-										  String formControllerFilePath,
-										  GitRepositoryHelper gitRepositoryHelper,
-										  ServicesConfig servicesConfig) {
+										  String formControllerFilePath, GitRepositoryHelper gitRepositoryHelper,
+										  ServicesConfig servicesConfig, StudioConfiguration studioConfiguration,
+										  Cache<String, ContentType> cache) {
 		this.contentTypeService = contentTypeService;
 		this.securityService = securityService;
 		this.configurationService = configurationService;
@@ -129,6 +140,9 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 		this.formControllerFilePath = formControllerFilePath;
 		this.gitRepositoryHelper = gitRepositoryHelper;
 		this.servicesConfig = servicesConfig;
+		this.studioConfiguration = studioConfiguration;
+		this.cache = cache;
+		this.xmlMapper = new XmlMapper();
 	}
 
 	public void setContentService(ContentService contentService) {
@@ -138,37 +152,109 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	@Override
 	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException {
 		return contentTypeService.getAllContentTypes(siteId, true).stream()
-			.filter(ContentTypeConfigTO::isQuickCreate)
-			.filter(contentType -> {
-				try {
-					return securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUsername())
-						.contains(PERMISSION_CONTENT_CREATE);
-				} catch (SiteNotFoundException e) {
-					// This should never happen. If the site does not exist then getAllContentTypes() call above should have thrown an exception
-					return false;
+				.filter(ContentTypeConfigTO::isQuickCreate)
+				.filter(contentType -> {
+					try {
+						return securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUsername())
+								.contains(PERMISSION_CONTENT_CREATE);
+					} catch (SiteNotFoundException e) {
+						// This should never happen. If the site does not exist then getAllContentTypes() call above should have thrown an exception
+						return false;
+					}
+				})
+				.map(contentType -> {
+					QuickCreateItem item = new QuickCreateItem();
+					item.setSiteId(siteId);
+					item.setContentTypeId(contentType.getForm());
+					item.setLabel(contentType.getLabel());
+					item.setPath(contentType.getQuickCreatePath());
+					return item;
+				})
+				.collect(toList());
+	}
+
+	@Override
+	public Collection<ContentType> getAllContentTypes(String siteId) throws ServiceLayerException {
+		Collection<ContentType> contentTypes = new ArrayList<>();
+
+		Path repoRootPath = gitRepositoryHelper.buildRepoPath(SANDBOX, siteId);
+		Path contentTypesRepoPath = repoRootPath.resolve(gitRepositoryHelper.getGitPath(contentTypesRootPath));
+		try {
+			Wrapper<Exception> fileVisitorException = new Wrapper<>();
+			walkFileTree(contentTypesRepoPath, new SimpleFileVisitor<>() {
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+					if (!file.getFileName().toString().equals(contentTypeDefinitionFilename)) {
+						return FileVisitResult.CONTINUE;
+					}
+					try {
+						contentTypes.add(getContentType(siteId, contentTypesRepoPath.relativize(file.getParent()).toString()));
+					} catch (ServiceLayerException e) {
+						fileVisitorException.set(e);
+						return FileVisitResult.TERMINATE;
+					}
+					return FileVisitResult.SKIP_SIBLINGS;
 				}
-			})
-			.map(contentType -> {
-				QuickCreateItem item = new QuickCreateItem();
-				item.setSiteId(siteId);
-				item.setContentTypeId(contentType.getForm());
-				item.setLabel(contentType.getLabel());
-				item.setPath(contentType.getQuickCreatePath());
-				return item;
-			})
-			.collect(toList());
+			});
+			if (fileVisitorException.hasValue()) {
+				throw fileVisitorException.get();
+			}
+		} catch (Exception e) {
+			throw new ServiceLayerException(format("Failed to retrieve content types for site '%s'", siteId), e);
+		}
+
+		return contentTypes;
 	}
 
 	@Override
-	public ContentType getContentType(String siteId, String contentTypeId) throws SiteNotFoundException {
-		// TODO: implement
-		return null;
+	public ContentType getContentType(String siteId, String contentTypeId) throws ServiceLayerException {
+		String configFileFullPath = getContentTypeFormPath(siteId, contentTypeId);
+		var cacheKey = configurationService.getCacheKey(siteId, null, configFileFullPath,
+				null, "object");
+		ContentType contentType = cache.getIfPresent(cacheKey);
+		if (contentType == null) {
+			logger.debug("Cache miss for key '{}'", cacheKey);
+			contentType = loadContentType(siteId, contentTypeId);
+			cache.put(cacheKey, contentType);
+		}
+
+		return contentType;
+	}
+
+	/**
+	 * Get content type form-definition.xml full path in content repository
+	 */
+	private String getContentTypeFormPath(String siteId, String contentTypeId) {
+		String siteConfigPath = contentTypeBasePathPattern.replaceAll(StudioConstants.PATTERN_SITE, siteId)
+				.replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentTypeId);
+		String configFileFullPath = siteConfigPath + FILE_SEPARATOR + contentTypeDefinitionFilename;
+		return configFileFullPath;
+	}
+
+	/**
+	 * Load content type form-definition.xml from content repository and map it to ContentType object
+	 *
+	 * @param siteId        the site id
+	 * @param contentTypeId the content type id
+	 * @return the ContentType object mapped from form-definition.xml
+	 * @throws ConfigurationException if there is any error reading the content type configuration
+	 */
+	protected ContentType loadContentType(String siteId, String contentTypeId) throws ConfigurationException, ContentNotFoundException {
+		InputStream configurationAsStream = contentService.getContent(siteId, getContentTypeFormPath(siteId, contentTypeId));
+		try {
+			return xmlMapper.readValue(configurationAsStream, ContentType.class);
+		} catch (IOException e) {
+			throw new ConfigurationException(format("Failed to read content type configuration for content type '%s' in site '%s'", contentTypeId, siteId), e);
+		}
 	}
 
 	@Override
-	public Collection<String> getAllowedContentTypes(String siteId, String path) {
-		// TODO: implement
-		return emptyList();
+	public Collection<String> getAllowedContentTypes(String siteId, String path) throws ServiceLayerException {
+		return getAllContentTypes(siteId).stream()
+				.filter(ct -> isEmpty(ct.getPathIncludes()) || ct.getPathIncludes().stream().anyMatch(path::matches))
+				.filter(ct -> ct.getPathExcludes().stream().noneMatch(path::matches))
+				.map(ContentType::getId)
+				.collect(toList());
 	}
 
 	@Override
@@ -186,21 +272,21 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 		List<LightItem> items = itemDao.getContentTypeUsages(siteId, contentType, scriptPath);
 
 		usages.setContent(items.stream()
-			.filter(i -> equalsAnyIgnoreCase(i.getMetadata().systemType(), CONTENT_TYPE_PAGE, CONTENT_TYPE_COMPONENT))
-			.map(LightItem::getPath)
-			.collect(toList()));
+				.filter(i -> CI.equalsAny(i.getMetadata().systemType(), CONTENT_TYPE_PAGE, CONTENT_TYPE_COMPONENT))
+				.map(LightItem::getPath)
+				.collect(toList()));
 
 		usages.setScripts(items.stream()
-			.filter(i -> equalsIgnoreCase(i.getMetadata().systemType(), (CONTENT_TYPE_SCRIPT)))
-			.map(LightItem::getPath)
-			.collect(toList()));
+				.filter(i -> CI.equals(i.getMetadata().systemType(), (CONTENT_TYPE_SCRIPT)))
+				.map(LightItem::getPath)
+				.collect(toList()));
 
 		return usages;
 	}
 
 	@Override
 	public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
-																	  @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
+																	  String contentTypeId) throws ServiceLayerException {
 
 		String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
 		boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail
@@ -224,7 +310,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 
 	@Override
 	public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
-		throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		ContentTypeUsage usage = getContentTypeUsage(siteId, contentType);
 
 		var files = new HashSet<String>();
@@ -232,7 +318,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 		if (CollectionUtils.isNotEmpty(usage.getContent())) {
 			if (!deleteDependencies) {
 				throw new ServiceLayerException("The content-type " + contentType + " in site " + siteId +
-					" can't be deleted because there is content using it");
+						" can't be deleted because there is content using it");
 			}
 
 			files.addAll(usage.getContent());
@@ -301,10 +387,10 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	/**
 	 * Get preview image filename extract from form-definition.xml
 	 *
-	 * @param siteId
-	 * @param contentTypeId
+	 * @param siteId        the site id
+	 * @param contentTypeId the content type id
 	 * @return preview image filename
-	 * @throws ServiceLayerException
+	 * @throws ServiceLayerException if there is any error reading the content type definition
 	 */
 	protected String getContentTypePreviewImageFilename(String siteId, String contentTypeId) throws ServiceLayerException {
 		Document definition = getFormDefinitionDocument(siteId, contentTypeId);
@@ -321,10 +407,10 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	/**
 	 * Get form-definition.xml as Document of a content type
 	 *
-	 * @param siteId
-	 * @param contentTypeId
+	 * @param siteId        the site id
+	 * @param contentTypeId the content type id
 	 * @return Document of form-definition.xml
-	 * @throws ServiceLayerException
+	 * @throws ServiceLayerException if there is any error reading the content type definition or if the definition file does not exist
 	 */
 	@RequireSiteExists
 	protected Document getFormDefinitionDocument(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
