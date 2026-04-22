@@ -173,7 +173,7 @@ public final class RequestMappingConstants {
 	public static final String WRITE_CONFIGURATION = "/write_configuration";
 	public static final String GET_CONFIGURATION_HISTORY = "/get_configuration_history";
 	public static final String TRANSLATION = "/translation";
-	public static final String CONTENT_TYPE = "/content-type";
+	public static final String CONTENT_TYPES = "/content_types";
 	public static final String USAGE = "/usage";
 	public static final String PREVIEW_IMAGE = "/preview_image";
 	public static final String FORM_CONTROLLER = "/form_controller";

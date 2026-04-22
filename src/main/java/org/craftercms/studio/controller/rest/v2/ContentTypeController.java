@@ -47,7 +47,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @Validated
 @RestController
-@RequestMapping(API_2 + CONFIGURATION + CONTENT_TYPE)
+@RequestMapping(API_2 + CONFIGURATION + CONTENT_TYPES)
 public class ContentTypeController {
 	private final ContentTypeService contentTypeService;
 
