@@ -280,7 +280,7 @@
                <properties>
                   <property>
                      <name>datasource</name>
-                     <value>categories</value>
+                     <value>categories_o</value>
                      <type>datasource:item</type>
                   </property>
                   <property>
