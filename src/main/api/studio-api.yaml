@@ -8263,6 +8263,7 @@ components:
                   * `CODE:` 52004, `MESSAGE:` S3 FORBIDDEN, `REMEDIAL ACTION:` Check your AWS credentials
                   * `CODE:` 52005, `MESSAGE:` S3 key not found, `REMEDIAL ACTION:` Check your network configuration and S3 availability
                   * `CODE:` 53000, `MESSAGE:` Logger not found, `REMEDIAL ACTION:` Check if you sent in the right logger name or add 'createIfAbsent=true' parameter to create the logger if it does not exist
+                  * `CODE:` 54000, `MESSAGE:` The content type cannot be deleted because it is still in use by content items, `REMEDIAL ACTION:` Check if you sent in the right content type id or add 'deleteDependencies' to force delete
             properties:
                 code:
                     type: integer

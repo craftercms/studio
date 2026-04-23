@@ -211,6 +211,10 @@ public class ApiResponse {
 	public static final ApiResponse CONFIGURATION_PROFILE_NOT_FOUND = new ApiResponse(54000, "The profile was not found",
 		"Check if you sent in the right profileId name", StringUtils.EMPTY);
 
+	// 54000 - 55000
+	public static final ApiResponse CONTENT_TYPE_IN_USE = new ApiResponse(54000, "The content type cannot be deleted because it is still in use by content items",
+			"Check if you sent in the right content type id or add 'deleteDependencies' to force delete", StringUtils.EMPTY);
+
 	private int code;
 	private String message;
 	private String remedialAction;

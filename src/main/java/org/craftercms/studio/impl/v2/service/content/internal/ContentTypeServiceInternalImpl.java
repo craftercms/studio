@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
+import org.craftercms.studio.api.v2.exception.contentType.ContentTypeUsageException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -317,8 +318,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 
 		if (CollectionUtils.isNotEmpty(usage.getContent())) {
 			if (!deleteDependencies) {
-				throw new ServiceLayerException("The content-type " + contentType + " in site " + siteId +
-						" can't be deleted because there is content using it");
+				throw new ContentTypeUsageException(siteId, contentType);
 			}
 
 			files.addAll(usage.getContent());
