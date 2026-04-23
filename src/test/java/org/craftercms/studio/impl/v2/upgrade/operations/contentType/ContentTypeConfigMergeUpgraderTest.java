@@ -20,7 +20,6 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.site.AbstractXsltFileUpgradeOperation;
 import org.craftercms.studio.impl.v2.upgrade.operations.site.BatchXsltFileUpgradeOperation;
@@ -43,12 +42,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.createTempFile;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.testng.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ContentTypeConfigMergeUpgraderTest {
@@ -60,12 +61,15 @@ public class ContentTypeConfigMergeUpgraderTest {
 	@InjectMocks
 	private ContentTypeConfigMergeUpgrader upgrader;
 
+	private String configFileName;
+
 	@Before
 	public void setUp() throws Exception {
+		configFileName = UUID.randomUUID() + "config.xml";
 		var config = mock(HierarchicalConfiguration.class);
 		when(config.getString(BatchXsltFileUpgradeOperation.CONFIG_KEY_REGEX)).thenReturn("config/studio/content-types/.+/form-definition\\.xml");
 		when(config.getString(AbstractXsltFileUpgradeOperation.CONFIG_KEY_TEMPLATE)).thenReturn("crafter/studio/upgrade/5.0.x/content-type/content-type-merge-v5.0.0.2.xslt");
-		when(studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME)).thenReturn("config.xml");
+		when(studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME)).thenReturn(configFileName);
 		upgrader.init("1", "2", config);
 	}
 
@@ -74,8 +78,8 @@ public class ContentTypeConfigMergeUpgraderTest {
 		String basePath = "src/test/resources/crafter/studio/upgrade/content-type/5.0/5.0.0.2/";
 		File originalFormFile = new File(basePath + "form-definition.xml");
 		File originalConfigFile = new File(basePath + "config.xml");
-		Path configFilePath = StudioUtils.getStudioTemporaryFilesRoot().resolve("config.xml");
-		Path formFilePath = StudioUtils.createTempFile("form-definition.xml");
+		Path configFilePath = getStudioTemporaryFilesRoot().resolve(configFileName);
+		Path formFilePath = createTempFile("form-definition.xml");
 		formFilePath.toFile().deleteOnExit();
 		configFilePath.toFile().deleteOnExit();
 		Files.copy(originalFormFile.toPath(), formFilePath, StandardCopyOption.REPLACE_EXISTING);
@@ -114,7 +118,7 @@ public class ContentTypeConfigMergeUpgraderTest {
 			}
 
 			// there should not be any differences
-			assertEquals(IterableUtils.size(diff.getDifferences()), 0,
+			assertEquals(0, IterableUtils.size(diff.getDifferences()),
 					"The result XML should be equal to the expected XML");
 		}
 	}
