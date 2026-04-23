@@ -18,29 +18,16 @@ package org.craftercms.studio.model.rest.contentType;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.ValidConfigurationPath;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 /**
  * Request for deleting a content-type.
  */
 @JsonIgnoreProperties
 public class DeleteContentTypeRequest {
-
-	@ValidSiteId
-	protected String siteId;
-
 	@ValidConfigurationPath
 	protected String contentType;
 
 	protected boolean deleteDependencies;
-
-	public String getSiteId() {
-		return siteId;
-	}
-
-	public void setSiteId(String siteId) {
-		this.siteId = siteId;
-	}
 
 	public String getContentType() {
 		return contentType;

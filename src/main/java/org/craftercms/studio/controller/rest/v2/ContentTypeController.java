@@ -23,7 +23,6 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
@@ -51,7 +50,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @Validated
 @RestController
-@RequestMapping(API_2 + CONFIGURATION + CONTENT_TYPES)
+@RequestMapping(API_2 + CONFIGURATION + CONTENT_TYPES + SITE_ID)
 public class ContentTypeController {
 	private final ContentTypeService contentTypeService;
 
@@ -61,7 +60,7 @@ public class ContentTypeController {
 	}
 
 	@GetMapping(USAGE)
-	public ResultOne<Object> getContentTypeUsage(@ValidSiteId @RequestParam String siteId,
+	public ResultOne<Object> getContentTypeUsage(@ValidSiteId @PathVariable String siteId,
 												 @ValidConfigurationPath @RequestParam String contentType)
 			throws Exception {
 		var result = new ResultOne<>();
@@ -72,21 +71,21 @@ public class ContentTypeController {
 	}
 
 	@GetMapping(FORM_CONTROLLER)
-	public ResponseEntity<Resource> getContentTypeFormController(@ValidSiteId @RequestParam String siteId,
+	public ResponseEntity<Resource> getContentTypeFormController(@ValidSiteId @PathVariable String siteId,
 																 @ValidConfigurationPath @RequestParam String contentTypeId) throws ServiceLayerException {
 		ImmutablePair<String, Resource> resource = contentTypeService.getContentTypeFormController(siteId, contentTypeId);
 		return getResourceResponse(resource.getKey(), resource.getValue());
 	}
 
 	@GetMapping(PREVIEW_IMAGE)
-	public ResponseEntity<Resource> getContentTypePreviewImage(@ValidSiteId @RequestParam String siteId,
+	public ResponseEntity<Resource> getContentTypePreviewImage(@ValidSiteId @PathVariable String siteId,
 															   @ValidConfigurationPath @ValidateSecurePathParam @RequestParam String contentTypeId)
 			throws ServiceLayerException {
 		ImmutablePair<String, Resource> resource = contentTypeService.getContentTypePreviewImage(siteId, contentTypeId);
 		return getResourceResponse(resource.getKey(), resource.getValue());
 	}
 
-	@GetMapping(SITE_ID)
+	@GetMapping
 	public ResultList<ContentType> getContentTypes(@ValidSiteId @PathVariable String siteId,
 												   @ValidConfigurationPath @RequestParam(required = false) String contentTypeId) throws ServiceLayerException {
 		var result = new ResultList<ContentType>();
@@ -102,7 +101,7 @@ public class ContentTypeController {
 		return result;
 	}
 
-	@GetMapping(SITE_ID + ALLOWED_TYPES)
+	@GetMapping(ALLOWED_TYPES)
 	public ResultList<String> getAllowedContentTypes(@ValidSiteId @PathVariable String siteId, @ValidExistingContentPath @RequestParam String path) throws ServiceLayerException {
 		ResultList<String> result = new ResultList<>();
 		result.setResponse(OK);
@@ -110,10 +109,10 @@ public class ContentTypeController {
 		return result;
 	}
 
-	@PostMapping(DELETE)
-	public Result deleteContentType(@RequestBody @Valid DeleteContentTypeRequest request)
+	@DeleteMapping
+	public Result deleteContentType(@ValidSiteId @PathVariable String siteId, @RequestBody @Valid DeleteContentTypeRequest request)
 			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
-		contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
+		contentTypeService.deleteContentType(siteId, request.getContentType(),
 				request.isDeleteDependencies());
 		var result = new Result();
 		result.setResponse(DELETED);

@@ -3798,16 +3798,16 @@ paths:
     #       '403':
     #         $ref: '#/components/responses/Forbidden'
 
-    /api/2/configuration/content-type/usage:
+    /api/2/configuration/content_types/{siteId}/usage:
         get:
             tags:
-                - configuration
+                - contentTypes
             summary: Get all usage of a given content-type
             description: 'Required permission "content_read"'
             operationId: getContentTypeUsage
             parameters:
                 -   name: siteId
-                    in: query
+                    in: path
                     description: site ID
                     required: true
                     schema:
@@ -3852,16 +3852,16 @@ paths:
                 '403':
                     $ref: '#/components/responses/Forbidden'
 
-    /api/2/configuration/content-type/preview_image:
+    /api/2/configuration/content_types/{siteId}/preview_image:
         get:
             tags:
-                - configuration
+                - contentTypes
             summary: Get preview image of a given content type
             description: 'Required permission "content_read"'
             operationId: getContentTypePreviewImage
             parameters:
                 -   name: siteId
-                    in: query
+                    in: path
                     description: site ID
                     required: true
                     schema:
@@ -3989,16 +3989,61 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/configuration/content-type/form_controller:
+        delete:
+            tags:
+                - contentTypes
+            summary: Delete files related to a given content-type
+            description: 'Required permission "write_configuration"'
+            operationId: deleteContentType
+            params:
+                - name: siteId
+                  in: path
+                  description: site ID
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                contentType:
+                                    type: string
+                                    description: The content-type to delete
+                                deleteDependencies:
+                                    type: boolean
+                                    description: Indicates if all dependencies of the content-type should be deleted (defaults to false)
+                            required:
+                                - siteId
+                                - contentType
+            responses:
+                '200':
+                    description: Deleted
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+
+    /api/2/configuration/content_types/{siteId}/form_controller:
         get:
             tags:
-                - configuration
+                - contentTypes
             summary: Get the form controller (if it exists) script of a given content type
             description: 'Required permission "content_read"'
             operationId: getContentTypeFormController
             parameters:
                 - name: siteId
-                  in: query
+                  in: path
                   description: site ID
                   required: true
                   schema:
@@ -4035,49 +4080,6 @@ paths:
                     $ref: '#/components/responses/NotFound'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
-
-    /api/2/configuration/content-type/delete:
-        post:
-            tags:
-                - configuration
-            summary: Delete files related to a given content-type
-            description: 'Required permission "write_configuration"'
-            operationId: deleteContentType
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                siteId:
-                                    type: string
-                                    description: The id of the site
-                                contentType:
-                                    type: string
-                                    description: The content-type to delete
-                                deleteDependencies:
-                                    type: boolean
-                                    description: Indicates if all dependencies of the content-type should be deleted (defaults to false)
-                            required:
-                                - siteId
-                                - contentType
-            responses:
-                '200':
-                    description: Deleted
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    response:
-                                        $ref: '#/components/schemas/ApiResponse'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '403':
-                    $ref: '#/components/responses/Forbidden'
-
 
     /api/2/plugin/file:
         # Override the server to change the prefix
