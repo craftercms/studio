@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -50,7 +50,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
@@ -163,8 +162,6 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 
 	protected final InstanceService instanceService;
 
-	protected final SiteService siteService;
-
 	protected final SitesService sitesServiceInternal;
 
 	protected final ContentService contentService;
@@ -276,12 +273,12 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 
 	protected final ContentTypeService contentTypeService;
 
-	@ConstructorProperties({"instanceService", "siteService", "sitesServiceInternal", "contentService",
+	@ConstructorProperties({"instanceService", "sitesServiceInternal", "contentService",
 		"studioConfiguration", "pluginDescriptorReader", "gitRepositoryHelper",
 		"pluginDescriptorFilename", "templateCode", "templateComment", "retryingRepositoryOperationFacade",
 		"dependencyService", "contentTypeService", "configurationService",
 		"servicesConfig", "publishService"})
-	public MarketplaceServiceInternalImpl(InstanceService instanceService, SiteService siteService,
+	public MarketplaceServiceInternalImpl(InstanceService instanceService,
 					      SitesService sitesServiceInternal, ContentService contentService,
 					      StudioConfiguration studioConfiguration,
 					      PluginDescriptorReader pluginDescriptorReader,
@@ -293,7 +290,6 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 					      ConfigurationService configurationService,
 					      ServicesConfig servicesConfig, PublishService publishService) {
 		this.instanceService = instanceService;
-		this.siteService = siteService;
 		this.sitesServiceInternal = sitesServiceInternal;
 		this.contentService = contentService;
 		this.studioConfiguration = studioConfiguration;

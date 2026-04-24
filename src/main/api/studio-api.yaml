@@ -10724,8 +10724,6 @@ components:
                     type: string
                 form:
                     type: string
-                formPagePath:
-                    type: string
                 renderingTemplates:
                     type: array
                     items:

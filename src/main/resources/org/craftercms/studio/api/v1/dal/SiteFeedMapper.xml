@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -47,49 +47,12 @@
 		<parameter property="state" jdbcType="VARCHAR"/>
 	</parameterMap>
 
-	<select id="exists" parameterType="java.lang.String" resultType="int">
-		SELECT count(1)
-		FROM site
-		WHERE site_id = #{siteId}
-		  AND deleted = 0
-	</select>
-
 	<select id="isNameUsed" resultType="boolean">
 		SELECT count(1)
 		FROM site
 		WHERE name = #{name}
 		  AND site_id != #{siteId}
 		  AND deleted = 0
-	</select>
-
-	<select id="getSitesPerUserQuery" resultType="java.lang.String" parameterType="java.util.Map">
-		SELECT DISTINCT cs.site_id as siteid
-		FROM site cs
-		WHERE cs.system = 0
-		  AND cs.deleted = 0
-		ORDER BY cs.site_id
-			LIMIT #{start}, #{number}
-	</select>
-
-	<select id="getSitesPerUserQueryTotal" resultType="int" parameterType="java.util.Map">
-		SELECT COUNT(DISTINCT cs.site_id)
-		FROM site cs
-		WHERE cs.system = 0
-		  AND deleted = 0
-		ORDER BY cs.site_id
-	</select>
-
-	<select id="getSitesPerUserData" resultMap="SiteFeedMap" parameterType="java.util.Map">
-		SELECT *
-		FROM site cs
-		WHERE site_id IN
-		<foreach item="siteid" index="index" collection="siteids"
-			 open="(" separator="," close=")">
-			#{siteid}
-		</foreach>
-		AND system = 0
-		AND deleted = 0
-		ORDER BY site_id
 	</select>
 
 	<update id="updateSite">

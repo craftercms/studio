@@ -18,14 +18,9 @@ package org.craftercms.studio.api.v1.dal;
 
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-import java.util.Map;
-
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface SiteFeedMapper {
-
-	Integer exists(String siteId);
 
 	/**
 	 * Checks if there is a site, different than the siteId, using the given name
@@ -35,12 +30,6 @@ public interface SiteFeedMapper {
 	 * @return true if the name is being used by another site
 	 */
 	boolean isNameUsed(@Param(SITE_ID) String siteId, @Param(NAME) String name);
-
-	int getSitesPerUserQueryTotal(Map params);
-
-	List<String> getSitesPerUserQuery(Map params);
-
-	List<SiteFeed> getSitesPerUserData(Map params);
 
 	/**
 	 * Updates the name and description for the given site

@@ -21,7 +21,6 @@ import com.google.common.cache.Cache;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -48,6 +47,9 @@ import org.dom4j.Node;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -71,6 +73,7 @@ import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.apache.commons.lang3.RegExUtils.replaceAll;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.Strings.CI;
+import static org.craftercms.commons.lang.UrlUtils.concat;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
@@ -131,6 +134,9 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 		this.xmlMapper = new XmlMapper();
 	}
 
+	@Lazy
+	@Autowired
+	@Qualifier("contentServiceInternal")
 	public void setContentService(ContentService contentService) {
 		this.contentService = contentService;
 	}
@@ -276,7 +282,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 		String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
 		boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail
 		if (hasPreviewImage) {
-			String previewImagePath = UrlUtils.concat(getContentTypePath(contentTypeId), filename);
+			String previewImagePath = concat(getContentTypePath(contentTypeId), filename);
 			return (new ImmutablePair<>(previewImagePath, contentService.getContentAsResource(siteId, previewImagePath)));
 		}
 
@@ -285,8 +291,8 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 
 	@Override
 	public ImmutablePair<String, Resource> getContentTypeFormController(String siteId, String contentTypeId) throws ServiceLayerException {
-		if (contentService.contentExists(siteId, UrlUtils.concat(getContentTypePath(contentTypeId), contentTypeDefinitionFilename))) {
-			String controllerPath = UrlUtils.concat(getContentTypePath(contentTypeId), formControllerFilePath);
+		if (contentService.contentExists(siteId, concat(getContentTypePath(contentTypeId), contentTypeDefinitionFilename))) {
+			String controllerPath = concat(getContentTypePath(contentTypeId), formControllerFilePath);
 			return new ImmutablePair<>(controllerPath, contentService.getContentAsResource(siteId, controllerPath));
 		}
 

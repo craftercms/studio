@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,21 +16,19 @@
 
 
 import org.apache.commons.text.StringEscapeUtils
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils
 import scripts.libs.EnvironmentOverrides
-import scripts.api.SecurityServices
 
-def result = [:]
 def ticket = request.getSession().getValue("alf_ticket");
 def username = request.getSession().getValue("username");
 
-def context = SecurityServices.createContext(applicationContext, request, response);
-def profile = SecurityServices.getUserProfile(context, username);
+def currentUser = SecurityUtils.getCurrentUser();
 
 model.envConfig = EnvironmentOverrides.getMinimalValuesForSite(applicationContext, request)
-model.userEmail = profile.email
-model.userFirstName = profile.firstName
-model.userLastName = profile.lastName
-model.authenticationType = profile.authentication_type
+model.userEmail = currentUser.email
+model.userFirstName = currentUser.firstName
+model.userLastName = currentUser.lastName
+model.authenticationType = ''
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
 model.username = username

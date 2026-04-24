@@ -31,10 +31,8 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
 import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
@@ -45,6 +43,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -53,6 +52,7 @@ import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.TimeUtils;
+import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.rest.Person;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -85,6 +85,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 
 /**
@@ -103,11 +104,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	protected ServicesConfig servicesConfig;
 	protected DmPageNavigationOrderService dmPageNavigationOrderService;
 	protected StudioConfiguration studioConfiguration;
-	protected ContentTypeService contentTypeService;
 	protected ItemService itemService;
 	protected UserService userService;
 	protected ApplicationContext applicationContext;
 	protected PublishService publishService;
+	protected ContentTypeService contentTypeService;
 
 	@Deprecated
 	@Override
@@ -544,7 +545,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return getContentTypeClass(site, path);
 	}
 
-	protected ContentItemTO loadContentItem(String site, String path) throws SiteNotFoundException {
+	protected ContentItemTO loadContentItem(String site, String path) throws ServiceLayerException {
 		// TODO: SJ: Refactor such that the populate of non-XML is also a method in 3.1+
 		ContentItemTO item = createNewContentItemTO(site, path);
 
@@ -584,19 +585,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return item;
 	}
 
-	protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) throws SiteNotFoundException {
+	protected void loadContentTypeProperties(String site, ContentItemTO item, String contentTypeId) throws ServiceLayerException {
 		// TODO: SJ: Refactor in 2.7.x
 		if (item.isFolder()) {
 			item.setContentType(CONTENT_TYPE_FOLDER);
 		} else {
 			// TODO: Use constants instead of string literals
-			if (contentType != null && !contentType.equals(CONTENT_TYPE_FOLDER) && !contentType.equals("asset") &&
-				!contentType.equals(CONTENT_TYPE_UNKNOWN)) {
-				ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
-				if (config != null) {
-					item.setForm(config.getForm());
-					item.setFormPagePath(config.getFormPath());
-					item.setPreviewable(config.isPreviewable());
+			if (contentTypeId != null && !contentTypeId.equals(CONTENT_TYPE_FOLDER) && !contentTypeId.equals("asset") &&
+				!contentTypeId.equals(CONTENT_TYPE_UNKNOWN)) {
+				ContentType contentType = contentTypeService.getContentType(site, contentTypeId);
+				if (contentType != null) {
+					item.setForm(contentType.getId());
+					item.setPreviewable(contentType.isPreviewable());
 					item.isPreviewable = item.previewable;
 				}
 			} else {
@@ -851,7 +851,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 			return CONTENT_TYPE_ASSET;
 		} else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
 			return CONTENT_TYPE_RENDERING_TEMPLATE;
-		} else if (StringUtils.startsWith(uri, contentTypeService.getConfigPath())) {
+		} else if (StringUtils.startsWith(uri, getContentTypesBasePath())) {
 			return CONTENT_TYPE_CONTENT_TYPE;
 		} else if (matchesPatterns(uri, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
 			return CONTENT_TYPE_TAXONOMY;
@@ -862,6 +862,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 
 		return CONTENT_TYPE_FILE;
+	}
+
+	protected String getContentTypesBasePath() {
+		return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH);
 	}
 
 	@Override
@@ -1019,10 +1023,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.studioConfiguration = studioConfiguration;
 	}
 
-	public void setContentTypeService(ContentTypeService contentTypeService) {
-		this.contentTypeService = contentTypeService;
-	}
-
 	public void setContentRepository(GitContentRepository contentRepository) {
 		this.contentRepository = contentRepository;
 	}
@@ -1039,4 +1039,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.publishService = publishService;
 	}
 
+	public void setContentTypeService(ContentTypeService contentTypeService) {
+		this.contentTypeService = contentTypeService;
+	}
 }
