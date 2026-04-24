@@ -152,8 +152,8 @@ public class ContentTypeServiceInternalImplTest {
 		ContentType contentType = service.loadContentType(SITE_ID, CONTENT_TYPE);
 
 		String expectedJson = "{\"previewable\":true,\"imageThumbnail\":\"page-test1.png\",\"noThumbnail\":false,\"quickCreate\":true," +
-				"\"quickCreatePath\":\"/site/website/tests/{year}/{month}\",\"type\":\"unknown\",\"pathIncludes\":[\"^/site/website/tests/.*\"]," +
-				"\"pathExcludes\":[\"^/site/website/tests/excluded.*\",\"^/site/website/tests/excluded2.*\"],\"id\":\"myContentType\"," +
+				"\"quickCreatePath\":\"/site/website/tests/{year}/{month}\",\"type\":\"unknown\",\"pathExcludes\":[\"^/site/website/tests/excluded.*\"," +
+				"\"^/site/website/tests/excluded2.*\"],\"pathIncludes\":[\"^/site/website/tests/.*\"],\"id\":\"myContentType\"," +
 				"\"title\":\"Test Content Type\",\"allowedRoles\":[{\"name\":\"author\"},{\"name\":\"admin\"}]," +
 				"\"deleteDependencies\":[{\"pattern\":\"^/site/website/articles/.*\",\"removeEmptyFolder\":true}]," +
 				"\"copyDependencies\":[{\"pattern\":\"^/site/website/articles/.*\",\"target\":\"/site/website/articles2\"}]}";
