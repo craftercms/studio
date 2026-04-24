@@ -22,16 +22,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.lang.UrlUtils;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
@@ -43,7 +39,6 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.Wrapper;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.contentType.ContentType;
@@ -87,7 +82,6 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 
 	private static final Logger logger = LoggerFactory.getLogger(ContentTypeServiceInternalImpl.class);
 
-	protected final ContentTypeService contentTypeService;
 	protected final SecurityService securityService;
 	protected final ConfigurationService configurationService;
 	protected final ItemDAO itemDao;
@@ -96,42 +90,35 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	protected final String contentTypeBasePathPattern;
 	protected final String contentTypesRootPath;
 	protected final String contentTypeDefinitionFilename;
-	protected final String contentTypeConfigFilename;
 	protected final String templateXPath;
 	protected final String controllerPattern;
 	protected final String controllerFormat;
 	protected final String previewImageXPath;
 	protected final String defaultPreviewImagePath;
 	protected final String formControllerFilePath;
-	protected final ServicesConfig servicesConfig;
-	protected final StudioConfiguration studioConfiguration;
 	private final GitRepositoryHelper gitRepositoryHelper;
 	private final Cache<String, ContentType> cache;
 	private final XmlMapper xmlMapper;
 
-	@ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
-			"contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
+	@ConstructorProperties({"securityService", "configurationService", "itemDao",
+			"contentTypeBasePathPattern", "contentTypeDefinitionFilename",
 			"contentTypesRootPath",
 			"templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
 			"formControllerFilePath", "gitRepositoryHelper",
-			"servicesConfig", "studioConfiguration",
 			"cache"})
-	public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
+	public ContentTypeServiceInternalImpl(SecurityService securityService,
 										  ConfigurationService configurationService, ItemDAO itemDao, String contentTypeBasePathPattern,
-										  String contentTypeDefinitionFilename, String contentTypeConfigFilename,
+										  String contentTypeDefinitionFilename,
 										  String contentTypesRootPath, String templateXPath,
 										  String controllerPattern, String controllerFormat,
 										  String previewImageXPath, String defaultPreviewImagePath,
 										  String formControllerFilePath, GitRepositoryHelper gitRepositoryHelper,
-										  ServicesConfig servicesConfig, StudioConfiguration studioConfiguration,
 										  Cache<String, ContentType> cache) {
-		this.contentTypeService = contentTypeService;
 		this.securityService = securityService;
 		this.configurationService = configurationService;
 		this.itemDao = itemDao;
 		this.contentTypeBasePathPattern = contentTypeBasePathPattern;
 		this.contentTypeDefinitionFilename = contentTypeDefinitionFilename;
-		this.contentTypeConfigFilename = contentTypeConfigFilename;
 		this.contentTypesRootPath = contentTypesRootPath;
 		this.templateXPath = templateXPath;
 		this.controllerPattern = controllerPattern;
@@ -140,8 +127,6 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 		this.defaultPreviewImagePath = defaultPreviewImagePath;
 		this.formControllerFilePath = formControllerFilePath;
 		this.gitRepositoryHelper = gitRepositoryHelper;
-		this.servicesConfig = servicesConfig;
-		this.studioConfiguration = studioConfiguration;
 		this.cache = cache;
 		this.xmlMapper = new XmlMapper();
 	}
@@ -152,8 +137,8 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 
 	@Override
 	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException {
-		return contentTypeService.getAllContentTypes(siteId, true).stream()
-				.filter(ContentTypeConfigTO::isQuickCreate)
+		return getAllContentTypes(siteId).stream()
+				.filter(ContentType::isQuickCreate)
 				.filter(contentType -> {
 					try {
 						return securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUsername())
@@ -166,7 +151,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 				.map(contentType -> {
 					QuickCreateItem item = new QuickCreateItem();
 					item.setSiteId(siteId);
-					item.setContentTypeId(contentType.getForm());
+					item.setContentTypeId(contentType.getId());
 					item.setLabel(contentType.getLabel());
 					item.setPath(contentType.getQuickCreatePath());
 					return item;
@@ -209,7 +194,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 
 	@Override
 	public ContentType getContentType(String siteId, String contentTypeId) throws ServiceLayerException {
-		String configFileFullPath = getContentTypeFormPath(siteId, contentTypeId);
+		String configFileFullPath = getContentTypeFormPath(contentTypeId);
 		var cacheKey = configurationService.getCacheKey(siteId, null, configFileFullPath,
 				null, "object");
 		ContentType contentType = cache.getIfPresent(cacheKey);
@@ -225,9 +210,8 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	/**
 	 * Get content type form-definition.xml full path in content repository
 	 */
-	private String getContentTypeFormPath(String siteId, String contentTypeId) {
-		String siteConfigPath = contentTypeBasePathPattern.replaceAll(StudioConstants.PATTERN_SITE, siteId)
-				.replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentTypeId);
+	private String getContentTypeFormPath(String contentTypeId) {
+		String siteConfigPath = getContentTypePath(contentTypeId);
 		String configFileFullPath = siteConfigPath + FILE_SEPARATOR + contentTypeDefinitionFilename;
 		return configFileFullPath;
 	}
@@ -241,7 +225,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	 * @throws ConfigurationException if there is any error reading the content type configuration
 	 */
 	protected ContentType loadContentType(String siteId, String contentTypeId) throws ConfigurationException, ContentNotFoundException {
-		InputStream configurationAsStream = contentService.getContent(siteId, getContentTypeFormPath(siteId, contentTypeId));
+		InputStream configurationAsStream = contentService.getContent(siteId, getContentTypeFormPath(contentTypeId));
 		try {
 			return xmlMapper.readValue(configurationAsStream, ContentType.class);
 		} catch (IOException e) {
@@ -381,7 +365,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	}
 
 	protected String getContentTypePath(String contentType) {
-		return normalize(contentTypeBasePathPattern.replaceFirst("\\{content-type}", contentType));
+		return normalize(contentTypeBasePathPattern.replaceFirst(PATTERN_CONTENT_TYPE, contentType));
 	}
 
 	/**
