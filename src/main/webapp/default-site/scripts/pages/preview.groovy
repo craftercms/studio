@@ -25,9 +25,9 @@ def username = request.getSession().getValue("username");
 def currentUser = SecurityUtils.getCurrentUser();
 
 model.envConfig = EnvironmentOverrides.getMinimalValuesForSite(applicationContext, request)
-model.userEmail = currentUser.email
-model.userFirstName = currentUser.firstName
-model.userLastName = currentUser.lastName
+model.userEmail = currentUser?.email
+model.userFirstName = currentUser?.firstName
+model.userLastName = currentUser?.lastName
 model.authenticationType = ''
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 
