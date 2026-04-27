@@ -35,12 +35,13 @@ try {
 	// do nothing
 }
 
-model.username = authenticatedUser.username
-model.userEmail = authenticatedUser.email
-model.userFirstName = authenticatedUser.firstName
-model.userLastName = authenticatedUser.lastName
-model.authenticationType = authenticatedUser ?
-	authenticatedUser.getAuthenticationType() as String : ''
+if (authenticatedUser) {
+	model.username = authenticatedUser.username
+	model.userEmail = authenticatedUser.email
+	model.userFirstName = authenticatedUser.firstName
+	model.userLastName = authenticatedUser.lastName
+	model.authenticationType = authenticatedUser.getAuthenticationType() as String
+}
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 model.passwordRequirementsMinComplexity = passwordRequirementsMinComplexity;
 model.envConfig = EnvironmentOverrides.getMinimalValuesForSite(applicationContext, request)
