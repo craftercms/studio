@@ -231,8 +231,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	 * @throws ConfigurationException if there is any error reading the content type configuration
 	 */
 	protected ContentType loadContentType(String siteId, String contentTypeId) throws ConfigurationException, ContentNotFoundException {
-		InputStream configurationAsStream = contentService.getContent(siteId, getContentTypeFormPath(contentTypeId));
-		try {
+		try (InputStream configurationAsStream = contentService.getContent(siteId, getContentTypeFormPath(contentTypeId))) {
 			return xmlMapper.readValue(configurationAsStream, ContentType.class);
 		} catch (IOException e) {
 			throw new ConfigurationException(format("Failed to read content type configuration for content type '%s' in site '%s'", contentTypeId, siteId), e);
