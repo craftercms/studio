@@ -3995,7 +3995,7 @@ paths:
             summary: Delete files related to a given content-type
             description: 'Required permission "write_configuration"'
             operationId: deleteContentType
-            params:
+            parameters:
                 - name: siteId
                   in: path
                   description: site ID
@@ -4015,7 +4015,6 @@ paths:
                                     type: boolean
                                     description: Indicates if all dependencies of the content-type should be deleted (defaults to false)
                             required:
-                                - siteId
                                 - contentType
             responses:
                 '200':
