@@ -154,7 +154,7 @@ public class ContentTypeServiceInternalImplTest {
 		String expectedJson = "{\"previewable\":true,\"imageThumbnail\":\"page-test1.png\",\"noThumbnail\":false,\"quickCreate\":true," +
 				"\"quickCreatePath\":\"/site/website/tests/{year}/{month}\",\"type\":\"unknown\",\"pathExcludes\":[\"^/site/website/tests/excluded.*\"," +
 				"\"^/site/website/tests/excluded2.*\"],\"pathIncludes\":[\"^/site/website/tests/.*\"],\"id\":\"myContentType\"," +
-				"\"title\":\"Test Content Type\",\"allowedRoles\":[{\"name\":\"author\"},{\"name\":\"admin\"}]," +
+				"\"label\":\"Test Content Type\",\"allowedRoles\":[{\"name\":\"author\"},{\"name\":\"admin\"}]," +
 				"\"deleteDependencies\":[{\"pattern\":\"^/site/website/articles/.*\",\"removeEmptyFolder\":true}]," +
 				"\"copyDependencies\":[{\"pattern\":\"^/site/website/articles/.*\",\"target\":\"/site/website/articles2\"}]}";
 		assertEquals(expectedJson, new ObjectMapper().writeValueAsString(contentType));

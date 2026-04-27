@@ -35,7 +35,8 @@ public class ContentType {
 	@JsonAlias("content-type")
 	@JsonProperty("id")
 	protected String id;
-	@JsonProperty("title")
+	@JsonAlias("title")
+	@JsonProperty("label")
 	protected String label;
 	@JsonAlias("allowed-roles")
 	@JsonProperty("allowedRoles")
