@@ -1,5 +1,6 @@
 package org.craftercms.studio.api.v2.utils;
 
+import org.craftercms.studio.model.contentType.ContentType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,5 +34,13 @@ public class StudioUtilsTest {
 		assertNull(StudioUtils.getTopLevelFolder("/custom/path"));
 		assertNull(StudioUtils.getTopLevelFolder("/"));
 		assertNull(StudioUtils.getTopLevelFolder("/my-documents/private/report.doc"));
+	}
+
+	@Test
+	public void getContentTypeTypeTest() {
+		assertEquals(ContentType.Type.page, StudioUtils.getContentTypeTypeById("/page/article"));
+		assertEquals(ContentType.Type.component, StudioUtils.getContentTypeTypeById("/component/header"));
+		assertEquals(ContentType.Type.unknown, StudioUtils.getContentTypeTypeById(null));
+		assertEquals(ContentType.Type.unknown, StudioUtils.getContentTypeTypeById("not-a-valid-id"));
 	}
 }

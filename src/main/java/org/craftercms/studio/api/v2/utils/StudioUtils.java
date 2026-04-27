@@ -52,6 +52,9 @@ public abstract class StudioUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(StudioUtils.class);
 
+	protected static final Pattern COMPONENT_CONTENT_TYPE_ID_PATTERN = Pattern.compile("^/component/.*");
+	protected static final Pattern PAGE_CONTENT_TYPE_ID_PATTERN = Pattern.compile("^/page/.*");
+
 	public static String getMimeType(String filename) {
 		MimetypesFileTypeMap mimeMap = new MimetypesFileTypeMap();
 		return mimeMap.getContentType(filename);
@@ -255,12 +258,16 @@ public abstract class StudioUtils {
 	 * </ul>
 	 */
 	public static ContentType.Type getContentTypeTypeById(String contentTypeId) {
-		if (Pattern.matches("/component/.*?", contentTypeId)) {
+		if (isEmpty(contentTypeId)) {
+			return ContentType.Type.unknown;
+		}
+
+		if (COMPONENT_CONTENT_TYPE_ID_PATTERN.matcher(contentTypeId).matches()) {
 			return ContentType.Type.component;
 		}
-		if (Pattern.matches("/page/.*?", contentTypeId)){
+		if (PAGE_CONTENT_TYPE_ID_PATTERN.matcher(contentTypeId).matches()) {
 			return ContentType.Type.page;
-			}
+		}
 		return ContentType.Type.unknown;
 	}
 }
