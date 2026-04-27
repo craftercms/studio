@@ -140,11 +140,6 @@
 		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
 	</bean>
 
-	<bean id="siteFeedMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-		<property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.SiteFeedMapper"/>
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
-	</bean>
-
 	<bean id="userDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
 		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.UserDAO"/>
 		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>

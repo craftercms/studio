@@ -318,7 +318,6 @@
 	      class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
 		<constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-		<constructor-arg name="siteFeedMapper" ref="siteFeedMapper"/>
 		<constructor-arg name="siteDao" ref="siteDao"/>
 		<constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<constructor-arg name="deployer" ref="allDeployers"/>

@@ -22,7 +22,6 @@ package scripts.api.impl.content
 class SpringContentServices {
 
 	static CONTENT_SERVICES_BEAN = "cstudioContentService"
-	static ASSET_PROCESSING_SERVICE_BEAN = "studioAssetProcessingService"
 
 	def context = null
 

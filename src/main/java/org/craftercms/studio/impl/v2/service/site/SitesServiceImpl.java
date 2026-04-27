@@ -49,7 +49,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_LOCKED;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {
@@ -88,7 +87,7 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
-	@RequireSiteState(value = STATE_LOCKED)
+	@RequireSiteState(value = Site.State.LOCKED)
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
 	public void unlockSite(@SiteId String siteId) throws SiteNotFoundException, InvalidSiteStateException {
 		sitesServiceInternal.unlockSite(siteId);
