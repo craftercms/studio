@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.system.internal;
 
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.system.SystemPropertiesDAO;
 import org.craftercms.studio.api.v2.dal.system.SystemProperty;

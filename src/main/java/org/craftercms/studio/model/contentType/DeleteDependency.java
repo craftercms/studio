@@ -17,7 +17,6 @@
 package org.craftercms.studio.model.contentType;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a delete dependency for a content type.

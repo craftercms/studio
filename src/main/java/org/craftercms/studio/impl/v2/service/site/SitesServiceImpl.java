@@ -49,7 +49,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {

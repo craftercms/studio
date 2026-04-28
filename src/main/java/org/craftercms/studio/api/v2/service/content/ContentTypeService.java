@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
-import org.dom4j.DocumentException;
 import org.springframework.core.io.Resource;
 
 import java.util.Collection;

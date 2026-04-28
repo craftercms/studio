@@ -17,7 +17,6 @@
 package org.craftercms.studio.api.v2.dal.repository;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.craftercms.commons.git.utils.AuthenticationType;
