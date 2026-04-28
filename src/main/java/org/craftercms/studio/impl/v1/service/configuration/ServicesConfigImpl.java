@@ -29,7 +29,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -463,9 +462,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 				folderConfig.setName(folderNode.valueOf(ATTR_NAME));
 				folderConfig.setPath(folderNode.valueOf(ATTR_PATH));
 				folderConfig.setReadDirectChildren(
-					ContentFormatUtils.getBooleanValue(folderNode.valueOf(ATTR_READ_DIRECT_CHILDREN)));
+						Boolean.parseBoolean(folderNode.valueOf(ATTR_READ_DIRECT_CHILDREN)));
 				folderConfig.setAttachRootPrefix(
-					ContentFormatUtils.getBooleanValue(folderNode.valueOf(ATTR_ATTACH_ROOT_PREFIX)));
+						Boolean.parseBoolean(folderNode.valueOf(ATTR_ATTACH_ROOT_PREFIX)));
 				folders.add(folderConfig);
 			}
 			repo.setFolders(folders);

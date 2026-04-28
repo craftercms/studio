@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -92,6 +92,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_CANCELLED_PACKAGE_COMMENT;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.getContentTypeClass;
 
 /**
  * Listens to {@link SyncFromRepoEvent} events and performs the sync from repository.
@@ -593,7 +594,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			.withLastPublishedOn(null)
 			.withLabel(metadata.label)
 			.withContentTypeId(metadata.contentTypeId)
-			.withSystemType(contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()))
+			.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getPath()))
 			.withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())))
 			.withLocaleCode(Locale.US.toString())
 			.withTranslationSourceId(null)
@@ -633,7 +634,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		updateItemRow(itemDao, site.getId(),
 			repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
 			repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
-			contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
+				getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getPath()),
 			StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
 			contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
 
@@ -672,7 +673,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			updateItemRow(itemDao, site.getId(),
 				repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
 				repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
-				contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
+					getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getPath()),
 				StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
 				contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
 

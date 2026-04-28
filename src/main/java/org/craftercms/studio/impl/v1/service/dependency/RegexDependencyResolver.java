@@ -18,10 +18,11 @@ package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.to.DependencyResolverConfigTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -38,6 +39,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.convertStreamToString;
 import static org.springframework.web.util.HtmlUtils.htmlUnescape;
 
 public class RegexDependencyResolver implements DependencyResolver {
@@ -58,7 +60,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 				logger.debug("Determine the item type site '{}' path '{}'", site, path);
 				DependencyResolverConfigTO.ItemType itemType = getItemTypeResolverConfig(site, path, config);
 				if (itemType != null) {
-					String content = contentService.getContentAsString(site, path);
+					String content = convertStreamToString(contentService.getContent(site, path));
 					if (content != null) {
 						Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes =
 							itemType.getDependencyTypes();
@@ -224,7 +226,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 	}
 
 	private Map<String, Set<ResolvedDependency>> getDependencies(String site, String path, String content, Map<String,
-		DependencyResolverConfigTO.DependencyType> dependencyTypes) {
+		DependencyResolverConfigTO.DependencyType> dependencyTypes) throws SiteNotFoundException {
 		Map<String, Set<ResolvedDependency>> toRet = new HashMap<>();
 		logger.debug("Get the dependencies for site '{}' path '{}'", site, path);
 		for (Map.Entry<String, DependencyResolverConfigTO.DependencyType> dependencyTypeEntry :

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,13 +32,6 @@ import java.util.Map;
 public interface ItemService {
 
 	/**
-	 * Insert record for item if it does not exist, otherwise update it
-	 *
-	 * @param item item to add or update
-	 */
-	void upsertEntry(Item item);
-
-	/**
 	 * Get item fir given site and path
 	 *
 	 * @param siteId site identifier
@@ -56,13 +49,6 @@ public interface ItemService {
 	 * @return item
 	 */
 	Item getItem(String siteId, String path, boolean preferContent);
-
-	/**
-	 * Update item
-	 *
-	 * @param item item to update
-	 */
-	void updateItem(Item item);
 
 	/**
 	 * Delete item with the given path.
@@ -92,16 +78,6 @@ public interface ItemService {
 	 * @param isSystemProcessing true if item is being processed by system, otherwise false
 	 */
 	void setSystemProcessingBulk(String siteId, Collection<String> paths, boolean isSystemProcessing);
-
-	/**
-	 * Update states to flip on list off states and flip off another list of states for item
-	 *
-	 * @param siteId         site identifier
-	 * @param path           path of item
-	 * @param onStateBitMap  states bitmap to flip on
-	 * @param offStateBitMap stats bitmap to flip off
-	 */
-	void updateStateBits(String siteId, String path, long onStateBitMap, long offStateBitMap);
 
 	Item.Builder instantiateItem(String siteName, String path);
 
@@ -148,18 +124,6 @@ public interface ItemService {
 	 */
 	void persistItemAfterCreateFolder(String siteId, String folderPath, String folderName, Long parentId)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
-
-	/**
-	 * Persist item metadata after rename folder
-	 *
-	 * @param siteId      site identifier
-	 * @param path        file path
-	 * @param name        file name
-	 * @param contentType content type
-	 * @throws ServiceLayerException if there is an error persisting the item
-	 */
-	void persistItemAfterRenameContent(String siteId, String path, String name, String contentType)
-		throws ServiceLayerException, AuthenticationException;
 
 	/**
 	 * Move item

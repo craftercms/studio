@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2.aws;
 
+import jakarta.validation.Constraint;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.apache.commons.fileupload2.core.FileUploadException;
 import org.apache.commons.fileupload2.core.FileItemInput;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -66,8 +68,12 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping("/api/2/aws/s3")
 public class AwsS3Controller {
 
-	@Autowired
-	protected AwsS3Service s3Service;
+	protected final AwsS3Service s3Service;
+
+	@ConstructorProperties("s3Service")
+	public AwsS3Controller(AwsS3Service s3Service) {
+		this.s3Service = s3Service;
+	}
 
 	/**
 	 * List items in an S3 bucket.

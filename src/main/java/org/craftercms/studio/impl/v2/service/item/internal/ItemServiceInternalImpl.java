@@ -30,9 +30,10 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
-import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -48,6 +49,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.underDescriptorRoot;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.getContentTypeClass;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class ItemServiceInternalImpl implements ItemService {
@@ -63,12 +65,12 @@ public class ItemServiceInternalImpl implements ItemService {
 	private SiteDAO siteDao;
 	private ItemDAO itemDao;
 	private ServicesConfig servicesConfig;
-	private ContentService contentService;
 	private GeneralLockService generalLockService;
+	private GitContentRepository contentRepository;
 	private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+	private StudioConfiguration studioConfiguration;
 
-	@Override
-	public void upsertEntry(Item item) {
+	protected void upsertEntry(Item item) {
 		retryingDatabaseOperationFacade.retry(() -> itemDao.upsertEntry(item));
 	}
 
@@ -92,11 +94,6 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void updateItem(Item item) {
-		retryingDatabaseOperationFacade.retry(() -> itemDao.updateItem(item));
-	}
-
-	@Override
 	public void setSystemProcessingBulk(String siteId, Collection<String> paths, boolean isSystemProcessing) {
 		if (isSystemProcessing) {
 			setStatesBySiteAndPathBulk(siteId, paths, ItemState.SYSTEM_PROCESSING.value);
@@ -116,22 +113,6 @@ public class ItemServiceInternalImpl implements ItemService {
 		if (CollectionUtils.isNotEmpty(paths)) {
 			Site site = siteDao.getSite(siteId);
 			retryingDatabaseOperationFacade.retry(() -> itemDao.resetStatesBySiteAndPathBulk(site.getId(), paths, statesBitMap));
-		}
-	}
-
-	@Override
-	public void updateStateBits(String siteId, String path, long onStateBitMap, long offStateBitMap) {
-		List<String> paths = new ArrayList<>();
-		paths.add(path);
-		updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
-	}
-
-	private void updateStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long onStateBitMap,
-											   long offStateBitMap) {
-		if (CollectionUtils.isNotEmpty(paths)) {
-			Site site = siteDao.getSite(siteId);
-			retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesBySiteAndPathBulk(site.getId(), paths,
-				onStateBitMap, offStateBitMap));
 		}
 	}
 
@@ -167,7 +148,7 @@ public class ItemServiceInternalImpl implements ItemService {
 			String contentType = null;
 			String localeCode = null;
 			try {
-				var descriptor = contentService.getItem(siteId, path, false);
+				var descriptor = contentRepository.getItem(siteId, path, false);
 				String disabledStr = descriptor.queryDescriptorValue(DISABLED);
 				disabled = Boolean.parseBoolean(disabledStr);
 				label = descriptor.queryDescriptorValue(INTERNAL_NAME);
@@ -190,11 +171,11 @@ public class ItemServiceInternalImpl implements ItemService {
 				.withLastModifiedBy(userObj.getId())
 				.withLastModifiedOn(DateUtils.getCurrentTime())
 				.withLabel(label)
-				.withSystemType(contentService.getContentTypeClass(siteId, path))
+				.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, siteId, path))
 				.withContentTypeId(contentType)
 				.withMimeType(StudioUtils.getMimeType(path))
 				.withLocaleCode(localeCode)
-				.withSize(contentService.getContentSize(siteId, path))
+				.withSize(contentRepository.getContentSize(siteId, path))
 				.withParentId(parentId)
 				.build();
 			if (unlock) {
@@ -221,7 +202,7 @@ public class ItemServiceInternalImpl implements ItemService {
 		String contentType = null;
 		String localeCode = null;
 		try {
-			var descriptor = contentService.getItem(siteId, path, false);
+			var descriptor = contentRepository.getItem(siteId, path, false);
 			String disabledStr = descriptor.queryDescriptorValue(DISABLED);
 			disabled = Boolean.parseBoolean(disabledStr);
 			label = descriptor.queryDescriptorValue(INTERNAL_NAME);
@@ -242,11 +223,11 @@ public class ItemServiceInternalImpl implements ItemService {
 			.withLastModifiedBy(userObj.getId())
 			.withLastModifiedOn(DateUtils.getCurrentTime())
 			.withLabel(label)
-			.withSystemType(contentService.getContentTypeClass(siteId, path))
+			.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, siteId, path))
 			.withContentTypeId(contentType)
 			.withMimeType(StudioUtils.getMimeType(path))
 			.withLocaleCode(localeCode)
-			.withSize(contentService.getContentSize(siteId, path))
+			.withSize(contentRepository.getContentSize(siteId, path))
 			.build();
 		if (unlock) {
 			item.setState(ItemState.savedAndClosed(item.getState()));
@@ -274,21 +255,6 @@ public class ItemServiceInternalImpl implements ItemService {
 				.build();
 		item.setSystemType(CONTENT_TYPE_FOLDER);
 		upsertEntry(item);
-	}
-
-	@Override
-	public void persistItemAfterRenameContent(String siteId, String path, String name, String contentType)
-		throws ServiceLayerException, AuthenticationException {
-		User userObj = SecurityUtils.getCurrentUser();
-		Item item = instantiateItem(siteId, path)
-			.withPreviewUrl(CONTENT_TYPE_FOLDER.equals(contentType) ? null : getBrowserUrl(siteId, path))
-			.withLastModifiedBy(userObj.getId())
-			.withLastModifiedOn(DateUtils.getCurrentTime())
-			.withLabel(name)
-			.build();
-		item.setState(ItemState.savedAndClosed(item.getState()));
-		item.setSystemType(contentType);
-		updateItem(item);
 	}
 
 	@Override
@@ -464,9 +430,12 @@ public class ItemServiceInternalImpl implements ItemService {
 		this.servicesConfig = servicesConfig;
 	}
 
-	@SuppressWarnings("unused")
-	public void setContentService(ContentService contentService) {
-		this.contentService = contentService;
+	public void setContentRepository(GitContentRepository contentRepository) {
+		this.contentRepository = contentRepository;
+	}
+
+	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+		this.studioConfiguration = studioConfiguration;
 	}
 
 	public void setGeneralLockService(GeneralLockService generalLockService) {

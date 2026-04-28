@@ -39,7 +39,6 @@ import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.rest.RestTemplate;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -49,13 +48,13 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.*;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.marketplace.*;
@@ -120,6 +119,7 @@ import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_MODULE;
 import static org.craftercms.studio.api.v2.service.marketplace.Constants.SOURCE_GIT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.convertStreamToString;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.*;
 import static org.craftercms.studio.impl.v2.utils.XsltUtils.executeTemplate;
 import static org.craftercms.studio.model.rest.sites.CreateSiteRequest.RemoteAuthentication.NONE;
@@ -834,7 +834,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 
 			// commit all changes
 			commitChanges(siteId, changedFiles, true, true, "Remove plugin " + pluginId);
-		} catch (IOException | GitAPIException | EnvironmentNotFoundException |
+		} catch (IOException | GitAPIException |
 			 SiteNotFoundException | TransformerException | UserNotFoundException | AuthenticationException e) {
 			if (CollectionUtils.isNotEmpty(changedFiles)) {
 				try {
@@ -1064,7 +1064,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 	}
 
 	protected void performTemplateWiring(Plugin plugin, String siteId, List<FileRecord> files,
-					     List<String> changedFiles) throws IOException {
+					     List<String> changedFiles) throws IOException, ContentNotFoundException {
 		List<String> paths = files.stream().map(FileRecord::getPath).collect(toList());
 		String pluginPath = getPluginPath(plugin.getId());
 		String pluginIdComment = replace(templateComment, Map.of(PARAM_PLUGIN_ID, plugin.getId()));
@@ -1079,14 +1079,14 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 
 	protected void addIncludeIfNeeded(String siteId, String pluginId, List<String> paths, String includePath,
 					  String includeComment, String pluginPath, List<String> changedFiles)
-		throws IOException {
+			throws IOException, ContentNotFoundException {
 		if (paths.contains(pluginPath)) {
 			logger.debug("Detected the template '{}' in the plugin '{}' while installing in site '{}'",
 				pluginPath, pluginId, siteId);
 			String fileContent = EMPTY;
 			if (contentService.contentExists(siteId, includePath)) {
 				logger.debug("Site '{}' already has the template '{}', it will be updated", siteId, includePath);
-				fileContent = contentService.getContentAsString(siteId, includePath);
+				fileContent = convertStreamToString(contentService.getContent(siteId, includePath));
 			} else {
 				logger.debug("Site '{}' does not have the template '{}', it will be created", siteId, includePath);
 			}

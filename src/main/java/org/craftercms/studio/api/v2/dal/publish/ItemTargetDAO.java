@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -38,7 +38,6 @@ public interface ItemTargetDAO {
 	String SITE_ID = "siteId";
 	String PACKAGE_ID = "packageId";
 	String COMMIT_ID = "commitId";
-	String PATH = "path";
 	String TARGET = "target";
 	String LIVE_TARGET = "liveTarget";
 	String STAGING_TARGET = "stagingTarget";

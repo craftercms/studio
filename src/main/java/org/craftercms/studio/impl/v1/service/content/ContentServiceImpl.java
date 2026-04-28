@@ -36,8 +36,6 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
 import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
-import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
-import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
@@ -51,7 +49,6 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.craftercms.studio.impl.v2.utils.TimeUtils;
 import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.rest.Person;
 import org.dom4j.Document;
@@ -74,15 +71,12 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.craftercms.studio.api.v1.constant.DmConstants.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_SITE_WEBSITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
@@ -137,46 +131,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		} else {
 			return this.contentRepository.getContent(site, path);
 		}
-	}
-
-	@Override
-	@Valid
-	public long getContentSize(@ValidateStringParam String site,
-				   @ValidateStringParam String path) {
-		return contentRepository.getContentSize(site, path);
-	}
-
-	@Override
-	@Valid
-	public String getContentAsString(String site,
-					 @ValidateSecurePathParam String path) {
-		return getContentAsString(site, path, null);
-	}
-
-	@Override
-	@Valid
-	public String getContentAsString(@ValidSiteId String site,
-					 @ValidateSecurePathParam String path,
-					 String encoding) {
-		return getContentAsStringInternal(site, path, encoding, false);
-	}
-
-	private String getContentAsStringInternal(String site, String path, String encoding, boolean shallow) {
-		return TimeUtils.logExecutionTime(() -> {
-			String content = null;
-			try (InputStream is = contentRepository.getContent(site, path, shallow)) {
-				if (is != null) {
-					if (isEmpty(encoding)) {
-						content = IOUtils.toString(is, UTF_8);
-					} else {
-						content = IOUtils.toString(is, encoding);
-					}
-				}
-			} catch (Exception e) {
-				logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
-			}
-			return content;
-		}, logger, format("Method 'ContentServiceImpl.getContentAsStringInternal(..)' with parameters %s", Arrays.asList(site, path, encoding, shallow)));
 	}
 
 	@Override
@@ -517,34 +471,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return item;
 	}
 
-	@Override
-	@RequireSiteExists
-	public String getItemContentType(@SiteId String site, String path) throws DocumentException, SiteNotFoundException {
-		Item item = itemService.getItem(site, path);
-		if (item == null) {
-			return getContentTypeClass(site, path);
-		}
-		Pattern taxonomyPattern = Pattern.compile(CONTENT_TYPE_TAXONOMY_REGEX);
-		Matcher matcher = taxonomyPattern.matcher(path);
-		if (matcher.matches()) {
-			return CONTENT_TYPE_TAXONOMY;
-		}
-		if (isNotEmpty(item.getContentTypeId())) {
-			return item.getContentTypeId();
-		}
-		if (CONTENT_TYPE_FOLDER.equals(item.getSystemType())) {
-			return CONTENT_TYPE_FOLDER;
-		}
-		if (path.endsWith(XML_PATTERN) && !path.startsWith(CONFIG_PATH_ROOT)) {
-			Document contentDoc = this.getContentAsDocument(site, path);
-			if (contentDoc != null) {
-				Element rootElement = contentDoc.getRootElement();
-				return rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-			}
-		}
-		return getContentTypeClass(site, path);
-	}
-
 	protected ContentItemTO loadContentItem(String site, String path) throws ServiceLayerException {
 		// TODO: SJ: Refactor such that the populate of non-XML is also a method in 3.1+
 		ContentItemTO item = createNewContentItemTO(site, path);
@@ -755,9 +681,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return null;
 	}
 
-	@Override
-	@Valid
-	public ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam String site,
+	private ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam String site,
 								    @ValidateSecurePathParam()
 								    String relativePath) throws SiteNotFoundException {
 		// TODO: SJ: Think of another way to do this in 3.1+
@@ -835,33 +759,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return browserUri;
 	}
 
-	@Override
-	@Valid
-	public String getContentTypeClass(@ValidateStringParam String site, String uri) throws SiteNotFoundException {
-		// TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
-		if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
-			return CONTENT_TYPE_LEVEL_DESCRIPTOR;
-		} else if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
-			return CONTENT_TYPE_PAGE;
-		} else if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site))) {
-			return CONTENT_TYPE_COMPONENT;
-		} else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
-			return CONTENT_TYPE_DOCUMENT;
-		} else if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
-			return CONTENT_TYPE_ASSET;
-		} else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
-			return CONTENT_TYPE_RENDERING_TEMPLATE;
-		} else if (StringUtils.startsWith(uri, getContentTypesBasePath())) {
-			return CONTENT_TYPE_CONTENT_TYPE;
-		} else if (matchesPatterns(uri, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
-			return CONTENT_TYPE_TAXONOMY;
-		} else if (matchesPatterns(uri, servicesConfig.getScriptsPatterns(site))) {
-			return CONTENT_TYPE_SCRIPT;
-		} else if (matchesPatterns(uri, servicesConfig.getConfigurationPatterns(site))) {
-			return CONTENT_TYPE_CONFIGURATION;
-		}
-
-		return CONTENT_TYPE_FILE;
+	private String getContentTypeClass(@ValidateStringParam String site, String uri) throws SiteNotFoundException {
+		return ContentUtils.getContentTypeClass(servicesConfig, studioConfiguration, site, uri);
 	}
 
 	protected String getContentTypesBasePath() {

@@ -27,12 +27,14 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
-import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
-import org.craftercms.studio.model.rest.content.*;
+import org.craftercms.studio.model.rest.content.DeleteContentResult;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
+import org.craftercms.studio.model.rest.content.PasteContentResult;
+import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
@@ -90,25 +92,6 @@ public interface ContentService {
 			throws ServiceLayerException, AuthenticationException, UserNotFoundException;
 
 	/**
-	 * Get list of children for given path
-	 *
-	 * @param siteId       site identifier
-	 * @param path         item path to children for
-	 * @param locale       filter children by locale
-	 * @param keyword      filter children by keyword
-	 * @param types        filter children by type
-	 * @param excludes     exclude items by path
-	 * @param sortStrategy sort order
-	 * @param order        ascending or descending
-	 * @param offset       offset of the first child in the result
-	 * @param limit        number of children to return
-	 * @return list of children
-	 */
-	GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword, List<String> types,
-										List<String> excludes, String sortStrategy, String order, int offset, int limit)
-			throws ServiceLayerException, UserNotFoundException;
-
-	/**
 	 * Get children for paths bulk.
 	 * This method will return children for a list of paths. Result items will also
 	 * include a {@link ContentItem} object for the item itself.
@@ -147,17 +130,6 @@ public interface ContentService {
 	 * @throws ContentNotFoundException if content is not found
 	 */
 	Document getItemDescriptor(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
-
-	/**
-	 * Check if the content is part of any ready/processing publish package and fail if it is
-	 *
-	 * @param siteId          the site id
-	 * @param paths           the paths to check
-	 * @param includeChildren if true, check if any children of the paths are part of a publish package
-	 * @throws ContentInPublishQueueException if the content is part of a publish package
-	 */
-	void assertNotInWorkflow(String siteId, List<String> paths, boolean includeChildren) throws ServiceLayerException;
-
 
 	/**
 	 * Get content size
@@ -390,18 +362,6 @@ public interface ContentService {
 	 * @return the result of the folder creation, which includes affected paths
 	 */
 	WriteContentResult createFolder(String siteId, String path) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
-
-
-	/**
-	 * Get content type class for given site and uri.
-	 * It will default to {@link org.craftercms.studio.api.v1.constant.StudioConstants#CONTENT_TYPE_FILE} if
-	 * the path does not match any content type pattern.
-	 * @param site the site id
-	 * @param uri the content uri
-	 * @return the content type class
-	 * @throws SiteNotFoundException if site is not found
-	 */
-	String getContentTypeClass(String site, String uri) throws SiteNotFoundException;
 
 	/**
 	 * Process the created files during a site creation.

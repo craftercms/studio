@@ -145,7 +145,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.utils.DalUtils.MY_BATIS_QUERY_BATCH_SIZE;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.*;
@@ -255,9 +256,23 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		return contentRepository.shallowContentExists(siteId, path);
 	}
 
-	@Override
-	public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
-											   List<String> systemTypes, List<String> excludes, String sortStrategy,
+	/**
+	 * Get list of children for given path
+	 *
+	 * @param siteId       site identifier
+	 * @param path         item path to children for
+	 * @param locale       filter children by locale
+	 * @param keyword      filter children by keyword
+	 * @param systemTypes  filter children by type
+	 * @param excludes     exclude items by path
+	 * @param sortStrategy sort order
+	 * @param order        ascending or descending
+	 * @param offset       offset of the first child in the result
+	 * @param limit        number of children to return
+	 * @return list of children
+	 */
+	protected GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
+												  List<String> systemTypes, List<String> excludes, String sortStrategy,
 											   String order, int offset, int limit)
 			throws ServiceLayerException, UserNotFoundException {
 		if (!contentRepository.contentExists(siteId, path)) {
@@ -836,41 +851,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public String getContentTypeClass(String site, String uri) throws SiteNotFoundException {
-		if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
-			return CONTENT_TYPE_LEVEL_DESCRIPTOR;
-		}
-		if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
-			return CONTENT_TYPE_PAGE;
-		}
-		if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site))) {
-			return CONTENT_TYPE_COMPONENT;
-		}
-		if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
-			return CONTENT_TYPE_DOCUMENT;
-		}
-		if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
-			return CONTENT_TYPE_ASSET;
-		}
-		if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
-			return CONTENT_TYPE_RENDERING_TEMPLATE;
-		}
-		if (CS.startsWith(uri, studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH))) {
-			return CONTENT_TYPE_CONTENT_TYPE;
-		}
-		if (matchesPatterns(uri, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
-			return CONTENT_TYPE_TAXONOMY;
-		}
-		if (matchesPatterns(uri, servicesConfig.getScriptsPatterns(site))) {
-			return CONTENT_TYPE_SCRIPT;
-		}
-		if (matchesPatterns(uri, servicesConfig.getConfigurationPatterns(site))) {
-			return CONTENT_TYPE_CONFIGURATION;
-		}
-		return CONTENT_TYPE_FILE;
-	}
-
-	@Override
 	public void processCreatedFiles(String siteId, User creator) throws ServiceLayerException {
 		Site site = siteService.getSite(siteId);
 		ZonedDateTime now = ZonedDateTime.now();
@@ -991,7 +971,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					.withLastPublishedOn(null)
 					.withLabel(label)
 					.withContentTypeId(contentTypeId)
-					.withSystemType(getContentTypeClass(site.getSiteId(), path))
+					.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), path))
 					.withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(path)))
 					.withLocaleCode(Locale.US.toString())
 					.withTranslationSourceId(null)
@@ -1674,8 +1654,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		return childItems;
 	}
 
-	@Override
-	public void assertNotInWorkflow(final String siteId, final List<String> paths, final boolean includeChildren)
+	protected void assertNotInWorkflow(final String siteId, final List<String> paths, final boolean includeChildren)
 			throws ServiceLayerException {
 		Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, paths, includeChildren);
 		if (CollectionUtils.isNotEmpty(packagesForItems)) {
