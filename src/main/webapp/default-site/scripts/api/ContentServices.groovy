@@ -33,17 +33,6 @@ class ContentServices {
 	}
 
 	/**
-	 * get the tree of content items (metadata) beginning at a root
-	 * @param site - the project ID
-	 * @param rootPath - the path to root at
-	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	 */
-	static getContentItemTree(site, path, depth, context) {
-		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentItemTree(site, path, depth)
-	}
-
-	/**
 	 * get content orders for a given path (usually used for navigation)
 	 * @param site - the project ID
 	 * @param path - the parent path containing the ordered objects

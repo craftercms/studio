@@ -2489,46 +2489,6 @@ paths:
                 '401':
                     $ref: '#/components/responses/Unauthorized'
 
-    /api/1/services/api/1/content/get-items-tree.json:
-        get:
-            tags:
-                - content
-            summary: Get items tree.
-            description: "Required role: N/A"
-            operationId: getItemsTree
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/index.xml
-                -   name: depth
-                    in: query
-                    schema:
-                        type: integer
-                    description: Depth of the tree to display
-                    required: true
-                    example: 1
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ContentItemV1'
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-
     /api/1/services/api/1/content/get-next-item-order.json:
         get:
             tags:
@@ -5116,7 +5076,7 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/content/paste:
+    /api/2/content/{siteId}/paste:
         post:
             tags:
                 - content
@@ -5131,6 +5091,13 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/PasteRequest'
+            parameters:
+                -   name: siteId
+                    in: path
+                    description: Site ID
+                    required: true
+                    schema:
+                        type: string
             responses:
                 '200':
                     description: OK
@@ -10250,26 +10217,9 @@ components:
                     items:
                         type: string
 
-        PasteItem:
-            type: object
-            properties:
-                path:
-                    type: string
-                    description: The path of the item
-                children:
-                    type: array
-                    description: The child items
-                    items:
-                        $ref: '#/components/schemas/PasteItem'
-            required:
-                - path
-
         PasteRequest:
             type: object
             properties:
-                siteId:
-                    type: string
-                    description: The id of the site
                 operation:
                     type: string
                     description: Indicate the type of operation
@@ -10279,12 +10229,17 @@ components:
                 targetPath:
                     type: string
                     description: The target path for the operation
-                item:
-                    $ref: '#/components/schemas/PasteItem'
+                sourcePath:
+                    type: string
+                    description: The source path for the operation
+                includeChildren:
+                    type: boolean
+                    description: for copy, indicates if children should be copied as well.
+                    default: false
             required:
-                - siteId
-                - target
-                - item
+                - operation
+                - targetPath
+                - sourcePath
 
         AccessToken:
             type: object

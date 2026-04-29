@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,14 +15,10 @@
  */
 package org.craftercms.studio.model.rest.clipboard;
 
-import org.craftercms.commons.validation.annotations.param.ValidNewContentPath;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-import org.craftercms.studio.model.clipboard.Operation;
-import org.craftercms.studio.model.clipboard.PasteItem;
-
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import org.craftercms.commons.validation.annotations.param.ValidNewContentPath;
+import org.craftercms.studio.model.clipboard.Operation;
 
 /**
  * Holds all data needed for a clipboard operation
@@ -31,13 +27,6 @@ import jakarta.validation.constraints.NotNull;
  * @since 3.2
  */
 public class PasteRequest {
-
-	/**
-	 * The id of the site
-	 */
-	@NotEmpty
-	@ValidSiteId
-	protected String siteId;
 
 	/**
 	 * The operation to perform
@@ -52,19 +41,13 @@ public class PasteRequest {
 	protected String targetPath;
 
 	/**
-	 * The item to be copied/moved
+	 * The source path of the item
 	 */
-	@Valid
-	@NotNull
-	protected PasteItem item;
+	@NotEmpty
+	@ValidNewContentPath
+	protected String sourcePath;
 
-	public String getSiteId() {
-		return siteId;
-	}
-
-	public void setSiteId(String siteId) {
-		this.siteId = siteId;
-	}
+	protected boolean includeChildren;
 
 	public Operation getOperation() {
 		return operation;
@@ -82,12 +65,19 @@ public class PasteRequest {
 		this.targetPath = targetPath;
 	}
 
-	public PasteItem getItem() {
-		return item;
+	public String getSourcePath() {
+		return sourcePath;
 	}
 
-	public void setItem(PasteItem item) {
-		this.item = item;
+	public void setSourcePath(String sourcePath) {
+		this.sourcePath = sourcePath;
 	}
 
+	public boolean isIncludeChildren() {
+		return includeChildren;
+	}
+
+	public void setIncludeChildren(boolean includeChildren) {
+		this.includeChildren = includeChildren;
+	}
 }

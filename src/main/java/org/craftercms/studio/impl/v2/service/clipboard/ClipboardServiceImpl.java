@@ -26,7 +26,6 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.model.clipboard.Operation;
-import org.craftercms.studio.model.clipboard.PasteItem;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -51,11 +50,10 @@ public class ClipboardServiceImpl implements ClipboardService {
 	@Override
 	@RequireSiteReady
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-	public List<String> pasteItems(@SiteId String siteId,
-				       Operation operation,
-				       @ContentPath String targetPath,
-				       PasteItem item) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		return clipboardServiceInternal.pasteItems(siteId, operation, targetPath, item);
+	public List<String> pasteItems(@SiteId String siteId, Operation operation,
+								   @ContentPath String targetPath, String sourcePath, boolean includeChildren)
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+		return clipboardServiceInternal.pasteItems(siteId, operation, targetPath, sourcePath, includeChildren);
 	}
 
 	@Override
