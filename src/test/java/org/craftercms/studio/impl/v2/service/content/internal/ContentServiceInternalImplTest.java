@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v2.content.ContentLifecycle;
 import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.content.LifecycleContent.ContentLifecycleItem;
@@ -134,9 +133,6 @@ public class ContentServiceInternalImplTest {
 
 	@Mock
 	protected DependencyService dependencyService;
-
-	@Mock
-	protected DmPageNavigationOrderService pageNavOrderService;
 
 	@Mock
 	protected SitesService siteService;
@@ -394,8 +390,6 @@ public class ContentServiceInternalImplTest {
 		assertEquals("Number of items should match", 3, moveResult.getItems().size());
 
 		verify(contentRepository, times(1)).moveContent(eq(SITE_ID), eq(sourceFolder), eq(targetFolder), anyCollection(), anySet());
-
-		verify(pageNavOrderService).move(SITE_ID, sourceFolder, targetFolder);
 
 		verify(serviceInternal, times(3)).runLifecycle(
 				eq(SITE_ID), any(), anyString(), any(), any(), any()

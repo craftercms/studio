@@ -41,7 +41,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v2.content.ContentLifecycle;
 import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.content.LifecycleContent.ContentLifecycleItem;
@@ -194,7 +193,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private final ContentLifecycle contentLifecycle;
 	private final ContentLifecycle assetLifecycle;
 	private final PermissionEvaluator<String, Object> permissionEvaluator;
-	private final DmPageNavigationOrderService pageNavOrderService;
 	private final PlatformTransactionManager transactionManager;
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final ServicesConfig servicesConfig;
@@ -205,7 +203,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@ConstructorProperties({"transactionManager", "studioConfiguration", "siteService",
 			"retryingDatabaseOperationFacade", "publishService",
-			"permissionEvaluator", "pageNavOrderService", "itemService",
+			"permissionEvaluator", "itemService",
 			"itemDao", "generalLockService", "dependencyService",
 			"contentRepository", "contentLifecycle",
 			"auditService", "assetLifecycle",
@@ -216,7 +214,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 									  SitesService siteService,
 									  RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, PublishService publishService,
 									  PermissionEvaluator<String, Object> permissionEvaluator,
-									  DmPageNavigationOrderService pageNavOrderService, ItemService itemService,
+									  ItemService itemService,
 									  ItemDAO itemDao, GeneralLockService generalLockService,
 									  DependencyService dependencyService,
 									  GitContentRepository contentRepository, ContentLifecycle contentLifecycle,
@@ -230,7 +228,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.publishService = publishService;
 		this.permissionEvaluator = permissionEvaluator;
-		this.pageNavOrderService = pageNavOrderService;
 		this.itemService = itemService;
 		this.itemDao = itemDao;
 		this.generalLockService = generalLockService;
@@ -518,7 +515,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				}
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
 				if (isPageDescriptor(path)) {
-					pageNavOrderService.updateNavOrder(siteId, path, document);
+					updateNavOrder(siteId, path, document);
 				}
 				Map<String, ContentWriteItem> dependencies = updateContentOnWrite(siteId, sourcePath, path, newItemLabel, operation, document.getRootElement());
 				Path tempFile = createTempFile(path, document);
@@ -548,6 +545,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 
 		return lifecycleContent;
+	}
+
+	private boolean updateNavOrder(String siteId, String path, Document document) {
+		// TODO: Check the nav order exists in the document, if not, add it with the next item order value
+		return false;
 	}
 
 	/**
@@ -1148,9 +1150,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											  String newLabel, LifecycleOperation operation)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String siteId = site.getSiteId();
-		if (underPagesRoot(sourcePath)) {
-			pageNavOrderService.copy(siteId, sourcePath, targetPath);
-		}
+//		if (underPagesRoot(sourcePath)) {
+//			pageNavOrderService.copy(siteId, sourcePath, targetPath);
+//		}
 		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
 		Map<String, ContentWriteItem> dependencies =
 				lifecycleContents.stream()
@@ -2046,9 +2048,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											  Collection<LifecycleContent> lifecycleContents, Set<String> sourcePathChildren)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException, DocumentException, IOException {
 		String siteId = site.getSiteId();
-		if (underPagesRoot(sourcePath)) {
-			pageNavOrderService.move(siteId, sourcePath, targetPath);
-		}
+//		if (underPagesRoot(sourcePath)) {
+//			pageNavOrderService.move(siteId, sourcePath, targetPath);
+//		}
 		updateNavOrderForMove(siteId, sourcePath, lifecycleContents, sourcePathChildren);
 		// Consolidate the items into a single map
 		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
@@ -2275,7 +2277,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 			for (ContentLifecycleItem navUpdated : itemsToUpdate) {
 				Document document = navUpdated.contentAsDocument();
-				if (pageNavOrderService.updateNavOrder(siteId, navUpdated.repoPath(), document)) {
+				if (updateNavOrder(siteId, navUpdated.repoPath(), document)) {
 					// This will update the ContentLifecycleItem and clean the resources of the previous version
 					lifecycleContent.write(navUpdated.repoPath(), document);
 				}

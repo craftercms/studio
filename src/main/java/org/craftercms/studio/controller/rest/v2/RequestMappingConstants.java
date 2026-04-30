@@ -67,6 +67,8 @@ public final class RequestMappingConstants {
 	public static final String FOLDER = SITE_ID + "/folder";
 	public static final String ITEM_HISTORY = "/item_history";
 	public static final String SITE_HISTORY = SITE_ID + "/history";
+	public static final String GET_ITEMS_ORDER = SITE_ID + "/order";
+	public static final String REORDER_ITEM = SITE_ID + "/order/reorder";
 
 	/**
 	 * Groups controller

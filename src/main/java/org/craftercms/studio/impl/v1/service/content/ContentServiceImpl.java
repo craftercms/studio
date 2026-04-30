@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
 import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
@@ -93,7 +92,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 	private GitContentRepository contentRepository;
 	protected ServicesConfig servicesConfig;
-	protected DmPageNavigationOrderService dmPageNavigationOrderService;
 	protected StudioConfiguration studioConfiguration;
 	protected ItemService itemService;
 	protected UserService userService;
@@ -789,56 +787,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return null;
 	}
 
-	@Override
-	@Valid
-	public double reorderItems(@ValidateStringParam String site,
-				   @ValidateSecurePathParam() String relativePath,
-				   @ValidateSecurePathParam() String before,
-				   @ValidateSecurePathParam() String after,
-				   @ValidateStringParam() String orderName) {
-		Double beforeOrder = null;
-		Double afterOrder = null;
-		DmOrderTO beforeOrderTO = null;
-		DmOrderTO afterOrderTO = null;
-		// get the order of the content before
-		// if the path is not provided, the order is 0
-		if (!isEmpty(before)) {
-			ContentItemTO beforeItem = getContentItem(site, before, 0);
-			beforeOrder = beforeItem.getOrder(orderName);
-			beforeOrderTO = new DmOrderTO();
-			beforeOrderTO.setId(before);
-			if (beforeOrder != null && beforeOrder > 0) {
-				beforeOrderTO.setOrder(beforeOrder);
-			}
-		}
-		// get the order of the content after
-		// if the path is not provided, the order is the order of before +
-		// ORDER_INCREMENT
-		if (!isEmpty(after)) {
-			ContentItemTO afterItem = getContentItem(site, after, 0);
-			afterOrder = afterItem.getOrder(orderName);
-			afterOrderTO = new DmOrderTO();
-			afterOrderTO.setId(after);
-			if (afterOrder != null && afterOrder > 0) {
-				afterOrderTO.setOrder(afterOrder);
-			}
-		}
-
-		// if no after and before provided, the initial value is ORDER_INCREMENT
-		if (afterOrder == null && beforeOrder == null) {
-			return dmPageNavigationOrderService.getNewNavOrder(site,
-				ContentUtils.getParentUrl(relativePath));
-		} else if (beforeOrder == null) {
-			return (0 + afterOrder) / 2;
-		} else if (afterOrder == null) {
-			return dmPageNavigationOrderService.getNewNavOrder(site,
-				ContentUtils.getParentUrl(relativePath), beforeOrder);
-		} else {
-			//return (beforeOrder + afterOrder) / 2;
-			return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);
-		}
-	}
-
 	/**
 	 * Will need to include the floating pages as well for orderValue computation
 	 * Since the beforeOrder and afterOrder in the UI does not include floating pages will need to do special processing
@@ -866,11 +814,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 	public void setServicesConfig(ServicesConfig servicesConfig) {
 		this.servicesConfig = servicesConfig;
-	}
-
-	@SuppressWarnings("unused")
-	public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
-		this.dmPageNavigationOrderService = dmPageNavigationOrderService;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

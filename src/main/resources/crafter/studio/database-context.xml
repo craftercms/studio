@@ -120,11 +120,6 @@
 		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
 	</bean>
 
-	<bean id="navigationOrderSequenceMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
-		<property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper"/>
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
-	</bean>
-
 	<bean id="remoteRepositoryDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
 		<property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryDAO"/>
 		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>

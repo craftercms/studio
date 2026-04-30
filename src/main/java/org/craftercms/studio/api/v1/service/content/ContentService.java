@@ -50,7 +50,4 @@ public interface ContentService {
 
 	List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 
-	double reorderItems(String site, String relativePath, String before, String after, String orderName)
-		throws ServiceLayerException;
-
 }
