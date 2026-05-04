@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -192,6 +192,9 @@ public final class StudioConstants {
 	// Content Lifecycle controller
 	public static final String CONTENT_LIFECYCLE_INCLUDE_APPLICATION_CONTEXT = "studio.contentProcessor.contentLifecycle.includeApplicationContext";
 	public static final String CONTENT_LIFECYCLE_INCLUDED_BEANS = "studio.contentProcessor.contentLifecycle.includedBeans";
+
+	// Content items xml
+	public final static String INTERNAL_NAME_XPATH = "/*[1]/internal-name";
 
 	private StudioConstants() {
 	}

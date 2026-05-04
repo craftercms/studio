@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -173,7 +173,18 @@ public class ContentUtils {
 	 * @param value    new text value of the node, if found
 	 */
 	public static void updateSingleDocumentNode(final Element root, final String nodeName, final String value) {
-		Node node = root.selectSingleNode(format("//%s", nodeName));
+		updateSingleDocumentFromXPath(root, format("//%s", nodeName), value);
+	}
+
+	/**
+	 * Helper method to update a single node element with the indicated value, using the provided XPath expression to select the node to update.
+	 *
+	 * @param root  root element
+	 * @param xpath XPath expression to select the node to update
+	 * @param value new text value of the node, if found
+	 */
+	public static void updateSingleDocumentFromXPath(final Element root, final String xpath, final String value) {
+		Node node = root.selectSingleNode(xpath);
 		if (node != null) {
 			node.setText(value);
 		}
@@ -187,7 +198,18 @@ public class ContentUtils {
 	 * @return the text of the node, or null if the node is not found
 	 */
 	public static String readSingleDocumentNodeText(final Element root, final String nodeName) {
-		Node node = root.selectSingleNode(format("//%s", nodeName));
+		return readSingleDocumentFromXPath(root, format("//%s", nodeName));
+	}
+
+	/**
+	 * Reads the text of a single node in a document, using the provided XPath expression.
+	 *
+	 * @param root  root element of the document
+	 * @param xpath XPath expression to select the node to read
+	 * @return the text of the node, or null if the node is not found
+	 */
+	public static String readSingleDocumentFromXPath(final Element root, final String xpath) {
+		Node node = root.selectSingleNode(xpath);
 		if (node != null) {
 			return node.getText();
 		}
