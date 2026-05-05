@@ -194,7 +194,7 @@ public final class StudioConstants {
 	public static final String CONTENT_LIFECYCLE_INCLUDED_BEANS = "studio.contentProcessor.contentLifecycle.includedBeans";
 
 	// Content items xml
-	public final static String INTERNAL_NAME_XPATH = "/*[1]/internal-name";
+	public static final String INTERNAL_NAME_XPATH = "/*[1]/internal-name";
 
 	private StudioConstants() {
 	}
