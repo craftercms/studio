@@ -1137,7 +1137,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     if (movedDocument != null) {
                         Element root = movedDocument.getRootElement();
                         updateContentOnMove(root, moveFileName, movePathMap.fileFolder, movePathMap.modifier);
-                        targetLabel = root.selectSingleNode(INTERNAL_NAME_XPATH).getText();
+                        Node internalNameNode = root.selectSingleNode(INTERNAL_NAME_XPATH);
+                        if (internalNameNode != null) {
+                            targetLabel = internalNameNode.getText();
+                        }
                     }
                 }
 
