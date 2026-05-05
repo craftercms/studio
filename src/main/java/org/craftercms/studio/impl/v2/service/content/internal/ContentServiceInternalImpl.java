@@ -94,7 +94,6 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2243,7 +2242,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				String folder = FilenameUtils.getBaseName(CS.removeEnd(path, SLASH_INDEX_FILE));
 				updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
 			}
-			updateSingleDocumentNode(root, ELM_INTERNAL_NAME, newLabel);
+			updateSingleDocumentFromXPath(root, INTERNAL_NAME_XPATH, newLabel);
 		}
 
 		return copyDependencies;
@@ -2459,7 +2458,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		if (isDescriptor(itemPath) && contentExists(siteId, itemPath)) {
 			Document document = getItemDescriptor(siteId, itemPath, false);
 			Element root = document.getRootElement();
-			oldLabel = readSingleDocumentNodeText(root, ELM_INTERNAL_NAME);
+			oldLabel = readSingleDocumentFromXPath(root, INTERNAL_NAME_XPATH);
 		}
 		if (isNotEmpty(oldLabel)) {
 			String baseLabel = oldLabel.replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
