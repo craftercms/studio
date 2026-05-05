@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -64,7 +64,6 @@ import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamService
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.policy.PolicyService;
 import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -1138,7 +1137,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     if (movedDocument != null) {
                         Element root = movedDocument.getRootElement();
                         updateContentOnMove(root, moveFileName, movePathMap.fileFolder, movePathMap.modifier);
-                        targetLabel = root.selectSingleNode(format("//%s", ELM_INTERNAL_NAME)).getText();
+                        Node internalNameNode = root.selectSingleNode(INTERNAL_NAME_XPATH);
+                        if (internalNameNode != null) {
+                            targetLabel = internalNameNode.getText();
+                        }
                     }
                 }
 
@@ -1544,7 +1546,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
 
         if (StringUtils.isNotEmpty(modifier)) {
-            Node internalNameNode = root.selectSingleNode("//" + ELM_INTERNAL_NAME);
+            Node internalNameNode = root.selectSingleNode(INTERNAL_NAME_XPATH);
             if (internalNameNode != null) {
                 String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
                 internalNameNode.setText(format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));
@@ -1573,8 +1575,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             pageIdNode.setText(params.get(KEY_PAGE_ID));
         }
 
-        if(StringUtils.isNotEmpty(modifier)) {
-            Node internalNameNode = root.selectSingleNode("//" + ELM_INTERNAL_NAME);
+        if (StringUtils.isNotEmpty(modifier)) {
+            Node internalNameNode = root.selectSingleNode(INTERNAL_NAME_XPATH);
             if (internalNameNode != null) {
                 String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
                 internalNameNode.setText(format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));

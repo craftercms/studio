@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -28,7 +28,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -50,7 +50,6 @@ import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 public class ItemServiceInternalImpl implements ItemServiceInternal {
     // TODO: SJ: Add logging to this class
 
-    public final static String INTERNAL_NAME = "/*[1]/internal-name";
     public final static String CONTENT_TYPE = "/*[1]/content-type";
     public final static String DISABLED = "/*[1]/disabled";
     public final static String LOCALE_CODE = "/*[1]/locale-code";
@@ -59,7 +58,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     private SiteDAO siteDao;
     private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
-    private ContentServiceInternal contentServiceInternal;
+    private ContentRepository contentRepository;
     private ContentService contentService;
     private GeneralLockService generalLockService;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
@@ -244,10 +243,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         generalLockService.lock(lockKey);
         try {
             User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-            var descriptor = contentServiceInternal.getItem(siteId, path, false);
+            var descriptor = contentRepository.getItem(siteId, path, false);
             String disabledStr = descriptor.queryDescriptorValue(DISABLED);
             boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
-            String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+            String label = descriptor.queryDescriptorValue(INTERNAL_NAME_XPATH);
             if (StringUtils.isEmpty(label)) {
                 label = FilenameUtils.getName(path);
             }
@@ -262,7 +261,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                     .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
                     .withMimeType(StudioUtils.getMimeType(path))
                     .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
-                    .withSize(contentServiceInternal.getContentSize(siteId, path))
+                    .withSize(contentRepository.getContentSize(siteId, path))
                     .withParentId(parentId)
                     .build();
             if (unlock) {
@@ -284,10 +283,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public void persistItemAfterWrite(String siteId, String path, String username, String commitId, boolean unlock)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-        var descriptor = contentServiceInternal.getItem(siteId, path, false);
+        var descriptor = contentRepository.getItem(siteId, path, false);
         String disabledStr = descriptor.queryDescriptorValue(DISABLED);
         boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
-        String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+        String label = descriptor.queryDescriptorValue(INTERNAL_NAME_XPATH);
         if (StringUtils.isEmpty(label)) {
             label = FilenameUtils.getName(path);
         }
@@ -300,7 +299,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
                 .withMimeType(StudioUtils.getMimeType(path))
                 .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
-                .withSize(contentServiceInternal.getContentSize(siteId, path))
+                .withSize(contentRepository.getContentSize(siteId, path))
                 .build();
         if (unlock) {
             item.setState(ItemState.savedAndClosed(item.getState()));
@@ -574,8 +573,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         this.servicesConfig = servicesConfig;
     }
 
-    public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
-        this.contentServiceInternal = contentServiceInternal;
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
     }
 
     public void setContentService(ContentService contentService) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -249,6 +249,9 @@ public final class StudioConstants {
     // File extensions
     public final static String SQL_SCRIPT_SUFFIX = ".sql";
     public final static String TMP_FILE_SUFFIX = ".tmp";
+
+    // Content items xml
+    public final static String INTERNAL_NAME_XPATH = "/*[1]/internal-name";
 
     private StudioConstants() {
     }
