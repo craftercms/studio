@@ -3738,7 +3738,7 @@ paths:
                                 properties:
                                     response:
                                         $ref: '#/components/schemas/ApiResponse'
-                                    dependencies:
+                                    usage:
                                         type: object
                                         properties:
                                             templates:
