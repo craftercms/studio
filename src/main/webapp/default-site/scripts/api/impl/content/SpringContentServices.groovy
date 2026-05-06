@@ -31,16 +31,6 @@ class SpringContentServices {
 	}
 
 	/**
-	 * get the tree of content items (metadata) beginning at a root
-	 * @param site - the project ID
-	 * @param rootPath - the path to root at
-	 */
-	def getContentItemTree(site, path, depth) {
-		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-		return springBackedService.getContentItemTree(site, path, depth)
-	}
-
-	/**
 	 * get content orders for a given path (usually used for navigation)
 	 * @param site - the project ID
 	 * @param path - the parent path containing the ordered objects

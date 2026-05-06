@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,10 +20,16 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,9 +38,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.List;
+
 import static org.craftercms.studio.model.clipboard.Operation.COPY;
 import static org.craftercms.studio.model.clipboard.Operation.CUT;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -51,6 +60,15 @@ public class ClipboardServiceInternalImplTest {
 
 	@Mock
 	private org.craftercms.studio.api.v2.service.content.ContentService contentService;
+
+	@Mock
+	private GeneralLockService generalLockService;
+
+	@Mock
+	private PublishService publishService;
+
+	@Mock
+	private SitesService sitesService;
 
 	@InjectMocks
 	private ClipboardServiceInternalImpl service;
@@ -71,6 +89,8 @@ public class ClipboardServiceInternalImplTest {
 		for (String existingPath : getExistingPaths()) {
 			when(contentService.contentExists(SITE_ID, existingPath)).thenReturn(true);
 		}
+
+		when(sitesService.getSite(SITE_ID)).thenReturn(mock(Site.class));
 	}
 
 	private String[] getPagePaths() {
@@ -316,4 +336,21 @@ public class ClipboardServiceInternalImplTest {
 		verify(contentService).duplicate(eq(SITE_ID), eq(path));
 	}
 
+	@Test
+	public void copyPasteTest() throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+		String path = "/site/website/style/index.xml";
+		when(contentService.copy(any(), any(), any(), any())).thenReturn(mock(PasteContentResult.class));
+		assertDoesNotThrow(() -> service.pasteItems(SITE_ID, COPY, "/site/website/articles", path, true));
+	}
+
+	@Test
+	public void cutPasteTest() throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+		String path = "/site/website/style/index.xml";
+
+		when(publishService.getActivePackagesForItems(SITE_ID, List.of(path), true)).thenReturn(List.of(mock(PublishPackage.class)));
+
+		assertThrows(ContentInPublishQueueException.class,
+				() -> service.pasteItems(SITE_ID, CUT, "/site/website/articles", path, true),
+				"It should fail because the item is part of an active publish package");
+	}
 }

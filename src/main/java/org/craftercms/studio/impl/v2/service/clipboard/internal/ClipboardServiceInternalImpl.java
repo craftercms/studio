@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.annotation.ContentPath;
 import org.craftercms.studio.api.v2.annotation.RequireContentExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
@@ -32,9 +33,9 @@ import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.clipboard.Operation;
-import org.craftercms.studio.model.clipboard.PasteItem;
 import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.slf4j.Logger;
@@ -69,18 +70,22 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 	protected final GeneralLockService generalLockService;
 	protected final ContentService contentService;
 	protected final GitContentRepository contentRepository;
+	protected final SitesService sitesService;
 
 	@ConstructorProperties({"contentRepository",
 			"publishService", "itemService",
-			"generalLockService", "contentService"})
+			"generalLockService", "contentService",
+			"sitesService"})
 	public ClipboardServiceInternalImpl(GitContentRepository contentRepository,
 										PublishService publishService, ItemService itemService,
-										GeneralLockService generalLockService, ContentService contentService) {
+										GeneralLockService generalLockService, ContentService contentService,
+										SitesService sitesService) {
 		this.contentRepository = contentRepository;
 		this.publishService = publishService;
 		this.itemService = itemService;
 		this.generalLockService = generalLockService;
 		this.contentService = contentService;
+		this.sitesService = sitesService;
 	}
 
 	protected void validatePasteItemsAction(final String siteId, Operation operation, final String sourcePath, final String targetPath)
@@ -132,26 +137,26 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 	}
 
 	@Override
-	public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
+	public List<String> pasteItems(String siteId, Operation operation, String targetPath, String sourcePath, boolean includeChildren)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		// Lock the sandbox repository to prevent publish packages being submitted (cut-paste operations might conflict with submitted packages)
 		String sandboxRepoLockKey = getSandboxRepoLockKey(siteId);
 		generalLockService.lock(sandboxRepoLockKey);
 		try {
-			validatePasteItemsAction(siteId, operation, item.getPath(), targetPath);
+			validatePasteItemsAction(siteId, operation, sourcePath, targetPath);
 			var pastedItems = new LinkedList<String>();
 
 			switch (operation) {
 				case COPY:
-					pastedItems.addAll(copyPasteItems(siteId, targetPath, item));
+					pastedItems.addAll(copyPasteItems(siteId, targetPath, sourcePath, includeChildren));
 					break;
 				case CUT:
-					PasteContentResult moveResult = contentService.moveToParentPath(siteId, item.getPath(), targetPath);
+					PasteContentResult moveResult = contentService.moveToParentPath(siteId, sourcePath, targetPath);
 					pastedItems.add(moveResult.getTargetPath());
 					break;
 			}
 			logger.trace("'{}' items pasted in site '{}' from '{}' to '{}'",
-					pastedItems.size(), siteId, item.getPath(), targetPath);
+					pastedItems.size(), siteId, sourcePath, targetPath);
 			return pastedItems;
 		} finally {
 			generalLockService.unlock(sandboxRepoLockKey);
@@ -161,30 +166,25 @@ public class ClipboardServiceInternalImpl implements ClipboardService {
 	/**
 	 * Performs a copy-paste operation.
 	 *
-	 * @param siteId     the site id
-	 * @param targetPath the target path where the item will be pasted
-	 * @param item       the item to be copied and pasted, containing its children, if any
+	 * @param siteId          the site id
+	 * @param targetPath      the target path where the item will be pasted
+	 * @param sourcePath      the source path of the item to be copied
+	 * @param includeChildren whether to include children of the source item in the operation (applies to copy only)
 	 * @return a list of new full paths of the pasted items
 	 * @throws ServiceLayerException if an error occurs while performing the copy-paste operation
 	 * @throws UserNotFoundException if the user performing the operation is not found
 	 */
-	protected List<String> copyPasteItems(String siteId, String targetPath, PasteItem item)
+	protected List<String> copyPasteItems(String siteId, String targetPath, String sourcePath, boolean includeChildren)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
-		Stack<PasteItem> itemsToCopy = new Stack<>();
-		itemsToCopy.push(item);
 		Set<String> copyPaths = new HashSet<>();
+		copyPaths.add(sourcePath);
 
-		while (!itemsToCopy.empty()) {
-			PasteItem topItem = itemsToCopy.pop();
-			copyPaths.add(topItem.getPath());
-			if (isNotEmpty(topItem.getChildren())) {
-				for (PasteItem child : topItem.getChildren()) {
-					itemsToCopy.push(child);
-				}
-			}
+		if (includeChildren) {
+			Site site = sitesService.getSite(siteId);
+			copyPaths.addAll(itemService.getChildrenPaths(site.getId(), sourcePath));
 		}
 
-		PasteContentResult copyResult = contentService.copy(siteId, item.getPath(), targetPath, copyPaths);
+		PasteContentResult copyResult = contentService.copy(siteId, sourcePath, targetPath, copyPaths);
 		return copyResult.getItems().stream()
 				.map(WriteContentResult.WriteContentResultItem::path)
 				.toList();

@@ -175,6 +175,7 @@
 		<constructor-arg name="publishService" ref="publishServiceInternal"/>
 		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="contentRepository" ref="contentRepository"/>
+		<constructor-arg name="sitesService" ref="sitesServiceInternal"/>
 	</bean>
 
 	<bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
