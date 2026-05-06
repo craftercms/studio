@@ -20,10 +20,13 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +55,12 @@ public class ClipboardServiceInternalImplTest {
 	@Mock
 	private org.craftercms.studio.api.v2.service.content.ContentService contentService;
 
+	@Mock
+	private GeneralLockService generalLockService;
+
+	@Mock
+	private SitesService sitesService;
+
 	@InjectMocks
 	private ClipboardServiceInternalImpl service;
 
@@ -71,6 +80,8 @@ public class ClipboardServiceInternalImplTest {
 		for (String existingPath : getExistingPaths()) {
 			when(contentService.contentExists(SITE_ID, existingPath)).thenReturn(true);
 		}
+
+		when(sitesService.getSite(SITE_ID)).thenReturn(mock(Site.class));
 	}
 
 	private String[] getPagePaths() {
@@ -314,6 +325,13 @@ public class ClipboardServiceInternalImplTest {
 		service.duplicateItem(SITE_ID, path);
 		// The duplicate is delegated to the content service
 		verify(contentService).duplicate(eq(SITE_ID), eq(path));
+	}
+
+	@Test
+	public void pasteTest() throws UserNotFoundException, AuthenticationException, ServiceLayerException {
+		String path = "/site/website/style/index.xml";
+		when(contentService.copy(any(), any(), any(), any())).thenReturn(mock(PasteContentResult.class));
+		assertDoesNotThrow(() -> service.pasteItems(SITE_ID, COPY, "/site/website/articles", path, true));
 	}
 
 }
