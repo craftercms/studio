@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,13 +16,12 @@
 
 package scripts.api
 
-import scripts.libs.Cookies
 import scripts.api.impl.content.SpringContentServices
-import scripts.api.impl.content.SpringContentTypeServices
 import scripts.api.impl.content.SpringPageNavigationOrderServices
 import scripts.api.impl.security.SpringSecurityServices
 import scripts.api.impl.site.SpringSiteServices
 import scripts.api.impl.user.SpringUserServices
+import scripts.libs.Cookies
 
 /**
  * Class is a factory used by the API wrappers to find their implementation
@@ -51,13 +50,6 @@ class ServiceFactory {
 	 */
 	static getContentServices(context) {
 		return new SpringContentServices(context)
-	}
-
-	/**
-	 * return the implementation for content type services
-	 */
-	static getContentTypeServices(context) {
-		return new SpringContentTypeServices(context)
 	}
 
 	/**

@@ -164,6 +164,20 @@ public final class RequestMappingConstants {
 	 */
 	public static final String MONITOR = "/monitor";
 
+	/**
+	 * Configuration Controller
+	 */
+	public static final String CONFIGURATION = "/configuration";
+	public static final String CLEAR_CACHE = "/clear_cache";
+	public static final String GET_CONFIGURATION = "/get_configuration";
+	public static final String WRITE_CONFIGURATION = "/write_configuration";
+	public static final String GET_CONFIGURATION_HISTORY = "/get_configuration_history";
+	public static final String TRANSLATION = "/translation";
+	public static final String CONTENT_TYPES = "/content_types";
+	public static final String USAGE = "/usage";
+	public static final String PREVIEW_IMAGE = "/preview_image";
+	public static final String FORM_CONTROLLER = "/form_controller";
+	public static final String ALLOWED_TYPES = "/allowed_types";
 
 	private RequestMappingConstants() {
 	}

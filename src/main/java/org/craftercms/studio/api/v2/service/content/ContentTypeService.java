@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,9 +17,11 @@ package org.craftercms.studio.api.v2.service.content;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
@@ -109,4 +111,30 @@ public interface ContentTypeService {
 	 * @return List of quick creatable content types
 	 */
 	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException;
+
+	/**
+	 * Get all content types for the given site.
+	 * @param siteId the id of the site
+	 * @return a collection of content types
+	 * @throws SiteNotFoundException if the site with the given id does not exist
+	 */
+	Collection<ContentType> getAllContentTypes(String siteId) throws ServiceLayerException;
+
+	/**
+	 * Get the content type configuration for a given content type id
+	 *
+	 * @param siteId        the id of the site
+	 * @param contentTypeId the id of the content type
+	 * @return the content type configuration
+	 */
+	ContentType getContentType(String siteId, String contentTypeId) throws ServiceLayerException;
+
+	/**
+	 * Get a collection of the ids of the content types allowed for the given site and path
+	 *
+	 * @param siteId the id of the site
+	 * @param path   the path of the content item to be created
+	 * @return a collection of the ids of the content types allowed for the given site and path
+	 */
+	Collection<String> getAllowedContentTypes(String siteId, String path) throws ServiceLayerException;
 }

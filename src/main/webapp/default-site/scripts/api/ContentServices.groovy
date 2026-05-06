@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -64,11 +64,6 @@ class ContentServices {
 	static getContentVersionAtPath(site, path, version, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.getContentVersionAtPath(site, path, version)
-	}
-
-	static getContentType(context, site, type) {
-		def contentTypeServicesImpl = ServiceFactory.getContentTypeServices(context);
-		return contentTypeServicesImpl.getContentType(site, type)
 	}
 
 	static reorderItems(context, site, path, before, after) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,21 +16,19 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.commons.upgrade.exception.UpgradeException;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
-
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
-
-import javax.sql.DataSource;
 
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 
@@ -54,7 +52,7 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
 
 	protected String regex;
 
-	public BatchXsltFileUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
+	public BatchXsltFileUpgradeOperation(StudioConfiguration studioConfiguration) {
 		super(studioConfiguration);
 	}
 
@@ -64,24 +62,33 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
 		regex = config.getString(CONFIG_KEY_REGEX);
 	}
 
+	/**
+	 * Finds all files in the repository that match the regex.
+	 *
+	 * @param repository the repository path
+	 * @return a stream of paths that match the regex
+	 * @throws IOException if an error occurs while searching for files
+	 */
+	public Stream<Path> getPaths(Path repository) throws IOException {
+		return Files.find(repository, Integer.MAX_VALUE,
+				(path, attrs) -> repository.relativize(path).toString().matches(regex));
+	}
+
 	@Override
 	public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
 		var site = context.getTarget();
 		logger.debug("Find files that match the regex '{}' in site '{}'", regex, site);
 		Path repository = context.getRepositoryPath();
-		try (Stream<Path> paths = Files.find(repository, Integer.MAX_VALUE,
-			(path, attrs) -> repository.relativize(path).toString().matches(regex))) {
+		try (Stream<Path> paths = getPaths(repository)) {
 			paths.forEach(path -> {
 				logger.debug("Execute the XSLT template against site '{}' path '{}'", site, path);
 				try {
-					Path temp = Files.createTempFile(getStudioTemporaryFilesRoot(), "upgrade-manager", "xslt");
+					Path temp = Files.createTempFile(getStudioTemporaryFilesRoot(), "upgrade-manager", ".xslt");
 					try {
 						OutputStream os = Files.newOutputStream(temp);
 						executeTemplate(context, repository.relativize(path).toString(), os);
 						os.close();
-						if (Files.size(temp) > 0) {
-							Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING);
-						}
+						replaceFile(path, temp);
 					} finally {
 						Files.deleteIfExists(temp);
 					}
@@ -91,6 +98,19 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
 			});
 		} catch (IOException e) {
 			throw new UpgradeException("Error searching for files in site " + site, e);
+		}
+	}
+
+	/**
+	 * Replaces the original file with the transformed file if the transformed file is not empty.
+	 *
+	 * @param path the original file path
+	 * @param temp the transformed file path
+	 * @throws IOException if an error occurs while replacing the file
+	 */
+	protected void replaceFile(Path path, Path temp) throws IOException {
+		if (Files.size(temp) > 0) {
+			Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING);
 		}
 	}
 

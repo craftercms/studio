@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.model.contentType.ContentType;
 import org.dom4j.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import static org.apache.commons.io.FilenameUtils.directoryContains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -116,6 +118,7 @@ public abstract class StudioUtils {
 	 * @throws IOException if an error occurs while creating the file
 	 */
 	public static Path createTempFile(String name) throws IOException {
+		Files.createDirectories(getStudioTemporaryFilesRoot());
 		return Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), "." +
 			FilenameUtils.getExtension(name));
 	}
@@ -239,5 +242,25 @@ public abstract class StudioUtils {
 	 */
 	public static String movePath(String sourceRoot, String targetRoot, String sourcePath) {
 		return Path.of(targetRoot).resolve(Path.of(sourceRoot).relativize(Path.of(sourcePath))).toString();
+	}
+
+	/**
+	 * Get the content type type by its id, which is determined by the content type naming convention.
+	 *
+	 * @param contentTypeId the content type id to check
+	 * @return <ul>
+	 * <li><b>component</b> if the name matches component naming convention</li>
+	 * <li><b>page</b> if the name matches page naming convention</li>
+	 * <li><b>unknown</b> if name don't match any known convention</li>
+	 * </ul>
+	 */
+	public static ContentType.Type getContentTypeTypeById(String contentTypeId) {
+		if (Pattern.matches("/component/.*?", contentTypeId)) {
+			return ContentType.Type.component;
+		}
+		if (Pattern.matches("/page/.*?", contentTypeId)){
+			return ContentType.Type.page;
+			}
+		return ContentType.Type.unknown;
 	}
 }

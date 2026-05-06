@@ -2360,95 +2360,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/1/services/api/1/content/get-content-type.json:
-        get:
-            tags:
-                - content
-            summary: Get content type configuration.
-            description: "Required role: N/A"
-            operationId: getContentType
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: type
-                    in: query
-                    schema:
-                        type: string
-                    description: Content type
-                    required: true
-                    example: /page/category-landing
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/ContentType'
-                            example:
-                                name: "/page/category-landing"
-                                label: "Category Landing"
-                                form: "/page/category-landing"
-                                formPath: "simple"
-                                type: "page"
-                                contentAsFolder: true
-                                useRoundedFolder: false
-                                modelInstancePath: "NOT-USED-BY-SIMPLE-FORM-ENGINE"
-                                allowedRoles: [ ]
-                                lastUpdated: "2023-11-10T18:00:05.882948Z"
-                                copyDependencyPattern: [ ]
-                                imageThumbnail: "page-category-landing.png"
-                                noThumbnail: false
-                                pathIncludes: [ "^/site/website/(?!articles/)(.*)" ]
-                                pathExcludes: [ ]
-                                nodeRef: "null"
-                                quickCreate: false
-                                quickCreatePath: ""
-                                deleteDependencyPattern: [ ]
-                                previewable: true
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-
-    /api/1/services/api/1/content/get-content-types.json:
-        get:
-            tags:
-                - content
-            summary: Get content types allowed for given path.
-            description: "Required role: N/A"
-            operationId: getContentTypes
-            parameters:
-                -   name: site
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path to get content types for
-                    required: true
-                    example: /site/website/
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: '#/components/schemas/ContentType'
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-
     /api/1/services/api/1/content/get-item-orders.json:
         get:
             tags:
@@ -3887,16 +3798,16 @@ paths:
     #       '403':
     #         $ref: '#/components/responses/Forbidden'
 
-    /api/2/configuration/content-type/usage:
+    /api/2/configuration/content_types/{siteId}/usage:
         get:
             tags:
-                - configuration
+                - contentTypes
             summary: Get all usage of a given content-type
             description: 'Required permission "content_read"'
             operationId: getContentTypeUsage
             parameters:
                 -   name: siteId
-                    in: query
+                    in: path
                     description: site ID
                     required: true
                     schema:
@@ -3941,16 +3852,16 @@ paths:
                 '403':
                     $ref: '#/components/responses/Forbidden'
 
-    /api/2/configuration/content-type/preview_image:
+    /api/2/configuration/content_types/{siteId}/preview_image:
         get:
             tags:
-                - configuration
+                - contentTypes
             summary: Get preview image of a given content type
             description: 'Required permission "content_read"'
             operationId: getContentTypePreviewImage
             parameters:
                 -   name: siteId
-                    in: query
+                    in: path
                     description: site ID
                     required: true
                     schema:
@@ -3988,16 +3899,150 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/2/configuration/content-type/form_controller:
+    /api/2/configuration/content_types/{siteId}/allowed_types:
         get:
             tags:
-                - configuration
+                - contentTypes
+            summary: Get allowed content types for a given site at a given path
+            description: 'Required permission "content_read"'
+            operationId: getAllowedContentTypes
+            parameters:
+                - name: siteId
+                  in: path
+                  description: site ID
+                  required: true
+                  schema:
+                    type: string
+                - name: path
+                  in: query
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    allowedTypes:
+                                        type: array
+                                        items:
+                                            type: string
+                                        example:
+                                            - "page/article"
+                                            - "page/news"
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /api/2/configuration/content_types/{siteId}:
+        get:
+            tags:
+                - contentTypes
+            summary: Get content type configuration file for a given content type. It gets all content types if no contentTypeId is provided
+            description: 'Required permission "content_read"'
+            operationId: getContentTypeConfiguration
+            parameters:
+                - name: siteId
+                  in: path
+                  description: site ID
+                  required: true
+                  schema:
+                    type: string
+                - name: contentTypeId
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    contentTypes:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/ContentType'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+        delete:
+            tags:
+                - contentTypes
+            summary: Delete files related to a given content-type
+            description: 'Required permission "write_configuration"'
+            operationId: deleteContentType
+            parameters:
+                - name: siteId
+                  in: path
+                  description: site ID
+                  required: true
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                contentType:
+                                    type: string
+                                    description: The content-type to delete
+                                deleteDependencies:
+                                    type: boolean
+                                    description: Indicates if all dependencies of the content-type should be deleted (defaults to false)
+                            required:
+                                - contentType
+            responses:
+                '200':
+                    description: Deleted
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+
+    /api/2/configuration/content_types/{siteId}/form_controller:
+        get:
+            tags:
+                - contentTypes
             summary: Get the form controller (if it exists) script of a given content type
             description: 'Required permission "content_read"'
             operationId: getContentTypeFormController
             parameters:
                 - name: siteId
-                  in: query
+                  in: path
                   description: site ID
                   required: true
                   schema:
@@ -4034,49 +4079,6 @@ paths:
                     $ref: '#/components/responses/NotFound'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
-
-    /api/2/configuration/content-type/delete:
-        post:
-            tags:
-                - configuration
-            summary: Delete files related to a given content-type
-            description: 'Required permission "write_configuration"'
-            operationId: deleteContentType
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            type: object
-                            properties:
-                                siteId:
-                                    type: string
-                                    description: The id of the site
-                                contentType:
-                                    type: string
-                                    description: The content-type to delete
-                                deleteDependencies:
-                                    type: boolean
-                                    description: Indicates if all dependencies of the content-type should be deleted (defaults to false)
-                            required:
-                                - siteId
-                                - contentType
-            responses:
-                '200':
-                    description: Deleted
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    response:
-                                        $ref: '#/components/schemas/ApiResponse'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '403':
-                    $ref: '#/components/responses/Forbidden'
-
 
     /api/2/plugin/file:
         # Override the server to change the prefix
@@ -8260,6 +8262,7 @@ components:
                   * `CODE:` 52004, `MESSAGE:` S3 FORBIDDEN, `REMEDIAL ACTION:` Check your AWS credentials
                   * `CODE:` 52005, `MESSAGE:` S3 key not found, `REMEDIAL ACTION:` Check your network configuration and S3 availability
                   * `CODE:` 53000, `MESSAGE:` Logger not found, `REMEDIAL ACTION:` Check if you sent in the right logger name or add 'createIfAbsent=true' parameter to create the logger if it does not exist
+                  * `CODE:` 54000, `MESSAGE:` The content type cannot be deleted because it is still in use by content items, `REMEDIAL ACTION:` Check if you sent in the right content type id or add 'deleteDependencies' to force delete
             properties:
                 code:
                     type: integer
@@ -10515,77 +10518,79 @@ components:
 
         ContentType:
             type: object
+            description: Represents a content type in the system.
             properties:
-                name:
+                id:
                     type: string
-                    description: The site content name
+                    description: Unique identifier for the content type.
                 label:
                     type: string
-                    description: The content type display name
-                form:
-                    type: string
-                    description: The content type form
-                formPath:
-                    type: string
-                    description: The content type form path
+                    description: Human-readable label for the content type.
                 type:
                     type: string
-                    description: The type, e.g. page, component, etc
-                contentAsFolder:
-                    type: boolean
-                    description: "Indicates whether to create content in a folder wrapper e.g. pageUrl: 101 means 101\\/index.xml instead of 101.xml"
-                useRoundedFolder:
-                    type: boolean
-                    description: Indicates whether use rounded folder to arrange content
-                modelInstancePath:
-                    type: string
-                    description: The path to the model instance file (WCM)
+                    description: The type of content.
+                    enum: [PAGE, COMPONENT, UNKNOWN]
                 allowedRoles:
                     type: array
+                    description: Set of roles allowed to access this content type.
                     items:
-                        type: string
-                    description: The list of roles allowed
-                lastUpdated:
-                    type: string
-                    description: The date the content type was last updated
-                copyDependencyPattern:
+                        type: object
+                        description: Role allowed to access the content type.
+                        properties:
+                            name:
+                                type: string
+                                description: Name of the role.
+                deleteDependencies:
                     type: array
+                    description: List of dependencies to delete with this content type.
                     items:
-                        type: string
-                    description: The list of copy association patterns
+                        type: object
+                        description: Dependency to delete with the content type.
+                        properties:
+                            pattern:
+                                type: string
+                                description: Pattern for the dependency to delete.
+                            removeEmptyFolder:
+                                type: boolean
+                                description: Whether to remove the folder if it becomes empty after deletion.
+                copyDependencies:
+                    type: array
+                    description: List of dependencies to copy with this content type.
+                    items:
+                        type: object
+                        description: Dependency to copy with the content type.
+                        properties:
+                            pattern:
+                                type: string
+                                description: Pattern for the dependency to copy.
+                            target:
+                                type: string
+                                description: Target path for the copied dependency.
+                previewable:
+                    type: boolean
+                    description: Whether the content type is previewable.
                 imageThumbnail:
                     type: string
-                    description: The thumbnail image file to be displayed
+                    description: Path or URL to the thumbnail image.
                 noThumbnail:
                     type: boolean
-                    description: Indicates whether content type has a thumbnail
+                    description: Whether the content type has no thumbnail.
                 pathIncludes:
                     type: array
                     items:
                         type: string
-                    description: The the list of included paths
+                    description: List of path patterns to include.
                 pathExcludes:
                     type: array
                     items:
                         type: string
-                    description: The the list of excluded paths
-                nodeRef:
-                    type: string
-                    description: The configuration noderef this content type is associated with
+                    description: List of path patterns to exclude.
                 quickCreate:
                     type: boolean
-                    description: Indicates whether the content type is available from the quick create button
+                    description: Whether quick create is enabled for this content type.
                 quickCreatePath:
                     type: string
-                    description: The destination path pattern of content type
-                deleteDependencyPattern:
-                    type: array
-                    items:
-                        type: string
-                    description: The list of delete association patterns that this content type is dependent on for deleting indexes in webproject
-                previewable:
-                    type: boolean
-                    description: Indicates whether the content type is previewable
+                    description: Path to use for quick create.
 
         ContentItemV1:
             type: object

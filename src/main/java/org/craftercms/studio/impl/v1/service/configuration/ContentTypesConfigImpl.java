@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
@@ -51,6 +52,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getContentTypeTypeById;
 
 /**
  * @author Dejan Brkic
@@ -127,7 +129,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
 					loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
 					loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
 					contentTypeConfig.setLastUpdated(DateUtils.getCurrentTime());
-					contentTypeConfig.setType(getContentTypeTypeByName(name));
+					contentTypeConfig.setType(getContentTypeTypeById(name).name());
 					boolean quickCreate = ContentFormatUtils.getBooleanValue(root.valueOf(QUICK_CREATE));
 					contentTypeConfig.setQuickCreate(quickCreate);
 					contentTypeConfig.setQuickCreatePath(root.valueOf(QUICK_CREATE_PATH));
@@ -169,26 +171,6 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
 				}
 			}
 			contentTypeConfig.setDeleteDependencies(deleteConfigs);
-		}
-	}
-
-	/**
-	 * Checks name for naming convention.
-	 *
-	 * @param name Name to be check
-	 * @return <ul>
-	 * <li><b>component</b> if the name matches component naming convention</li>
-	 * <li><b>page</b> if the name matches page naming convention</li>
-	 * <li><b>unknown</b> if name don't match any known convention</li>
-	 * </ul>
-	 */
-	private String getContentTypeTypeByName(String name) {
-		if (Pattern.matches("/component/.*?", name)) {
-			return "component";
-		} else if (Pattern.matches("/page/.*?", name))
-			return "page";
-		else {
-			return "unknown";
 		}
 	}
 

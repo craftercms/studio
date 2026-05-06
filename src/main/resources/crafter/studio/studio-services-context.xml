@@ -425,7 +425,6 @@
 
 	<bean id="contentTypeServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl">
-		<constructor-arg name="cstudioContentTypeService" ref="cstudioContentTypeService"/>
 		<constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
 		<constructor-arg name="configurationService" ref="configurationServiceInternal"/>
 		<constructor-arg name="itemDao" ref="itemDao"/>
@@ -433,8 +432,6 @@
 				 value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configPath')}"/>
 		<constructor-arg name="contentTypeDefinitionFilename"
 				 value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.definitionFileName')}"/>
-		<constructor-arg name="contentTypeConfigFilename"
-				 value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configFileName')}"/>
 		<constructor-arg name="templateXPath"
 				 value="#{studioConfiguration.getProperty('studio.configuration.contentType.template.xpath')}"/>
 		<constructor-arg name="contentTypesRootPath" value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configBasePath')}"/>
@@ -449,6 +446,7 @@
 		<constructor-arg name="formControllerFilePath"
 				 value="#{studioConfiguration.getProperty('studio.configuration.contentType.formControllerFilePath')}" />
 		<constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
+		<constructor-arg name="cache" ref="configurationCache"/>
 		<!-- TODO: Break circular dependency with this bean -->
 		<property name="contentService" ref="contentServiceInternal"/>
 	</bean>
