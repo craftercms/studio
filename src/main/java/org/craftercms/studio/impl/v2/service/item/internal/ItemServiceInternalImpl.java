@@ -40,12 +40,14 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.slf4j.Logger;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.underDescriptorRoot;
@@ -56,7 +58,6 @@ public class ItemServiceInternalImpl implements ItemService {
 	// TODO: SJ: Add logging to this class
 	private static final Logger logger = getLogger(ItemServiceInternalImpl.class);
 
-	public final static String INTERNAL_NAME = "/*[1]/internal-name";
 	public final static String CONTENT_TYPE = "/*[1]/content-type";
 	public final static String DISABLED = "/*[1]/disabled";
 	public final static String LOCALE_CODE = "/*[1]/locale-code";
@@ -151,7 +152,7 @@ public class ItemServiceInternalImpl implements ItemService {
 				var descriptor = contentRepository.getItem(siteId, path, false);
 				String disabledStr = descriptor.queryDescriptorValue(DISABLED);
 				disabled = Boolean.parseBoolean(disabledStr);
-				label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+				label = descriptor.queryDescriptorValue(INTERNAL_NAME_XPATH);
 				contentType = descriptor.queryDescriptorValue(CONTENT_TYPE);
 				localeCode = descriptor.queryDescriptorValue(LOCALE_CODE);
 			} catch (XmlFileParseException e) {
@@ -205,7 +206,7 @@ public class ItemServiceInternalImpl implements ItemService {
 			var descriptor = contentRepository.getItem(siteId, path, false);
 			String disabledStr = descriptor.queryDescriptorValue(DISABLED);
 			disabled = Boolean.parseBoolean(disabledStr);
-			label = descriptor.queryDescriptorValue(INTERNAL_NAME);
+			label = descriptor.queryDescriptorValue(INTERNAL_NAME_XPATH);
 			contentType = descriptor.queryDescriptorValue(CONTENT_TYPE);
 			localeCode = descriptor.queryDescriptorValue(LOCALE_CODE);
 		} catch (XmlFileParseException e) {

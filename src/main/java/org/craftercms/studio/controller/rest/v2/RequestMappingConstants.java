@@ -52,7 +52,7 @@ public final class RequestMappingConstants {
 	public static final String SITE_ID = "/{siteId}";
 	public static final String GET_CHILDREN_BY_PATHS = SITE_ID + "/children";
 	public static final String GET_DESCRIPTOR = "/descriptor";
-	public static final String PASTE_ITEMS = "/paste";
+	public static final String PASTE_ITEMS = SITE_ID + "/paste";
 	public static final String DUPLICATE_ITEM = "/duplicate";
 	public static final String EXISTS = "/exists";
 	public static final String ITEM_BY_PATH = "/item_by_path";
