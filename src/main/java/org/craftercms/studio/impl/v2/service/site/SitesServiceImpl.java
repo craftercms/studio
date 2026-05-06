@@ -48,7 +48,7 @@ import java.beans.ConstructorProperties;
 import java.util.Collection;
 import java.util.List;
 
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {
@@ -81,8 +81,8 @@ public class SitesServiceImpl implements SitesService {
 	public void updateSite(@SiteId String siteId, String name, String description)
 			throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
 
-		String normalizedName = defaultIfEmpty(name, null);
-		String normalizedDescription = defaultIfEmpty(description, null);
+		String normalizedName = defaultIfBlank(name, null);
+		String normalizedDescription = defaultIfBlank(description, null);
 
 		if (normalizedDescription == null && normalizedName == null) {
 			throw new InvalidParametersException("The request needs to include a name or a description");
