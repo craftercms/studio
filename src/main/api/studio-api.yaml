@@ -66,6 +66,10 @@ tags:
         description: Server operations
     -   name: system
         description: System operations
+    -   name: model
+        description: Data models definitions
+    -   name: contentTypes
+        description: Content type operations
 
 paths:
 
