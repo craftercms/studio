@@ -673,7 +673,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			updateItemRow(itemDao, site.getId(),
 				repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
 				repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
-					getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getPath()),
+					getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getMoveToPath()),
 				StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
 				contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
 
