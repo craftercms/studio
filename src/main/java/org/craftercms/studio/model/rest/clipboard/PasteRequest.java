@@ -37,6 +37,7 @@ public class PasteRequest {
 	/**
 	 * The target path
 	 */
+	@NotEmpty
 	@ValidNewContentPath
 	protected String targetPath;
 
