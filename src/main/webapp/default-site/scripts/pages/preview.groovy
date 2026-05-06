@@ -19,10 +19,10 @@ import org.apache.commons.text.StringEscapeUtils
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils
 import scripts.libs.EnvironmentOverrides
 
-def ticket = request.getSession().getValue("alf_ticket");
-def username = request.getSession().getValue("username");
+def ticket = request.getSession().getValue("alf_ticket")
+def username = request.getSession().getValue("username")
 
-def currentUser = SecurityUtils.getCurrentUser();
+def currentUser = SecurityUtils.getCurrentUser()
 
 model.envConfig = EnvironmentOverrides.getMinimalValuesForSite(applicationContext, request)
 model.userEmail = currentUser?.email
