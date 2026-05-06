@@ -213,7 +213,11 @@ public class ApiResponse {
 		"Check if you sent in the right profileId name", StringUtils.EMPTY);
 
 	// 55000 - 56000
-	public static final ApiResponse CONTENT_TYPE_IN_USE = new ApiResponse(55000, "The content type cannot be deleted because it is still in use by content items",
+	public static final ApiResponse MAINTENANCE_MODE = new ApiResponse(55000, "System is in maintenance mode",
+			"Please wait for the maintenance window to complete or contact your system administrator for more information.", StringUtils.EMPTY);
+
+	// 56000 - 57000
+	public static final ApiResponse CONTENT_TYPE_IN_USE = new ApiResponse(56000, "The content type cannot be deleted because it is still in use by content items",
 			"Check if you sent in the right content type id or add 'deleteDependencies' to force delete", StringUtils.EMPTY);
 
 	private int code;
