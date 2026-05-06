@@ -110,6 +110,7 @@ public interface ContentTypeService {
 	 *
 	 * @param siteId site identifier
 	 * @return List of quick creatable content types
+	 * @throws ServiceLayerException if there is any error getting the content types
 	 */
 	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException;
 
