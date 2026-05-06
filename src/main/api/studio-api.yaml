@@ -2437,55 +2437,6 @@ paths:
                 '401':
                     $ref: '#/components/responses/Unauthorized'
 
-    /api/1/services/api/1/content/get-pages.json:
-        get:
-            tags:
-                - content
-            summary: Get pages. Gets tree of content items for given path.
-            description: "Required role: N/A"
-            operationId: getPages
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/index.xml
-                -   name: depth
-                    in: query
-                    schema:
-                        type: integer
-                    description: Depth of the tree to display
-                    required: true
-                    example: 1
-                -   name: order
-                    in: query
-                    schema:
-                        type: string
-                    description: Order of content items.
-                    required: true
-                    example: default
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                items:
-                                    $ref: '#/components/schemas/ContentItemV1'
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-
     /api/1/services/api/1/content/reorder-items.json:
         get:
             tags:
