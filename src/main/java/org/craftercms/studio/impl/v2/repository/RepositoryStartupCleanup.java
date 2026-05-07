@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.repository;
 import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
@@ -51,6 +52,7 @@ public class RepositoryStartupCleanup {
     protected GitRepositoryHelper helper;
 
     @Order(20)
+    @LogExecutionTime
     @EventListener(CleanupRepositoriesEvent.class)
     public void unlockRepositories() {
         logger.debug("Clean up git lock for all repositories.");
