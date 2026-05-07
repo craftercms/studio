@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -101,32 +101,32 @@ public class GroupServiceInternalImpl implements GroupService {
 	}
 
 	@Override
-	public List<Group> getAllGroups(long orgId, String keyword, int offset, int limit, String sort)
-		throws ServiceLayerException {
+	public List<Group> getAllGroups(String keyword, int offset, int limit, String sort)
+			throws ServiceLayerException {
 		try {
-			return groupDao.getAllGroupsForOrganization(orgId, keyword, offset, limit, sort);
+			return groupDao.getAllGroupsForOrganization(keyword, offset, limit, sort);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
 		}
 	}
 
 	@Override
-	public int getAllGroupsTotal(long orgId, String keyword) throws ServiceLayerException {
+	public int getAllGroupsTotal(String keyword) throws ServiceLayerException {
 		try {
-			return groupDao.getAllGroupsForOrganizationTotal(orgId, keyword);
+			return groupDao.getAllGroupsForOrganizationTotal(keyword);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
 		}
 	}
 
 	@Override
-	public Group createGroup(long orgId, String groupName, String groupDescription, boolean externallyManaged)
-		throws GroupAlreadyExistsException, ServiceLayerException {
+	public Group createGroup(String groupName, String groupDescription, boolean externallyManaged)
+			throws GroupAlreadyExistsException, ServiceLayerException {
 		if (groupExists(-1, groupName)) {
 			throw new GroupAlreadyExistsException("Group '" + groupName + "' already exists");
 		}
 		try {
-			retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(orgId, groupName, groupDescription, externallyManaged));
+			retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(groupName, groupDescription, externallyManaged));
 			return groupDao.getGroupByName(groupName);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
@@ -134,7 +134,7 @@ public class GroupServiceInternalImpl implements GroupService {
 	}
 
 	@Override
-	public Group updateGroup(long orgId, Group updatedGroup) throws GroupNotFoundException, ServiceLayerException {
+	public Group updateGroup(Group updatedGroup) throws GroupNotFoundException, ServiceLayerException {
 		Group group = groupDao.getGroup(updatedGroup.getId());
 		if (group == null) {
 			throw new GroupNotFoundException(format("No group found for id '%d'", updatedGroup.getId()));
@@ -165,7 +165,7 @@ public class GroupServiceInternalImpl implements GroupService {
 
 	@Override
 	public List<User> getGroupMembers(long groupId, int offset, int limit, String sort)
-		throws GroupNotFoundException, ServiceLayerException {
+			throws GroupNotFoundException, ServiceLayerException {
 		if (!groupExists(groupId, StringUtils.EMPTY)) {
 			throw new GroupNotFoundException("No group found for id '" + groupId + "'");
 		}
@@ -191,7 +191,7 @@ public class GroupServiceInternalImpl implements GroupService {
 
 	@Override
 	public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames, boolean externallyManaged)
-		throws GroupNotFoundException, UserNotFoundException, ServiceLayerException {
+			throws GroupNotFoundException, UserNotFoundException, ServiceLayerException {
 		if (!groupExists(groupId, StringUtils.EMPTY)) {
 			throw new GroupNotFoundException("No group found for id '" + groupId + "'");
 		}
@@ -199,7 +199,7 @@ public class GroupServiceInternalImpl implements GroupService {
 		List<User> users = userService.getUsersByIdOrUsername(userIds, usernames);
 		try {
 			retryingDatabaseOperationFacade.retry(() -> groupDao.addGroupMembers(groupId,
-				users.stream().map(User::getId).collect(Collectors.toList()), externallyManaged));
+					users.stream().map(User::getId).collect(Collectors.toList()), externallyManaged));
 
 			return users;
 		} catch (Exception e) {
@@ -209,14 +209,14 @@ public class GroupServiceInternalImpl implements GroupService {
 
 	@Override
 	public void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
-		throws GroupNotFoundException, UserNotFoundException, ServiceLayerException {
+			throws GroupNotFoundException, UserNotFoundException, ServiceLayerException {
 		if (!groupExists(groupId, StringUtils.EMPTY)) {
 			throw new GroupNotFoundException("No group found for id '" + groupId + "'");
 		}
 		List<User> users = userService.getUsersByIdOrUsername(userIds, usernames);
 		try {
 			retryingDatabaseOperationFacade.retry(() -> groupDao.removeGroupMembers(groupId,
-				users.stream().map(User::getId).collect(Collectors.toList())));
+					users.stream().map(User::getId).collect(Collectors.toList())));
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
 		}

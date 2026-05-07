@@ -167,21 +167,11 @@
 	<bean id="addFileUpgrader" scope="prototype" parent="upgradeOperation"
 	      class="org.craftercms.studio.impl.v2.upgrade.operations.file.AddFileUpgradeOperation"/>
 
-	<bean id="addSiteUuidUpgrader" scope="prototype" parent="upgradeOperation"
-	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.AddSiteUuidOperation">
-		<constructor-arg name="siteDao" ref="siteDao"/>
-	</bean>
-
 	<bean id="findAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
 	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.FindAndReplaceUpgradeOperation"/>
 
 	<bean id="multiFindAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
 	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.MultiFindAndReplaceUpgradeOperation"/>
-
-	<bean id="pluginDescriptorV2Upgrader" scope="prototype" parent="upgradeOperation"
-	      class="org.craftercms.studio.impl.v2.upgrade.operations.plugin.DescriptorV2UpgradeOperation">
-		<constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
-	</bean>
 
 	<bean id="batchXsltUpgrader" scope="prototype" parent="upgradeOperation"
 	      class="org.craftercms.studio.impl.v2.upgrade.operations.site.BatchXsltFileUpgradeOperation"/>

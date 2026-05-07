@@ -198,7 +198,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	}
 
 	@Override
-	public Collection<User> getAllUsersForSite(long orgId, String siteId, String keyword, int offset, int limit,
+	public Collection<User> getAllUsersForSite(String siteId, String keyword, int offset, int limit,
 											   String sort)
 			throws ServiceLayerException {
 		List<NormalizedGroup> groupNames = configurationService.getSiteGroups(siteId);
@@ -222,7 +222,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	}
 
 	@Override
-	public int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException {
+	public int getAllUsersForSiteTotal(String siteId, String keyword) throws ServiceLayerException {
 		List<NormalizedGroup> groupNames = configurationService.getSiteGroups(siteId);
 		try {
 			return userDao.getAllUsersForSiteTotal(

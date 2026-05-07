@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,10 +15,13 @@
  */
 package org.craftercms.studio.impl.v2.utils.spring.context;
 
-import org.craftercms.studio.impl.v2.utils.spring.event.*;
+import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
+import org.craftercms.studio.impl.v2.utils.spring.event.BootstrapFinishedEvent;
+import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
+import org.craftercms.studio.impl.v2.utils.spring.event.StartClusterSetupEvent;
+import org.craftercms.studio.impl.v2.utils.spring.event.StartUpgradeEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;

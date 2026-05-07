@@ -164,8 +164,6 @@ public final class StudioConstants {
 	public static final String REPO_COMMIT_MESSAGE_PATH_VAR = "{path}";
 	public static final String REPO_COMMIT_MESSAGE_USER_COMMENT_VAR = "{userComment}";
 
-	public static final int DEFAULT_ORGANIZATION_ID = 1;
-
 	public static final String REMOVE_SYSTEM_ADMIN_MEMBER_LOCK = "remove_system_admin_member_lock";
 
 	/* Modules */

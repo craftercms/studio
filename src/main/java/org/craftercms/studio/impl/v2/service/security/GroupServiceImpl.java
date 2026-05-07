@@ -24,11 +24,9 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.UserService;
-import org.craftercms.studio.api.v2.service.security.internal.OrganizationServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.UserResponse;
@@ -49,23 +47,21 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 public class GroupServiceImpl implements GroupService {
 
 	private final GroupService groupServiceInternal;
-	private final OrganizationServiceInternal organizationServiceInternal;
 	private final UserService userService;
 	private final GeneralLockService generalLockService;
 	private final StudioConfiguration studioConfiguration;
 	private final AuditService auditService;
 	private final SitesService siteService;
 
-	@ConstructorProperties({"groupServiceInternal", "organizationServiceInternal",
+	@ConstructorProperties({"groupServiceInternal",
 		"userService", "generalLockService",
 		"studioConfiguration", "auditService",
 		"siteService"})
-	public GroupServiceImpl(final GroupService groupServiceInternal, final OrganizationServiceInternal organizationServiceInternal,
+	public GroupServiceImpl(final GroupService groupServiceInternal,
 				final UserService userService, final GeneralLockService generalLockService,
 				final StudioConfiguration studioConfiguration, final AuditService auditService,
 				final SitesService siteService) {
 		this.groupServiceInternal = groupServiceInternal;
-		this.organizationServiceInternal = organizationServiceInternal;
 		this.userService = userService;
 		this.generalLockService = generalLockService;
 		this.studioConfiguration = studioConfiguration;
@@ -75,33 +71,24 @@ public class GroupServiceImpl implements GroupService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_GROUPS)
-	public List<Group> getAllGroups(long orgId, String keyword, int offset, int limit, String sort)
-		throws ServiceLayerException, OrganizationNotFoundException {
-		// Security check
-		if (organizationServiceInternal.organizationExists(orgId)) {
-			return groupServiceInternal.getAllGroups(orgId, keyword, offset, limit, sort);
-		} else {
-			throw new OrganizationNotFoundException();
-		}
+	public List<Group> getAllGroups(String keyword, int offset, int limit, String sort)
+			throws ServiceLayerException {
+		return groupServiceInternal.getAllGroups(keyword, offset, limit, sort);
 	}
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_GROUPS)
-	public int getAllGroupsTotal(long orgId, String keyword)
-		throws ServiceLayerException, OrganizationNotFoundException {
-		if (organizationServiceInternal.organizationExists(orgId)) {
-			return groupServiceInternal.getAllGroupsTotal(orgId, keyword);
-		} else {
-			throw new OrganizationNotFoundException();
-		}
+	public int getAllGroupsTotal(String keyword)
+			throws ServiceLayerException {
+		return groupServiceInternal.getAllGroupsTotal(keyword);
 	}
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_GROUPS)
-	public Group createGroup(long orgId, String groupName,
+	public Group createGroup(String groupName,
 				 String groupDescription, boolean externallyManaged)
 		throws GroupAlreadyExistsException, ServiceLayerException {
-		Group toRet = groupServiceInternal.createGroup(orgId, groupName, groupDescription, externallyManaged);
+		Group toRet = groupServiceInternal.createGroup(groupName, groupDescription, externallyManaged);
 		Site site = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_CREATE);
@@ -117,11 +104,11 @@ public class GroupServiceImpl implements GroupService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_GROUPS)
-	public Group updateGroup(long orgId, Group group)
+	public Group updateGroup(Group group)
 		throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException {
 		checkExternallyManagedGroup(List.of(group.getId()));
 
-		Group toRet = groupServiceInternal.updateGroup(orgId, group);
+		Group toRet = groupServiceInternal.updateGroup(group);
 		Site site = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
 		AuditLog auditLog = createAuditLogEntry();
 		auditLog.setOperation(OPERATION_UPDATE);

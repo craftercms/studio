@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -63,7 +63,6 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNumeric;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SEARCH_KEYWORDS;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SET_PASSWORD_DELAY;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
@@ -113,8 +112,8 @@ public class UsersController {
 			total = userService.getAllUsersTotal(keyword);
 			users = userService.getAllUsers(keyword, offset, limit, sort);
 		} else {
-			total = userService.getAllUsersForSiteTotal(DEFAULT_ORGANIZATION_ID, siteId, keyword);
-			users = userService.getAllUsersForSite(DEFAULT_ORGANIZATION_ID, siteId, keyword, offset, limit, sort);
+			total = userService.getAllUsersForSiteTotal(siteId, keyword);
+			users = userService.getAllUsersForSite(siteId, keyword, offset, limit, sort);
 		}
 
 		PaginatedResultList<UserResponse> result = new PaginatedResultList<>();
