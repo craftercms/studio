@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,13 +15,13 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.NavigationOrderSequence;
 import org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper;
-import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
@@ -34,15 +34,13 @@ import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PAGE_NAVIGATION_ORDER_INCREMENT;
 
-public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
-        implements DmPageNavigationOrderService {
+public class DmPageNavigationOrderServiceImpl implements DmPageNavigationOrderService {
 
     private static final Logger logger = LoggerFactory.getLogger(DmPageNavigationOrderServiceImpl.class);
 
@@ -51,11 +49,6 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     protected StudioConfiguration studioConfiguration;
     protected NavigationOrderSequenceMapper navigationOrderSequenceMapper;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-
-    @Override
-    public void register() {
-        this._servicesManager.registerService(DmPageNavigationOrderService.class, this);
-    }
 
     @Override
     @Valid

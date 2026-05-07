@@ -16,12 +16,9 @@
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:ws="http://www.springframework.org/schema/websocket"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-                            http://www.springframework.org/schema/beans/spring-beans.xsd
-                           http://www.springframework.org/schema/websocket
-                            http://www.springframework.org/schema/websocket/spring-websocket.xsd">
+                            http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <!-- Event listener -->
     <bean id="eventBroadcaster" class="org.craftercms.studio.impl.v2.event.EventBroadcaster"/>

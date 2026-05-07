@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,13 +16,15 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.SqlSort;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
-import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.controller.rest.ValidationUtils;
 import org.craftercms.studio.model.rest.*;
@@ -34,16 +36,12 @@ import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNullElse;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
@@ -79,9 +77,9 @@ public class GroupsController {
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @SqlSort(columns = GROUP_SORT_COLUMNS) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
                     defaultValue = "group_name asc") String sort)
-            throws ServiceLayerException, OrganizationNotFoundException {
-        int total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID, keyword);
-        List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, keyword, offset, limit, sort);
+            throws ServiceLayerException {
+        int total = groupService.getAllGroupsTotal(keyword);
+        List<Group> groups = groupService.getAllGroups(keyword, offset, limit, sort);
 
         PaginatedResultList<Group> result = new PaginatedResultList<>();
         result.setTotal(total);
@@ -103,7 +101,7 @@ public class GroupsController {
     public ResultOne<Group> createGroup(@Valid @RequestBody Group group)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
         Group newGroup =
-                groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getGroupName(), group.getGroupDescription(), false);
+                groupService.createGroup(group.getGroupName(), group.getGroupDescription(), false);
         ResultOne<Group> result = new ResultOne<>();
         result.setResponse(CREATED);
         result.setEntity(RESULT_KEY_GROUP, newGroup);
@@ -120,7 +118,7 @@ public class GroupsController {
     public ResultOne<Group> updateGroup(@Valid @RequestBody UpdateGroupRequest updateRequest)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException {
         Group group = buildGroup(updateRequest);
-        Group updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
+        Group updatedGroup = groupService.updateGroup(group);
 
         ResultOne<Group> result = new ResultOne<>();
         result.setResponse(OK);

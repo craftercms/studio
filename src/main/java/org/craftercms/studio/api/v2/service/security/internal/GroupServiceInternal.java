@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,14 +34,14 @@ public interface GroupServiceInternal {
 
     Group getGroupByName(String groupName) throws GroupNotFoundException, ServiceLayerException;
 
-    List<Group> getAllGroups(long orgId, String keyword, int offset, int limit, String sort) throws ServiceLayerException;
+    List<Group> getAllGroups(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
 
-    int getAllGroupsTotal(long orgId, String keyword) throws ServiceLayerException;
+    int getAllGroupsTotal(String keyword) throws ServiceLayerException;
 
-    Group createGroup(long orgId, String groupName, String groupDescription, boolean externallyManaged)
+    Group createGroup(String groupName, String groupDescription, boolean externallyManaged)
             throws GroupAlreadyExistsException, ServiceLayerException;
 
-    Group updateGroup(long orgId, Group group) throws GroupNotFoundException, ServiceLayerException;
+    Group updateGroup(Group group) throws GroupNotFoundException, ServiceLayerException;
 
     void deleteGroup(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -533,7 +533,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             try {
                 if (!groupServiceInternal.groupExists(-1, group)) {
                     try {
-                        groupServiceInternal.createGroup(DEFAULT_ORGANIZATION_ID, group, description, false);
+                        groupServiceInternal.createGroup(group, description, false);
                     } catch (GroupAlreadyExistsException e) {
                         throw new IllegalStateException(e);
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,7 +22,6 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.script.ScriptExecutor;
-import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -47,7 +46,7 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 
-public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService implements DmContentLifeCycleService, ApplicationContextAware {
+public class DmContentLifeCycleServiceImpl implements DmContentLifeCycleService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(DmContentLifeCycleServiceImpl.class);
 
@@ -70,11 +69,6 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
     }
     public void setScriptObjects(Map<String, Object> scriptObjects) {
         this._scriptObjects = scriptObjects;
-    }
-
-    @Override
-    public void register() {
-        getServicesManager().registerService(DmContentLifeCycleService.class, this);
     }
 
     @Override

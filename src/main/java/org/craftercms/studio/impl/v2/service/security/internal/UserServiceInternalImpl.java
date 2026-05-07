@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -139,7 +139,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
     }
 
     @Override
-    public List<User> getAllUsersForSite(long orgId, List<NormalizedGroup> groupNames, String keyword, int offset, int limit,
+    public List<User> getAllUsersForSite(List<NormalizedGroup> groupNames, String keyword, int offset, int limit,
                                          String sort)
             throws ServiceLayerException {
         try {
@@ -161,7 +161,7 @@ public class UserServiceInternalImpl implements UserServiceInternal, Application
     }
 
     @Override
-    public int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException {
+    public int getAllUsersForSiteTotal(String siteId, String keyword) throws ServiceLayerException {
         List<NormalizedGroup> groupNames = groupServiceInternal.getSiteGroups(siteId);
         try {
             return userDao.getAllUsersForSiteTotal(

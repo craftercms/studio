@@ -48,15 +48,6 @@
         <result property="groupName" column="group_name"/>
         <result property="groupDescription" column="group_description"/>
         <result property="externallyManagedAsInt" column="externally_managed"/>
-        <association property="organization" column="org_id" javaType="org.craftercms.studio.api.v2.dal.Organization"
-                     select="selectOrganizationById"/>
-    </resultMap>
-
-    <resultMap id="OrganizationMap" type="org.craftercms.studio.api.v2.dal.Organization">
-        <id property="id" column="id"/>
-        <result property="recordLastUpdated" column="record_last_updated"/>
-        <result property="name" column="org_name"/>
-        <result property="description" column="ord_desc"/>
     </resultMap>
 
     <resultMap id="UserProfileResultMap" type="org.craftercms.studio.api.v1.dal.UserProfileResult">
@@ -87,12 +78,11 @@
         <result property="externallyManaged" column="externally_managed"/>
     </resultMap>
 
-    <select id="getAllGroupsForOrganization" resultMap="GroupMap">
+    <select id="getAllGroups" resultMap="GroupMap">
         SELECT * FROM `group`
-        WHERE org_id = #{orgId}
         <if test="keyword != null" >
             <bind name="pattern" value="'%' + keyword + '%'" />
-            AND group_name like #{pattern}
+            WHERE group_name like #{pattern}
         </if>
         <if test="sort != null and sort != '' ">
             ORDER BY ${sort}
@@ -100,22 +90,17 @@
         LIMIT #{offset}, #{limit}
     </select>
 
-    <select id="getAllGroupsForOrganizationTotal" resultType="Integer" >
+    <select id="getAllGroupsTotal" resultType="Integer" >
         SELECT count(1) FROM `group`
-        WHERE org_id = #{orgId}
         <if test="keyword != null" >
             <bind name="pattern" value="'%' + keyword + '%'" />
-            AND group_name like #{pattern}
+            WHERE group_name like #{pattern}
         </if>
-    </select>
-
-    <select id="selectOrganizationById" resultMap="OrganizationMap">
-            SELECT * FROM organization where id = #{id}
     </select>
 
     <insert id="createGroup" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
         INSERT IGNORE INTO `group` (record_last_updated, org_id, group_name, group_description, externally_managed)
-        VALUES (CURRENT_TIMESTAMP, #{orgId}, #{groupName}, #{groupDescription}, #{externallyManaged}) ;
+        VALUES (CURRENT_TIMESTAMP, 1, #{groupName}, #{groupDescription}, #{externallyManaged}) ;
         <selectKey resultType="long" order="AFTER" keyProperty="id">
             select LAST_INSERT_ID() as id
         </selectKey>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentItemIdGenerator;
 
 import java.util.HashMap;
@@ -28,14 +27,9 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.UUID;
 
-public class ContentItemIdGeneratorImpl extends AbstractRegistrableService implements ContentItemIdGenerator {
+public class ContentItemIdGeneratorImpl implements ContentItemIdGenerator {
     
     protected static final Logger logger = LoggerFactory.getLogger(ContentItemIdGeneratorImpl.class);
-
-    @Override
-    public void register() {
-        this._servicesManager.registerService(ContentItemIdGenerator.class, this);
-    }
 
     @Override
     public Map<String, String> getIds() throws ServiceLayerException {
