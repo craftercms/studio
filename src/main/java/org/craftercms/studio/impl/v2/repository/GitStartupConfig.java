@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.repository;
 
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
 import org.eclipse.jgit.errors.ConfigInvalidException;
@@ -47,6 +48,7 @@ public class GitStartupConfig {
 		this.studioConfiguration = studioConfiguration;
 	}
 
+	@LogExecutionTime
 	@Order(HIGHEST_PRECEDENCE)
 	@EventListener(CleanupRepositoriesEvent.class)
 
