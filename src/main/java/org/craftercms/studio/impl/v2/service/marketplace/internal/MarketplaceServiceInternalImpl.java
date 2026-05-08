@@ -486,6 +486,9 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 		createFromRemoteRequest.setRemoteName(request.getRemoteName());
 		createFromRemoteRequest.setRemoteBranch(plugin.getRef());
 		createFromRemoteRequest.setAuthentication(NONE);
+		// The remoteBranch is set to the plugin ref, which actually seems to be a tag. That would
+		// fail since there is no branch like refs/heads/<tag>. So we are cloning all branches (which will bring the tags as well)
+		createFromRemoteRequest.setSingleBranch(false);
 		return createFromRemoteRequest;
 	}
 
