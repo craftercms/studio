@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,31 +16,35 @@
 
 package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.LinkedList;
+import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.removeStart;
+import static org.apache.commons.lang3.Strings.CS;
 
 /**
  * Base implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} for all site content upgrades
@@ -80,15 +84,12 @@ public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOpe
 			// This is required to support upgrades in config pipelines
 			if (isEmpty(includedPaths) && StringUtils.isNotEmpty(context.getCurrentConfigPath())) {
 				Path repo = context.getRepositoryPath(); //TODO: Check if parent is needed
-				includedPaths = singletonList(repo.resolve(removeStart(context.getCurrentConfigPath(), //TODO: Check if path is ok
-					File.separator)));
+				includedPaths = singletonList(repo.resolve(CS.removeStart(context.getCurrentConfigPath(), //TODO: Check if path is ok
+						File.separator)));
 			}
-			List<Path> filteredPaths = filterPaths(context, includedPaths);
-			if (CollectionUtils.isNotEmpty(filteredPaths)) {
-				for (Path file : filteredPaths) {
-					updateFile(context, file);
-					trackChangedFiles(context.getRelativePath(file));
-				}
+			for (Path file : emptyIfNull(includedPaths)) {
+				updateFile(context, file);
+				trackChangedFiles(context.getRelativePath(file));
 			}
 		} catch (IOException e) {
 			throw new UpgradeException("Error reading content for site " + site, e);
@@ -111,37 +112,6 @@ public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOpe
 		}
 		return null;
 	}
-
-	/**
-	 * Filters the given list checking if the files match the update conditions
-	 *
-	 * @param context      the current upgrade context
-	 * @param matchedPaths the list of files to filter
-	 * @return the filtered list of files
-	 * @throws UpgradeException if there is any error filtering the files
-	 */
-	protected List<Path> filterPaths(StudioUpgradeContext context, List<Path> matchedPaths) throws UpgradeException {
-		if (CollectionUtils.isNotEmpty(matchedPaths)) {
-			List<Path> filteredPaths = new LinkedList<>();
-			for (Path path : matchedPaths) {
-				if (shouldBeUpdated(context, path)) {
-					filteredPaths.add(path);
-				}
-			}
-			return filteredPaths;
-		}
-		return null;
-	}
-
-	/**
-	 * Indicates if the given file should be updated by this class
-	 *
-	 * @param context the current upgrade context
-	 * @param file    the file to check
-	 * @return true if the file should be updated
-	 * @throws UpgradeException if there is any error checking the file
-	 */
-	protected abstract boolean shouldBeUpdated(StudioUpgradeContext context, Path file) throws UpgradeException;
 
 	/**
 	 * Performs any needed updates on the content of the given file

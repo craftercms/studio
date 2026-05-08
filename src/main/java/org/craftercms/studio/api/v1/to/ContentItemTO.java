@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,11 +20,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.util.DmContentItemComparator;
-
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
  * This class contains content item metadata
@@ -108,7 +103,6 @@ public class ContentItemTO implements Serializable {
 	public String categoryRoot;
 	public ZonedDateTime lastEditDate;
 	public String form;
-	public String formPagePath;
 	public List<RenderingTemplateTO> renderingTemplates = new ArrayList<>();
 
 	public boolean folder;
@@ -223,7 +217,6 @@ public class ContentItemTO implements Serializable {
 			this.lastEditDate = item.lastEditDate;
 		}
 		this.form = item.form;
-		this.formPagePath = item.formPagePath;
 		this.renderingTemplates = item.renderingTemplates;
 
 		this.folder = item.folder;
@@ -611,14 +604,6 @@ public class ContentItemTO implements Serializable {
 		this.form = form;
 	}
 
-	public String getFormPagePath() {
-		return formPagePath;
-	}
-
-	public void setFormPagePath(String formPagePath) {
-		this.formPagePath = formPagePath;
-	}
-
 	public boolean isFolder() {
 		return folder;
 	}
@@ -766,256 +751,4 @@ public class ContentItemTO implements Serializable {
 		this.packageId = packageId;
 	}
 
-	public void addChild(ContentItemTO itemToAdd, boolean recursive, boolean renamed) {
-
-		if (uri != null && uri.equals(itemToAdd.uri)) {
-			// do not add itself
-			return;
-		}
-
-		if (recursive && (isNew || isDeleted || renamed) && !submittedForDeletion) {
-			itemToAdd.mandatoryParent = uri;
-		}
-
-		if (children == null) {
-			children = new ArrayList<>();
-		}
-		children.add(itemToAdd);
-		numOfChildren++;
-	}
-
-	public void addChild(final ContentItemTO itemToAdd, DmContentItemComparator comparator, boolean recursive) {
-		addChild(itemToAdd, comparator, recursive, false);
-	}
-
-	public void addChild(final ContentItemTO itemToAdd, DmContentItemComparator comparator, boolean recursive,
-			     boolean renamed) {
-		if (uri != null && uri.equals(itemToAdd.uri)) {
-			// do not add itself
-			return;
-		}
-
-		// if this content (parent) is a new file, set the mandatory parent of
-		// child items to be this content
-		// do not overwrite the mandatory parent in non-recursive case
-		// do not set mandatory parent if item is submittedForDeletion.
-		if (recursive && (isNew || isDeleted || renamed) && !submittedForDeletion
-			&& !itemToAdd.isSubmittedForDeletion) {
-			itemToAdd.mandatoryParent = uri;
-		}
-		if (children != null) {
-			if (children.contains(itemToAdd)) {
-				return;
-			}
-			boolean added = false;
-			// position to add the item
-			int pos = 0;
-			// list to hold any child items found to be add to the itemToAdd
-			List<Integer> childPositions = new ArrayList<>(children.size());
-			for (int index = 0; index < children.size(); index++) {
-				ContentItemTO child = children.get(index);
-				String childUri = StringUtils.isEmpty(child.browserUri) ? child.uri : child.browserUri;
-				String itemToAddUri = StringUtils.isEmpty(itemToAdd.browserUri) ? itemToAdd.uri : itemToAdd.browserUri;
-				// for recursive case, check if the item being added should
-				// belong to one of the current level items
-				// or one of the current level items should belong to the item
-				// being added
-				if (recursive) {
-					int compareResult = comparator.compare(child, itemToAdd);
-					if (compareResult < 0) {
-						pos = index + 1 + 0;
-					}
-					// if the new item's URI starts with the URI of one of the
-					// item
-					// add the new item as a child of the item found
-
-					if (StringUtils.isNotEmpty(itemToAddUri)) {
-						if (itemToAddUri.startsWith(childUri + FILE_SEPARATOR)) {
-							child.addChild(itemToAdd, comparator, recursive);
-							added = true;
-							break;
-						} else {
-							// if one of the item's URI starts with the URI of the
-							// new item
-							// add the item to the new item add replace it with the
-							// new item
-							if (StringUtils.isNotEmpty(childUri) && childUri.startsWith(itemToAddUri + FILE_SEPARATOR)) {
-								if (childPositions.size() == 0) {
-									// add the itemToAdd to the first child location
-									// and add the first child to itemToAdd
-									itemToAdd.addChild(child, comparator, recursive);
-									children.set(index, itemToAdd);
-									added = true;
-								}
-								childPositions.add(index);
-							}
-						}
-					}
-					// for non-recursive case, add the item being added to the
-					// current position
-					// if the current item is greater than the item
-				} else {
-					int compareResult = comparator.compare(itemToAdd, child);
-					if (compareResult < 0) {
-						children.add(index, itemToAdd);
-						added = true;
-						break;
-					} else {
-						pos = index + 1;
-					}
-				}
-			}
-			// if not added, add the new item to the right position
-			if (!added) {
-				children.add(pos, itemToAdd);
-			}
-			// if recursive case, check if there are more children to be added
-			// to itemToAdd
-			if (recursive && childPositions.size() > 1) {
-				for (int childIndex = 1; childIndex < childPositions.size(); childIndex++) {
-					int targetPosition = childPositions.get(childIndex);
-					// if there are more than 2 children added,
-					// make sure reduce the index by the number of children
-					// added - 1
-					// since the list changes
-					if (childIndex > 1) {
-						targetPosition -= childIndex - 1;
-					}
-					itemToAdd.addChild(children.get(targetPosition), comparator, recursive);
-					children.remove(targetPosition);
-				}
-			}
-		} else {
-			children = new ArrayList<>();
-			children.add(itemToAdd);
-		}
-		// increase the number of children by 1
-		numOfChildren++;
-	}
-
-	public void addChild(final ContentItemTO itemToAdd, DmContentItemComparator comparator, boolean recursive,
-			     ChildFilter childFilter) {
-		if (uri != null && uri.equals(itemToAdd.getUri())) {
-			// do not add itself
-			return;
-		}
-
-		// if this content (parent) is a new file, set the mandatory parent of
-		// child items to be this content
-		// do not overwrite the mandatory parent in non-recursive case
-		if (recursive && (isNew || isDeleted)) {
-			itemToAdd.setMandatoryParent(uri);
-		}
-		if (children != null) {
-			if (children.contains(itemToAdd)) {
-				return;
-			}
-			boolean added = false;
-			// position to add the item
-			int pos = 0;
-			// list to hold any child items found to be add to the itemToAdd
-			List<Integer> childPositions = new ArrayList<>(children.size());
-			for (int index = 0; index < children.size(); index++) {
-				ContentItemTO child = children.get(index);
-				String childUri = child.getBrowserUri();
-				if (StringUtils.isEmpty(childUri)) {
-					childUri = child.getUri();
-				}
-				String itemToAddUri = itemToAdd.getBrowserUri();
-				if (StringUtils.isEmpty(itemToAddUri)) {
-					itemToAddUri = itemToAdd.getUri();
-				}
-				// for recursive case, check if the item being added should
-				// belong to one of the current level items
-				// or one of the current level items should belong to the item
-				// being added
-				if (recursive) {
-					if (comparator.compare(child, itemToAdd) < 0) {
-						pos = index + 1 + 0;
-					}
-					// if the new item's URI starts with the URI of one of the
-					// item
-					// add the new item as a child of the item found
-
-					if (itemToAddUri.startsWith(childUri + FILE_SEPARATOR)) {
-						child.addChild(itemToAdd, comparator, recursive);
-						added = true;
-						break;
-					} else {
-						// if one of the item's URI starts with the URI of the
-						// new item
-						// add the item to the new item add replace it with the
-						// new item
-						if (childUri.startsWith(itemToAddUri + FILE_SEPARATOR)) {
-							if (childPositions.size() == 0) {
-								// add the itemToAdd to the first child location
-								// and add the first child to itemToAdd
-								itemToAdd.addChild(child, comparator, recursive);
-								if (childFilter.accept(itemToAdd)) {
-									children.set(index, itemToAdd);
-								}
-								added = true;
-							}
-							childPositions.add(index);
-						}
-					}
-					// for non-recursive case, add the item being added to the
-					// current position
-					// if the current item is greater than the item
-				} else {
-					if (comparator.compare(itemToAdd, child) < 0) {
-						if (childFilter.accept(itemToAdd)) {
-							children.add(index, itemToAdd);
-							added = true;
-						}
-						break;
-					} else {
-						pos = index + 1;
-					}
-				}
-			}
-			// if not added, add the new item to the right position
-			if (!added) {
-				if (childFilter.accept(itemToAdd)) {
-					children.add(pos, itemToAdd);
-				}
-			}
-			// if recursive case, check if there are more children to be added
-			// to itemToAdd
-			if (recursive && childPositions.size() > 1) {
-				for (int childIndex = 1; childIndex < childPositions.size(); childIndex++) {
-					int targetPosition = childPositions.get(childIndex);
-					// if there are more than 2 children added,
-					// make sure reduce the index by the number of children
-					// added - 1
-					// since the list changes
-					if (childIndex > 1) {
-						targetPosition -= childIndex - 1;
-					}
-					itemToAdd.addChild(children.get(targetPosition), comparator, recursive);
-					children.remove(targetPosition);
-				}
-			}
-		} else {
-			children = new ArrayList<>();
-			if (childFilter.accept(itemToAdd)) {
-				children.add(itemToAdd);
-			}
-		}
-		// increase the number of children by 1
-		numOfChildren++;
-
-	}
-
-	public interface ChildFilter {
-
-		public boolean accept(ContentItemTO to);
-	}
-
-	public class AcceptAllChildFilter implements ChildFilter {
-
-		public boolean accept(ContentItemTO to) {
-			return true;
-		}
-	}
 }

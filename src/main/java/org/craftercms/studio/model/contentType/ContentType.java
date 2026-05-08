@@ -118,12 +118,18 @@ public class ContentType {
 	}
 
 	public Collection<String> getPathIncludes() {
+		if (pathIncludeExcludes == null) {
+			return emptyList();
+		}
 		return emptyIfNull(pathIncludeExcludes.includes()).stream()
 				.map(PathPattern::getPattern)
 				.toList();
 	}
 
 	public Collection<String> getPathExcludes() {
+		if (pathIncludeExcludes == null) {
+			return emptyList();
+		}
 		return emptyIfNull(pathIncludeExcludes.excludes()).stream()
 				.map(PathPattern::getPattern)
 				.toList();

@@ -43,7 +43,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
-import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v2.content.ContentLifecycle;
 import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.content.LifecycleContent.ContentLifecycleItem;
@@ -70,6 +69,7 @@ import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -83,6 +83,8 @@ import org.craftercms.studio.impl.v2.utils.DependencyUtils;
 import org.craftercms.studio.impl.v2.utils.db.DBUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.contentType.ContentType;
+import org.craftercms.studio.model.contentType.CopyDependency;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.rest.Person;
@@ -143,7 +145,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.utils.DalUtils.MY_BATIS_QUERY_BATCH_SIZE;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.*;
@@ -198,6 +201,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private final ActivityStreamService activityStreamService;
 	private final EntitlementValidator entitlementValidator;
 	private final SqlSessionFactory sqlSessionFactory;
+	private final ContentTypeService contentTypeService;
 
 	@ConstructorProperties({"transactionManager", "studioConfiguration", "siteService",
 			"retryingDatabaseOperationFacade", "publishService",
@@ -206,7 +210,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			"contentRepository", "contentLifecycle",
 			"auditService", "assetLifecycle",
 			"servicesConfig", "activityStreamService",
-			"entitlementValidator", "sqlSessionFactory"})
+			"entitlementValidator", "sqlSessionFactory",
+			"contentTypeService"})
 	public ContentServiceInternalImpl(PlatformTransactionManager transactionManager, StudioConfiguration studioConfiguration,
 									  SitesService siteService,
 									  RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, PublishService publishService,
@@ -217,7 +222,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 									  GitContentRepository contentRepository, ContentLifecycle contentLifecycle,
 									  AuditService auditService, ContentLifecycle assetLifecycle,
 									  ServicesConfig servicesConfig, ActivityStreamService activityStreamService,
-									  EntitlementValidator entitlementValidator, SqlSessionFactory sqlSessionFactory) {
+									  EntitlementValidator entitlementValidator, SqlSessionFactory sqlSessionFactory,
+									  ContentTypeService contentTypeService) {
 		this.transactionManager = transactionManager;
 		this.studioConfiguration = studioConfiguration;
 		this.siteService = siteService;
@@ -237,6 +243,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		this.activityStreamService = activityStreamService;
 		this.entitlementValidator = entitlementValidator;
 		this.sqlSessionFactory = sqlSessionFactory;
+		this.contentTypeService = contentTypeService;
 	}
 
 	@Override
@@ -249,9 +256,23 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		return contentRepository.shallowContentExists(siteId, path);
 	}
 
-	@Override
-	public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
-											   List<String> systemTypes, List<String> excludes, String sortStrategy,
+	/**
+	 * Get list of children for given path
+	 *
+	 * @param siteId       site identifier
+	 * @param path         item path to children for
+	 * @param locale       filter children by locale
+	 * @param keyword      filter children by keyword
+	 * @param systemTypes  filter children by type
+	 * @param excludes     exclude items by path
+	 * @param sortStrategy sort order
+	 * @param order        ascending or descending
+	 * @param offset       offset of the first child in the result
+	 * @param limit        number of children to return
+	 * @return list of children
+	 */
+	protected GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
+												  List<String> systemTypes, List<String> excludes, String sortStrategy,
 											   String order, int offset, int limit)
 			throws ServiceLayerException, UserNotFoundException {
 		if (!contentRepository.contentExists(siteId, path)) {
@@ -652,10 +673,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 	}
 
-	protected WriteContentResult doWrite(final String siteId, final String path,
-										 final InputStream content, final LifecycleOperation operation)
+	protected WriteContentResult doRevert(final String siteId, final String path,
+										 final InputStream content)
 			throws UserNotFoundException, AuthenticationException, ServiceLayerException {
-		return doWrite(siteId, path, content, operation, null);
+		return doWrite(siteId, path, content, REVERT, null);
 	}
 
 	protected WriteContentResult doWrite(final String siteId, final String path,
@@ -795,7 +816,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			logger.error("Failed to load content for revert at site '{}' path '{}' commit '{}'", siteId, path, commitId, e);
 			throw new ServiceLayerException(format("Failed to load content for revert at site '%s' path '%s' commit '%s'", siteId, path, commitId), e);
 		}
-		doWrite(siteId, path, content, REVERT);
+		doRevert(siteId, path, content);
 	}
 
 	@Override
@@ -827,41 +848,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		eventPublisher.publishEvent(new ContentEvent(getAuthentication(), siteId, path));
 
 		return writeContentResult;
-	}
-
-	@Override
-	public String getContentTypeClass(String site, String uri) throws SiteNotFoundException {
-		if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
-			return CONTENT_TYPE_LEVEL_DESCRIPTOR;
-		}
-		if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
-			return CONTENT_TYPE_PAGE;
-		}
-		if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site))) {
-			return CONTENT_TYPE_COMPONENT;
-		}
-		if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
-			return CONTENT_TYPE_DOCUMENT;
-		}
-		if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
-			return CONTENT_TYPE_ASSET;
-		}
-		if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
-			return CONTENT_TYPE_RENDERING_TEMPLATE;
-		}
-		if (CS.startsWith(uri, studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH))) {
-			return CONTENT_TYPE_CONTENT_TYPE;
-		}
-		if (matchesPatterns(uri, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
-			return CONTENT_TYPE_TAXONOMY;
-		}
-		if (matchesPatterns(uri, servicesConfig.getScriptsPatterns(site))) {
-			return CONTENT_TYPE_SCRIPT;
-		}
-		if (matchesPatterns(uri, servicesConfig.getConfigurationPatterns(site))) {
-			return CONTENT_TYPE_CONFIGURATION;
-		}
-		return CONTENT_TYPE_FILE;
 	}
 
 	@Override
@@ -946,7 +932,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String label = FilenameUtils.getName(path);
 		String contentTypeId = EMPTY;
 		boolean disabled = false;
-		if (StringUtils.endsWith(path, XML_PATTERN)) {
+		if (CS.endsWith(path, XML_PATTERN)) {
 			try {
 				Document contentDoc = ContentUtils.convertStreamToXml(getContent(site.getSiteId(), path));
 				if (contentDoc != null) {
@@ -964,8 +950,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			}
 		}
 		String previewUrl = null;
-		if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
-				StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+		if (CS.startsWith(path, ROOT_PATTERN_PAGES) ||
+				CS.startsWith(path, ROOT_PATTERN_ASSETS)) {
 			previewUrl = itemService.getBrowserUrl(site.getSiteId(), path);
 		}
 		long state = ItemState.NEW.value;
@@ -985,7 +971,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					.withLastPublishedOn(null)
 					.withLabel(label)
 					.withContentTypeId(contentTypeId)
-					.withSystemType(getContentTypeClass(site.getSiteId(), path))
+					.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), path))
 					.withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(path)))
 					.withLocaleCode(Locale.US.toString())
 					.withTranslationSourceId(null)
@@ -1097,7 +1083,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected Map<String, String> getCopyDependencyMapping(String siteId, String sourcePath,
 														   ContentItemIds oldContentIds, ContentItemIds newContentItemIds,
 														   Element root)
-			throws SiteNotFoundException {
+			throws ServiceLayerException {
 		Map<String, String> copyDependencies = new HashMap<>();
 		List<LightItem> itemSpecificDependencies = dependencyService.getItemSpecificDependencies(siteId, List.of(sourcePath));
 		for (LightItem itemSpecificDependency : itemSpecificDependencies) {
@@ -1106,9 +1092,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			copyDependencies.put(itemSpecificDependency.getPath(), replaceContentIdsInPath(depTargetPath, oldContentIds, newContentItemIds));
 		}
 
-		String contentType = readSingleDocumentNodeText(root, CONTENT_TYPE);
-		List<CopyDependencyConfigTO> copyDepConfigs =
-				servicesConfig.getCopyDependencyPatterns(siteId, contentType);
+		String contentTypeId = readSingleDocumentNodeText(root, CONTENT_TYPE);
+		ContentType contentType = contentTypeService.getContentType(siteId, contentTypeId);
+		List<CopyDependency> copyDepConfigs = contentType.getCopyDependencies();
 
 		if (copyDepConfigs.isEmpty()) {
 			return copyDependencies; // No copy dependencies config to process
@@ -1121,8 +1107,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				continue;
 			}
 			copyDepConfigs.stream()
-					.filter(copyDepConfig -> dependencyPath.matches(copyDepConfig.getPattern()))
-					.map(CopyDependencyConfigTO::getTarget)
+					.filter(copyDepConfig -> dependencyPath.matches(copyDepConfig.pattern()))
+					.map(CopyDependency::target)
 					.findAny()
 					.map(t -> replaceContentIdsInPath(t, oldContentIds, newContentItemIds))
 					.ifPresent(t -> copyDependencies.put(dependencyPath, t));
@@ -1668,8 +1654,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		return childItems;
 	}
 
-	@Override
-	public void assertNotInWorkflow(final String siteId, final List<String> paths, final boolean includeChildren)
+	protected void assertNotInWorkflow(final String siteId, final List<String> paths, final boolean includeChildren)
 			throws ServiceLayerException {
 		Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, paths, includeChildren);
 		if (CollectionUtils.isNotEmpty(packagesForItems)) {

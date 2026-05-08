@@ -18,9 +18,6 @@ package scripts.api
 
 import scripts.api.impl.content.SpringContentServices
 import scripts.api.impl.content.SpringPageNavigationOrderServices
-import scripts.api.impl.security.SpringSecurityServices
-import scripts.api.impl.site.SpringSiteServices
-import scripts.api.impl.user.SpringUserServices
 import scripts.libs.Cookies
 
 /**
@@ -53,26 +50,6 @@ class ServiceFactory {
 	}
 
 	/**
-	 * return the implementation for security services
-	 *
-	 * @param context site context
-	 * @return SecurityServices
-	 */
-	static getSecurityServices(context) {
-		return new SpringSecurityServices(context)
-	}
-
-	/**
-	 * return the implementation for site services
-	 *
-	 * @param context site context
-	 * @return SiteServices
-	 */
-	static getSiteServices(context) {
-		return new SpringSiteServices(context)
-	}
-
-	/**
 	 * return the implementation for nav services
 	 *
 	 * @param context site context
@@ -80,16 +57,6 @@ class ServiceFactory {
 	 */
 	static getPageNavigationOrderServices(context) {
 		return new SpringPageNavigationOrderServices(context)
-	}
-
-	/**
-	 * return the implementation for user services
-	 *
-	 * @param context site context
-	 * @return User Services
-	 */
-	static getUserServices(context) {
-		return new SpringUserServices(context)
 	}
 
 }

@@ -73,7 +73,8 @@ public interface ContentTypeService {
 	 *
 	 * @param siteId        the id of the site
 	 * @param contentTypeId the id of the content-type
-	 * @return the form-controller.js file as a pair of path and resource, if exists, null otherwise
+	 * @return the form-controller.js file as a pair of path and resource, if exists
+	 * @throws org.craftercms.studio.api.v1.exception.ContentNotFoundException if the form-controller.js file does not exist for the given content type
 	 */
 	ImmutablePair<String, Resource> getContentTypeFormController(String siteId, String contentTypeId) throws ServiceLayerException;
 
@@ -109,6 +110,7 @@ public interface ContentTypeService {
 	 *
 	 * @param siteId site identifier
 	 * @return List of quick creatable content types
+	 * @throws ServiceLayerException if there is any error getting the content types
 	 */
 	List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException;
 

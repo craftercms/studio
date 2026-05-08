@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.contentType.ContentType;
@@ -68,8 +67,6 @@ public class ContentTypeServiceInternalImplTest {
 
 	@Mock
 	private ConfigurationService configurationService;
-	@Mock
-	private SiteService siteService;
 	@Mock
 	private ContentService contentService;
 	@Mock

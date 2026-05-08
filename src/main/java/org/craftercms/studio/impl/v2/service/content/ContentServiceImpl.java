@@ -102,18 +102,6 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
-	public GetChildrenResult getChildrenByPath(@SiteId String siteId,
-											   @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
-											   String keyword, List<String> systemTypes, List<String> excludes,
-											   String sortStrategy, String order, int offset, int limit)
-			throws ServiceLayerException, UserNotFoundException {
-		return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, systemTypes, excludes,
-				sortStrategy, order, offset, limit);
-	}
-
-	@Override
-	@RequireSiteReady
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
 	public GetChildrenByPathsBulkResult getChildrenByPaths(@SiteId String siteId,
 														   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
@@ -303,21 +291,6 @@ public class ContentServiceImpl implements ContentService {
 	public WriteContentResult createFolder(@SiteId String siteId, @ActionTargetPath @ContentPath String path)
 			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
 		return contentServiceInternal.createFolder(siteId, path);
-	}
-
-	@Override
-	@RequireSiteReady
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public String getContentTypeClass(@SiteId String site, @ContentPath String uri) throws SiteNotFoundException {
-		return contentServiceInternal.getContentTypeClass(site, uri);
-	}
-
-	@Override
-	@RequireSiteReady
-	@RequireContentExists
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
-	public void assertNotInWorkflow(@SiteId String siteId, List<String> paths, boolean includeChildren) throws ServiceLayerException {
-		contentServiceInternal.assertNotInWorkflow(siteId, paths, includeChildren);
 	}
 
 	@Override

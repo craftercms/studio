@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,8 +17,6 @@ package org.craftercms.studio.api.v1.service.configuration;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentMonitorConfigTO;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
 
 import java.util.List;
@@ -30,15 +28,6 @@ import java.util.Map;
  * @author hyanghee
  */
 public interface ServicesConfig {
-
-	/**
-	 * get DM content type configuration by the given site and name
-	 *
-	 * @param site
-	 * @param name
-	 * @return content type
-	 */
-	ContentTypeConfigTO getContentTypeConfig(String site, String name) throws SiteNotFoundException;
 
 	/**
 	 * get component item URI patterns
@@ -104,15 +93,6 @@ public interface ServicesConfig {
 	 * @return level descriptor name
 	 */
 	String getLevelDescriptorName(String site) throws SiteNotFoundException;
-
-	/**
-	 * get the copy dependencies pattern for a content type
-	 *
-	 * @param site
-	 * @param contentType
-	 * @return copy dependencies patterns
-	 */
-	List<CopyDependencyConfigTO> getCopyDependencyPatterns(String site, String contentType) throws SiteNotFoundException;
 
 	/**
 	 * get the default timezone value

@@ -1559,49 +1559,6 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		}
 	}
 
-	@Override
-	@SuppressWarnings("ResultOfMethodCallIgnored")
-	public String createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException {
-		// SJ: Git doesn't care about empty folders, so we will create the folders and put a 0 byte file in them
-		String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
-		generalLockService.lock(gitLockKey);
-		try {
-			Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-			Repository repo = helper.getRepositoryForWrite(siteId);
-
-			// Create basic file
-			File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
-
-			// Create parent folders
-			File folder = file.getParentFile();
-			// Does the folder ever exist here? We are about to create it
-			folder.mkdirs();
-
-			// Create the file
-			if (!file.createNewFile()) {
-				throw new ServiceLayerException(format("Failed to write empty file to folder '%s' for site '%s'", emptyFilePath, siteId));
-			}
-
-			helper.addFiles(repo, siteId, emptyFilePath.toString());
-
-			String commitId = helper.commitFiles(repo, siteId,
-				helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
-					.replaceAll(PATTERN_SITE, siteId)
-					.replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
-				helper.getCurrentUserIdent(), emptyFilePath.toString());
-			persistCommit(siteId, commitId);
-			return commitId;
-		} catch (ServiceLayerException | UserNotFoundException e) {
-			logger.error("Failed to create folder '{}' in site '{}'", name, siteId, e);
-			throw e;
-		} catch (IOException e) {
-			logger.error("Failed to create folder '{}' in site '{}'", name, siteId, e);
-			throw new ServiceLayerException(format("Failed to create folder '%s' in site '%s'", name, siteId), e);
-		} finally {
-			generalLockService.unlock(gitLockKey);
-		}
-	}
-
 	/**
 	 * Create empty files in the new folders and add the paths to the index
 	 * Notice that this method assumes the folders already exist in the repository.

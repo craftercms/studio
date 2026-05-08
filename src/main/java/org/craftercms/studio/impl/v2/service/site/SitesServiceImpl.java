@@ -48,8 +48,7 @@ import java.beans.ConstructorProperties;
 import java.util.Collection;
 import java.util.List;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_LOCKED;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {
@@ -81,14 +80,18 @@ public class SitesServiceImpl implements SitesService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
 	public void updateSite(@SiteId String siteId, String name, String description)
 			throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
-		if (isBlank(name) && isBlank(description)) {
+
+		String normalizedName = defaultIfBlank(name, null);
+		String normalizedDescription = defaultIfBlank(description, null);
+
+		if (normalizedDescription == null && normalizedName == null) {
 			throw new InvalidParametersException("The request needs to include a name or a description");
 		}
-		sitesServiceInternal.updateSite(siteId, name, description);
+		sitesServiceInternal.updateSite(siteId, normalizedName, normalizedDescription);
 	}
 
 	@Override
-	@RequireSiteState(value = STATE_LOCKED)
+	@RequireSiteState(value = Site.State.LOCKED)
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
 	public void unlockSite(@SiteId String siteId) throws SiteNotFoundException, InvalidSiteStateException {
 		sitesServiceInternal.unlockSite(siteId);

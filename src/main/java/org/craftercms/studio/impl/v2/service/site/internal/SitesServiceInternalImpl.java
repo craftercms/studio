@@ -26,7 +26,6 @@ import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -114,7 +113,6 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private final PluginDescriptorReader descriptorReader;
 	private StudioBlobAwareContentRepository blobAwareRepository;
 	private final StudioConfiguration studioConfiguration;
-	private final SiteFeedMapper siteFeedMapper;
 	private final SiteDAO siteDao;
 	private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 	private final Deployer deployer;
@@ -131,22 +129,19 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private ApplicationContext applicationContext;
 
 	@ConstructorProperties({"descriptorReader",
-			"studioConfiguration", "siteFeedMapper",
-			"siteDao",
+			"studioConfiguration", "siteDao",
 			"retryingDatabaseOperationFacade",
 			"deployer",
 			"auditService", "taskManager",
 			"entitlementValidator", "userService"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
-									StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
-									SiteDAO siteDao,
+									StudioConfiguration studioConfiguration, SiteDAO siteDao,
 									RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 									Deployer deployer,
 									AuditService auditService, TaskManager taskManager,
 									EntitlementValidator entitlementValidator, UserService userService) {
 		this.descriptorReader = descriptorReader;
 		this.studioConfiguration = studioConfiguration;
-		this.siteFeedMapper = siteFeedMapper;
 		this.siteDao = siteDao;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
 		this.deployer = deployer;
@@ -227,10 +222,10 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Override
 	public void updateSite(String siteId, String name, String description)
 		throws SiteNotFoundException, SiteAlreadyExistsException {
-		if (isNotEmpty(name) && siteFeedMapper.isNameUsed(siteId, name)) {
+		if (isNotEmpty(name) && siteDao.isNameUsed(siteId, name)) {
 			throw new SiteAlreadyExistsException("A site with name " + name + " already exists");
 		}
-		int updated = retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updateSite(siteId, name, description));
+		int updated = retryingDatabaseOperationFacade.retry(() -> siteDao.updateSite(siteId, name, description));
 		if (updated != 1) {
 			throw new SiteNotFoundException();
 		}
@@ -521,7 +516,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	@Override
 	public void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
 		throws ServiceLayerException {
-		if (isNotEmpty(siteName) && siteFeedMapper.isNameUsed(siteId, siteName)) {
+		if (isNotEmpty(siteName) && siteDao.isNameUsed(siteId, siteName)) {
 			throw new SiteAlreadyExistsException(format("A site with name '%s' already exists", siteName));
 		}
 

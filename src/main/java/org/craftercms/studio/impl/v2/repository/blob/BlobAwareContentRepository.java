@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -281,24 +281,6 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
 			throw new ServiceLayerException(e);
 		}
-	}
-
-	@Override
-	public String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException {
-		logger.debug("Create folder in site '{}' path '{}'", site, path);
-		try {
-			StudioBlobStore store = getBlobStore(site, path);
-			if (store != null) {
-				store.createFolder(site, normalize(path), name);
-			}
-		} catch (BlobStoreConfigurationMissingException e) {
-			logger.debug("No blob store configuration found for site '{}', " +
-					"will create folder '{}' in the local repository", site, path);
-		} catch (Exception e) {
-			logger.error("Failed to create folder in site '{}' path '{}'", site, path, e);
-			throw e;
-		}
-		return localRepository.createFolder(site, path, name);
 	}
 
 	@Override

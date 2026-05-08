@@ -31,20 +31,17 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
 import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
-import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
-import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -52,7 +49,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.craftercms.studio.impl.v2.utils.TimeUtils;
+import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.rest.Person;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -74,17 +71,15 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.craftercms.studio.api.v1.constant.DmConstants.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_SITE_WEBSITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 
 /**
@@ -103,11 +98,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	protected ServicesConfig servicesConfig;
 	protected DmPageNavigationOrderService dmPageNavigationOrderService;
 	protected StudioConfiguration studioConfiguration;
-	protected ContentTypeService contentTypeService;
 	protected ItemService itemService;
 	protected UserService userService;
 	protected ApplicationContext applicationContext;
 	protected PublishService publishService;
+	protected ContentTypeService contentTypeService;
 
 	@Deprecated
 	@Override
@@ -136,46 +131,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		} else {
 			return this.contentRepository.getContent(site, path);
 		}
-	}
-
-	@Override
-	@Valid
-	public long getContentSize(@ValidateStringParam String site,
-				   @ValidateStringParam String path) {
-		return contentRepository.getContentSize(site, path);
-	}
-
-	@Override
-	@Valid
-	public String getContentAsString(String site,
-					 @ValidateSecurePathParam String path) {
-		return getContentAsString(site, path, null);
-	}
-
-	@Override
-	@Valid
-	public String getContentAsString(@ValidSiteId String site,
-					 @ValidateSecurePathParam String path,
-					 String encoding) {
-		return getContentAsStringInternal(site, path, encoding, false);
-	}
-
-	private String getContentAsStringInternal(String site, String path, String encoding, boolean shallow) {
-		return TimeUtils.logExecutionTime(() -> {
-			String content = null;
-			try (InputStream is = contentRepository.getContent(site, path, shallow)) {
-				if (is != null) {
-					if (isEmpty(encoding)) {
-						content = IOUtils.toString(is, UTF_8);
-					} else {
-						content = IOUtils.toString(is, encoding);
-					}
-				}
-			} catch (Exception e) {
-				logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
-			}
-			return content;
-		}, logger, format("Method 'ContentServiceImpl.getContentAsStringInternal(..)' with parameters %s", Arrays.asList(site, path, encoding, shallow)));
 	}
 
 	@Override
@@ -516,35 +471,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return item;
 	}
 
-	@Override
-	@RequireSiteExists
-	public String getItemContentType(@SiteId String site, String path) throws DocumentException, SiteNotFoundException {
-		Item item = itemService.getItem(site, path);
-		if (item == null) {
-			return getContentTypeClass(site, path);
-		}
-		Pattern taxonomyPattern = Pattern.compile(CONTENT_TYPE_TAXONOMY_REGEX);
-		Matcher matcher = taxonomyPattern.matcher(path);
-		if (matcher.matches()) {
-			return CONTENT_TYPE_TAXONOMY;
-		}
-		if (isNotEmpty(item.getContentTypeId())) {
-			return item.getContentTypeId();
-		}
-		if (CONTENT_TYPE_FOLDER.equals(item.getSystemType())) {
-			return CONTENT_TYPE_FOLDER;
-		}
-		if (path.endsWith(XML_PATTERN) && !path.startsWith(CONFIG_PATH_ROOT)) {
-			Document contentDoc = this.getContentAsDocument(site, path);
-			if (contentDoc != null) {
-				Element rootElement = contentDoc.getRootElement();
-				return rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-			}
-		}
-		return getContentTypeClass(site, path);
-	}
-
-	protected ContentItemTO loadContentItem(String site, String path) throws SiteNotFoundException {
+	protected ContentItemTO loadContentItem(String site, String path) throws ServiceLayerException {
 		// TODO: SJ: Refactor such that the populate of non-XML is also a method in 3.1+
 		ContentItemTO item = createNewContentItemTO(site, path);
 
@@ -584,19 +511,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return item;
 	}
 
-	protected void loadContentTypeProperties(String site, ContentItemTO item, String contentType) throws SiteNotFoundException {
+	protected void loadContentTypeProperties(String site, ContentItemTO item, String contentTypeId) throws ServiceLayerException {
 		// TODO: SJ: Refactor in 2.7.x
 		if (item.isFolder()) {
 			item.setContentType(CONTENT_TYPE_FOLDER);
 		} else {
 			// TODO: Use constants instead of string literals
-			if (contentType != null && !contentType.equals(CONTENT_TYPE_FOLDER) && !contentType.equals("asset") &&
-				!contentType.equals(CONTENT_TYPE_UNKNOWN)) {
-				ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
-				if (config != null) {
-					item.setForm(config.getForm());
-					item.setFormPagePath(config.getFormPath());
-					item.setPreviewable(config.isPreviewable());
+			if (contentTypeId != null && !contentTypeId.equals(CONTENT_TYPE_FOLDER) && !contentTypeId.equals("asset") &&
+				!contentTypeId.equals(CONTENT_TYPE_UNKNOWN)) {
+				ContentType contentType = contentTypeService.getContentType(site, contentTypeId);
+				if (contentType != null) {
+					item.setForm(contentType.getId());
+					item.setPreviewable(contentType.isPreviewable());
 					item.isPreviewable = item.previewable;
 				}
 			} else {
@@ -755,9 +681,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return null;
 	}
 
-	@Override
-	@Valid
-	public ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam String site,
+	private ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam String site,
 								    @ValidateSecurePathParam()
 								    String relativePath) throws SiteNotFoundException {
 		// TODO: SJ: Think of another way to do this in 3.1+
@@ -835,33 +759,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return browserUri;
 	}
 
-	@Override
-	@Valid
-	public String getContentTypeClass(@ValidateStringParam String site, String uri) throws SiteNotFoundException {
-		// TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
-		if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
-			return CONTENT_TYPE_LEVEL_DESCRIPTOR;
-		} else if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
-			return CONTENT_TYPE_PAGE;
-		} else if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site))) {
-			return CONTENT_TYPE_COMPONENT;
-		} else if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
-			return CONTENT_TYPE_DOCUMENT;
-		} else if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
-			return CONTENT_TYPE_ASSET;
-		} else if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
-			return CONTENT_TYPE_RENDERING_TEMPLATE;
-		} else if (StringUtils.startsWith(uri, contentTypeService.getConfigPath())) {
-			return CONTENT_TYPE_CONTENT_TYPE;
-		} else if (matchesPatterns(uri, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
-			return CONTENT_TYPE_TAXONOMY;
-		} else if (matchesPatterns(uri, servicesConfig.getScriptsPatterns(site))) {
-			return CONTENT_TYPE_SCRIPT;
-		} else if (matchesPatterns(uri, servicesConfig.getConfigurationPatterns(site))) {
-			return CONTENT_TYPE_CONFIGURATION;
-		}
+	private String getContentTypeClass(@ValidateStringParam String site, String uri) throws SiteNotFoundException {
+		return ContentUtils.getContentTypeClass(servicesConfig, studioConfiguration, site, uri);
+	}
 
-		return CONTENT_TYPE_FILE;
+	protected String getContentTypesBasePath() {
+		return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH);
 	}
 
 	@Override
@@ -1019,10 +922,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.studioConfiguration = studioConfiguration;
 	}
 
-	public void setContentTypeService(ContentTypeService contentTypeService) {
-		this.contentTypeService = contentTypeService;
-	}
-
 	public void setContentRepository(GitContentRepository contentRepository) {
 		this.contentRepository = contentRepository;
 	}
@@ -1039,4 +938,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		this.publishService = publishService;
 	}
 
+	public void setContentTypeService(ContentTypeService contentTypeService) {
+		this.contentTypeService = contentTypeService;
+	}
 }

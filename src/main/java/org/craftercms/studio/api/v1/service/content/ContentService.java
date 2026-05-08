@@ -64,34 +64,6 @@ public interface ContentService {
 	InputStream getContent(String site, String path) throws ContentNotFoundException;
 
 	/**
-	 * get file size
-	 *
-	 * @param site site id where the operation will be executed
-	 * @param path path to content
-	 * @return Size in bytes
-	 */
-	long getContentSize(String site, String path);
-
-	/**
-	 * get content as string from repository
-	 *
-	 * @param site site identifier
-	 * @param path path of the content
-	 * @return document
-	 */
-	String getContentAsString(String site, String path);
-
-	/**
-	 * get content as string from repository
-	 *
-	 * @param site     site identifier
-	 * @param path     path of the content
-	 * @param encoding file encoding
-	 * @return document
-	 */
-	String getContentAsString(String site, String path, String encoding);
-
-	/**
 	 * get document from wcm content
 	 *
 	 * @param site site identifier
@@ -130,16 +102,6 @@ public interface ContentService {
 	ContentItemTO getContentItem(String site, String path, int depth);
 
 	/**
-	 * Retrieves the content type for a given path
-	 *
-	 * @param site the site id
-	 * @param path the content path
-	 * @return content type
-	 * @throws DocumentException on failure to retrieve the content type from xml (when applicable)
-	 */
-	String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException;
-
-	/**
 	 * return the content for a given version
 	 *
 	 * @param site    - the project ID
@@ -160,13 +122,6 @@ public interface ContentService {
 	 * @throws ContentNotFoundException content not found
 	 */
 	String getContentVersionAsString(String site, String path, String version) throws ContentNotFoundException;
-
-	/* THESE ARE NOT PUBLIC METHODS, DO NOT USE THE THEM */
-	/* DEJAN TO CLEAN UP WHAT IS NOT TRULY PUBLIC */
-
-	ContentItemTO createDummyDmContentItemForDeletedNode(String site, String relativePath) throws SiteNotFoundException;
-
-	String getContentTypeClass(String site, String uri) throws SiteNotFoundException;
 
 	List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 

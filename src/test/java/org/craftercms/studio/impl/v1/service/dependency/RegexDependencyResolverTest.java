@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,9 +17,9 @@ package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver.ResolvedDependency;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -98,16 +98,10 @@ public class RegexDependencyResolverTest {
 				.thenReturn(doc);
 		}
 
-		try (InputStream is = FORM_CONTENT.getInputStream()) {
-			String form = IOUtils.toString(is, UTF_8);
-
-			when(contentService.getContentAsString(SITE_ID, FORM_DEFINITION_PATH)).thenReturn(form);
-		}
-
+		when(contentService.getContent(SITE_ID, FORM_DEFINITION_PATH)).thenReturn(FORM_CONTENT.getInputStream());
 		when(contentService.shallowContentExists(SITE_ID, PAGE_A_PATH)).thenReturn(true);
 		when(contentService.shallowContentExists(SITE_ID, COMPONENT_A_PATH)).thenReturn(true);
 		when(contentService.shallowContentExists(SITE_ID, COMPONENT_B_PATH)).thenReturn(true);
-
 	}
 
 	@Test

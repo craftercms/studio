@@ -22,7 +22,6 @@ import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.plugin.model.BlueprintDescriptor;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -76,8 +75,6 @@ public class SitesServiceInternalImplTest {
 	private static final String DUPLICATE_SANDBOX_BRANCH = "feature1";
 
 	@Mock
-	SiteFeedMapper siteFeedMapper;
-	@Mock
 	Deployer deployer;
 	@Spy
 	RetryingDatabaseOperationFacadeImpl retryingDatabaseOperationFacade;
@@ -127,7 +124,7 @@ public class SitesServiceInternalImplTest {
 
 		when(contentRepository.deleteSite(SITE_ID)).thenReturn(true);
 
-		when(siteFeedMapper.isNameUsed(NEW_SITE_ID, USED_SITE_NAME)).thenReturn(true);
+		when(siteDAO.isNameUsed(NEW_SITE_ID, USED_SITE_NAME)).thenReturn(true);
 
 		doNothing().when(sitesServiceInternal).addSiteUuidFile(anyString(), anyString());
 		doCallRealMethod().when(retryingDatabaseOperationFacade).retry(any(Runnable.class));

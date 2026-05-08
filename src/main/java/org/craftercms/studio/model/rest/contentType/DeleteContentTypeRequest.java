@@ -16,13 +16,11 @@
 
 package org.craftercms.studio.model.rest.contentType;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.ValidConfigurationPath;
 
 /**
  * Request for deleting a content-type.
  */
-@JsonIgnoreProperties
 public class DeleteContentTypeRequest {
 	@ValidConfigurationPath
 	protected String contentType;

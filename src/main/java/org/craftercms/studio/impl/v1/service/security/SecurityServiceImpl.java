@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -28,9 +28,7 @@ import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v1.to.PermissionsConfigTO;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
@@ -40,16 +38,13 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -65,16 +60,10 @@ public class SecurityServiceImpl implements SecurityService {
 
 	private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
-	protected ContentTypeService contentTypeService;
 	protected StudioConfiguration studioConfiguration;
 	protected UserService userService;
 	protected ConfigurationService configurationService;
 	protected Cache<String, PermissionsConfigTO> cache;
-
-	@Override
-	public String getCurrentUser() {
-		return SecurityUtils.getCurrentUsername();
-	}
 
 	@Override
 	@Valid
@@ -102,25 +91,6 @@ public class SecurityServiceImpl implements SecurityService {
 			// resolve the permission
 			permissions = populateUserPermissions(site, path, roles, permissionsConfig);
 			logger.trace("Check if the user is allowed to edit the content in site '{}' path '{}' user '{}' ", site, path, user);
-
-			// TODO: SJ: refactor the code below if it's still in use, otherwise remove
-			if (path.indexOf("/site") == 0) { // If it's content a file
-				try {
-					ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
-					boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
-					if (!isAllowed) {
-						logger.trace("User '{}' is not permitted to access site '{}' path '{}', add " +
-							"permission '{}'", user, site, path, StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
-						// If no default role is set
-						permissions.add(StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
-						return permissions;
-					}
-				} catch (ServiceLayerException e) {
-					// TODO: SJ: Is this really a debug?
-					logger.debug("Failed to get content type in site '{}' path '{}'. Skip user role check for " +
-						"user '{}'", site, path, user, e);
-				}
-			}
 		}
 
 		PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
@@ -213,15 +183,6 @@ public class SecurityServiceImpl implements SecurityService {
 			logger.debug("Add the roles '{}' to user '{}' in site '{}'", userRoles, user, site);
 			roles.addAll(userRoles);
 		}
-	}
-
-	@Override
-	@Valid
-	public Set<String> getUserRoles(@ValidateStringParam final String site) {
-		return getUserRoles(site, SecurityUtils.getCurrentUsername())
-			.stream()
-			.map(NormalizedRole::toString)
-			.collect(Collectors.toSet());
 	}
 
 	@Override
@@ -486,11 +447,6 @@ public class SecurityServiceImpl implements SecurityService {
 	}
 
 	@Override
-	public Authentication getAuthentication() {
-		return SecurityUtils.getAuthentication();
-	}
-
-	@Override
 	@Valid
 	public List<NormalizedRole> getUserGlobalRoles(long userId, @ValidateStringParam String username)
 		throws ServiceLayerException, UserNotFoundException {
@@ -529,10 +485,6 @@ public class SecurityServiceImpl implements SecurityService {
 
 	public String getGlobalPermissionsFileName() {
 		return studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
-	}
-
-	public void setContentTypeService(ContentTypeService contentTypeService) {
-		this.contentTypeService = contentTypeService;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
