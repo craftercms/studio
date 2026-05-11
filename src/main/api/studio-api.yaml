@@ -8870,7 +8870,7 @@ components:
                                 - none
                                 - basic
                                 - token
-                                - key
+                                - private_key
                     required:
                         - type
                 -   oneOf:
