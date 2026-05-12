@@ -23,6 +23,7 @@ import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.util.SystemReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 
@@ -50,7 +51,7 @@ public class GitStartupConfig {
 
 	@LogExecutionTime
 	@Order(HIGHEST_PRECEDENCE)
-	@EventListener(CleanupRepositoriesEvent.class)
+	@EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
 	public void onStartup() {
 		boolean enabled = studioConfiguration.getProperty(REPO_GIT_GLOBAL_CONFIG_ENABLED, Boolean.class, true);
 		if (!enabled) {
