@@ -36,11 +36,13 @@ import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SiteBootstrapStateProvider;
 import org.craftercms.studio.impl.v2.utils.spring.event.StartSitesUpgradeEvent;
 import org.craftercms.studio.impl.v2.utils.spring.event.StartSystemUpgradeEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
@@ -69,30 +71,31 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 	public static final String SQL_QUERY_SITES_3_0_0 = "select site_id from cstudio_site where system = 0";
 	public static final String SQL_QUERY_SITES = "select site_id from site where system = 0 and deleted = 0";
 
-	protected VersionProvider dbVersionProvider;
-	protected UpgradePipelineFactory<String> dbPipelineFactory;
+	protected final VersionProvider dbVersionProvider;
+	protected final UpgradePipelineFactory<String> dbPipelineFactory;
 
-	protected UpgradePipelineFactory<String> bpPipelineFactory;
+	protected final UpgradePipelineFactory<String> bpPipelineFactory;
 
-	protected YamlConfigurationProvider configurationProvider;
+	protected final YamlConfigurationProvider configurationProvider;
 
-	protected DataSource dataSource;
-	protected DbIntegrityValidator integrityValidator;
-	protected GitContentRepository contentRepository;
-	protected StudioConfiguration studioConfiguration;
-	protected InstanceService instanceService;
-	protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+	protected final DataSource dataSource;
+	protected final DbIntegrityValidator integrityValidator;
+	protected final GitContentRepository contentRepository;
+	protected final StudioConfiguration studioConfiguration;
+	protected final InstanceService instanceService;
+	protected final RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+	protected final SiteBootstrapStateProvider siteBootstrapStateProvider;
 
 	@ConstructorProperties({"dbVersionProvider", "dbPipelineFactory", "bpPipelineFactory", "configurationProvider",
 		"dataSource", "integrityValidator", "contentRepository", "studioConfiguration", "instanceService",
-		"retryingRepositoryOperationFacade"})
+		"retryingRepositoryOperationFacade", "siteBootstrapStateProvider"})
 	public StudioUpgradeManagerImpl(VersionProvider dbVersionProvider,
 									UpgradePipelineFactory<String> dbPipelineFactory,
 									UpgradePipelineFactory<String> bpPipelineFactory, YamlConfigurationProvider configurationProvider,
 									DataSource dataSource, DbIntegrityValidator integrityValidator,
 									GitContentRepository contentRepository, StudioConfiguration studioConfiguration,
 									InstanceService instanceService,
-									RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+									RetryingRepositoryOperationFacade retryingRepositoryOperationFacade, SiteBootstrapStateProvider siteBootstrapStateProvider) {
 		this.dbVersionProvider = dbVersionProvider;
 		this.dbPipelineFactory = dbPipelineFactory;
 		this.bpPipelineFactory = bpPipelineFactory;
@@ -103,6 +106,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 		this.studioConfiguration = studioConfiguration;
 		this.instanceService = instanceService;
 		this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+		this.siteBootstrapStateProvider = siteBootstrapStateProvider;
 	}
 
 	/**
@@ -133,6 +137,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 		pipeline.execute(context);
 
 		upgradeSiteConfiguration((StudioUpgradeContext) context);
+		siteBootstrapStateProvider.markSiteAsReady(context.getTarget());
 	}
 
 	@Override
@@ -270,6 +275,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 	 * @throws UpgradeException     if there is any error in the upgrade process
 	 * @throws EntitlementException if there is any validation error after the upgrade process
 	 */
+	@Order(10)
 	@EventListener(StartSystemUpgradeEvent.class)
 	public void startUpgrade() throws UpgradeException, EntitlementException, ConfigurationException {
 
@@ -284,6 +290,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 		}
 	}
 
+	@Order(10)
 	@EventListener(StartSitesUpgradeEvent.class)
 	public void startSitesUpgrade() throws UpgradeException, EntitlementException, ConfigurationException {
 		upgradeExistingSites();

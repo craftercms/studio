@@ -80,7 +80,7 @@ public class BootstrapManagerImpl implements SystemStatusProvider, BootstrapMana
 
 	@Order
 	@Override
-	@EventListener(value = CleanupRepositoriesEvent.class)
+	@EventListener(CleanupRepositoriesEvent.class)
 	public Object onCleanUpRepositories() {
 		logger.info("Successfully cleaned up repositories");
 		logger.info("Waiting for system upgrade to complete before starting sites upgrade");
@@ -88,7 +88,6 @@ public class BootstrapManagerImpl implements SystemStatusProvider, BootstrapMana
 			upgradeSemaphore.acquire();
 		} catch (InterruptedException e) {
 			logger.warn("Interrupted while waiting for system upgrade to complete, starting sites upgrade anyway", e);
-			throw new RuntimeException(e);
 		}
 		logger.info("Start upgrade ...");
 		return new StartSitesUpgradeEvent(this);

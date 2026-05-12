@@ -195,6 +195,8 @@
 		<constructor-arg name="publishDao" ref="publishDao"/>
 	</bean>
 
+	<bean id="studio.requireSiteBootstrapCompleteAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.RequireSiteBootstrapCompleteAnnotationHandler"/>
+
 	<bean id="studio.logExecutionTimeAnnotationHandler" class="org.craftercms.studio.api.v2.annotation.LogExecutionTimeAnnotationHandler"/>
 
 	<!-- CORS -->
