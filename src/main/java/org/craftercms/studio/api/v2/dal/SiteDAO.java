@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -59,6 +59,14 @@ public interface SiteDAO {
 	 * @return true if the site exists, false otherwise
 	 */
 	boolean exists(@Param(SITE_ID) String siteId);
+
+	/**
+	 * Checks if a non-deleted site exists with the given name
+	 *
+	 * @param name the site name
+	 * @return true if the site exists, false otherwise
+	 */
+	boolean existsByName(@Param(NAME) String name);
 
 	/**
 	 * Enables/disables publishing for the given site
@@ -138,4 +146,36 @@ public interface SiteDAO {
 				   @Param(NAME) String name, @Param(DESC) String description,
 				   @Param(SANDBOX_BRANCH) String sandboxBranch, @Param(UUID) String siteUuid);
 
+	/**
+	 * Create a new site in the database
+	 *
+	 * @param site the site to create
+	 */
+	void createSite(Site site);
+
+	/**
+	 * Update the site state
+	 *
+	 * @param siteId     the site id
+	 * @param stateReady the new state
+	 */
+	void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String stateReady);
+
+	/**
+	 * Checks if there is a non-deleted site, different than the siteId, using the given name
+	 *
+	 * @param siteId   the id of the site
+	 * @param siteName the name of the site
+	 * @return true if the name is being used by another site, false otherwise
+	 */
+	boolean isNameUsed(@Param(SITE_ID) String siteId, @Param(NAME) String siteName);
+
+	/**
+	 * Updates the name and description for the given site
+	 *
+	 * @param siteId      the id of the site
+	 * @param name        the name of the site
+	 * @param description the description of the site
+	 */
+	int updateSite(@Param(SITE_ID) String siteId, @Param(NAME) String name, @Param(DESC) String description);
 }

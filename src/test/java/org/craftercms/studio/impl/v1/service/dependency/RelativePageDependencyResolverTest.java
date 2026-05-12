@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,10 +17,11 @@
 package org.craftercms.studio.impl.v1.service.dependency;
 
 import org.apache.commons.io.IOUtils;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.junit.Assert.*;
@@ -83,7 +85,7 @@ public class RelativePageDependencyResolverTest {
 	}
 
 	@Test
-	public void testRelativePageDependency() {
+	public void testRelativePageDependency() throws ContentNotFoundException {
 		String content = """
 				<html>
 				<body>
@@ -92,7 +94,7 @@ public class RelativePageDependencyResolverTest {
 				</body>
 				</html>
 				""";
-		when(contentService.getContentAsString(SITE_ID, PAGE_PATH)).thenReturn(content);
+		when(contentService.getContent(SITE_ID, PAGE_PATH)).thenReturn(toInputStream(content, UTF_8));
 
 		Map<String, Set<DependencyResolver.ResolvedDependency>> deps = dependencyResolver.resolve(SITE_ID, PAGE_PATH);
 
@@ -106,7 +108,7 @@ public class RelativePageDependencyResolverTest {
 	}
 
 	@Test
-	public void testHrefStartsWithReservedPath() {
+	public void testHrefStartsWithReservedPath() throws ContentNotFoundException {
 		String content = """
 				<html>
 				<body>
@@ -114,7 +116,7 @@ public class RelativePageDependencyResolverTest {
 				</body>
 				</html>
 				""";
-		when(contentService.getContentAsString(SITE_ID, PAGE_PATH)).thenReturn(content);
+		when(contentService.getContent(SITE_ID, PAGE_PATH)).thenReturn(toInputStream(content, UTF_8));
 		Map<String, Set<DependencyResolver.ResolvedDependency>> deps = dependencyResolver.resolve(SITE_ID, PAGE_PATH);
 		assertNotNull(deps);
 		Set<DependencyResolver.ResolvedDependency> pageDeps = deps.get("page");
@@ -123,7 +125,7 @@ public class RelativePageDependencyResolverTest {
 	}
 
 	@Test
-	public void testQueryStringHrefs() {
+	public void testQueryStringHrefs() throws ContentNotFoundException {
 		String content = """
 				<html>
 				<body>
@@ -131,7 +133,7 @@ public class RelativePageDependencyResolverTest {
 				</body>
 				</html>
 				""";
-		when(contentService.getContentAsString(SITE_ID, PAGE_PATH)).thenReturn(content);
+		when(contentService.getContent(SITE_ID, PAGE_PATH)).thenReturn(toInputStream(content, UTF_8));
 		Map<String, Set<DependencyResolver.ResolvedDependency>> deps = dependencyResolver.resolve(SITE_ID, PAGE_PATH);
 		assertNotNull(deps);
 		Set<DependencyResolver.ResolvedDependency> pageDeps = deps.get("page");
@@ -140,7 +142,7 @@ public class RelativePageDependencyResolverTest {
 	}
 
 	@Test
-	public void testFragmentsHrefs() {
+	public void testFragmentsHrefs() throws ContentNotFoundException {
 		String content = """
 				<html>
 				<body>
@@ -148,7 +150,7 @@ public class RelativePageDependencyResolverTest {
 				</body>
 				</html>
 				""";
-		when(contentService.getContentAsString(SITE_ID, PAGE_PATH)).thenReturn(content);
+		when(contentService.getContent(SITE_ID, PAGE_PATH)).thenReturn(toInputStream(content, UTF_8));
 		Map<String, Set<DependencyResolver.ResolvedDependency>> deps = dependencyResolver.resolve(SITE_ID, PAGE_PATH);
 		assertNotNull(deps);
 		Set<DependencyResolver.ResolvedDependency> pageDeps = deps.get("page");

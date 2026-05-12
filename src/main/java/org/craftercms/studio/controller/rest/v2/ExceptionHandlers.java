@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
+import org.craftercms.studio.api.v2.exception.contentType.ContentTypeUsageException;
 import org.craftercms.studio.api.v2.exception.git.MergeInProgressException;
 import org.craftercms.studio.api.v2.exception.git.NoMergeStateException;
 import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
@@ -678,6 +679,14 @@ public class ExceptionHandlers {
 	@ResponseStatus(HttpStatus.CONFLICT)
 	public Result handleException(HttpServletRequest request, NoMergeStateException e) {
 		ApiResponse response = new ApiResponse(ApiResponse.REPOSITORY_NOT_IN_MERGE_STATE);
+		return handleExceptionInternal(request, e, response);
+	}
+
+	@ExceptionHandler
+	@ResponseStatus(CONFLICT)
+	public Result handleException(HttpServletRequest request, ContentTypeUsageException e) {
+		ApiResponse response = new ApiResponse(ApiResponse.CONTENT_TYPE_IN_USE);
+		response.setMessage(e.getMessage());
 		return handleExceptionInternal(request, e, response);
 	}
 

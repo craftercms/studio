@@ -20,11 +20,16 @@ import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.task.TaskProgress;
+import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.site.AllSitesMonitors;
 import org.craftercms.studio.model.site.SiteDetails;
 import org.craftercms.studio.model.site.SiteMonitor;
@@ -127,7 +132,7 @@ public interface SitesService {
 	 * @param siteId site identifier
 	 * @return publishing status
 	 */
-	PublishStatus getPublishingStatus(String siteId) throws SiteNotFoundException;
+	PublishStatus getPublishingStatus(String siteId) throws SiteNotFoundException, RepositoryException;
 
 	/**
 	 * Get the progress of a publishing task, if the package is being published. Null otherwise
@@ -232,7 +237,16 @@ public interface SitesService {
 	/**
 	 * Git Garbage collect global repository all site repositories (sandbox and published)
 	 */
-	void garbageCollectRepositories();
+	void garbageCollectRepositories() throws RepositoryException;
+
+	/**
+	 * Create a site with the given information
+	 *
+	 * @param request the site information
+	 * @throws SiteAlreadyExistsException if a site with the same ID already exists
+	 * @throws InvalidParametersException if the given parameters are invalid
+	 */
+	void createSite(CreateSiteRequest request) throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException;
 
 	/**
 	 * Get the site content monitors from configuration and execute them, returning the

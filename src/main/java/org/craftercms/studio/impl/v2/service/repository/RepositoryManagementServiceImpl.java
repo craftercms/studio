@@ -30,16 +30,14 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
-import org.craftercms.studio.api.v2.dal.RepositoryStatus;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryInfo;
+import org.craftercms.studio.api.v2.dal.repository.RepositoryStatus;
 import org.craftercms.studio.api.v2.service.repository.ConflictResolution;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
-import org.craftercms.studio.model.history.RepositoryVersion;
 
 import java.beans.ConstructorProperties;
-import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;

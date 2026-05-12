@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.monitor;
 
 import org.apache.commons.io.FileUtils;
 import org.craftercms.commons.monitoring.DiskInfo;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.notification.StudioNotificationSender;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
@@ -163,7 +164,11 @@ public class DiskMonitor implements InitializingBean {
 		Instant lastCleanup = null;
 		if (aboveHigh) {
 			logger.debug("Running git gc on all repositories as disk usage is above high watermark.");
-			siteService.garbageCollectRepositories();
+			try {
+				siteService.garbageCollectRepositories();
+			} catch (RepositoryException e) {
+				logger.error("Failed to run git gc on repositories", e);
+			}
 			lastCleanup = now();
 			newDiskInfo = getDiskInfo();
 			diskUsage = newDiskInfo.getDiskUsage();

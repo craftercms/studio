@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,9 +33,11 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.dal.publish.PublishDAO;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -90,6 +92,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_CANCELLED_PACKAGE_COMMENT;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getPublishPackageLockKey;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.getContentTypeClass;
 
 /**
  * Listens to {@link SyncFromRepoEvent} events and performs the sync from repository.
@@ -352,7 +355,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param commitFrom The last previously synced commit id
 	 * @param commitTo   The new synced commit id
 	 */
-	private void auditChangesFromGit(final Site site, final String commitFrom, final String commitTo) throws GitAPIException, IOException {
+	private void auditChangesFromGit(final Site site, final String commitFrom, final String commitTo) throws RepositoryException {
 		AuditLog auditLogEntry = createAuditLogEntry();
 		auditLogEntry.setSiteId(site.getId());
 		auditLogEntry.setOperation(OPERATION_GIT_CHANGES);
@@ -364,22 +367,16 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		auditLogEntry.setPrimaryTargetType(TARGET_TYPE_SITE);
 		auditLogEntry.setPrimaryTargetValue(site.getName());
 
-		try {
-			List<String> commitIds = contentRepository.getIntroducedCommits(site.getSiteId(), commitFrom, commitTo);
-			List<AuditLogParameter> auditParameters = new ArrayList<>();
-			for (String commitId : commitIds) {
-				AuditLogParameter auditParameter = new AuditLogParameter();
-				auditParameter.setTargetId(commitId);
-				auditParameter.setTargetType(TARGET_TYPE_SYNCED_COMMIT);
-				auditParameter.setTargetValue(commitId);
-				auditParameters.add(auditParameter);
-			}
-			auditLogEntry.setParameters(auditParameters);
-		} catch (IOException | GitAPIException e) {
-			logger.error("Failed to calculate introduced commits for site '{}' from commit '{}' to commit '{}'",
-				site.getSiteId(), commitFrom, commitTo, e);
-			throw e;
+		List<String> commitIds = contentRepository.getIntroducedCommits(site.getSiteId(), commitFrom, commitTo);
+		List<AuditLogParameter> auditParameters = new ArrayList<>();
+		for (String commitId : commitIds) {
+			AuditLogParameter auditParameter = new AuditLogParameter();
+			auditParameter.setTargetId(commitId);
+			auditParameter.setTargetType(TARGET_TYPE_SYNCED_COMMIT);
+			auditParameter.setTargetValue(commitId);
+			auditParameters.add(auditParameter);
 		}
+		auditLogEntry.setParameters(auditParameters);
 		auditService.insertAuditLog(auditLogEntry);
 	}
 
@@ -414,7 +411,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	 * @param site site id
 	 * @param paths list of created paths to resolve missing empty files
 	 */
-	private void addMissingEmptyFiles(Site site, List<String> paths) {
+	private void addMissingEmptyFiles(Site site, List<String> paths) throws RepositoryException {
 		if (CollectionUtils.isEmpty(paths)) {
 			return;
 		}
@@ -597,7 +594,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			.withLastPublishedOn(null)
 			.withLabel(metadata.label)
 			.withContentTypeId(metadata.contentTypeId)
-			.withSystemType(contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()))
+			.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getPath()))
 			.withMimeType(StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())))
 			.withLocaleCode(Locale.US.toString())
 			.withTranslationSourceId(null)
@@ -637,7 +634,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		updateItemRow(itemDao, site.getId(),
 			repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
 			repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
-			contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
+				getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getPath()),
 			StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
 			contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
 
@@ -676,7 +673,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			updateItemRow(itemDao, site.getId(),
 				repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
 				repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
-				contentService.getContentTypeClass(site.getSiteId(), repoOperation.getPath()),
+					getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getMoveToPath()),
 				StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
 				contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
 

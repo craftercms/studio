@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -64,10 +64,10 @@ public class ContentTypeControllerUpgradeOperationTest {
 
 	@Test
 	public void testCustomScript() throws UpgradeException, IOException, URISyntaxException {
-		ClassPathResource inputResource = new ClassPathResource("crafter/studio/upgrade/content-type/custom/input.groovy");
+		ClassPathResource inputResource = new ClassPathResource("crafter/studio/upgrade/content-type/5.0/5.0.0/custom/input.groovy");
 		Path inputScriptFile = createTempFile("controller.groovy", inputResource.getInputStream());
 		operation.updateFile(mock(StudioUpgradeContext.class), inputScriptFile);
-		ClassPathResource expectedResource = new ClassPathResource("crafter/studio/upgrade/content-type/custom/expected.groovy");
+		ClassPathResource expectedResource = new ClassPathResource("crafter/studio/upgrade/content-type/5.0/5.0.0/custom/expected.groovy");
 		Assert.assertEquals("Output file does not match ", -1, Files.mismatch(inputScriptFile, Paths.get(expectedResource.getURL().toURI())));
 	}
 

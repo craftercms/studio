@@ -31,14 +31,12 @@ import java.util.Collection;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 
 public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
 	private final static Logger logger = LoggerFactory.getLogger(StudioContentAPIAccessDecisionVoter.class);
 
 	private static final String CONTENT_API_ROOT = "/api/1/services/api/1/content/";
-	private final static String WRITE_CONTENT = "/api/1/services/api/1/content/write-content.json";
 
 	@Override
 	public boolean supports(ConfigAttribute configAttribute) {
@@ -77,9 +75,6 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
 		}
 		// Need write_content permission to write operations, otherwise read_content is enough
 		String requiredPermission = PERMISSION_CONTENT_READ;
-		if (StringUtils.equals(requestUri, WRITE_CONTENT)) {
-			requiredPermission = PERMISSION_CONTENT_WRITE;
-		}
 		try {
 			if (hasPermission(siteParam, pathParam, currentUser.getUsername(), requiredPermission)) {
 				toRet = ACCESS_GRANTED;

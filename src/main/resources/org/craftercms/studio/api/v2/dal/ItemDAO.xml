@@ -326,26 +326,6 @@
 		))
 	</sql>
 
-	<update id="updateItem" parameterType="org.craftercms.studio.api.v2.dal.Item">
-		UPDATE item
-		SET site_id               = #{siteId},
-		    path                  = #{path},
-		    preview_url           = #{previewUrl},
-		    state                 = #{state},
-		    locked_by             = #{lockedBy},
-		    last_modified_by      = #{lastModifiedBy},
-		    last_modified_on      = #{lastModifiedOn},
-		    label                 = #{label},
-		    content_type_id       = #{contentTypeId},
-		    system_type           = #{systemType},
-		    mime_type             = #{mimeType},
-		    locale_code           = #{localeCode},
-		    translation_source_id = #{translationSourceId},
-		    size                  = #{size},
-		    parent_id             = #{parentId}
-		WHERE id = #{id}
-	</update>
-
 	<delete id="deleteBySiteAndPath">
 		DELETE FROM item
 		WHERE site_id = #{siteId}

@@ -38,7 +38,8 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+import org.craftercms.studio.model.rest.marketplace.CreateSiteFromMarketplaceRequest;
+import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.DuplicateSiteRequest;
 import org.craftercms.studio.model.rest.sites.UpdateSiteRequest;
 import org.craftercms.studio.model.rest.sites.ValidatePolicyRequest;
@@ -88,12 +89,22 @@ public class SitesController {
 
 	@PostMapping("/create_site_from_marketplace")
 	@ResponseStatus(code = HttpStatus.CREATED)
-	public Result createSite(@Valid @RequestBody CreateSiteRequest request)
+	public Result createSite(@Valid @RequestBody CreateSiteFromMarketplaceRequest request)
 			throws RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException, ServiceLayerException,
 			InvalidRemoteRepositoryCredentialsException, InvalidRemoteUrlException {
 
 		marketplaceService.createSite(request);
 
+		Result result = new Result();
+		result.setResponse(ApiResponse.CREATED);
+		return result;
+	}
+
+	@PostMapping
+	@ResponseStatus(code = HttpStatus.CREATED)
+	public Result createSite(@Valid @RequestBody CreateSiteRequest request)
+			throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException {
+		sitesService.createSite(request);
 		Result result = new Result();
 		result.setResponse(ApiResponse.CREATED);
 		return result;

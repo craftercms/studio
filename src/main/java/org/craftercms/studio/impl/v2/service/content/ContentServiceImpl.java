@@ -35,8 +35,10 @@ import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
 import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
@@ -96,18 +98,6 @@ public class ContentServiceImpl implements ContentService {
 											 String publishComment)
 			throws ServiceLayerException, AuthenticationException, UserNotFoundException {
 		return contentServiceInternal.deleteContent(siteId, paths, publishTitle, publishComment);
-	}
-
-	@Override
-	@RequireSiteReady
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
-	public GetChildrenResult getChildrenByPath(@SiteId String siteId,
-											   @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
-											   String keyword, List<String> systemTypes, List<String> excludes,
-											   String sortStrategy, String order, int offset, int limit)
-			throws ServiceLayerException, UserNotFoundException {
-		return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, systemTypes, excludes,
-				sortStrategy, order, offset, limit);
 	}
 
 	@Override
@@ -176,7 +166,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
 	public void unlockContent(@SiteId String siteId,
 							  @ProtectedResourceId(PATH_RESOURCE_ID) String path)
-			throws ContentNotFoundException, SiteNotFoundException {
+			throws ContentNotFoundException, SiteNotFoundException, RepositoryException {
 		contentServiceInternal.unlockContent(siteId, path);
 	}
 
@@ -305,21 +295,6 @@ public class ContentServiceImpl implements ContentService {
 
 	@Override
 	@RequireSiteReady
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public String getContentTypeClass(@SiteId String site, @ContentPath String uri) throws SiteNotFoundException {
-		return contentServiceInternal.getContentTypeClass(site, uri);
-	}
-
-	@Override
-	@RequireSiteReady
-	@RequireContentExists
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_GET_QUEUE)
-	public void assertNotInWorkflow(@SiteId String siteId, List<String> paths, boolean includeChildren) throws ServiceLayerException {
-		contentServiceInternal.assertNotInWorkflow(siteId, paths, includeChildren);
-	}
-
-	@Override
-	@RequireSiteReady
 	@RequireContentExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public long getContentSize(@SiteId String siteId, @ContentPath String path) {
@@ -338,6 +313,12 @@ public class ContentServiceImpl implements ContentService {
 	public List<ContentItem> getContentItemsByStates(@SiteId String siteId, long statesBitMap,
 													 List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
 		return contentServiceInternal.getContentItemsByStates(siteId, statesBitMap, systemTypes, sortFields, offset, limit);
+	}
+
+	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
+	public void processCreatedFiles(String siteId, User creator) throws ServiceLayerException {
+		contentServiceInternal.processCreatedFiles(siteId, creator);
 	}
 
 	@SuppressWarnings("unused")

@@ -68,13 +68,6 @@
 
 	<bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManager"/>
 
-	<bean id="cstudioServicesManager" class="org.craftercms.studio.api.v1.service.ServicesManager"/>
-
-	<bean id="cstudioRegistrableService" abstract="true" init-method="register"
-	      class="org.craftercms.studio.api.v1.service.AbstractRegistrableService">
-		<property name="servicesManager" ref="cstudioServicesManager"/>
-	</bean>
-
 	<!-- ////////////////////////////////////// -->
 	<!--         Services                       -->
 	<!-- ////////////////////////////////////// -->
@@ -83,39 +76,13 @@
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
 		<property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="contentTypeService" ref="cstudioContentTypeService"/>
 		<property name="itemService" ref="itemService"/>
 		<property name="userService" ref="userServiceInternal"/>
 		<property name="publishService" ref="publishServiceInternal"/>
-	</bean>
-
-	<bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="dependencyMapper" ref="dependencyMapper"/>
+		<property name="contentTypeService" ref="contentTypeServiceInternal"/>
 	</bean>
 
 	<!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
-
-	<bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="contentRepository" ref="contentRepository"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="deployer" ref="allDeployers"/>
-		<property name="entitlementValidator" ref="crafter.entitlementValidator"/>
-		<property name="groupService" ref="groupServiceInternal"/>
-		<property name="userService" ref="userServiceInternal"/>
-		<property name="upgradeManager" ref="upgradeManager"/>
-		<property name="sitesServiceInternal" ref="sitesServiceInternal"/>
-		<property name="auditService" ref="auditServiceInternal"/>
-		<property name="configurationService" ref="configurationServiceInternal"/>
-		<property name="itemService" ref="itemService"/>
-		<property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
-		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
-		<property name="userDao" ref="userDao"/>
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
-	</bean>
-
 	<bean id="cstudioNotificationService"
 	      class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl" init-method="init">
 		<property name="emailMessages" ref="cstudioEmailMessageQueue"/>
@@ -128,7 +95,6 @@
 	</bean>
 
 	<bean id="cstudioServicesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ServicesConfigImpl">
-		<property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="configurationService" ref="configurationServiceInternal"/>
 		<property name="configurationCache" ref="configurationCache"/>
@@ -137,7 +103,6 @@
 	<bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"/>
 
 	<bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
-		<property name="contentTypeService" ref="cstudioContentTypeService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="userService" ref="userServiceInternal"/>
 		<property name="configurationService" ref="configurationServiceInternal"/>
@@ -150,25 +115,7 @@
 		<property name="configurationCache" ref="configurationCache"/>
 	</bean>
 
-	<bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl">
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="contentTypesConfig" ref="cstudioContentTypesConfig"/>
-		<property name="securityService" ref="cstudioSecurityService"/>
-		<property name="contentRepository" ref="contentRepository"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-	</bean>
-
-	<bean id="cstudioContentTypesConfig" class="org.craftercms.studio.impl.v1.service.configuration.ContentTypesConfigImpl">
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="configurationService" ref="configurationServiceInternal"/>
-		<property name="cache" ref="configurationCache"/>
-	</bean>
-
-	<bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl"
-	      parent="cstudioRegistrableService">
+	<bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl">
 		<property name="contentService" ref="cstudioContentService"/>
 		<property name="generalLockService" ref="cstudioGeneralLockService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
@@ -181,6 +128,7 @@
 		<constructor-arg name="publishService" ref="publishServiceInternal"/>
 		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="contentRepository" ref="contentRepository"/>
+		<constructor-arg name="sitesService" ref="sitesServiceInternal"/>
 	</bean>
 
 	<bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
@@ -363,7 +311,6 @@
 	      class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
 		<constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-		<constructor-arg name="siteFeedMapper" ref="siteFeedMapper"/>
 		<constructor-arg name="siteDao" ref="siteDao"/>
 		<constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<constructor-arg name="deployer" ref="allDeployers"/>
@@ -416,6 +363,7 @@
 		<constructor-arg name="contentLifecycle" ref="contentLifecycle"/>
 		<constructor-arg name="assetLifecycle" ref="assetLifecycle"/>
 		<constructor-arg name="permissionEvaluator" ref="crafter.studioCompositePermissionEvaluator"/>
+		<constructor-arg name="contentTypeService" ref="contentTypeServiceInternal"/>
 	</bean>
 
 	<bean id="contentLifecycle" class="org.craftercms.studio.impl.v2.content.ContentLifecycleImpl">
@@ -431,7 +379,6 @@
 
 	<bean id="contentTypeServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl">
-		<constructor-arg name="cstudioContentTypeService" ref="cstudioContentTypeService"/>
 		<constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
 		<constructor-arg name="configurationService" ref="configurationServiceInternal"/>
 		<constructor-arg name="itemDao" ref="itemDao"/>
@@ -439,8 +386,6 @@
 				 value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configPath')}"/>
 		<constructor-arg name="contentTypeDefinitionFilename"
 				 value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.definitionFileName')}"/>
-		<constructor-arg name="contentTypeConfigFilename"
-				 value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configFileName')}"/>
 		<constructor-arg name="templateXPath"
 				 value="#{studioConfiguration.getProperty('studio.configuration.contentType.template.xpath')}"/>
 		<constructor-arg name="contentTypesRootPath" value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configBasePath')}"/>
@@ -455,8 +400,7 @@
 		<constructor-arg name="formControllerFilePath"
 				 value="#{studioConfiguration.getProperty('studio.configuration.contentType.formControllerFilePath')}" />
 		<constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
-		<!-- TODO: Break circular dependency with this bean -->
-		<property name="contentService" ref="contentServiceInternal"/>
+		<constructor-arg name="cache" ref="configurationCache"/>
 	</bean>
 
 	<bean id="contentTypeService" class="org.craftercms.studio.impl.v2.service.content.ContentTypeServiceImpl">
@@ -504,9 +448,10 @@
 		<property name="itemDao" ref="itemDao"/>
 		<property name="userService" ref="userServiceInternal"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="contentService" ref="contentServiceInternal"/>
 		<property name="generalLockService" ref="cstudioGeneralLockService"/>
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
+		<property name="contentRepository" ref="contentRepository"/>
+		<property name="studioConfiguration" ref="studioConfiguration"/>
 	</bean>
 
 	<bean id="studio.workflowService" class="org.craftercms.studio.impl.v2.service.workflow.WorkflowServiceImpl">
@@ -531,13 +476,6 @@
 		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 		<property name="activityStreamDAO" ref="activityStreamDao"/>
 	</bean>
-
-	<!-- ////////////////////////////////////// -->
-	<!--       Content ID Generator                   -->
-	<!-- ////////////////////////////////////// -->
-
-	<bean id="cstudioContentIdGenerator" class="org.craftercms.studio.impl.v1.service.content.ContentItemIdGeneratorImpl"
-	      parent="cstudioRegistrableService"/>
 
 	<!-- ////////////////////// -->
 	<!-- Email  -->
@@ -923,48 +861,6 @@
 	</bean>
 
 	<!-- ////////////////////////////////////// -->
-	<!--       Object type filters                   -->
-	<!-- ////////////////////////////////////// -->
-	<!-- this should be refactored and moved in to repo based config -->
-	<!-- DM filters -->
-	<bean id="cstudioDmFilterWrapper" class="org.craftercms.studio.api.v1.util.filter.DmFilterWrapperImpl">
-		<property name="filterMap">
-			<map>
-				<entry key="pages">
-					<ref bean="cstudioPagesFilter"/>
-				</entry>
-				<entry key="components">
-					<ref bean="cstudioComponentsFilter"/>
-				</entry>
-				<entry key="documents">
-					<ref bean="cstudioDocumentsFilter"/>
-				</entry>
-				<entry key="all">
-					<ref bean="cstudioAllFilter"/>
-				</entry>
-			</map>
-		</property>
-		<property name="defaultFilter" ref="cstudioAllFilter"/>
-		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="servicesManager" ref="cstudioServicesManager"/>
-	</bean>
-
-	<bean id="cstudioPagesFilter" class="org.craftercms.studio.api.v1.util.filter.PageFilter">
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-	</bean>
-
-	<bean id="cstudioComponentsFilter" class="org.craftercms.studio.api.v1.util.filter.ComponentFilter">
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-	</bean>
-
-	<bean id="cstudioDocumentsFilter" class="org.craftercms.studio.api.v1.util.filter.DocumentFilter">
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-	</bean>
-
-	<bean id="cstudioAllFilter" class="org.craftercms.studio.api.v1.util.filter.AllFilter">
-	</bean>
-
-	<!-- ////////////////////////////////////// -->
 	<!--          Crafter Deployers             -->
 	<!-- ////////////////////////////////////// -->
 	<bean id="abstractDeployer" class="org.craftercms.studio.impl.v2.deployment.AbstractDeployer" abstract="true">
@@ -993,7 +889,7 @@
 	<!--         Dependencies                   -->
 	<!-- ////////////////////////////////////// -->
 	<bean id="studioDependencyResolver" class="org.craftercms.studio.impl.v1.service.dependency.RegexDependencyResolver">
-		<property name="contentService" ref="cstudioContentService"/>
+		<property name="contentService" ref="contentServiceInternal"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="configurationService" ref="configurationServiceInternal"/>
 	</bean>
@@ -1050,30 +946,12 @@
 		<constructor-arg name="contextManager" ref="contextManager"/>
 	</bean>
 
-	<bean id="studioElasticTranscoder" class="org.craftercms.studio.impl.v1.aws.elastictranscoder.ElasticTranscoderImpl"/>
-
-	<bean id="studioElasticTranscoderService" class="org.craftercms.studio.impl.v1.service.aws.ElasticTranscoderServiceImpl">
-		<constructor-arg name="profileLoader" ref="studioTranscoderProfileLoader"/>
-		<constructor-arg name="transcoder" ref="studioElasticTranscoder"/>
-	</bean>
-
-	<bean id="studioS3Service" class="org.craftercms.studio.impl.v1.service.aws.S3ServiceImpl">
-		<constructor-arg name="profileLoader" ref="studioS3ProfileLoader"/>
-	</bean>
-
 	<!-- v2 Service -->
 	<bean id="awsS3Service" class="org.craftercms.studio.impl.v2.service.aws.s3.AwsS3ServiceImpl">
 		<constructor-arg name="profileLoader" ref="studioS3ProfileLoader"/>
 		<constructor-arg name="clientFactory" ref="crafter.s3ClientFactory"/>
 		<constructor-arg name="delimiter" value="#{studioConfiguration.getProperty('studio.aws.s3.delimiter')}"/>
 		<constructor-arg name="urlPattern" value="#{studioConfiguration.getProperty('studio.aws.s3.url.pattern')}"/>
-	</bean>
-
-	<bean id="studioMediaConvert" class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertImpl"/>
-
-	<bean id="studioMediaConvertService" class="org.craftercms.studio.impl.v1.service.aws.MediaConvertServiceImpl">
-		<constructor-arg name="profileLoader" ref="studioMediaConvertProfileLoader"/>
-		<constructor-arg name="mediaConvert" ref="studioMediaConvert"/>
 	</bean>
 
 	<!--  v2 Service  -->
@@ -1194,8 +1072,8 @@
 	<bean id="marketplaceServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl">
 		<constructor-arg name="instanceService" ref="instanceService"/>
-		<constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
 		<constructor-arg name="sitesServiceInternal" ref="sitesServiceInternal"/>
+		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="pluginDescriptorReader" ref="pluginDescriptorReader"/>
 		<constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,17 +33,6 @@ class ContentServices {
 	}
 
 	/**
-	 * get the tree of content items (metadata) beginning at a root
-	 * @param site - the project ID
-	 * @param rootPath - the path to root at
-	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	 */
-	static getContentItemTree(site, path, depth, context) {
-		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentItemTree(site, path, depth)
-	}
-
-	/**
 	 * get content orders for a given path (usually used for navigation)
 	 * @param site - the project ID
 	 * @param path - the parent path containing the ordered objects
@@ -64,11 +53,6 @@ class ContentServices {
 	static getContentVersionAtPath(site, path, version, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.getContentVersionAtPath(site, path, version)
-	}
-
-	static getContentType(context, site, type) {
-		def contentTypeServicesImpl = ServiceFactory.getContentTypeServices(context);
-		return contentTypeServicesImpl.getContentType(site, type)
 	}
 
 	static reorderItems(context, site, path, before, after) {

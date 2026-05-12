@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v2.dal.publish.PublishItemWithMetadata;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage.ApprovalState;
 import org.craftercms.studio.api.v2.exception.publish.PublishPackageNotFoundException;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.impl.v2.publish.Publisher;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
 import org.craftercms.studio.model.publish.PublishingTarget;
@@ -133,7 +134,7 @@ public interface PublishService {
 	 * @return true if site has been published at least once, otherwise false
 	 * @throws SiteNotFoundException Site doesn't exist
 	 */
-	boolean isSitePublished(String siteId) throws SiteNotFoundException;
+	boolean isSitePublished(String siteId) throws SiteNotFoundException, RepositoryException;
 
 	/**
 	 * Create a 'APPROVED' publish package. The created package will be ready to be published.

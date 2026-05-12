@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -47,6 +47,8 @@ public interface DependencyService {
 	 * Get the publishing soft dependencies of a list of items. A soft
 	 * dependency is:
 	 * * an edited, shared (not item specific) dependency
+	 * <p>
+	 * This method will NOT get transitive soft dependencies.
 	 *
 	 * @param site  Site to operate on
 	 * @param paths List of paths to items to retrieve deps for
@@ -111,11 +113,20 @@ public interface DependencyService {
 	List<LightItem> getItemSpecificDependencies(String siteId, Collection<String> paths);
 
 	/**
-	 * Get all valid dependencies for given path.
+	 * Get all valid dependency paths for the given path.
 	 *
 	 * @param siteId the site id
 	 * @param path   source path to get dependencies for
-	 * @return collection of {@link LightItem} dependencies for given path
+	 * @return collection of paths of the dependencies for given path
+	 */
+	Collection<String> getDependencyPaths(String siteId, String path);
+
+	/**
+	 * Get dependency items for given path
+	 *
+	 * @param siteId the site id
+	 * @param path   source path to get dependencies for
+	 * @return collection of {@link LightItem} that are dependencies for given path
 	 */
 	Collection<LightItem> getDependencies(String siteId, String path);
 

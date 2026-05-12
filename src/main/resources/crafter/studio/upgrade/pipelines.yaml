@@ -598,6 +598,14 @@ pipelines:
                             -   src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
                                 dest: /configuration/samples/sample-studio-config-override.yaml
                         commitDetails: Update sample studio override config file
+            -   currentVersion: 5.0.0.15
+                nextVersion: 5.0.0.16
+                operations:
+                    -   type: globalRepoUpgrader
+                        files:
+                            -   src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                                dest: configuration/samples/sample-ui.xml
+                        commitDetails: Update sample file for ui.xml
 
     # Pipeline to upgrade site repositories
     site:
@@ -763,6 +771,13 @@ pipelines:
                             -   pattern: "\\._toQuery\\(\\)"
                                 replacement: '.toQuery()'
                         commitDetails: Upgrade to OpenSearch 3 in site scripts
+            -   currentVersion: 5.0.0.1
+                nextVersion: 5.0.0.2
+                operations:
+                    -   type: contentTypeConfigMergeUpgrader
+                        regex: config/studio/content-types/.+/form-definition\.xml
+                        template: crafter/studio/upgrade/5.0.x/content-type/content-type-merge-v5.0.0.2.xslt
+                        commitDetails: Merge content type config.xml into form-definition.xml and remove config.xml files
 
     # Pipeline to upgrade blueprints
     blueprint:
@@ -1359,3 +1374,9 @@ configurations:
                     -   type: xsltFileUpgrader
                         template: crafter/studio/upgrade/5.0.x/config/ui/ui-v5.0.0.0.xslt
                         commitDetails: Add i18n to PathNavigator/PathNavigatorTree
+            -   currentVersion: 5.0.0.0
+                nextVersion: 5.0.0.1
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/5.0.x/config/ui/ui-v5.0.0.1.xslt
+                        commitDetails: Update the UI to use new icons for dashboard widgets

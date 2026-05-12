@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.annotation;
 
+import org.craftercms.studio.api.v2.dal.Site;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -23,7 +25,6 @@ import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 
 /**
  * {@link RequireSiteState} specialization that requires the site state to be 'READY'.
@@ -31,6 +32,6 @@ import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 @Inherited
 @Retention(RUNTIME)
 @Target({METHOD, ElementType.TYPE})
-@RequireSiteState(STATE_READY)
+@RequireSiteState(Site.State.READY)
 public @interface RequireSiteReady {
 }

@@ -52,7 +52,7 @@ public final class RequestMappingConstants {
 	public static final String SITE_ID = "/{siteId}";
 	public static final String GET_CHILDREN_BY_PATHS = SITE_ID + "/children";
 	public static final String GET_DESCRIPTOR = "/descriptor";
-	public static final String PASTE_ITEMS = "/paste";
+	public static final String PASTE_ITEMS = SITE_ID + "/paste";
 	public static final String DUPLICATE_ITEM = "/duplicate";
 	public static final String EXISTS = "/exists";
 	public static final String ITEM_BY_PATH = "/item_by_path";
@@ -140,6 +140,7 @@ public final class RequestMappingConstants {
 	 */
 	public static final String DEPENDENCY = "/dependency";
 	public static final String DEPENDENCIES = "/dependencies";
+	public static final String PUBLISH_DEPENDENCIES = "/publish_dependencies";
 	public static final String DEPENDENT_ITEMS = "/dependent_items";
 
 	/**
@@ -163,6 +164,20 @@ public final class RequestMappingConstants {
 	 */
 	public static final String MONITOR = "/monitor";
 
+	/**
+	 * Configuration Controller
+	 */
+	public static final String CONFIGURATION = "/configuration";
+	public static final String CLEAR_CACHE = "/clear_cache";
+	public static final String GET_CONFIGURATION = "/get_configuration";
+	public static final String WRITE_CONFIGURATION = "/write_configuration";
+	public static final String GET_CONFIGURATION_HISTORY = "/get_configuration_history";
+	public static final String TRANSLATION = "/translation";
+	public static final String CONTENT_TYPES = "/content_types";
+	public static final String USAGE = "/usage";
+	public static final String PREVIEW_IMAGE = "/preview_image";
+	public static final String FORM_CONTROLLER = "/form_controller";
+	public static final String ALLOWED_TYPES = "/allowed_types";
 
 	private RequestMappingConstants() {
 	}

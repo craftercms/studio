@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -36,10 +37,10 @@ import java.util.List;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
-import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 
 
@@ -123,7 +124,7 @@ public class ContentUtils {
 	 * @return path of the parent item
 	 */
 	public static String getParentUrl(String path) {
-		return getFullPathNoEndSeparator(removeEnd(path, SLASH_INDEX_FILE));
+		return getFullPathNoEndSeparator(CS.removeEnd(path, SLASH_INDEX_FILE));
 	}
 
 	/**
@@ -173,7 +174,18 @@ public class ContentUtils {
 	 * @param value    new text value of the node, if found
 	 */
 	public static void updateSingleDocumentNode(final Element root, final String nodeName, final String value) {
-		Node node = root.selectSingleNode(format("//%s", nodeName));
+		updateSingleDocumentFromXPath(root, format("//%s", nodeName), value);
+	}
+
+	/**
+	 * Helper method to update a single node element with the indicated value, using the provided XPath expression to select the node to update.
+	 *
+	 * @param root  root element
+	 * @param xpath XPath expression to select the node to update
+	 * @param value new text value of the node, if found
+	 */
+	public static void updateSingleDocumentFromXPath(final Element root, final String xpath, final String value) {
+		Node node = root.selectSingleNode(xpath);
 		if (node != null) {
 			node.setText(value);
 		}
@@ -187,7 +199,18 @@ public class ContentUtils {
 	 * @return the text of the node, or null if the node is not found
 	 */
 	public static String readSingleDocumentNodeText(final Element root, final String nodeName) {
-		Node node = root.selectSingleNode(format("//%s", nodeName));
+		return readSingleDocumentFromXPath(root, format("//%s", nodeName));
+	}
+
+	/**
+	 * Reads the text of a single node in a document, using the provided XPath expression.
+	 *
+	 * @param root  root element of the document
+	 * @param xpath XPath expression to select the node to read
+	 * @return the text of the node, or null if the node is not found
+	 */
+	public static String readSingleDocumentFromXPath(final Element root, final String xpath) {
+		Node node = root.selectSingleNode(xpath);
 		if (node != null) {
 			return node.getText();
 		}
@@ -254,5 +277,52 @@ public class ContentUtils {
 			browserUri = browserUri.replaceFirst("\\.xml", ".html");
 		}
 		return browserUri;
+	}
+
+	/**
+	 * Get content type class for given site and uri.
+	 * It will default to {@link org.craftercms.studio.api.v1.constant.StudioConstants#CONTENT_TYPE_FILE} if
+	 * the path does not match any content type pattern.
+	 *
+	 * @param servicesConfig      {@link ServicesConfig} instance to get the configured patterns for the site
+	 * @param studioConfiguration {@link StudioConfiguration} instance to get the configured content types base
+	 * @param site                the site id
+	 * @param uri                 the content uri
+	 * @return the content type class
+	 * @throws SiteNotFoundException if site is not found
+	 */
+	public static String getContentTypeClass(ServicesConfig servicesConfig, StudioConfiguration studioConfiguration,
+											 String site, String uri) throws SiteNotFoundException {
+		if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+			return CONTENT_TYPE_LEVEL_DESCRIPTOR;
+		}
+		if (matchesPatterns(uri, servicesConfig.getPagePatterns(site))) {
+			return CONTENT_TYPE_PAGE;
+		}
+		if (matchesPatterns(uri, servicesConfig.getComponentPatterns(site))) {
+			return CONTENT_TYPE_COMPONENT;
+		}
+		if (matchesPatterns(uri, servicesConfig.getDocumentPatterns(site))) {
+			return CONTENT_TYPE_DOCUMENT;
+		}
+		if (matchesPatterns(uri, servicesConfig.getAssetPatterns(site))) {
+			return CONTENT_TYPE_ASSET;
+		}
+		if (matchesPatterns(uri, servicesConfig.getRenderingTemplatePatterns(site))) {
+			return CONTENT_TYPE_RENDERING_TEMPLATE;
+		}
+		if (CS.startsWith(uri, studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH))) {
+			return CONTENT_TYPE_CONTENT_TYPE;
+		}
+		if (matchesPatterns(uri, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
+			return CONTENT_TYPE_TAXONOMY;
+		}
+		if (matchesPatterns(uri, servicesConfig.getScriptsPatterns(site))) {
+			return CONTENT_TYPE_SCRIPT;
+		}
+		if (matchesPatterns(uri, servicesConfig.getConfigurationPatterns(site))) {
+			return CONTENT_TYPE_CONFIGURATION;
+		}
+		return CONTENT_TYPE_FILE;
 	}
 }

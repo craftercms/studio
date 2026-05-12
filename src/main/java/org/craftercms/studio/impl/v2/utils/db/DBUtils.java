@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,9 +16,12 @@
 
 package org.craftercms.studio.impl.v2.utils.db;
 
+import org.craftercms.studio.impl.v2.utils.Wrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.function.ThrowingSupplier;
 
@@ -112,6 +115,43 @@ public class DBUtils {
 	}
 
 	/**
+	 * Registers a callback to be executed after the current transaction is committed. If there is no active transaction, the callback will be executed immediately.
+	 *
+	 * @param callback the callback to be executed after the transaction is committed
+	 */
+	public static void runAfterCommit(Runnable callback) {
+		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					callback.run();
+				}
+			});
+		} else {
+			callback.run();
+		}
+	}
+
+	/**
+	 * Registers a callback to be executed after the current transaction is rolled back.
+	 * If there is no active transaction, the callback will not be executed.
+	 *
+	 * @param callback the callback to be executed after the transaction is rolled back
+	 */
+	public static void runAfterRollback(Runnable callback) {
+		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCompletion(int status) {
+					if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
+						callback.run();
+					}
+				}
+			});
+		}
+	}
+
+	/**
 	 * Runnable interface that can throw an exception.
 	 */
 	@FunctionalInterface
@@ -119,19 +159,4 @@ public class DBUtils {
 		void run() throws Exception;
 	}
 
-	private static class Wrapper<T> {
-		private T value;
-
-		public T get() {
-			return value;
-		}
-
-		public void set(T value) {
-			this.value = value;
-		}
-
-		public boolean hasValue() {
-			return this.value != null;
-		}
-	}
 }

@@ -118,6 +118,12 @@ public final class ResultConstants {
 	public static final String RESULT_KEY_MONITORS = "monitors";
 
 	/**
+	 * Content types controller
+	 */
+	public static final String RESULT_KEY_CONTENT_TYPES = "contentTypes";
+	public static final String RESULT_KEY_ALLOWED_TYPES = "allowedTypes";
+
+	/**
 	 * Exception Handler
 	 */
 	public static final String RESULT_KEY_PERSON = "person";

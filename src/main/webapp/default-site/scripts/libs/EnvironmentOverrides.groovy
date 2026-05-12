@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,9 +16,8 @@
 
 package scripts.libs
 
+import org.craftercms.studio.impl.v2.utils.security.SecurityUtils
 import org.slf4j.LoggerFactory
-import scripts.api.SecurityServices
-import scripts.api.SiteServices
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.STUDIO_COOKIE_USE_BASE_DOMAIN
@@ -41,7 +40,6 @@ class EnvironmentOverrides {
 		def result = [:]
 		def serverProperties = appContext.get("studio.crafter.properties")
 
-		def context = SiteServices.createContext(appContext, request)
 		result.environment = serverProperties["environment"]
 
 		def contextPath = request.getContextPath()
@@ -51,11 +49,11 @@ class EnvironmentOverrides {
 		result.studioContext = contextPath
 
 		try {
-			def userServiceSB = context.applicationContext.get(USER_SERVICES_BEAN)
+			def userServiceSB = appContext.get(USER_SERVICES_BEAN)
 			result.site = Cookies.getCookieValue("crafterSite", request)
-			result.user = SecurityServices.getCurrentUser(context)
+			result.user = SecurityUtils.getCurrentUsername()
 
-			def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
+			def studioConfigurationSB = appContext.get("studioConfiguration")
 			try {
 				def authenticatedUser = userServiceSB.getCurrentUser()
 				result.authenticationType = authenticatedUser.getAuthenticationType()
@@ -76,7 +74,7 @@ class EnvironmentOverrides {
 			if (result.user == null) {
 				response.sendRedirect("/studio/login")
 			} else {
-				def sites = SiteServices.getSitesPerUser(context, 0, 25)
+				def sites = appContext.get("userService").getCurrentUserSites()
 				if (sites.isEmpty()) {
 					if (request.getRequestURI() != '/studio' && request.getRequestURI() != '/studio/') {
 						response.sendRedirect("/studio/?noSites")
@@ -100,7 +98,7 @@ class EnvironmentOverrides {
 					}
 
 					try {
-						def roles = SecurityServices.getUserRoles(context, result.site)
+						def roles = userServiceSB.getCurrentUserSiteRoles(result.site)
 						if (roles != null && roles.size() > 0) {
 							if (roles.contains("admin")) {
 								result.role = "admin"
@@ -139,8 +137,8 @@ class EnvironmentOverrides {
 
 	static getMinimalValuesForSite(appContext, request) {
 		def result = [:]
-		def context = SiteServices.createContext(appContext, request)
-		def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
+//		def context = SiteServices.createContext(appContext, request)
+		def studioConfigurationSB = appContext.get("studioConfiguration")
 		result.useBaseDomain = studioConfigurationSB.getProperty(STUDIO_COOKIE_USE_BASE_DOMAIN)
 		return result
 	}

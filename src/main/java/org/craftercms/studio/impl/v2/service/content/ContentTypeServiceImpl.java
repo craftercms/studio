@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,10 +21,12 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.annotation.ContentPath;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
+import org.craftercms.studio.model.contentType.ContentType;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
@@ -114,6 +116,27 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<QuickCreateItem> getQuickCreatableContentTypes(@SiteId String siteId) throws ServiceLayerException {
 		return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<ContentType> getAllContentTypes(@SiteId String siteId) throws ServiceLayerException {
+		return contentTypeServiceInternal.getAllContentTypes(siteId);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public ContentType getContentType(@SiteId String siteId, String contentTypeId) throws ServiceLayerException {
+		return contentTypeServiceInternal.getContentType(siteId, contentTypeId);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public Collection<String> getAllowedContentTypes(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException {
+		return contentTypeServiceInternal.getAllowedContentTypes(siteId, path);
 	}
 
 	@Override

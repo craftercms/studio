@@ -22,22 +22,11 @@ package scripts.api.impl.content
 class SpringContentServices {
 
 	static CONTENT_SERVICES_BEAN = "cstudioContentService"
-	static ASSET_PROCESSING_SERVICE_BEAN = "studioAssetProcessingService"
 
 	def context = null
 
 	def SpringContentServices(context) {
 		this.context = context
-	}
-
-	/**
-	 * get the tree of content items (metadata) beginning at a root
-	 * @param site - the project ID
-	 * @param rootPath - the path to root at
-	 */
-	def getContentItemTree(site, path, depth) {
-		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-		return springBackedService.getContentItemTree(site, path, depth)
 	}
 
 	/**

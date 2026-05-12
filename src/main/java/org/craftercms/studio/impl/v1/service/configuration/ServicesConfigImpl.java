@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,12 +25,10 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.util.XmlUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -43,7 +41,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
@@ -82,20 +79,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected static final String ATTR_READ_DIRECT_CHILDREN = "@read-direct-children";
 	protected static final String ATTR_ATTACH_ROOT_PREFIX = "@attach-root-prefix";
 
-	/**
-	 * content types configuration
-	 */
-	protected ContentTypesConfig contentTypesConfig;
 	protected StudioConfiguration studioConfiguration;
 	protected ConfigurationService configurationService;
 	protected Cache<String, SiteConfigTO> configurationCache;
-
-	@Override
-	@Valid
-	public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam String site,
-							@ValidateStringParam String name) throws SiteNotFoundException {
-		return contentTypesConfig.getContentTypeConfig(site, name);
-	}
 
 	@Override
 	@Valid
@@ -105,20 +91,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 			return config.getRepositoryConfig().getAssetPatterns();
 		}
 		return null;
-	}
-
-	@Override
-	@Valid
-	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam String site,
-								      @ValidateStringParam String contentType) throws SiteNotFoundException {
-		if (contentType == null) {
-			return emptyList();
-		}
-		ContentTypeConfigTO contentTypeConfig = contentTypesConfig.getContentTypeConfig(site, contentType);
-		if (contentTypeConfig != null) {
-			return contentTypeConfig.getCopyDepedencyPattern();
-		}
-		return emptyList();
 	}
 
 	@Override
@@ -490,9 +462,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 				folderConfig.setName(folderNode.valueOf(ATTR_NAME));
 				folderConfig.setPath(folderNode.valueOf(ATTR_PATH));
 				folderConfig.setReadDirectChildren(
-					ContentFormatUtils.getBooleanValue(folderNode.valueOf(ATTR_READ_DIRECT_CHILDREN)));
+						Boolean.parseBoolean(folderNode.valueOf(ATTR_READ_DIRECT_CHILDREN)));
 				folderConfig.setAttachRootPrefix(
-					ContentFormatUtils.getBooleanValue(folderNode.valueOf(ATTR_ATTACH_ROOT_PREFIX)));
+						Boolean.parseBoolean(folderNode.valueOf(ATTR_ATTACH_ROOT_PREFIX)));
 				folders.add(folderConfig);
 			}
 			repo.setFolders(folders);
@@ -588,11 +560,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 	public ContentMonitorConfigTO getMonitorConfig(String siteId) throws SiteNotFoundException {
 		SiteConfigTO config = loadConfiguration(siteId);
 		return config.getContentMonitorConfig();
-	}
-
-	@SuppressWarnings("unused")
-	public void setContentTypesConfig(ContentTypesConfig contentTypesConfig) {
-		this.contentTypesConfig = contentTypesConfig;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

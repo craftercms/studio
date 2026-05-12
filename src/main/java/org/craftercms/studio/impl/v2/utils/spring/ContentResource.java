@@ -49,7 +49,7 @@ public class ContentResource extends AbstractResource {
 	 */
 	protected String path;
 
-	public ContentResource(final org.craftercms.studio.api.v2.service.content.ContentService contentService, final String site, final String path) {
+	public ContentResource(final ContentService contentService, final String site, final String path) {
 		this.contentService = contentService;
 		this.site = site;
 		this.path = path;

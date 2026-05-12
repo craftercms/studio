@@ -21,7 +21,7 @@ import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
@@ -47,7 +47,7 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
 
 	protected final String REMOTE_REPOSITORIES_QUERY = "select id, remote_password, remote_token, " +
 		"remote_private_key, authentication_type from remote_repository where authentication_type != '" +
-		AuthenticationType.NONE + "'";
+		AuthenticationType.none + "'";
 	protected final String REMOTE_REPOSITORIES_UPDATE = "update remote_repository set remote_password = " +
 		":remotePassword, remote_token = :remoteToken, remote_private_key = :remotePrivateKey where id = :id";
 
@@ -87,13 +87,13 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
 		for (RemoteRepository remote : remotes) {
 			logger.debug("Upgrade the remote repository with ID '{}'", remote.getId());
 			switch (remote.getAuthenticationType()) {
-				case AuthenticationType.BASIC:
+				case AuthenticationType.basic:
 					remote.setRemotePassword(upgradeValue(remote.getRemotePassword()));
 					break;
-				case AuthenticationType.TOKEN:
+				case AuthenticationType.token:
 					remote.setRemoteToken(upgradeValue(remote.getRemoteToken()));
 					break;
-				case AuthenticationType.PRIVATE_KEY:
+				case AuthenticationType.private_key:
 					remote.setRemotePrivateKey(upgradeValue(remote.getRemotePrivateKey()));
 					break;
 				default:

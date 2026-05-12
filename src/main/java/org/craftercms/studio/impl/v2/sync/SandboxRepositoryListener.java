@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.sync.RepositoryWatcher;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -68,7 +69,12 @@ public class SandboxRepositoryListener implements ApplicationEventPublisherAware
 	public void onBootstrapFinished() {
 		siteService.getSitesByState(READY).forEach(site -> {
 			logger.debug("Registering site '{}' for repository events", site);
-			Repository repo = repositoryHelper.getRepository(site.getSiteId(), GitRepositories.SANDBOX);
+			Repository repo = null;
+			try {
+				repo = repositoryHelper.getRepository(site.getSiteId(), GitRepositories.SANDBOX);
+			} catch (RepositoryException e) {
+				logger.error("Error accessing repository for site '{}'", site, e);
+			}
 			if (repo == null) {
 				// This can happen in clusters when a site is created while the replica is down
 				logger.warn("Repository not found for site '{}'", site);
@@ -84,7 +90,7 @@ public class SandboxRepositoryListener implements ApplicationEventPublisherAware
 		});
 	}
 
-	private Path getSandboxRepoPath(String site) {
+	private Path getSandboxRepoPath(String site) throws RepositoryException {
 		Repository repo = repositoryHelper.getRepository(site, GitRepositories.SANDBOX);
 		return repo.getDirectory().toPath();
 	}
@@ -92,7 +98,7 @@ public class SandboxRepositoryListener implements ApplicationEventPublisherAware
 	@Async
 	@Order(20)
 	@EventListener
-	public void onSiteReady(SiteReadyEvent event) throws SiteNotFoundException, IOException {
+	public void onSiteReady(SiteReadyEvent event) throws SiteNotFoundException, IOException, RepositoryException {
 		logger.debug("Site ready event received for site '{}'", event.getSiteId());
 		repositoryWatcher.registerSite(event.getSiteId(), getSandboxRepoPath(event.getSiteId()));
 	}

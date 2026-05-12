@@ -23,7 +23,6 @@ import jakarta.validation.constraints.Size;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -35,6 +34,7 @@ import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
@@ -168,12 +168,13 @@ public class ContentController {
 	}
 
 	@PostMapping(value = PASTE_ITEMS, produces = APPLICATION_JSON_VALUE)
-	public ResultList<String> pasteItems(@Valid @RequestBody PasteRequest request) throws Exception {
+	public ResultList<String> pasteItems(@ValidSiteId @PathVariable String siteId,
+										 @Valid @RequestBody PasteRequest request) throws Exception {
 		var result = new ResultList<String>();
 		result.setResponse(OK);
 		result.setEntities(RESULT_KEY_ITEMS,
-				clipboardService.pasteItems(request.getSiteId(), request.getOperation(),
-						request.getTargetPath(), request.getItem()));
+				clipboardService.pasteItems(siteId, request.getOperation(),
+						request.getTargetPath(), request.getSourcePath(), request.isIncludeChildren()));
 
 		return result;
 	}
@@ -215,7 +216,7 @@ public class ContentController {
 		if (CollectionUtils.isEmpty(sandboxItems) || paths.size() != sandboxItems.size()) {
 			List<String> found = sandboxItems.stream().map(ContentItem::getPath).collect(Collectors.toList());
 			if (preferContent) {
-				found.addAll(sandboxItems.stream().map(si -> StringUtils.replace(si.getPath(),
+				found.addAll(sandboxItems.stream().map(si -> CS.replace(si.getPath(),
 						FILE_SEPARATOR + INDEX_FILE, "")).toList());
 			}
 			missing = CollectionUtils.subtract(paths, found);
@@ -239,7 +240,7 @@ public class ContentController {
 
 	@PostMapping(ITEM_UNLOCK_BY_PATH)
 	public Result itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request)
-			throws ContentNotFoundException, SiteNotFoundException {
+			throws ContentNotFoundException, SiteNotFoundException, RepositoryException {
 		contentService.unlockContent(request.getSiteId(), request.getPath());
 		Result result = new Result();
 		result.setResponse(OK);
@@ -285,7 +286,7 @@ public class ContentController {
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		WriteContentResult writeResult = contentService.write(siteId, path, content, comment);
 		boolean isNew = writeResult.getItems().stream()
-				.filter(i -> StringUtils.equals(i.path(), path))
+				.filter(i -> CS.equals(i.path(), path))
 				.map(WriteContentResult.WriteContentResultItem::operation)
 				.anyMatch(LifecycleContent.LifecycleOperation.NEW::equals);
 		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(writeResult);

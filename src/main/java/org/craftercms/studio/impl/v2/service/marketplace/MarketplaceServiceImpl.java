@@ -23,7 +23,6 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -37,7 +36,7 @@ import org.craftercms.studio.api.v2.exception.configuration.ConfigurationExcepti
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
-import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+import org.craftercms.studio.model.rest.marketplace.CreateSiteFromMarketplaceRequest;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -72,7 +71,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
-	public void createSite(CreateSiteRequest request) throws RemoteRepositoryNotFoundException,
+	public void createSite(CreateSiteFromMarketplaceRequest request) throws RemoteRepositoryNotFoundException,
 		InvalidRemoteRepositoryException, InvalidRemoteUrlException,
 		ServiceLayerException, InvalidRemoteRepositoryCredentialsException {
 		marketplaceServiceInternal.createSite(request);

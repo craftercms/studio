@@ -19,7 +19,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.clipboard.Operation;
-import org.craftercms.studio.model.clipboard.PasteItem;
 
 import java.util.List;
 
@@ -80,12 +79,13 @@ public interface ClipboardService {
 	 * @param siteId     the id of the site
 	 * @param operation  the clipboard operation
 	 * @param targetPath the target path
-	 * @param item       the item to paste
+	 * @param sourcePath the source path of the item
+	 * @param includeChildren whether to include children of the source item in the operation
 	 * @return the list of pasted items
 	 * @throws ServiceLayerException if there is any error during the operation
 	 * @throws UserNotFoundException if the user is not found
 	 */
-	List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
+	List<String> pasteItems(String siteId, Operation operation, String targetPath, String sourcePath, boolean includeChildren)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
