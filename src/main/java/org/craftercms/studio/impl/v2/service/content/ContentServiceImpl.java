@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -94,7 +94,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 
     @Override
-    @RequireSiteExists
+    @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public boolean contentExists(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws SiteNotFoundException {
@@ -102,13 +103,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @RequireSiteExists
+    @RequireSiteBootstrapComplete
     public boolean shallowContentExists(@SiteId String site, String path) throws SiteNotFoundException {
         return contentServiceInternal.shallowContentExists(site, path);
     }
 
     @Override
-    @RequireSiteExists
+    @RequireSiteBootstrapComplete
     // TODO: JM: Should we have a "is member of site" validation here?
     public List<QuickCreateItem> getQuickCreatableContentTypes(@SiteId String siteId) throws SiteNotFoundException {
         return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
@@ -116,6 +117,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
     public List<String> getChildItems(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
@@ -129,6 +131,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getChildItems(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
@@ -142,6 +145,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
     public boolean deleteContent(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path,
@@ -161,6 +165,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
     public boolean deleteContent(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
@@ -202,6 +207,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
     public GetChildrenResult getChildrenByPath(@SiteId String siteId,
                                                @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
@@ -214,6 +220,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
     public GetChildrenByPathsBulkResult getChildrenByPaths(@SiteId String siteId,
                                                            @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
@@ -224,6 +231,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public Item getItem(@SiteId String siteId,
                         @ProtectedResourceId(PATH_RESOURCE_ID)  String path, boolean flatten)
@@ -238,6 +246,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public Document getItemDescriptor(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean flatten)
@@ -257,6 +266,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @RequireContentExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
     public DetailedItem getItemByPath(@SiteId String siteId, @ContentPath String path, boolean preferContent)
@@ -266,6 +276,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
     public List<SandboxItem> getSandboxItemsByPath(@SiteId String siteId,
                                                    @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
@@ -276,6 +287,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
     public void lockContent(@SiteId String siteId,
                             @ProtectedResourceId(PATH_RESOURCE_ID) String path)
@@ -305,6 +317,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
     public void unlockContent(@SiteId String siteId,
                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
@@ -333,6 +346,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public Optional<Resource> getContentByCommitId(@SiteId String siteId,
                                                    @ProtectedResourceId(PATH_RESOURCE_ID) String path,
@@ -342,6 +356,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @RequireSiteReady
+    @RequireSiteBootstrapComplete
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
     public boolean renameContent(@SiteId String site,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path, String name)
@@ -352,7 +367,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
-    public Resource getContentAsResource(@ValidateStringParam String site,
+    @RequireSiteBootstrapComplete
+    public Resource getContentAsResource(@SiteId String site,
                                          @ValidateSecurePathParam String path)
         throws ContentNotFoundException {
         return contentServiceV1.getContentAsResource(site, path);
@@ -361,6 +377,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @RequireSiteReady
     @RequireContentExists
+    @RequireSiteBootstrapComplete
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<ItemVersion> getContentVersionHistory(@SiteId String siteId, @ContentPath String path) throws ServiceLayerException {
         return contentServiceInternal.getContentVersionHistory(siteId, path);

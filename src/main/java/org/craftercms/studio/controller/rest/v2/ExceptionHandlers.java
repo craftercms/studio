@@ -73,6 +73,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.INVALID_PARAMS;
 import static org.slf4j.event.Level.DEBUG;
 import static org.slf4j.event.Level.ERROR;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 /**
  * Controller advice that handles exceptions thrown by API 2 REST controllers.
@@ -171,6 +172,13 @@ public class ExceptionHandlers {
     @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleInvalidSiteStateException(HttpServletRequest request, InvalidSiteStateException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_SITE_STATE);
+        return handleExceptionInternal(request, e, response, DEBUG);
+    }
+
+    @ExceptionHandler(SiteBootstrapNotCompleteException.class)
+    @ResponseStatus(SERVICE_UNAVAILABLE)
+    public ResponseBody handleSiteBootstrapNotCompleteException(HttpServletRequest request, SiteBootstrapNotCompleteException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.SITE_BOOTSTRAP_NOT_COMPLETE);
         return handleExceptionInternal(request, e, response, DEBUG);
     }
 

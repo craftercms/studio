@@ -63,6 +63,8 @@
 
     <bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManagerImpl"/>
 
+    <bean id="siteBootstrapStateProvider" class="org.craftercms.studio.impl.v2.utils.spring.context.SiteBootstrapStateProviderImpl"/>
+
     <!-- ////////////////////////////////////// -->
     <!--         Services                       -->
     <!-- ////////////////////////////////////// -->
