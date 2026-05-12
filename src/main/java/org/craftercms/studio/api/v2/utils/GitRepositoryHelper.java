@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.git.MergeInProgressException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.git.cli.CommitterIdentityUnknownException;
@@ -422,7 +423,11 @@ public class GitRepositoryHelper implements DisposableBean {
 			default:
 				throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
 		}
-		builder.build().configureAuthentication(gitCommand);
+		try {
+			builder.build().configureAuthentication(gitCommand);
+		} catch (IllegalStateException e) {
+			throw new InvalidParametersException(format("Invalid authentication configuration: %s", e.getMessage()), e);
+		}
 	}
 
 	public String getGitPath(String path) {
