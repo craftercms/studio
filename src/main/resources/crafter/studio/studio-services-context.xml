@@ -66,7 +66,7 @@
 
 	<bean id="temporaryFilesCleanupTask" class="org.craftercms.studio.impl.v2.event.TemporaryFilesDirStartupTask"/>
 
-	<bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManager"/>
+	<bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManagerImpl"/>
 
 	<!-- ////////////////////////////////////// -->
 	<!--         Services                       -->

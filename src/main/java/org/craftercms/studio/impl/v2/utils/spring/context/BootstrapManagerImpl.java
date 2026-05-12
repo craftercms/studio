@@ -15,17 +15,20 @@
  */
 package org.craftercms.studio.impl.v2.utils.spring.context;
 
+import org.craftercms.studio.api.v2.utils.spring.context.BootstrapManager;
 import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
-import org.craftercms.studio.impl.v2.utils.spring.event.BootstrapFinishedEvent;
-import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
-import org.craftercms.studio.impl.v2.utils.spring.event.StartClusterSetupEvent;
-import org.craftercms.studio.impl.v2.utils.spring.event.StartUpgradeEvent;
+import org.craftercms.studio.impl.v2.utils.spring.event.*;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.annotation.Async;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -36,14 +39,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author joseross
  * @since 4.0
  */
-public class BootstrapManager implements SystemStatusProvider {
+public class BootstrapManagerImpl implements SystemStatusProvider, BootstrapManager, ApplicationEventPublisherAware {
 
-	private static final Logger logger = LoggerFactory.getLogger(BootstrapManager.class);
+	private static final Logger logger = LoggerFactory.getLogger(BootstrapManagerImpl.class);
 
 	/**
 	 * Flag used to indicate if the bootstrap process has finished
 	 */
 	private final AtomicBoolean systemReady = new AtomicBoolean(false);
+	private ApplicationEventPublisher applicationEventPublisher;
+
+	// This allows to make sure the sites upgrade process is not started before the system upgrade process is finished,
+	// even though they are executed in different threads because the sites bootstrap process is async.
+	private final Semaphore upgradeSemaphore = new Semaphore(0);
 
 	@Override
 	public boolean isSystemReady() {
@@ -52,41 +60,66 @@ public class BootstrapManager implements SystemStatusProvider {
 
 	// the condition is needed to avoid a repeated event from a child app context
 	@Order(2)
+	@Override
 	@EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
 	public Object onContextRefresh() {
 		logger.info("Beans created and ready to be used");
 		logger.info("Start temporary files cleanup ...");
-		return new CleanupRepositoriesEvent(this);
+		applicationEventPublisher.publishEvent(new StartSitesBootstrapEvent(this));
+		return new StartSystemUpgradeEvent(this);
+	}
+
+	@Async
+	@Order
+	@Override
+	@EventListener(value = StartSitesBootstrapEvent.class)
+	public void onSitesBootstrapEvent() {
+		logger.info("Start repositories cleanup...");
+		applicationEventPublisher.publishEvent(new CleanupRepositoriesEvent(this));
 	}
 
 	@Order
+	@Override
 	@EventListener(value = CleanupRepositoriesEvent.class)
 	public Object onCleanUpRepositories() {
 		logger.info("Successfully cleaned up repositories");
-		logger.info("Start cluster setup ...");
-		return new StartClusterSetupEvent(this);
-	}
-
-	@Order
-	@EventListener(StartClusterSetupEvent.class)
-	public Object onStartClusterSetup() {
-		logger.info("Cluster setup complete");
+		logger.info("Waiting for system upgrade to complete before starting sites upgrade");
+		try {
+			upgradeSemaphore.acquire();
+		} catch (InterruptedException e) {
+			logger.warn("Interrupted while waiting for system upgrade to complete, starting sites upgrade anyway", e);
+			throw new RuntimeException(e);
+		}
 		logger.info("Start upgrade ...");
-		return new StartUpgradeEvent(this);
+		return new StartSitesUpgradeEvent(this);
 	}
 
 	@Order
-	@EventListener(StartUpgradeEvent.class)
-	public Object onStartUpgrade() {
-		logger.info("Upgrade complete");
+	@Override
+	@EventListener(StartSitesUpgradeEvent.class)
+	public void onStartSitesUpgradeEvent() {
+		logger.info("Upgrade sites complete");
+	}
+
+	@Order
+	@Override
+	@EventListener(StartSystemUpgradeEvent.class)
+	public Object onStartSystemUpgrade() {
+		logger.info("Upgrade system complete");
+		upgradeSemaphore.release();
 		return new BootstrapFinishedEvent(this);
 	}
 
 	@Order
+	@Override
 	@EventListener(BootstrapFinishedEvent.class)
 	public void onBootstrapFinished() {
 		logger.info("Bootstrap process finished");
 		systemReady.set(true);
 	}
 
+	@Override
+	public void setApplicationEventPublisher(@NonNull ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
 }

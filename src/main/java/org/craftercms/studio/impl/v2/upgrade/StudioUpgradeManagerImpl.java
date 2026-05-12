@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -36,7 +36,8 @@ import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.utils.spring.event.StartUpgradeEvent;
+import org.craftercms.studio.impl.v2.utils.spring.event.StartSitesUpgradeEvent;
+import org.craftercms.studio.impl.v2.utils.spring.event.StartSystemUpgradeEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -269,12 +270,11 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 	 * @throws UpgradeException     if there is any error in the upgrade process
 	 * @throws EntitlementException if there is any validation error after the upgrade process
 	 */
-	@EventListener(StartUpgradeEvent.class)
+	@EventListener(StartSystemUpgradeEvent.class)
 	public void startUpgrade() throws UpgradeException, EntitlementException, ConfigurationException {
 
 		upgradeBlueprints();
 		upgradeDatabaseAndConfiguration();
-		upgradeExistingSites();
 
 		try {
 			integrityValidator.validate(dataSource.getConnection());
@@ -282,6 +282,11 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 			logger.error("Failed to connect to the database to perform integrity validation", e);
 			throw new UpgradeException("Failed to connect to the database to perform integrity validation", e);
 		}
+	}
+
+	@EventListener(StartSitesUpgradeEvent.class)
+	public void startSitesUpgrade() throws UpgradeException, EntitlementException, ConfigurationException {
+		upgradeExistingSites();
 	}
 
 }
