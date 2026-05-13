@@ -53,6 +53,7 @@ import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SiteBootstrapStateProvider;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest.BlueprintSource;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest.RemoteSource;
@@ -126,6 +127,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private StudioBlobStoreResolver blobStoreResolver;
 	private ContentService contentService;
 	private ContentMonitor contentMonitor;
+	private final SiteBootstrapStateProvider siteBootstrapStateProvider;
 	private ApplicationContext applicationContext;
 
 	@ConstructorProperties({"descriptorReader",
@@ -133,13 +135,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			"retryingDatabaseOperationFacade",
 			"deployer",
 			"auditService", "taskManager",
-			"entitlementValidator", "userService"})
+			"entitlementValidator", "userService",
+			"siteBootstrapStateProvider"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
 									StudioConfiguration studioConfiguration, SiteDAO siteDao,
 									RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 									Deployer deployer,
 									AuditService auditService, TaskManager taskManager,
-									EntitlementValidator entitlementValidator, UserService userService) {
+									EntitlementValidator entitlementValidator, UserService userService,
+									SiteBootstrapStateProvider siteBootstrapStateProvider) {
 		this.descriptorReader = descriptorReader;
 		this.studioConfiguration = studioConfiguration;
 		this.siteDao = siteDao;
@@ -149,6 +153,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		this.taskManager = taskManager;
 		this.entitlementValidator = entitlementValidator;
 		this.userService = userService;
+		this.siteBootstrapStateProvider = siteBootstrapStateProvider;
 	}
 
 	@Override
@@ -592,7 +597,13 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 	@Override
 	public List<Site> getAllSites() {
-		return siteDao.getAllSites();
+		List<Site> allSites = siteDao.getAllSites();
+		for (Site site : allSites) {
+			if (READY.equals(site.getState()) && !siteBootstrapStateProvider.isSiteReady(site.getSiteId())) {
+				site.setState(Site.State.BOOTSTRAPPING);
+			}
+		}
+		return allSites;
 	}
 
 	@Override
