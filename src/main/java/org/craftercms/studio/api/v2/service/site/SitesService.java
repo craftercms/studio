@@ -189,4 +189,11 @@ public interface SitesService {
      * @return the list of sites matching the given state
      */
     List<Site> getSitesByState(String state);
+
+    /**
+     * Get all non-deleted sites
+     *
+     * @return the list of sites
+     */
+    List<Site> getAllSites();
 }

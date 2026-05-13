@@ -24,6 +24,14 @@ public class Site implements Entity {
     private String desc;
     private String state;
 
+    public Site(org.craftercms.studio.api.v2.dal.Site site) {
+        siteId = site.getSiteId();
+        uuid = site.getSiteUuid();
+        name = site.getName();
+        desc = site.getDescription();
+        state = site.getState();
+    }
+
     public String getSiteId() {
         return siteId;
     }

@@ -91,4 +91,11 @@ public interface SiteDAO {
      * @return the list of sites
      */
     List<Site> getSitesByState(@Param(STATE) String state);
+
+    /**
+     * Get all non-deleted sites
+     *
+     * @return the list of sites
+     */
+    List<Site> getAllSites();
 }

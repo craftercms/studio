@@ -382,7 +382,7 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="configurationService" ref="configurationService" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="siteService" ref="sitesServiceInternal" />
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="securityService" ref="cstudioSecurityService" />

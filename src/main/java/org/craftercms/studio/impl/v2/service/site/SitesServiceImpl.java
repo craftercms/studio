@@ -177,4 +177,9 @@ public class SitesServiceImpl implements SitesService {
     public List<Site> getSitesByState(final String state) {
         return sitesServiceInternal.getSitesByState(state);
     }
+
+    @Override
+    public List<Site> getAllSites() {
+        return sitesServiceInternal.getAllSites();
+    }
 }
