@@ -88,6 +88,7 @@ public class BootstrapManagerImpl implements SystemStatusProvider, BootstrapMana
 			upgradeSemaphore.acquire();
 		} catch (InterruptedException e) {
 			logger.warn("Interrupted while waiting for system upgrade to complete, starting sites upgrade anyway", e);
+			Thread.currentThread().interrupt(); // restore interrupt status
 		}
 		logger.info("Start upgrade ...");
 		return new StartSitesUpgradeEvent(this);
