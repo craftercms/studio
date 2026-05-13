@@ -19,6 +19,8 @@ package org.craftercms.studio.controller.rest.v2;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
@@ -61,8 +63,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -73,6 +73,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.INVALID_PARAMS;
 import static org.slf4j.event.Level.DEBUG;
 import static org.slf4j.event.Level.ERROR;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 /**
  * Controller advice that handles exceptions thrown by API 2 REST controllers.
@@ -174,6 +175,13 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response, DEBUG);
     }
 
+    @ExceptionHandler(SiteBootstrapNotCompleteException.class)
+    @ResponseStatus(SERVICE_UNAVAILABLE)
+    public ResponseBody handleSiteBootstrapNotCompleteException(HttpServletRequest request, SiteBootstrapNotCompleteException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.SITE_BOOTSTRAP_NOT_COMPLETE);
+        return handleExceptionInternal(request, e, response, DEBUG);
+    }
+
     @ExceptionHandler(MarketplaceNotInitializedException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseBody handleMarketplaceNotInitializedException(HttpServletRequest request,
@@ -254,15 +262,6 @@ public class ExceptionHandlers {
                 + "]";
         response.setMessage(message);
         return handleExceptionInternal(request, compositeException, response);
-    }
-
-    @ExceptionHandler(OrganizationNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleOrganizationNotFoundException(HttpServletRequest request,
-                                                            OrganizationNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.ORG_NOT_FOUND);
-        response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
-        return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(GroupNotFoundException.class)

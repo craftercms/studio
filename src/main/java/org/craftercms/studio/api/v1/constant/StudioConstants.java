@@ -219,8 +219,6 @@ public final class StudioConstants {
      */
     public static final String HTTP_SESSION_ATTRIBUTE_AUTHENTICATION = "studio_authentication";
 
-    public static final int DEFAULT_ORGANIZATION_ID = 1;
-
     public static final String REMOVE_SYSTEM_ADMIN_MEMBER_LOCK = "remove_system_admin_member_lock";
 
     /* Map keys */

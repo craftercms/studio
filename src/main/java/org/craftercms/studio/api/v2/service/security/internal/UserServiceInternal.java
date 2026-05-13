@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -37,7 +37,6 @@ public interface UserServiceInternal {
 
     /**
      * Get paginated list of all users for site filtered by keyword
-     * @param orgId organization identifier
      * @param groupNames group names for site
      * @param keyword keyword to filter users
      * @param offset pagination offset
@@ -46,7 +45,7 @@ public interface UserServiceInternal {
      * @return requested page of list of users
      * @throws ServiceLayerException
      */
-    List<User> getAllUsersForSite(long orgId, List<NormalizedGroup> groupNames, String keyword, int offset, int limit,
+    List<User> getAllUsersForSite(List<NormalizedGroup> groupNames, String keyword, int offset, int limit,
                                   String sort) throws ServiceLayerException;
 
     /**
@@ -62,13 +61,12 @@ public interface UserServiceInternal {
 
     /**
      * Get total number of users for site filtered by keyword
-     * @param orgId organization identifier
      * @param siteId site identifier
      * @param keyword keyword to filter users
      * @return total number of users for site filtered by keyword
      * @throws ServiceLayerException
      */
-    int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException;
+    int getAllUsersForSiteTotal(String siteId, String keyword) throws ServiceLayerException;
 
     /**
      * Get total number of users filtered by keyword

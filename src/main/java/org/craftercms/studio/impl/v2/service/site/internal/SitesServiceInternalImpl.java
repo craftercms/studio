@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SiteBootstrapStateProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -72,6 +73,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
@@ -91,6 +93,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final SecurityService securityService;
     private final AuditServiceInternal auditServiceInternal;
     private final ItemServiceInternal itemServiceInternal;
+    private final SiteBootstrapStateProvider siteBootstrapStateProvider;
     private ApplicationContext applicationContext;
 
     @ConstructorProperties({"descriptorReader", "contentRepository",
@@ -100,7 +103,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             "retryingDatabaseOperationFacade", "siteServiceV1",
             "deployer", "configurationService",
             "securityService", "auditServiceInternal",
-            "itemServiceInternal"})
+            "itemServiceInternal", "siteBootstrapStateProvider"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
                                     StudioBlobAwareContentRepository blobAwareRepository,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
@@ -108,7 +111,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
                                     Deployer deployer, ConfigurationService configurationService,
                                     SecurityService securityService, AuditServiceInternal auditServiceInternal,
-                                    ItemServiceInternal itemServiceInternal) {
+                                    ItemServiceInternal itemServiceInternal, SiteBootstrapStateProvider siteBootstrapStateProvider) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
         this.blobAwareRepository = blobAwareRepository;
@@ -122,6 +125,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         this.securityService = securityService;
         this.auditServiceInternal = auditServiceInternal;
         this.itemServiceInternal = itemServiceInternal;
+        this.siteBootstrapStateProvider = siteBootstrapStateProvider;
     }
 
     @Override
@@ -548,6 +552,17 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     @Override
     public List<Site> getSitesByState(String state) {
         return siteDao.getSitesByState(state);
+    }
+
+    @Override
+    public List<Site> getAllSites() {
+        List<Site> allSites = siteDao.getAllSites();
+        for (Site site : allSites) {
+            if (READY.equals(site.getState()) && !siteBootstrapStateProvider.isSiteReady(site.getSiteId())) {
+                site.setState(Site.State.BOOTSTRAPPING);
+            }
+        }
+        return allSites;
     }
 
     /**

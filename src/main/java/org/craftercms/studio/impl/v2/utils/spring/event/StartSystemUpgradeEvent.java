@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,18 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v1.util.filter;
+package org.craftercms.studio.impl.v2.utils.spring.event;
 
-import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Dejan Brkic
+ * Event used to trigger all upgrade related beans during bootstrap
+ *
+ * @author joseross
+ * @since 4.0
  */
-public interface DmFilterWrapper {
-    public boolean accept(ContentItemTO item, String filterType);
+public class StartSystemUpgradeEvent extends ApplicationEvent {
 
-    public boolean accept(String site, ContentItemTO item, String filterType);
-    
-    public boolean accept(String site, String relativePath, String filterType);
-    
+    public StartSystemUpgradeEvent(Object source) {
+        super(source);
+    }
+
 }

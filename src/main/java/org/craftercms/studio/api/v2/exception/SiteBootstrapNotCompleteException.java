@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,22 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v1.service;
+package org.craftercms.studio.api.v2.exception;
 
+/**
+ * Exception to be thrown when an operation is attempted on a site that has not completed the bootstrap process
+ */
+public class SiteBootstrapNotCompleteException extends RuntimeException {
+	private final String siteId;
 
-public abstract class AbstractRegistrableService {
+	public SiteBootstrapNotCompleteException(String siteId, String message) {
+		super(message);
+		this.siteId = siteId;
+	}
 
-    protected ServicesManager _servicesManager;
-    public ServicesManager getServicesManager() {
-        return _servicesManager;
-    }
-    public void setServicesManager(ServicesManager servicesManager) {
-        this._servicesManager = servicesManager;
-    }
-
-    public abstract void register();
-
-    public <T> T getService(Class<T> type) {
-        return this._servicesManager.getService(type);
-    }
+	public String getSiteId() {
+		return siteId;
+	}
 }

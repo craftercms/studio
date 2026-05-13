@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,11 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.security.internal;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -36,6 +31,11 @@ import org.craftercms.studio.api.v2.exception.configuration.ConfigurationExcepti
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -105,32 +105,32 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public List<Group> getAllGroups(long orgId, String keyword, int offset, int limit, String sort)
+    public List<Group> getAllGroups(String keyword, int offset, int limit, String sort)
             throws ServiceLayerException {
         try {
-            return groupDao.getAllGroupsForOrganization(orgId, keyword, offset, limit, sort);
+            return groupDao.getAllGroups(keyword, offset, limit, sort);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
     @Override
-    public int getAllGroupsTotal(long orgId, String keyword) throws ServiceLayerException {
+    public int getAllGroupsTotal(String keyword) throws ServiceLayerException {
         try {
-            return groupDao.getAllGroupsForOrganizationTotal(orgId, keyword);
+            return groupDao.getAllGroupsTotal(keyword);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
     @Override
-    public Group createGroup(long orgId, String groupName, String groupDescription, boolean externallyManaged)
+    public Group createGroup(String groupName, String groupDescription, boolean externallyManaged)
             throws GroupAlreadyExistsException, ServiceLayerException {
         if (groupExists(-1, groupName)) {
             throw new GroupAlreadyExistsException("Group '" + groupName + "' already exists");
         }
         try {
-            retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(orgId, groupName, groupDescription, externallyManaged));
+            retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(groupName, groupDescription, externallyManaged));
             return groupDao.getGroupByName(groupName);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
@@ -138,7 +138,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public Group updateGroup(long orgId, Group updatedGroup) throws GroupNotFoundException, ServiceLayerException {
+    public Group updateGroup(Group updatedGroup) throws GroupNotFoundException, ServiceLayerException {
         Group group = groupDao.getGroup(updatedGroup.getId());
         if (group == null) {
             throw new GroupNotFoundException(format("No group found for id '%d'", updatedGroup.getId()));
