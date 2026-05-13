@@ -1102,3 +1102,7 @@ studio.configuration.dashboard.contentExpiredQuery: expired_dt:[* TO now] AND NO
 # Search query to retrieve content expired sort by field
 studio.configuration.dashboard.contentExpiredQuery.sortBy: expired_dt
 
+##################################################
+##         Startup tasks and checks             ##
+##################################################
+studio.configuration.site.startup.cleanup.enabled: true
