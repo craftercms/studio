@@ -59,7 +59,7 @@ public class BootstrapManagerImpl implements SystemStatusProvider, BootstrapMana
 	}
 
 	// the condition is needed to avoid a repeated event from a child app context
-	@Order(2)
+	@Order
 	@Override
 	@EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
 	public Object onContextRefresh() {
