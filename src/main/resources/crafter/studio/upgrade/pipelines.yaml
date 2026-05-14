@@ -796,6 +796,11 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-resolver-config.xml
                 dest: configuration/samples/sample-resolver-config.xml
             commitDetails: Add sample file for sample-resolver-config.xml
+      - currentVersion: 4.5.1.0
+        nextVersion: 4.5.1.1
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade/4.5.x/4.5.1.0-to-4.5.1.1.sql
 
   # Pipeline to upgrade site repositories
   site:

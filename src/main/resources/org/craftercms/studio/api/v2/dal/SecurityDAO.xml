@@ -48,15 +48,6 @@
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="groupName" column="group_name"/>
         <result property="groupDescription" column="group_description"/>
-        <association property="organization" column="org_id" javaType="org.craftercms.studio.api.v2.dal.Organization"
-                     select="selectOrganizationById"/>
-    </resultMap>
-
-    <resultMap id="OrganizationMap" type="org.craftercms.studio.api.v2.dal.Organization">
-        <id property="id" column="id"/>
-        <result property="recordLastUpdated" column="record_last_updated"/>
-        <result property="name" column="org_name"/>
-        <result property="description" column="ord_desc"/>
     </resultMap>
 
     <resultMap id="UserProfileResultMap" type="org.craftercms.studio.api.v1.dal.UserProfileResult">
@@ -94,10 +85,6 @@
         <result property="createdOn" column="created_on"/>
         <result property="expiresAt" column="expires_at"/>
     </resultMap>
-
-    <select id="selectOrganizationById" resultMap="OrganizationMap">
-            SELECT * FROM organization where id = #{id}
-    </select>
 
     <select id="getUser" resultMap="UserMap">
         SELECT * FROM `user` WHERE username = #{username}
