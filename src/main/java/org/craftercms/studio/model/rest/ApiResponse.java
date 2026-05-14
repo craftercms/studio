@@ -55,12 +55,6 @@ public class ApiResponse {
 	public static final ApiResponse PEER_REVIEW_CHECK_FAILED = new ApiResponse(2002, "Peer-review check failed",
 		"Users are not allowed to approve their own packages when peer-review is enabled", StringUtils.EMPTY);
 
-	// 3000 - 4000
-	public static final ApiResponse ORG_NOT_FOUND = new ApiResponse(3000, "Organization not found",
-		"Check if you sent in the right Org Id", StringUtils.EMPTY);
-	public static final ApiResponse ORG_ALREADY_EXISTS = new ApiResponse(3001, "Organization already exists",
-		"Try a different organization name", StringUtils.EMPTY);
-
 	// 4000 - 5000
 	public static final ApiResponse GROUP_NOT_FOUND = new ApiResponse(4000, "Group not found",
 		"Check if you sent in the right Group Id", StringUtils.EMPTY);
