@@ -61,6 +61,7 @@ public class ItemServiceInternalImpl implements ItemService {
 	public final static String CONTENT_TYPE = "/*[1]/content-type";
 	public final static String DISABLED = "/*[1]/disabled";
 	public final static String LOCALE_CODE = "/*[1]/locale-code";
+	public final static String SAVED_AS_DRAFT = "/*[1]/savedAsDraft";
 
 	private UserService userService;
 	private SiteDAO siteDao;
@@ -137,8 +138,7 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void persistItemAfterCreate(String siteId, String path,
-									   boolean unlock, Long parentId)
+	public void persistItemAfterCreate(String siteId, String path, Long parentId)
 			throws ServiceLayerException, AuthenticationException {
 		String lockKey = "persistItemAfterCreate:" + siteId;
 		generalLockService.lock(lockKey);
@@ -148,6 +148,7 @@ public class ItemServiceInternalImpl implements ItemService {
 			String label = null;
 			String contentType = null;
 			String localeCode = null;
+			boolean savedAsDraft = false;
 			try {
 				var descriptor = contentRepository.getItem(siteId, path, false);
 				String disabledStr = descriptor.queryDescriptorValue(DISABLED);
@@ -155,6 +156,7 @@ public class ItemServiceInternalImpl implements ItemService {
 				label = descriptor.queryDescriptorValue(INTERNAL_NAME_XPATH);
 				contentType = descriptor.queryDescriptorValue(CONTENT_TYPE);
 				localeCode = descriptor.queryDescriptorValue(LOCALE_CODE);
+				savedAsDraft = Boolean.parseBoolean(descriptor.queryDescriptorValue(SAVED_AS_DRAFT));
 			} catch (XmlFileParseException e) {
 				logger.debug("Error getting content descriptor for path: '{}'", path, e);
 				// If page, component, or other descriptor file, it must be a valid xml file
@@ -166,25 +168,24 @@ public class ItemServiceInternalImpl implements ItemService {
 				label = FilenameUtils.getName(path);
 			}
 			Item item = instantiateItem(siteId, path)
-				.withPreviewUrl(getBrowserUrl(siteId, path))
-				.withCreatedBy(userObj.getId())
-				.withCreatedOn(DateUtils.getCurrentTime())
-				.withLastModifiedBy(userObj.getId())
-				.withLastModifiedOn(DateUtils.getCurrentTime())
-				.withLabel(label)
-				.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, siteId, path))
-				.withContentTypeId(contentType)
-				.withMimeType(StudioUtils.getMimeType(path))
-				.withLocaleCode(localeCode)
-				.withSize(contentRepository.getContentSize(siteId, path))
-				.withParentId(parentId)
-				.build();
-			if (unlock) {
-				item.setState(ItemState.savedAndClosed(item.getState()));
-			} else {
-				item.setLockedBy(userObj.getId());
-				item.setState(ItemState.savedAndNotClosed(item.getState()));
-			}
+					.withPreviewUrl(getBrowserUrl(siteId, path))
+					.withCreatedBy(userObj.getId())
+					.withCreatedOn(DateUtils.getCurrentTime())
+					.withLastModifiedBy(userObj.getId())
+					.withLastModifiedOn(DateUtils.getCurrentTime())
+					.withLabel(label)
+					.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, siteId, path))
+					.withContentTypeId(contentType)
+					.withMimeType(StudioUtils.getMimeType(path))
+					.withLocaleCode(localeCode)
+					.withSize(contentRepository.getContentSize(siteId, path))
+					.withParentId(parentId)
+					.withSavedAsDraft(savedAsDraft)
+					.build();
+
+			item.setLockedBy(userObj.getId());
+			item.setState(ItemState.savedAndNotClosed(item.getState()));
+
 			if (disabled) {
 				item.setState(item.getState() | ItemState.DISABLED.value);
 			}
@@ -195,13 +196,14 @@ public class ItemServiceInternalImpl implements ItemService {
 	}
 
 	@Override
-	public void persistItemAfterWrite(String siteId, String path, boolean unlock)
+	public void persistItemAfterWrite(String siteId, String path)
 		throws ServiceLayerException, AuthenticationException {
 		User userObj = SecurityUtils.getCurrentUser();
 		boolean disabled = false;
 		String label = null;
 		String contentType = null;
 		String localeCode = null;
+		boolean savedAsDraft = false;
 		try {
 			var descriptor = contentRepository.getItem(siteId, path, false);
 			String disabledStr = descriptor.queryDescriptorValue(DISABLED);
@@ -209,6 +211,7 @@ public class ItemServiceInternalImpl implements ItemService {
 			label = descriptor.queryDescriptorValue(INTERNAL_NAME_XPATH);
 			contentType = descriptor.queryDescriptorValue(CONTENT_TYPE);
 			localeCode = descriptor.queryDescriptorValue(LOCALE_CODE);
+			savedAsDraft = Boolean.parseBoolean(descriptor.queryDescriptorValue(SAVED_AS_DRAFT));
 		} catch (XmlFileParseException e) {
 			logger.debug("Error getting content descriptor for path: '{}'", path, e);
 			// If page, component, or other descriptor file, it must be a valid xml file
@@ -229,12 +232,11 @@ public class ItemServiceInternalImpl implements ItemService {
 			.withMimeType(StudioUtils.getMimeType(path))
 			.withLocaleCode(localeCode)
 			.withSize(contentRepository.getContentSize(siteId, path))
+			.withSavedAsDraft(savedAsDraft)
 			.build();
-		if (unlock) {
-			item.setState(ItemState.savedAndClosed(item.getState()));
-		} else {
-			item.setState(ItemState.savedAndNotClosed(item.getState()));
-		}
+
+		item.setState(ItemState.savedAndNotClosed(item.getState()));
+
 		if (disabled) {
 			item.setState(item.getState() | ItemState.DISABLED.value);
 		} else {

@@ -621,7 +621,7 @@ public interface ItemDAO {
 							   @Param(LAST_MODIFIED_BY) long lastModifiedBy, @Param(LAST_MODIFIED_ON) String lastModifiedOn,
 							   @Param(LABEL) String label, @Param(CONTENT_TYPE_ID) String contentTypeId,
 							   @Param(SYSTEM_TYPE) String systemType, @Param(MIME_TYPE) String mimeType, @Param(SIZE) long size,
-							   @Param(IGNORED) boolean ignored);
+							   @Param(IGNORED) boolean ignored, @Param(SAVED_AS_DRAFT) boolean savedAsDraft);
 
 	/**
 	 * Update the path for all the affected folder items to reflect the move operation

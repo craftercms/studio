@@ -115,10 +115,10 @@
 	<insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">
 		INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by,
 				  last_modified_on, label, content_type_id, system_type, mime_type, locale_code,
-				  translation_source_id, size, parent_id, ignored)
+				  translation_source_id, size, parent_id, ignored, saved_as_draft)
 		VALUES (#{siteId}, #{path}, #{previewUrl}, #{state}, #{lockedBy}, #{createdBy}, #{createdOn}, #{lastModifiedBy},
 			#{lastModifiedOn}, #{label}, #{contentTypeId}, #{systemType}, #{mimeType},
-			#{localeCode}, #{translationSourceId}, #{size}, #{parentId}, #{ignoredAsInt}) ON DUPLICATE KEY
+			#{localeCode}, #{translationSourceId}, #{size}, #{parentId}, #{ignoredAsInt}, #{savedAsDraft}) ON DUPLICATE KEY
 		UPDATE
 			site_id = #{siteId},
 			path = #{path},
@@ -135,7 +135,8 @@
 			translation_source_id = #{translationSourceId},
 			size = #{size},
 			parent_id = #{parentId},
-			ignored = #{ignoredAsInt}
+			ignored = #{ignoredAsInt},
+			saved_as_draft = #{savedAsDraft}
 	</insert>
 
 	<sql id="getChildrenByPathFilters">
@@ -372,12 +373,12 @@
 	<update id="copyItemInternal">
 		INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by,
 				  last_modified_on, label, content_type_id, system_type, mime_type, locale_code,
-				  translation_source_id, size, parent_id, ignored)
+				  translation_source_id, size, parent_id, ignored, saved_as_draft)
 		SELECT s.id, #{newPath} AS path, IF(i.system_type = '${systemTypeFolder}', NULL, #{previewUrl}) AS preview_url,
 				CASE WHEN i.system_type = '${systemTypeFolder}' THEN 0 ELSE ${state} END,
 				null, ${userId}, NOW(), ${userId},
 				NOW(), IFNULL(#{label}, i.label) AS label, i.content_type_id, i.system_type, i.mime_type, i.locale_code,
-				i.translation_source_id, i.size, #{parentId}, i.ignored
+				i.translation_source_id, i.size, #{parentId}, i.ignored, i.saved_as_draft
 		FROM item i INNER JOIN site s ON i.site_id = s.id
 		WHERE s.site_id = #{siteId}
 		AND s.deleted = 0
@@ -684,7 +685,8 @@
 			mime_type = #{mimeType},
 			size = #{size},
 			locked_by = NULL,
-			ignored = #{ignored}
+			ignored = #{ignored},
+			saved_as_draft = #{savedAsDraft}
 		WHERE
 			site_id = #{siteId}
 			AND path = #{path};

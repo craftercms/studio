@@ -254,6 +254,8 @@ public final class QueryParameterNames {
 
 	public static final String IGNORED = "ignored";
 
+	public static final String SAVED_AS_DRAFT = "savedAsDraft";
+
 	public static final String REMOVE_PAGE_PARENT_FOLDER = "removePageParentFolder";
 
 	/**

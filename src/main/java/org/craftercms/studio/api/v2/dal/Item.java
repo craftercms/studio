@@ -58,6 +58,7 @@ public class Item {
 	private int ignoredAsInt;
 	private boolean ignored;
 	private int childrenCount = 0;
+	private Boolean savedAsDraft;
 
 	public Item() {
 	}
@@ -91,6 +92,7 @@ public class Item {
 		ignoredAsInt = builder.ignoredAsInt;
 		ignored = builder.ignored;
 		childrenCount = builder.childrenCount;
+		savedAsDraft = builder.savedAsDraft;
 	}
 
 	public long getId() {
@@ -317,6 +319,14 @@ public class Item {
 		this.childrenCount = childrenCount;
 	}
 
+	public Boolean getSavedAsDraft() {
+		return savedAsDraft;
+	}
+
+	public void setSavedAsDraft(Boolean savedAsDraft) {
+		this.savedAsDraft = savedAsDraft;
+	}
+
 	public static final class Builder {
 		private long id;
 		private long siteId;
@@ -346,6 +356,7 @@ public class Item {
 		private int ignoredAsInt;
 		private boolean ignored;
 		private int childrenCount = 0;
+		private Boolean savedAsDraft;
 
 		public Builder() {
 		}
@@ -379,6 +390,7 @@ public class Item {
 			clone.ignoredAsInt = item.ignoredAsInt;
 			clone.ignored = item.ignored;
 			clone.childrenCount = item.childrenCount;
+			clone.savedAsDraft = item.savedAsDraft;
 			return clone;
 		}
 
@@ -511,6 +523,11 @@ public class Item {
 
 		public Builder withAvailableActions(long availableActions) {
 			this.availableActions = availableActions;
+			return this;
+		}
+
+		public Builder withSavedAsDraft(Boolean savedAsDraft) {
+			this.savedAsDraft = savedAsDraft;
 			return this;
 		}
 
