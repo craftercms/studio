@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -50,12 +50,6 @@ public class ApiResponse {
             new ApiResponse(2000, "Unauthenticated", "Please login first", StringUtils.EMPTY);
     public static final ApiResponse UNAUTHORIZED = new ApiResponse(2001, "Unauthorized",
             "You don't have permission to perform this task, please contact your administrator", StringUtils.EMPTY);
-
-    // 3000 - 4000
-    public static final ApiResponse ORG_NOT_FOUND = new ApiResponse(3000, "Organization not found",
-            "Check if you sent in the right Org Id", StringUtils.EMPTY);
-    public static final ApiResponse ORG_ALREADY_EXISTS = new ApiResponse(3001, "Organization already exists",
-            "Try a different organization name", StringUtils.EMPTY);
 
     // 4000 - 5000
     public static final ApiResponse GROUP_NOT_FOUND = new ApiResponse(4000, "Group not found",
