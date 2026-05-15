@@ -144,52 +144,14 @@ public class ItemServiceInternalImpl implements ItemService {
 		generalLockService.lock(lockKey);
 		try {
 			User userObj = SecurityUtils.getCurrentUser();
-			boolean disabled = false;
-			String label = null;
-			String contentType = null;
-			String localeCode = null;
-			boolean savedAsDraft = false;
-			try {
-				var descriptor = contentRepository.getItem(siteId, path, false);
-				String disabledStr = descriptor.queryDescriptorValue(DISABLED);
-				disabled = Boolean.parseBoolean(disabledStr);
-				label = descriptor.queryDescriptorValue(INTERNAL_NAME_XPATH);
-				contentType = descriptor.queryDescriptorValue(CONTENT_TYPE);
-				localeCode = descriptor.queryDescriptorValue(LOCALE_CODE);
-				savedAsDraft = Boolean.parseBoolean(descriptor.queryDescriptorValue(SAVED_AS_DRAFT));
-			} catch (XmlFileParseException e) {
-				logger.debug("Error getting content descriptor for path: '{}'", path, e);
-				// If page, component, or other descriptor file, it must be a valid xml file
-				if (underDescriptorRoot(path)) {
-					throw new ServiceLayerException("Error getting content descriptor for path: " + path, e);
-				}
-			}
-			if (StringUtils.isEmpty(label)) {
-				label = FilenameUtils.getName(path);
-			}
-			Item item = instantiateItem(siteId, path)
-					.withPreviewUrl(getBrowserUrl(siteId, path))
-					.withCreatedBy(userObj.getId())
-					.withCreatedOn(DateUtils.getCurrentTime())
-					.withLastModifiedBy(userObj.getId())
-					.withLastModifiedOn(DateUtils.getCurrentTime())
-					.withLabel(label)
-					.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, siteId, path))
-					.withContentTypeId(contentType)
-					.withMimeType(StudioUtils.getMimeType(path))
-					.withLocaleCode(localeCode)
-					.withSize(contentRepository.getContentSize(siteId, path))
-					.withParentId(parentId)
-					.withSavedAsDraft(savedAsDraft)
-					.build();
+			Item item = buildItem(siteId, path, userObj);
+
+			item.setParentId(parentId);
+			item.setCreatedBy(userObj.getId());
+			item.setCreatedOn(DateUtils.getCurrentTime());
 
 			item.setLockedBy(userObj.getId());
-			item.setState(ItemState.savedAndNotClosed(item.getState()));
-
-			if (disabled) {
-				item.setState(item.getState() | ItemState.DISABLED.value);
-			}
-			retryingDatabaseOperationFacade.retry(() -> itemDao.upsertEntry(item));
+			upsertEntry(item);
 		} finally {
 			generalLockService.unlock(lockKey);
 		}
@@ -199,6 +161,21 @@ public class ItemServiceInternalImpl implements ItemService {
 	public void persistItemAfterWrite(String siteId, String path)
 		throws ServiceLayerException, AuthenticationException {
 		User userObj = SecurityUtils.getCurrentUser();
+		Item item = buildItem(siteId, path, userObj);
+		upsertEntry(item);
+	}
+
+	/**
+	 * Instantiates an Item with current timestamps and user info, as well as metadata
+	 * from the xml.
+	 *
+	 * @param siteId the site id
+	 * @param path   the item path
+	 * @return the Item
+	 * @throws AuthenticationException if there is an error getting the current user
+	 * @throws ServiceLayerException   if there is an error getting the content descriptor for the item
+	 */
+	protected Item buildItem(String siteId, String path, User userObj) throws AuthenticationException, ServiceLayerException {
 		boolean disabled = false;
 		String label = null;
 		String contentType = null;
@@ -223,26 +200,25 @@ public class ItemServiceInternalImpl implements ItemService {
 			label = FilenameUtils.getName(path);
 		}
 		Item item = instantiateItem(siteId, path)
-			.withPreviewUrl(getBrowserUrl(siteId, path))
-			.withLastModifiedBy(userObj.getId())
-			.withLastModifiedOn(DateUtils.getCurrentTime())
-			.withLabel(label)
-			.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, siteId, path))
-			.withContentTypeId(contentType)
-			.withMimeType(StudioUtils.getMimeType(path))
-			.withLocaleCode(localeCode)
-			.withSize(contentRepository.getContentSize(siteId, path))
-			.withSavedAsDraft(savedAsDraft)
-			.build();
+				.withPreviewUrl(getBrowserUrl(siteId, path))
+				.withLastModifiedBy(userObj.getId())
+				.withLastModifiedOn(DateUtils.getCurrentTime())
+				.withLabel(label)
+				.withSystemType(getContentTypeClass(servicesConfig, studioConfiguration, siteId, path))
+				.withContentTypeId(contentType)
+				.withMimeType(StudioUtils.getMimeType(path))
+				.withLocaleCode(localeCode)
+				.withSize(contentRepository.getContentSize(siteId, path))
+				.withSavedAsDraft(savedAsDraft)
+				.build();
 
 		item.setState(ItemState.savedAndNotClosed(item.getState()));
-
 		if (disabled) {
 			item.setState(item.getState() | ItemState.DISABLED.value);
 		} else {
 			item.setState(item.getState() & ~ItemState.DISABLED.value);
 		}
-		upsertEntry(item);
+		return item;
 	}
 
 	@Override
