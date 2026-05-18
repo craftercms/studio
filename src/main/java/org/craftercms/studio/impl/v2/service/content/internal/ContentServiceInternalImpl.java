@@ -34,7 +34,6 @@ import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -137,6 +136,7 @@ import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
 import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofPath;
 import static org.craftercms.studio.api.v2.content.LifecycleContentProvider.ofStream;
@@ -932,17 +932,19 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String label = FilenameUtils.getName(path);
 		String contentTypeId = EMPTY;
 		boolean disabled = false;
+		boolean savedAsDraft = false;
 		if (CS.endsWith(path, XML_PATTERN)) {
 			try {
 				Document contentDoc = ContentUtils.convertStreamToXml(getContent(site.getSiteId(), path));
 				if (contentDoc != null) {
 					Element rootElement = contentDoc.getRootElement();
-					String internalName = rootElement.valueOf(StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE);
+					String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
 					if (isNotEmpty(internalName)) {
 						label = internalName;
 					}
-					contentTypeId = rootElement.valueOf(StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE);
-					disabled = Boolean.parseBoolean(rootElement.valueOf(StudioXmlConstants.DOCUMENT_ELM_DISABLED));
+					contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+					disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
+					savedAsDraft = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_SAVED_AS_DRAFT));
 				}
 			} catch (DocumentException | ContentNotFoundException e) {
 				logger.error("Failed to extract metadata from XML file at site '{}' path '{}'",
@@ -976,6 +978,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					.withLocaleCode(Locale.US.toString())
 					.withTranslationSourceId(null)
 					.withSize(contentRepository.getContentSize(site.getSiteId(), path))
+					.withSavedAsDraft(savedAsDraft)
 					.build();
 			itemDao.upsertEntry(item);
 
@@ -1478,12 +1481,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			boolean isPage = isPageDescriptor(path);
 			String parentItemPath = getParentUrl(path);
 			Item parent = itemService.getItem(siteId, parentItemPath, isPage);
-			itemService.persistItemAfterCreate(siteId, path, false, parent.getId());
+			itemService.persistItemAfterCreate(siteId, path, parent.getId());
 			if (isPage) {
 				itemService.updateNewPageChildren(siteId, CS.removeEnd(path, SLASH_INDEX_FILE));
 			}
 		} else {
-			itemService.persistItemAfterWrite(siteId, path, false);
+			itemService.persistItemAfterWrite(siteId, path);
 		}
 		dependencyService.upsertDependencies(siteId, path);
 		dependencyService.validateDependencies(siteId, path);

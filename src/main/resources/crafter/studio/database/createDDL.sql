@@ -56,8 +56,8 @@ BEGIN
 	INSERT INTO dependency (id, site, source_path, target_path, type, valid)
 		SELECT null, siteId, d.source_path, d.target_path, d.type, d.valid FROM dependency d WHERE d.site = sourceSiteId;
 
-	INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, ignored)
-		SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
+	INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, ignored, saved_as_draft)
+		SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.ignored, i.saved_as_draft FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
 
 	SELECT id FROM site WHERE site_id = siteId AND deleted = 0 INTO @siteNumericId;
 
@@ -224,7 +224,7 @@ CREATE TABLE _meta (
 	PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.15', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.17', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
 	`id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -511,6 +511,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   `size`                    BIGINT          NULL,
   `parent_id`               BIGINT          NULL,
   `ignored`                 INT             NOT NULL    DEFAULT 0,
+  `saved_as_draft`          BOOLEAN         NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY item_ix_created_by(`created_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_last_modified_by(`last_modified_by`) REFERENCES `user` (`id`),

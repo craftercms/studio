@@ -9942,6 +9942,9 @@ components:
                     type: integer
                     format: int32
                     description: number of children of the item
+                savedAsDraft:
+                    type: boolean
+                    description: true if item is saved as draft, otherwise false
                 staging:
                     $ref: '#/components/schemas/PublishTargetStatus'
                     description: status of the item in the staging target

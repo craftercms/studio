@@ -95,12 +95,11 @@ public interface ItemService {
 	 *
 	 * @param siteId   site identifier
 	 * @param path     path of the content
-	 * @param unlock   Indicates if content needs to be unlocked after write (save &amp; close)
 	 * @param parentId id of parent item
 	 * @throws ServiceLayerException if there is an error persisting the item
 	 * @throws UserNotFoundException if the user is not found
 	 */
-	void persistItemAfterCreate(String siteId, String path, boolean unlock, Long parentId)
+	void persistItemAfterCreate(String siteId, String path, Long parentId)
 		throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
@@ -108,9 +107,8 @@ public interface ItemService {
 	 *
 	 * @param siteId site identifier
 	 * @param path   path of the content
-	 * @param unlock Indicates if content needs to be unlocked after write (save &amp; close)
 	 */
-	void persistItemAfterWrite(String siteId, String path, boolean unlock) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+	void persistItemAfterWrite(String siteId, String path) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
 
 	/**
 	 * Persist item metadata after create folder
