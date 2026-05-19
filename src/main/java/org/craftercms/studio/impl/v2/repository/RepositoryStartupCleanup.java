@@ -147,6 +147,10 @@ public class RepositoryStartupCleanup {
     protected void removeIndexIfCorrupted(String siteId, GitRepositories repository) {
         logger.debug("Checking if repository '{}' for site '{}' is corrupted", repository, siteId);
         Repository repo = helper.getRepository(siteId, repository);
+        if (repo == null) {
+            logger.warn("Could not open repository '{}' for site '{}', unable to check if it's corrupted", repository, siteId);
+            return;
+        }
         File repoDir = repo.getWorkTree();
         try {
             if (!helper.gitStatusOk(repo)) {
