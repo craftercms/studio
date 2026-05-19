@@ -214,7 +214,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.5.1.1', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.5.1.2', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -555,7 +555,7 @@ CREATE TABLE IF NOT EXISTS remote_repository
   `remote_url`            VARCHAR(2000)   NOT NULL,
   `authentication_type`   VARCHAR(16)   NOT NULL,
   `remote_username`       VARCHAR(255)   NULL,
-  `remote_password`       VARCHAR(255)   NULL,
+  `remote_password`       VARCHAR(500)   NULL,
   `remote_token`          VARCHAR(255)   NULL,
   `remote_private_key`    TEXT           NULL,
   PRIMARY KEY (`id`),
