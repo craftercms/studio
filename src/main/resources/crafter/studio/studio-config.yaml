@@ -698,6 +698,10 @@ studio.upgrade.template.formDefinition: config/studio/content-types{name}/form-d
 studio.upgrade.db.population.threadCount: 50
 studio.upgrade.db.population.timeoutSeconds: 7200
 
+# Number of threads for site upgrades (meaning the number of sites that will be upgraded in parallel)
+studio.upgrade.sites.threadCount: 10
+studio.upgrade.sites.timeoutSeconds: 7200
+
 ################################################################
 ##                             CORS                           ##
 ################################################################
@@ -1106,3 +1110,6 @@ studio.configuration.dashboard.contentExpiredQuery.sortBy: expired_dt
 ##         Startup tasks and checks             ##
 ##################################################
 studio.configuration.site.startup.cleanup.enabled: true
+# Number of threads for site startup cleanup (meaning the number of sites that will be cleaned in parallel on startup)
+studio.configuration.site.startup.cleanup.threadCount: 10
+studio.configuration.site.startup.cleanup.timeoutSeconds: 7200

@@ -47,6 +47,10 @@ import javax.sql.DataSource;
 import java.beans.ConstructorProperties;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.nio.file.Paths.get;
 import static java.util.stream.Collectors.toList;
@@ -81,17 +85,20 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
     protected final InstanceService instanceService;
     protected final RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     protected final SiteBootstrapStateProvider siteBootstrapStateProvider;
+    protected final int executorThreadCount;
+    protected final int executorTimeoutSeconds;
 
     @ConstructorProperties({"dbVersionProvider", "dbPipelineFactory", "bpPipelineFactory", "configurationProvider",
             "dataSource", "integrityValidator", "contentRepository", "studioConfiguration", "instanceService",
-            "retryingRepositoryOperationFacade", "siteBootstrapStateProvider"})
+            "retryingRepositoryOperationFacade", "siteBootstrapStateProvider", "executorThreadCount", "executorTimeoutSeconds"})
     public StudioUpgradeManagerImpl(VersionProvider dbVersionProvider,
                                     UpgradePipelineFactory<String> dbPipelineFactory,
                                     UpgradePipelineFactory<String> bpPipelineFactory, YamlConfigurationProvider configurationProvider,
                                     DataSource dataSource, DbIntegrityValidator integrityValidator,
                                     ContentRepository contentRepository, StudioConfiguration studioConfiguration,
                                     InstanceService instanceService,
-                                    RetryingRepositoryOperationFacade retryingRepositoryOperationFacade, SiteBootstrapStateProvider siteBootstrapStateProvider) {
+                                    RetryingRepositoryOperationFacade retryingRepositoryOperationFacade, SiteBootstrapStateProvider siteBootstrapStateProvider,
+                                    int executorThreadCount, int executorTimeoutSeconds) {
         this.dbVersionProvider = dbVersionProvider;
         this.dbPipelineFactory = dbPipelineFactory;
         this.bpPipelineFactory = bpPipelineFactory;
@@ -103,6 +110,8 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
         this.instanceService = instanceService;
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
         this.siteBootstrapStateProvider = siteBootstrapStateProvider;
+        this.executorThreadCount = executorThreadCount;
+        this.executorTimeoutSeconds = executorTimeoutSeconds;
     }
 
     /**
@@ -209,6 +218,37 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
     @Override
     public void upgradeExistingSites() throws UpgradeException {
         upgrade();
+    }
+
+    @Override
+    public void upgrade() throws UpgradeException {
+        logger.info("Starting upgrade of all targets");
+        List<String> sites = getTargets();
+        AtomicBoolean upgradeFailed = new AtomicBoolean(false);
+        UpgradeException upgradeException = new UpgradeException("Failed to upgrade some sites");
+        try (ExecutorService taskExecutor = Executors.newFixedThreadPool(executorThreadCount)) {
+            for (String site : sites) {
+                taskExecutor.execute(() -> {
+                    try {
+                        upgrade(site);
+                    } catch (UpgradeException e) {
+                        logger.error("Failed to upgrade site '{}'", site, e);
+                        upgradeException.addSuppressed(e);
+                        upgradeFailed.set(true);
+                    }
+                });
+            }
+            taskExecutor.shutdown();
+            taskExecutor.awaitTermination(executorTimeoutSeconds, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.warn("Interrupted while waiting for site upgrades to complete, some sites may not be upgraded", e);
+            Thread.currentThread().interrupt(); // restore interrupt status
+            upgradeException.addSuppressed(e);
+            upgradeFailed.set(true);
+        }
+        if (upgradeFailed.get()) {
+            throw upgradeException;
+        }
     }
 
     protected boolean checkIfSiteRepoExists(String site) {
