@@ -87,12 +87,20 @@ public class RepositoryStartupCleanup {
     }
 
     protected void unlockSitesRepositories() throws InterruptedException {
-        try (ExecutorService taskExecutor = Executors.newFixedThreadPool(executorThreadCount)) {
+        ExecutorService taskExecutor = Executors.newFixedThreadPool(executorThreadCount);
+        try {
             for (Site site : siteService.getSitesByState(READY)) {
                 taskExecutor.execute(() -> unlockSiteRepositories(site));
             }
             taskExecutor.shutdown();
-            taskExecutor.awaitTermination(executorTimeoutSeconds, SECONDS);
+            if (!taskExecutor.awaitTermination(executorTimeoutSeconds, SECONDS)) {
+                logger.warn("Timed out waiting for tasks to complete after {}s, forcing shutdown", executorTimeoutSeconds);
+                taskExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            logger.warn("Interrupted while waiting for repository cleanup tasks to complete, forcing shutdown", e);
+            taskExecutor.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 

@@ -226,7 +226,8 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
         List<String> sites = getTargets();
         AtomicBoolean upgradeFailed = new AtomicBoolean(false);
         UpgradeException upgradeException = new UpgradeException("Failed to upgrade some sites");
-        try (ExecutorService taskExecutor = Executors.newFixedThreadPool(executorThreadCount)) {
+        ExecutorService taskExecutor = Executors.newFixedThreadPool(executorThreadCount);
+        try {
             for (String site : sites) {
                 taskExecutor.execute(() -> {
                     try {
@@ -239,10 +240,14 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                 });
             }
             taskExecutor.shutdown();
-            taskExecutor.awaitTermination(executorTimeoutSeconds, TimeUnit.SECONDS);
+            if (!taskExecutor.awaitTermination(executorTimeoutSeconds, TimeUnit.SECONDS)) {
+                logger.warn("Timed out waiting for site upgrades to complete after {}s, some sites may not be upgraded. Forcing shutdown", executorTimeoutSeconds);
+                taskExecutor.shutdownNow();
+            }
         } catch (InterruptedException e) {
-            logger.warn("Interrupted while waiting for site upgrades to complete, some sites may not be upgraded", e);
+            logger.warn("Interrupted while waiting for site upgrades to complete, some sites may not be upgraded. Forcing shutdown", e);
             Thread.currentThread().interrupt(); // restore interrupt status
+            taskExecutor.shutdownNow();
             upgradeException.addSuppressed(e);
             upgradeFailed.set(true);
         }
