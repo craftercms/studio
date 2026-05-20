@@ -15,8 +15,15 @@
  */
 package org.craftercms.studio.impl.v2.utils.spring.context;
 
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.SiteDAO;
+import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.utils.spring.context.SiteBootstrapStateProvider;
+import org.jspecify.annotations.NonNull;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 
+import java.beans.ConstructorProperties;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,9 +31,17 @@ import java.util.Set;
 /**
  * Default implementation of {@link SiteBootstrapStateProvider} that keeps the state in memory.
  */
-public class SiteBootstrapStateProviderImpl implements SiteBootstrapStateProvider {
+public class SiteBootstrapStateProviderImpl implements SiteBootstrapStateProvider, ApplicationEventPublisherAware {
 
 	private final Set<String> readySites = Collections.synchronizedSet(new HashSet<>());
+
+	private final SiteDAO siteDAO;
+	private ApplicationEventPublisher applicationEventPublisher;
+
+	@ConstructorProperties({"siteDAO"})
+	public SiteBootstrapStateProviderImpl(SiteDAO siteDAO) {
+		this.siteDAO = siteDAO;
+	}
 
 	protected Set<String> getReadySites() {
 		return readySites;
@@ -35,10 +50,17 @@ public class SiteBootstrapStateProviderImpl implements SiteBootstrapStateProvide
 	@Override
 	public void markSiteAsReady(String siteId) {
 		getReadySites().add(siteId);
+		Site site = siteDAO.getSite(siteId);
+		applicationEventPublisher.publishEvent(new SiteReadyEvent(siteId, site.getSiteUuid()));
 	}
 
 	@Override
 	public boolean isSiteReady(String siteId) {
 		return getReadySites().contains(siteId);
+	}
+
+	@Override
+	public void setApplicationEventPublisher(@NonNull ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 }
