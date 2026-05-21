@@ -908,20 +908,6 @@
 		<constructor-arg name="configurationReader" ref="crafter.configurationReader"/>
 	</bean>
 
-	<bean id="studioTranscoderProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-		<constructor-arg name="profilesModule"
-				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE)}"/>
-		<constructor-arg name="profilesPath"
-				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
-		<constructor-arg name="profileMapper">
-			<bean class="org.craftercms.studio.impl.v1.aws.elastictranscoder.TranscoderProfileMapper">
-				<constructor-arg name="configurationResolver" ref="crafter.configurationResolver"/>
-			</bean>
-		</constructor-arg>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
-		<constructor-arg name="contextManager" ref="contextManager"/>
-	</bean>
-
 	<bean id="studioMediaConvertProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
 		<constructor-arg name="profilesModule"
 				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE)}"/>
@@ -932,7 +918,7 @@
 				<constructor-arg name="configurationResolver" ref="crafter.configurationResolver"/>
 			</bean>
 		</constructor-arg>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
+		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="contextManager" ref="contextManager"/>
 	</bean>
 
@@ -942,7 +928,7 @@
 		<constructor-arg name="profilesPath"
 				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
 		<constructor-arg name="profileMapper" ref="crafter.s3ProfileMapper"/>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
+		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="contextManager" ref="contextManager"/>
 	</bean>
 
@@ -981,12 +967,8 @@
 				<constructor-arg name="configurationResolver" ref="crafter.configurationResolver"/>
 			</bean>
 		</constructor-arg>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
+		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="contextManager" ref="contextManager"/>
-	</bean>
-
-	<bean id="studioWebDavService" class="org.craftercms.studio.impl.v1.service.webdav.WebDavServiceImpl">
-		<constructor-arg name="profileLoader" ref="studioWebDavProfileLoader"/>
 	</bean>
 
 	<!--  v2 Service -->
@@ -1193,7 +1175,7 @@
 		<constructor-arg name="allowedBeans"
 				 value="#{studioConfiguration.getProperty('studio.scripting.allowedBeans')}"/>
 		<constructor-arg name="marketplaceService" ref="marketplaceService"/>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
+		<constructor-arg name="contentService" ref="contentServiceInternal"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 	</bean>
 

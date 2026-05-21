@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,11 +15,10 @@
  */
 package org.craftercms.studio.api.v1.asset.processing;
 
+import org.craftercms.studio.api.v1.exception.AssetProcessingConfigurationException;
+
 import java.io.InputStream;
 import java.util.List;
-
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.craftercms.studio.api.v1.exception.AssetProcessingConfigurationException;
 
 /**
  * Reads the configuration from an input stream or a Apache Commons Configuration object and maps it to actual asset processing
@@ -37,14 +36,5 @@ public interface AssetProcessingConfigReader {
 	 * @throws AssetProcessingConfigurationException if the configuration couldn't be read because of an error
 	 */
 	List<ProcessorPipelineConfiguration> readConfig(InputStream in) throws AssetProcessingConfigurationException;
-
-	/**
-	 * Reads the configuration from the Apache Commons Configuration and maps it to {@link ProcessorPipelineConfiguration} objects.
-	 *
-	 * @param config the Apache Commons Configuration
-	 * @return the list with the pipeline configurations.
-	 * @throws AssetProcessingConfigurationException if the configuration couldn't be read because of an error
-	 */
-	List<ProcessorPipelineConfiguration> readConfig(HierarchicalConfiguration config) throws AssetProcessingConfigurationException;
 
 }

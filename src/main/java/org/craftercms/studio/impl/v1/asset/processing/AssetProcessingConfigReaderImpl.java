@@ -15,14 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.asset.processing;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -33,6 +25,9 @@ import org.craftercms.studio.api.v1.asset.processing.ProcessorConfiguration;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfiguration;
 import org.craftercms.studio.api.v1.exception.AssetProcessingConfigurationException;
 import org.craftercms.studio.impl.v1.util.ConfigUtils;
+
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Default implementation for {@link AssetProcessingConfigReader}.
@@ -61,9 +56,8 @@ public class AssetProcessingConfigReaderImpl implements AssetProcessingConfigRea
 		return readConfig(config);
 	}
 
-	@Override
 	@SuppressWarnings("unchecked")
-	public List<ProcessorPipelineConfiguration> readConfig(HierarchicalConfiguration config) throws AssetProcessingConfigurationException {
+	protected List<ProcessorPipelineConfiguration> readConfig(HierarchicalConfiguration config) throws AssetProcessingConfigurationException {
 		List<HierarchicalConfiguration> pipelinesConfig = config.configurationsAt(PIPELINES_CONFIG_KEY);
 		if (CollectionUtils.isNotEmpty(pipelinesConfig)) {
 			List<ProcessorPipelineConfiguration> mappedPipelinesConfig = new ArrayList<>(pipelinesConfig.size());

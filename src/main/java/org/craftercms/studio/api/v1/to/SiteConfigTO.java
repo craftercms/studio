@@ -17,7 +17,6 @@ package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -33,11 +32,6 @@ public class SiteConfigTO implements Serializable {
 	 *
 	 */
 	protected static final long serialVersionUID = 3411780412457597813L;
-
-	/**
-	 * WEM project name
-	 */
-	protected String wemProject;
 
 	/**
 	 * site name
@@ -121,17 +115,6 @@ public class SiteConfigTO implements Serializable {
 	protected List<String> protectedFolderPatterns;
 
 	protected ContentMonitorConfigTO contentMonitorConfig;
-
-	/**
-	 * @return the WEM project
-	 */
-	public String getWemProject() {
-		return wemProject;
-	}
-
-	public void setWemProject(String wemProject) {
-		this.wemProject = wemProject;
-	}
 
 	public String getSiteName() {
 		return siteName;
