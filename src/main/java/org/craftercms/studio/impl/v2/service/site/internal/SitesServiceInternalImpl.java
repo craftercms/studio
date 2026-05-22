@@ -532,6 +532,8 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             // Set site state to READY
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
             siteServiceV1.enablePublishing(siteId, true);
+            // Mark site as ready, since we don't need to run UM on duplicate
+            siteBootstrapStateProvider.markSiteAsReady(siteId);
             applicationContext.publishEvent(new SiteReadyEvent(siteId, siteUuid));
             logger.info("Site duplicate from '{}' to '{}' - COMPLETE", sourceSiteId, siteId);
         } catch (ServiceLayerException ex) {
