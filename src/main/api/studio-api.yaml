@@ -75,7 +75,9 @@ paths:
         - groups
       summary: Get all groups
       operationId: getGroups
-      description: 'Required Permission: "READ_GROUPS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "READ_GROUPS"'
       parameters:
         - name: keyword
           in: query
@@ -141,7 +143,9 @@ paths:
       tags:
         - groups
       summary: Create group
-      description: 'Required Permission: "CREATE_GROUPS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "CREATE_GROUPS"'
       operationId: createGroup
       requestBody:
         description: Group entity to create
@@ -174,7 +178,9 @@ paths:
       tags:
         - groups
       summary: Update group
-      description: 'Required Permission: "UPDATE_GROUPS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "UPDATE_GROUPS"'
       operationId: updateGroup
       requestBody:
         description: Group entity to update
@@ -207,7 +213,9 @@ paths:
       tags:
         - groups
       summary: Delete group(s)
-      description: 'Required Permission: "DELETE_GROUPS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "DELETE_GROUPS"'
       operationId: deleteGroup
       parameters:
         - name: id
@@ -240,7 +248,9 @@ paths:
       tags:
         - groups
       summary: Get group by ID
-      description: 'Required Permission: "READ_GROUPS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "READ_GROUPS"'
       operationId: getGroup
       parameters:
         - name: id
@@ -276,7 +286,9 @@ paths:
       tags:
         - groups
       summary: Get all the members of the specified group
-      description: 'Required Permission: "READ_GROUPS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "READ_GROUPS"'
       operationId: getGroupMembers
       parameters:
         - name: id
@@ -346,7 +358,9 @@ paths:
       tags:
         - groups
       summary: Add member(s) to the specified group
-      description: 'Required Permission: "UPDATE_GROUPS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "UPDATE_GROUPS"'
       operationId: addGroupMembers
       parameters:
         - name: id
@@ -399,7 +413,9 @@ paths:
         - groups
       summary: |-
         Remove member(s) from the specified group
-      description: 'Required Permission: "DELETE_GROUPS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "DELETE_GROUPS"'
       operationId: removeGroupMembers
       parameters:
         - name: id
@@ -449,7 +465,9 @@ paths:
       tags:
         - users
       summary: Get all users
-      description: 'Required Permission: "READ_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "READ_USERS"'
       operationId: getUsers
       parameters:
         - name: site_id
@@ -522,7 +540,9 @@ paths:
       tags:
         - users
       summary: Create user
-      description: 'Required Permission: "CREATE_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "CREATE_USERS"'
       operationId: createUser
       requestBody:
         description: User entity to create
@@ -555,7 +575,9 @@ paths:
       tags:
         - users
       summary: Update user
-      description: 'Required Permission: "UPDATE_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "UPDATE_USERS"'
       operationId: updateUser
       requestBody:
         description: User entity to update. Supported update attributes are firstName, lastName, email and enabled.
@@ -588,7 +610,9 @@ paths:
       tags:
         - users
       summary: Delete user(s)
-      description: 'Required Permission: "DELETE_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "DELETE_USERS"'
       operationId: deleteUser
       parameters:
         - name: id
@@ -629,7 +653,9 @@ paths:
       tags:
         - users
       summary: Get user by user ID or username
-      description: 'Required Permission: "READ_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "READ_USERS"'
       operationId: getUser
       parameters:
         - name: id
@@ -664,7 +690,9 @@ paths:
       tags:
         - users
       summary: Enable user(s)
-      description: 'Required Permission: "UPDATE_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "UPDATE_USERS"'
       operationId: enableUser
       requestBody:
         description: List of user IDs and/or usernames to enable
@@ -708,7 +736,9 @@ paths:
       tags:
         - users
       summary: Disable user(s)
-      description: 'Required Permission: "UPDATE_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "UPDATE_USERS"'
       operationId: disableUser
       requestBody:
         description: List of user IDs and/or usernames to disable
@@ -752,7 +782,9 @@ paths:
       tags:
         - users
       summary: Get all the sites the specified user has access to
-      description: 'Required Permission: "READ_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "READ_USERS"'
       operationId: getUserSites
       parameters:
         - name: id
@@ -815,7 +847,9 @@ paths:
       tags:
         - users
       summary: Get the site roles for the specified user
-      description: 'Required Permission: "READ_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "READ_USERS"'
       operationId: getUserSiteRoles
       parameters:
         - name: id
@@ -858,7 +892,9 @@ paths:
       tags:
         - users
       summary: Reset password for user
-      description: 'Required Permission: "UPDATE_USERS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "UPDATE_USERS"'
       operationId: resetUserPassword
       parameters:
         - name: id
@@ -909,7 +945,9 @@ paths:
       tags:
         - users
       summary: Change password for user
-      description: 'Required Permission: "ANONYMOUS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "ANONYMOUS"'
       operationId: setUserPassword
       requestBody:
         description: request body to change password
@@ -955,7 +993,9 @@ paths:
       tags:
         - users
       summary: Get current authenticated user
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: getCurrentUser
       responses:
         '200':
@@ -979,7 +1019,9 @@ paths:
       tags:
         - users
       summary: Get all the sites the current authenticated user has access to
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: getCurrentUserSites
       parameters:
         - name: offset
@@ -1032,7 +1074,9 @@ paths:
       tags:
         - users
       summary: Get the site roles for the current authenticated user
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: getCurrentUserSiteRoles
       parameters:
         - name: site
@@ -1065,7 +1109,9 @@ paths:
       tags:
         - users
       summary: Get the site permissions for the current authenticated user
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: getCurrentUserSitePermissions
       parameters:
         - name: site
@@ -1100,7 +1146,9 @@ paths:
       tags:
         - users
       summary: Check if the current authenticated user has given permissions
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: hasCurrentUserSitePermissions
       parameters:
         - name: site
@@ -1153,7 +1201,9 @@ paths:
       tags:
         - users
       summary: Get the global for the current authenticated user
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: getCurrentUserGlobalPermissions
       responses:
         '200':
@@ -1181,7 +1231,9 @@ paths:
       tags:
         - users
       summary: Check if the current authenticated user has given global permissions
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: hasCurrentUserGlobalPermissions
       requestBody:
         description: request body to check if current authenticated user has permissions
@@ -1227,7 +1279,8 @@ paths:
       tags:
         - users
       summary: Get the SSO Service Provide logout URL for the current authenticated user
-      description: |-
+      description: |
+        Module: Studio <br>
         * Required Permission: "LOGGED_IN"
         * The system should redirect to this logout URL `AFTER` local logout. Response entity can be null if user is
         not authenticated through SSO or if logout is disabled
@@ -1254,7 +1307,9 @@ paths:
       tags:
         - users
       summary: Change password for current user
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: currentUserChangePassword
       requestBody:
         description: request body to change password
@@ -1300,7 +1355,9 @@ paths:
       tags:
         - users
       summary: Retrieve properties for the current user
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: getUserProperties
       parameters:
         - name: siteId
@@ -1335,7 +1392,9 @@ paths:
       tags:
         - users
       summary: Update properties for the current user
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: updateUserProperties
       requestBody:
         required: true
@@ -1378,7 +1437,9 @@ paths:
       tags:
         - users
       summary: Delete properties for the current user
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: deleteUserProperties
       parameters:
         - name: siteId
@@ -1422,7 +1483,9 @@ paths:
       tags:
         - users
       summary: Forgot password
-      description: 'Required Permission: "ANONYMOUS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "ANONYMOUS"'
       operationId: forgotPassword
       parameters:
         - name: username
@@ -1451,7 +1514,9 @@ paths:
       tags:
         - users
       summary: Validate forgot password token
-      description: 'Required Permission: "ANONYMOUS"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "ANONYMOUS"'
       operationId: validateToken
       parameters:
         - name: token
@@ -1485,7 +1550,9 @@ paths:
         - ui
       summary: Get the global menu items available to the current user
       operationId: getGlobalMenu
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       responses:
         '200':
           description: OK
@@ -1511,7 +1578,9 @@ paths:
         - ui
       summary: Get the current active environment for the system
       operationId: getActiveEnv
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       responses:
         '200':
           description: OK
@@ -1535,7 +1604,9 @@ paths:
         - aws
       summary: Get a list of items from an S3 bucket
       operationId: listItems
-      description: 'Required Permission: "s3_read"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "s3_read"'
       parameters:
         - name: siteId
           in: query
@@ -1588,7 +1659,9 @@ paths:
         - aws
       summary: Upload a file to an S3 bucket
       operationId: uploadItem
-      description: 'Required Permission: "s3_write"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "s3_write"'
       requestBody:
         required: true
         content:
@@ -1642,7 +1715,9 @@ paths:
         - aws
       summary: Upload a file to an S3 bucket and trigger a MediaConvert job
       operationId: uploadVideo
-      description: 'Required Permission: "s3_write"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "s3_write"'
       requestBody:
         required: true
         content:
@@ -1694,7 +1769,9 @@ paths:
       tags:
         - webdav
       summary: Get a list of items from a WebDAV server
-      description: 'Required Permission: "webdav_read"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "webdav_read"'
       operationId: listItemsWebdav
       parameters:
         - name: siteId
@@ -1747,7 +1824,9 @@ paths:
       tags:
         - webdav
       summary: Upload a file to a WebDAV server
-      description: 'Required Permission: "webdav_write"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "webdav_write"'
       operationId: uploadItemWebdav
       requestBody:
         required: true
@@ -1797,7 +1876,9 @@ paths:
       tags:
         - cluster
       summary: Get all the members of the cluster
-      description: 'Required Permission: "read_cluster"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "read_cluster"'
       operationId: getClusterMembers
       responses:
         '200':
@@ -1826,7 +1907,9 @@ paths:
       tags:
         - cluster
       summary: Get the local Studio instance cluster mode
-      description: 'Required Permission: "read_cluster"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "read_cluster"'
       operationId: getClusterMode
       parameters:
         - name: token
@@ -1864,7 +1947,9 @@ paths:
       tags:
         - sites
       summary: Get all available blueprints
-      description: 'Required Permission: "LOGGED_IN"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "LOGGED_IN"'
       operationId: availableBlueprints
       responses:
         '200':
@@ -1888,6 +1973,7 @@ paths:
       tags:
         - sites
       summary: Create a site from a Marketplace blueprint
+      description: "Module: Studio"
       operationId: createSiteFromMarketplace
       requestBody:
         description: The site information
@@ -1917,7 +2003,9 @@ paths:
       tags:
         - sites
       summary: Updates the name and description for a given site
-      description: 'Required Permission: "edit_site"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "edit_site"'
       operationId: updateSite
       parameters:
         - name: siteId
@@ -1962,7 +2050,9 @@ paths:
       tags:
         - sites
       summary: Deletes a site
-      description: 'Required Permission: "delete_site"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "delete_site"'
       operationId: deleteSite
       parameters:
         - name: siteId
@@ -1995,7 +2085,9 @@ paths:
       tags:
         - sites
       summary: Unlock a site locked with state LOCKED
-      description: 'Required Permission: "edit_site"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "edit_site"'
       operationId: unlockSite
       parameters:
         - name: siteId
@@ -2031,6 +2123,7 @@ paths:
       tags:
         - sites
       summary: Verifies if all indicated actions are compliant with the site policies
+      description: "Module: Studio"
       operationId: validate
       parameters:
         - name: siteId
@@ -2071,6 +2164,7 @@ paths:
       tags:
         - sites
       summary: Duplicates a site
+      description: "Module: Studio"
       operationId: duplicateSite
       parameters:
         - name: siteId
@@ -2111,7 +2205,9 @@ paths:
       tags:
         - sites
       summary: Create a Crafter Studio project.
-      description: 'Required Role: "Admin"'
+      description: |
+        Module: Studio <br>
+        'Required Role: "Admin"'
       operationId: createSite
       requestBody:
         description: Project/site details
@@ -2211,7 +2307,9 @@ paths:
       tags:
         - sites
       summary: Delete a Crafter Studio project.
-      description: 'Required Role: "Admin"'
+      description: |
+        Module: Studio <br>
+        'Required Role: "Admin"'
       operationId: deleteSiteAPI1
       requestBody:
         description: Project/site to delete
@@ -2251,7 +2349,9 @@ paths:
       tags:
         - sites
       summary: Check if Crafter Studio project/site exists.
-      description: "Required role: admin, member in the project/site"
+      description: |
+        Module: Studio <br>
+        "Required role: admin, member in the project/site"
       operationId: projectExists
       parameters:
         - name: site_id
@@ -2283,7 +2383,9 @@ paths:
       tags:
         - sites
       summary: Get rejection reason.
-      description: No required role
+      description: |
+        Module: Studio <br>
+        No required role
       operationId: getCannedMessage
       parameters:
         - name: site_id
@@ -2329,7 +2431,9 @@ paths:
       tags:
         - sites
       summary: Get a Crafter Studio project/site
-      description: No required role
+      description: |
+        Module: Studio <br>
+        No required role
       operationId: getSite
       parameters:
         - name: site_id
@@ -2377,7 +2481,9 @@ paths:
       tags:
         - sites
       summary: Get all projects/sites content monitors
-      description: "Required role: none"
+      description: |
+        Module: Studio <br>
+        "Required role: none"
       operationId: monitorContent
       responses:
         '200':
@@ -2410,7 +2516,9 @@ paths:
       tags:
         - publishing
       summary: Publish commits from sandbox repository by commit id.
-      description: "Required role: Admin, Site Admin or the permission 'publish_by_commits'"
+      description: |
+        Module: Studio <br>
+        "Required role: Admin, Site Admin or the permission 'publish_by_commits'"
       operationId: publishCommits
       requestBody:
         description: Publish commits from sandbox repository request body
@@ -2472,7 +2580,9 @@ paths:
       tags:
         - publishing
       summary: Start Crafter Studio’s publishing for a project/site.
-      description: "Required role: Admin, Site Admin"
+      description: |
+        Module: Studio <br>
+        "Required role: Admin, Site Admin"
       operationId: publishStart
       requestBody:
         description: Start project/site publishing request body
@@ -2513,7 +2623,9 @@ paths:
       tags:
         - publishing
       summary: Stop Crafter Studio’s publishing for a project/site.
-      description: "Required role: Admin, Site Admin"
+      description: |
+        Module: Studio <br>
+        "Required role: Admin, Site Admin"
       operationId: publishStop
       requestBody:
         description: Stop project/site publishing request body
@@ -2554,7 +2666,9 @@ paths:
       tags:
         - dependency
       summary: Get dependant content items.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getDependant
       parameters:
         - name: site_id
@@ -2596,7 +2710,9 @@ paths:
       tags:
         - dependency
       summary: Get simple dependencies.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getSimpleDependencies
       parameters:
         - name: site_id
@@ -2638,7 +2754,9 @@ paths:
       tags:
         - deployment
       summary: Bulk go live.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: bulkGoLive
       parameters:
         - name: site_id
@@ -2692,7 +2810,9 @@ paths:
       tags:
         - preview
       summary: Sync preview content with repository
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: syncSite
       parameters:
         - name: site_id
@@ -2727,7 +2847,9 @@ paths:
       tags:
         - content
       summary: Change template for the content.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: changeContentType
       parameters:
         - name: site_id
@@ -2776,7 +2898,9 @@ paths:
       tags:
         - content
       summary: Create folder.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: createFolder
       parameters:
         - name: site_id
@@ -2821,7 +2945,9 @@ paths:
       tags:
         - content
       summary: Rename folder.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: renameFolder
       parameters:
         - name: site_id
@@ -2866,7 +2992,9 @@ paths:
       tags:
         - content
       summary: Get content stream.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getContent
       parameters:
         - name: site_id
@@ -2913,7 +3041,9 @@ paths:
       tags:
         - content
       summary: Get content stream at path.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getContentAtPath
       parameters:
         - name: site_id
@@ -2959,7 +3089,9 @@ paths:
       tags:
         - content
       summary: Get content type configuration.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getContentType
       parameters:
         - name: site_id
@@ -3013,7 +3145,9 @@ paths:
       tags:
         - content
       summary: Get content types allowed for given path.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getContentTypes
       parameters:
         - name: site
@@ -3048,7 +3182,9 @@ paths:
       tags:
         - content
       summary: Get content item.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getItem
       parameters:
         - name: site_id
@@ -3083,7 +3219,9 @@ paths:
       tags:
         - content
       summary: Get item orders.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getItemOrders
       parameters:
         - name: site_id
@@ -3123,7 +3261,9 @@ paths:
       tags:
         - content
       summary: Get content item version history.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getItemVersions
       parameters:
         - name: site_id
@@ -3158,7 +3298,9 @@ paths:
       tags:
         - content
       summary: Get items tree.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getItemsTree
       parameters:
         - name: site_id
@@ -3198,7 +3340,9 @@ paths:
       tags:
         - content
       summary: Get next item order.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getNextItemOrder
       parameters:
         - name: site_id
@@ -3235,7 +3379,9 @@ paths:
       tags:
         - content
       summary: Get pages. Gets tree of content items for given path.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getPages
       parameters:
         - name: site_id
@@ -3284,7 +3430,9 @@ paths:
       tags:
         - content
       summary: Reorder content items.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: reorderItems
       parameters:
         - name: site_id
@@ -3337,7 +3485,9 @@ paths:
       tags:
         - content
       summary: Revert content item to a specific version.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: revertContent
       parameters:
         - name: site
@@ -3378,7 +3528,9 @@ paths:
       tags:
         - content
       summary: Write content.
-      description: "Required role: Author <br><br> Options:<br>WriteContentWebForm: Save content using Create/Edit web form.<br> WriteContentAssetForm: Save content using asset form (templates, javascript, css, groovy).<br> WriteContentFileUpload: File upload (multipart request)"
+      description: |
+        Module: Studio <br>
+        "Required role: Author <br><br> Options:<br>WriteContentWebForm: Save content using Create/Edit web form.<br> WriteContentAssetForm: Save content using asset form (templates, javascript, css, groovy).<br> WriteContentFileUpload: File upload (multipart request)"
       operationId: writeContent
       parameters:
         - in: query
@@ -3608,7 +3760,9 @@ paths:
       tags:
         - server
       summary: Get available languages.
-      description: "Required role: N/A"
+      description: |
+        Module: Studio <br>
+        "Required role: N/A"
       operationId: getAvailableLanguages
       responses:
         '200':
@@ -3632,6 +3786,7 @@ paths:
       tags:
         - search
       summary: Performs a search for the given site
+      description: "Module: Studio"
       operationId: search
       parameters:
         - name: siteId
@@ -3665,7 +3820,9 @@ paths:
       tags:
         - audit
       summary: Get audit log
-      description: 'Required permission "AUDIT_LOG"'
+      description: |
+        Module: Studio <br>
+        'Required permission "AUDIT_LOG"'
       operationId: getAuditLog
       parameters:
         - name: siteId
@@ -3790,6 +3947,7 @@ paths:
       tags:
         - audit
       summary: Get audit log entry
+      description: "Module: Studio"
       operationId: getAuditLogById
       parameters:
         - name: id
@@ -3833,6 +3991,7 @@ paths:
       tags:
         - monitoring
       summary: Get the current version information
+      description: "Module: Studio"
       operationId: getVersion
       parameters:
         - name: token
@@ -3863,6 +4022,7 @@ paths:
       tags:
         - monitoring
       summary: Get the current status information
+      description: "Module: Studio"
       operationId: getStatus
       parameters:
         - name: token
@@ -3904,6 +4064,7 @@ paths:
       tags:
         - monitoring
       summary: Get the current memory information
+      description: "Module: Studio"
       operationId: getMemory
       parameters:
         - name: token
@@ -3934,6 +4095,7 @@ paths:
       tags:
         - monitoring
       summary: Get the log events for a specific time period
+      description: "Module: Studio"
       operationId: getLogEvents
       parameters:
         - name: since
@@ -3973,6 +4135,7 @@ paths:
       tags:
         - monitoring
       summary: Get disk usage statistics
+      description: "Module: Studio"
       operationId: getDiskUsage
       parameters:
         -   name: token
@@ -4002,7 +4165,9 @@ paths:
       tags:
         - repository
       summary: Add remote repository to the site content repository
-      description: 'Required permission "add_remote"'
+      description: |
+        Module: Studio <br>
+        'Required permission "add_remote"'
       operationId: addRemoteRepository
       requestBody:
         description: Remote repository entity
@@ -4037,7 +4202,9 @@ paths:
       tags:
         - repository
       summary: Pull content from remote repository to site content repository
-      description: 'Required permission "pull_from_remote"'
+      description: |
+        Module: Studio <br>
+        'Required permission "pull_from_remote"'
       operationId: pullFromRemoteRepository
       requestBody:
         description: pull from remote repository request body
@@ -4103,7 +4270,9 @@ paths:
       tags:
         - repository
       summary: Push content to remote repository from site content repository
-      description: 'Required permission "push_to_remote"'
+      description: |
+        Module: Studio <br>
+        'Required permission "push_to_remote"'
       operationId: pushToRemoteRepository
       requestBody:
         description: push to remote repository request body
@@ -4155,7 +4324,9 @@ paths:
       tags:
         - repository
       summary: Remove remote repository from site content repository
-      description: 'Required permission "remove_remote"'
+      description: |
+        Module: Studio <br>
+        'Required permission "remove_remote"'
       operationId: removeRemoteRepository
       requestBody:
         description: remove remote repository request body
@@ -4198,7 +4369,9 @@ paths:
       tags:
         - repository
       summary: List remote repositories for a site
-      description: 'Required permission "list_remote"'
+      description: |
+        Module: Studio <br>
+        'Required permission "list_remote"'
       operationId: listRemoteRepositories
       parameters:
         - name: siteId
@@ -4235,7 +4408,9 @@ paths:
       tags:
         - repository
       summary: Get status of repository for a site
-      description: 'Required permission "site_status"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site_status"'
       operationId: repositoryStatus
       parameters:
         - name: siteId
@@ -4270,7 +4445,9 @@ paths:
       tags:
         - repository
       summary: Resolve a conflict for a file by accepting ours or theirs
-      description: 'Required permission "resolve_conflict"'
+      description: |
+        Module: Studio <br>
+        'Required permission "resolve_conflict"'
       operationId: resolveConflict
       requestBody:
         description: resolve conflict request body
@@ -4319,7 +4496,9 @@ paths:
       tags:
         - repository
       summary: Get the difference between ours and theirs for a conflicted file for a site
-      description: 'Required permission "site_diff_conflicted_file"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site_diff_conflicted_file"'
       operationId: diffConflictedFile
       parameters:
         - name: siteId
@@ -4371,7 +4550,9 @@ paths:
       tags:
         - repository
       summary: Commit a resolved set of conflicts for a site
-      description: 'Required permission "commit_resolution"'
+      description: |
+        Module: Studio <br>
+        'Required permission "commit_resolution"'
       operationId: commitResolution
       requestBody:
         description: Commit resolution request body
@@ -4416,7 +4597,9 @@ paths:
       tags:
         - repository
       summary: Cancel a failed/conflicted pull for a site
-      description: 'Required permission "cancel_failed_pull"'
+      description: |
+        Module: Studio <br>
+        'Required permission "cancel_failed_pull"'
       operationId: cancelFailedPull
       requestBody:
         description: cancel failed pull request body
@@ -4457,7 +4640,9 @@ paths:
       tags:
         - repository
       summary: Unlock local git repository
-      description: 'Required role "system_admin" for global, "admin" for site sandbox or published'
+      description: |
+        Module: Studio <br>
+        'Required role "system_admin" for global, "admin" for site sandbox or published'
       operationId: unlockRepository
       requestBody:
         description: Unlock local git repository request
@@ -4501,7 +4686,9 @@ paths:
       tags:
         - repository
       summary: Check if a given repository is corrupted
-      description: 'Required role "system_admin" for global, "admin" for site sandbox or published'
+      description: |
+        Module: Studio <br>
+        'Required role "system_admin" for global, "admin" for site sandbox or published'
       operationId: isRepositoryCorrupted
       parameters:
         - name: siteId
@@ -4541,7 +4728,9 @@ paths:
       tags:
         - repository
       summary: Repair local git repository
-      description: 'Required role "system_admin" for global, "admin" for site sandbox or published'
+      description: |
+        Module: Studio <br>
+        'Required role "system_admin" for global, "admin" for site sandbox or published'
       operationId: repairCorruptedRepository
       requestBody:
         required: true
@@ -4582,7 +4771,9 @@ paths:
       tags:
         - model
       summary: Get all model definitions for site.
-      description: 'Required permission "read_configuration". <br/>In a future release this request will accept a set of arguments which could surpass the max length of the GET request, consequently, this endpoint answers to a POST method..'
+      description: |
+        Module: Studio <br>
+        'Required permission "read_configuration". <br/>In a future release this request will accept a set of arguments which could surpass the max length of the GET request, consequently, this endpoint answers to a POST method..'
       operationId: getAllModelDefinitions
       parameters:
         - name: siteId
@@ -4622,7 +4813,9 @@ paths:
       tags:
         - configuration
       summary: Get configuration content for site and configuration location
-      description: 'Required permission "read_configuration"'
+      description: |
+        Module: Studio <br>
+        'Required permission "read_configuration"'
       operationId: getConfiguration
       parameters:
         - name: siteId
@@ -4678,7 +4871,9 @@ paths:
       tags:
         - configuration
       summary: Write configuration content for site
-      description: 'Required permission "write_configuration"'
+      description: |
+        Module: Studio <br>
+        'Required permission "write_configuration"'
       operationId: writeConfiguration
       requestBody:
         description: write configuration request body
@@ -4734,7 +4929,9 @@ paths:
       tags:
         - configuration
       summary: Clear all configuration cache for a given site
-      description: 'Required Permission: "write_configuration"'
+      description: |
+        Module: Studio <br>
+        'Required Permission: "write_configuration"'
       operationId: clearConfigurationCache
       parameters:
         - name: siteId
@@ -4760,7 +4957,9 @@ paths:
       tags:
         - configuration
       summary: Get configuration history for site and configuration location
-      description: 'Required permission "read_configuration"'
+      description: |
+        Module: Studio <br>
+        'Required permission "read_configuration"'
       operationId: getConfigurationHistory
       parameters:
         - name: siteId
@@ -4815,7 +5014,9 @@ paths:
   #     tags:
   #       - configuration
   #     summary: Get translation configuration for a given site
-  #     description: 'Required permission "read_configuration"'
+  #     description: |
+  #       Module: Studio <br>
+  #       'Required permission "read_configuration"'
   #     operationId: getTranslationConfig
   #     parameters:
   #       - name: siteId
@@ -4848,7 +5049,9 @@ paths:
       tags:
         - configuration
       summary: Get all usage of a given content-type
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getContentTypeUsage
       parameters:
         - name: siteId
@@ -4902,7 +5105,9 @@ paths:
       tags:
         - configuration
       summary: Get preview image of a given content type
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getContentTypePreviewImage
       parameters:
         - name: siteId
@@ -4949,7 +5154,9 @@ paths:
       tags:
         - configuration
       summary: Get the form controller (if it exists) script of a given content type
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getContentTypeFormController
       parameters:
         - name: siteId
@@ -4996,7 +5203,9 @@ paths:
       tags:
         - configuration
       summary: Delete files related to a given content-type
-      description: 'Required permission "write_configuration"'
+      description: |
+        Module: Studio <br>
+        'Required permission "write_configuration"'
       operationId: deleteContentType
       requestBody:
         content:
@@ -5044,6 +5253,7 @@ paths:
       tags:
         - plugin
       summary: Get a file for a given plugin
+      description: "Module: Studio"
       operationId: getPluginFile
       parameters:
         - name: siteId
@@ -5110,7 +5320,9 @@ paths:
       tags:
         - plugin
       summary: Get configuration for the given site and plugin
-      description: 'Required permission "site member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site member"'
       operationId: getPluginConfiguration
       parameters:
         - name: siteId
@@ -5152,7 +5364,9 @@ paths:
       tags:
         - plugin
       summary: Write configuration content a given site and plugin
-      description: 'Required permission "write_configuration" and "site member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "write_configuration" and "site member"'
       operationId: writePluginConfiguration
       requestBody:
         description: write configuration request body
@@ -5199,6 +5413,7 @@ paths:
       tags:
         - plugin
       summary: Reloads groovy classes for all plugins in a given site
+      description: "Module: Studio"
       operationId: reloadClasses
       parameters:
         - name: siteId
@@ -5237,7 +5452,9 @@ paths:
       tags:
         - content
       summary: Get list of content types available for Quick Create functionality
-      description: 'Required permission "create content"'
+      description: |
+        Module: Studio <br>
+        'Required permission "create content"'
       operationId: quickCreateContent
       parameters:
         - name: siteId
@@ -5274,7 +5491,9 @@ paths:
       tags:
         - content
       summary: Get a list of delete children (will be deleted) and dependent items (will have broken references) for a given list of items to be deleted
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getDeletePackage
       requestBody:
         content:
@@ -5328,7 +5547,9 @@ paths:
       tags:
         - content
       summary: Delete content
-      description: 'Required permission "content_delete"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_delete"'
       operationId: contentDelete
       requestBody:
         description: parameters for delete content
@@ -5383,7 +5604,9 @@ paths:
       tags:
         - content
       summary: Rename content
-      description: 'Required permission "content_write"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_write"'
       operationId: contentRename
       requestBody:
         description: parameters for rename content
@@ -5435,7 +5658,9 @@ paths:
       tags:
         - content
       summary: Get list of children for given item path
-      description: 'Required permission "get_children" and "site member".<br/> This operation is deprecated, use /content/{siteId}/children instead.'
+      description: |
+        Module: Studio <br>
+        'Required permission "get_children" and "site member".<br/> This operation is deprecated, use /content/{siteId}/children instead.'
       operationId: getChildrenByPath
       requestBody:
         required: true
@@ -5533,7 +5758,9 @@ paths:
       tags:
         - content
       summary: Get list of children for given item paths
-      description: 'Required permission "get_children" and "site member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "get_children" and "site member"'
       operationId: getChildrenByPaths
       parameters:
         - name: siteId
@@ -5613,7 +5840,9 @@ paths:
       tags:
         - content
       summary: Check the existence of a content path
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: contentExists
       parameters:
         - name: siteId
@@ -5656,7 +5885,9 @@ paths:
       tags:
         - content
       summary: Get item details for given an item path
-      description: 'Required permission "get_children"'
+      description: |
+        Module: Studio <br>
+        'Required permission "get_children"'
       operationId: getDetailedItemByPath
       parameters:
         - name: siteId
@@ -5705,7 +5936,9 @@ paths:
       tags:
         - content
       summary: Get list of items for given item paths
-      description: 'Required permission "get_children" and "site member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "get_children" and "site member"'
       operationId: getSandboxItemsByPath
       requestBody:
         required: true
@@ -5762,6 +5995,7 @@ paths:
       tags:
         - content
       summary: Get the XML descriptor for a given path
+      description: "Module: Studio"
       operationId: getDescriptor
       parameters:
         - name: siteId
@@ -5811,7 +6045,9 @@ paths:
       summary: |-
         Paste a tree of items to a target path (copy content or move content).
         To be used by the UI in the clipboard implementation.
-      description: 'Required permission "Write"'
+      description: |
+        Module: Studio <br>
+        'Required permission "Write"'
       operationId: pasteItems
       requestBody:
         required: true
@@ -5850,7 +6086,9 @@ paths:
       tags:
         - content
       summary: Duplicate the given item in the same location
-      description: 'Required permission "Write"'
+      description: |
+        Module: Studio <br>
+        'Required permission "Write"'
       operationId: duplicateItem
       requestBody:
         required: true
@@ -5897,7 +6135,9 @@ paths:
       tags:
         - content
       summary: Lock item by path
-      description: 'Required permission "content_write"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_write"'
       operationId: itemLockByPath
       requestBody:
         required: true
@@ -5946,7 +6186,9 @@ paths:
       tags:
         - content
       summary: Unlock item by path
-      description: 'Required permission "item_unlock" or lock owner'
+      description: |
+        Module: Studio <br>
+        'Required permission "item_unlock" or lock owner'
       operationId: itemUnlockByPath
       requestBody:
         required: true
@@ -5993,7 +6235,9 @@ paths:
       tags:
         - content
       summary: Get content for commit id
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getContentByCommitId
       parameters:
         - name: siteId
@@ -6043,7 +6287,9 @@ paths:
       tags:
         - content
       summary: Get history for a content item
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getItemHistory
       parameters:
         - name: siteId
@@ -6088,7 +6334,9 @@ paths:
       tags:
         - dependency
       summary: Get list of dependencies for given content paths
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getDependencies
       requestBody:
         required: true
@@ -6143,7 +6391,9 @@ paths:
       tags:
         - dependent_items
       summary: Get list of dependent items for given content path
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getDependentItems
       requestBody:
         required: true
@@ -6192,6 +6442,7 @@ paths:
       tags:
         - marketplace
       summary: Search for compatible plugins in the marketplace
+      description: "Module: Studio"
       operationId: searchPlugins
       parameters:
         - name: type
@@ -6265,7 +6516,9 @@ paths:
       tags:
         - marketplace
       summary: Get the list of marketplace plugins installed in the given site
-      description: 'Required permission "list_plugins"'
+      description: |
+        Module: Studio <br>
+        'Required permission "list_plugins"'
       operationId: getInstalledPlugins
       parameters:
         - name: siteId
@@ -6302,7 +6555,9 @@ paths:
       tags:
         - marketplace
       summary: Install a marketplace plugin in the given site
-      description: 'Required permission "install_plugins"'
+      description: |
+        Module: Studio <br>
+        'Required permission "install_plugins"'
       operationId: installPlugin
       requestBody:
         required: true
@@ -6354,7 +6609,9 @@ paths:
       tags:
         - marketplace
       summary: Copy a local plugin to a given site
-      description: 'Required permission "install_plugins"'
+      description: |
+        Module: Studio <br>
+        'Required permission "install_plugins"'
       operationId: copyPlugin
       requestBody:
         required: true
@@ -6401,7 +6658,9 @@ paths:
       tags:
         - marketplace
       summary: Remove a marketplace plugin from the given site
-      description: 'Required permission "remove_plugins"'
+      description: |
+        Module: Studio <br>
+        'Required permission "remove_plugins"'
       operationId: removePlugin
       requestBody:
         required: true
@@ -6449,7 +6708,9 @@ paths:
       tags:
         - marketplace
       summary: List dependant items for a plugin
-      description: 'Required permission "remove_plugins"'
+      description: |
+        Module: Studio <br>
+        'Required permission "remove_plugins"'
       operationId: pluginUsage
       parameters:
         - name: siteId
@@ -6496,7 +6757,9 @@ paths:
       tags:
         - publishing
       summary: Publishes the entire project to the target (staging or live)
-      description: 'Required permission "Publish"'
+      description: |
+        Module: Studio <br>
+        'Required permission "Publish"'
       operationId: publishAll
       requestBody:
         description: publish all request body
@@ -6542,7 +6805,9 @@ paths:
       tags:
         - publishing
       summary: Get the list of packages in the publishing queue
-      description: 'Required permission "get_publishing_queue"'
+      description: |
+        Module: Studio <br>
+        'Required permission "get_publishing_queue"'
       operationId: PublishingPackages
       parameters:
         - name: siteId
@@ -6625,7 +6890,9 @@ paths:
       tags:
         - publishing
       summary: Get package details
-      description: 'Required permission "get_publishing_queue"'
+      description: |
+        Module: Studio <br>
+        'Required permission "get_publishing_queue"'
       operationId: getPublishingPackageDetails
       parameters:
         - name: siteId
@@ -6666,7 +6933,9 @@ paths:
       tags:
         - publishing
       summary: Cancel publishing packages
-      description: 'Required permission "cancel_publish"'
+      description: |
+        Module: Studio <br>
+        'Required permission "cancel_publish"'
       operationId: cancelPublishingPackages
       requestBody:
         description: cancel publishing packages request body
@@ -6711,7 +6980,9 @@ paths:
       tags:
         - publishing
       summary: Get publishing status for site
-      description: 'Required permission "publish_status"'
+      description: |
+        Module: Studio <br>
+        'Required permission "publish_status"'
       operationId: getPublishingStatus
       parameters:
         - name: siteId
@@ -6747,7 +7018,9 @@ paths:
       tags:
         - publishing
       summary: Get publishing history for site
-      description: 'Required permission "publish". This operation is deprecated, use /api/2/dashboard/publishing/history instead.'
+      description: |
+        Module: Studio <br>
+        'Required permission "publish". This operation is deprecated, use /api/2/dashboard/publishing/history instead.'
       operationId: getPublishingHistory
       parameters:
         - name: siteId
@@ -6802,7 +7075,9 @@ paths:
       tags:
         - publishing
       summary: Get available publishing targets for site
-      description: 'Required permission "publish"'
+      description: |
+        Module: Studio <br>
+        'Required permission "publish"'
       operationId: getAvailablePublishingTargets
       parameters:
         - name: siteId
@@ -6850,7 +7125,9 @@ paths:
       tags:
         - publishing
       summary: Check if site has initial publish
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: hasInitialPublish
       parameters:
         - name: siteId
@@ -6887,7 +7164,9 @@ paths:
         - security
       summary: Encrypt a text value
       operationId: encrypt
-      description: Required permission "encryption_tool"
+      description: |
+        Module: Studio <br>
+        Required permission "encryption_tool"
       requestBody:
         required: true
         content:
@@ -6924,7 +7203,9 @@ paths:
         - security
       summary: Get all existing tokens for the current user
       operationId: getAccessTokens
-      description: Required permission "manage_access_token"
+      description: |
+        Module: Studio <br>
+        Required permission "manage_access_token"
       responses:
         '200':
           description: OK
@@ -6948,7 +7229,9 @@ paths:
         - security
       summary: Creates a new access token for the current user
       operationId: createAccessToken
-      description: Required permission "manage_access_token"
+      description: |
+        Module: Studio <br>
+        Required permission "manage_access_token"
       requestBody:
         required: true
         content:
@@ -6990,7 +7273,9 @@ paths:
         - security
       summary: Updates an access token for the current user
       operationId: updateAccessToken
-      description: Required permission "manage_access_token"
+      description: |
+        Module: Studio <br>
+        Required permission "manage_access_token"
       parameters:
         - name: id
           in: path
@@ -7034,7 +7319,9 @@ paths:
         - security
       summary: Deletes an access token for the current user
       operationId: deleteAccessToken
-      description: Required permission "manage_access_token"
+      description: |
+        Module: Studio <br>
+        Required permission "manage_access_token"
       parameters:
         - name: id
           in: path
@@ -7064,7 +7351,9 @@ paths:
         - security
       summary: Configures preview to use a different site. Site is expected to be set in `crafterSite` cookie
       operationId: switchPreviewSite
-      description: Required permission "LOGGED_IN"
+      description: |
+        Module: Studio <br>
+        Required permission "LOGGED_IN"
       responses:
         '200':
           description: OK
@@ -7087,7 +7376,9 @@ paths:
       tags:
         - dashboard
       summary: Get user activities
-      description: 'Required permission "site_member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site_member"'
       operationId: getDashboardActivities
       parameters:
         - name: siteId
@@ -7180,7 +7471,9 @@ paths:
       tags:
         - dashboard
       summary: Get current user's activities
-      description: 'Required permission "site_member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site_member"'
       operationId: getDashboardMyActivities
       parameters:
         - name: siteId
@@ -7265,7 +7558,9 @@ paths:
       tags:
         - dashboard
       summary: Get publishing packages that are pending for approval
-      description: 'Required permission "site_member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site_member"'
       operationId: getDashboardContentPendingApproval
       parameters:
         - name: siteId
@@ -7338,7 +7633,9 @@ paths:
       tags:
         - dashboard
       summary: Get content items of the package that is pending for approval
-      description: 'Required permission "site_member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site_member"'
       operationId: getDashboardContentPendingApprovalDetail
       parameters:
         - name: siteId
@@ -7383,7 +7680,9 @@ paths:
       tags:
         - dashboard
       summary: Get unpublished items for site
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getDashboardContentUnpublished
       parameters:
         - name: siteId
@@ -7456,7 +7755,9 @@ paths:
       tags:
         - dashboard
       summary: Get scheduled publishing items
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getPublishingScheduled
       parameters:
         - name: siteId
@@ -7555,7 +7856,9 @@ paths:
       tags:
         - dashboard
       summary: Get content items of the package that is scheduled
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getDashboardPublishingScheduledDetail
       parameters:
         - name: siteId
@@ -7600,7 +7903,9 @@ paths:
       tags:
         - dashboard
       summary: Get history of published packages
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getDashboardPublishingHistory
       parameters:
         - name: siteId
@@ -7689,7 +7994,9 @@ paths:
       tags:
         - dashboard
       summary: Get content items of the package that was published
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getDashboardPublishingHistoryDetail
       parameters:
         - name: siteId
@@ -7758,7 +8065,9 @@ paths:
       tags:
         - dashboard
       summary: Get publishing stats
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getDashboardPublishingStats
       parameters:
         - name: siteId
@@ -7802,7 +8111,9 @@ paths:
       tags:
         - dashboard
       summary: Get content that is expiring
-      description: 'Required permission "site_member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site_member"'
       operationId: getDashboardContentExpiring
       parameters:
         - name: siteId
@@ -7878,7 +8189,9 @@ paths:
       tags:
         - dashboard
       summary: Get content that expired
-      description: 'Required permission "site_member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site_member"'
       operationId: getDashboardContentExpired
       parameters:
         - name: siteId
@@ -7940,7 +8253,9 @@ paths:
 #      tags:
 #        - translation
 #      summary: Get items for translation
-#      description: 'Required permission "get_items_for_translation"'
+#      description: |
+#        Module: Studio <br>
+#        'Required permission "get_items_for_translation"'
 #      operationId: getItemsForTranslation
 #      parameters:
 #        - name: siteId
@@ -8030,7 +8345,9 @@ paths:
 #      tags:
 #        - translation
 #      summary: Get translation item(s) detail
-#      description: 'Required permission "get_translation_item_detail"'
+#      description: |
+#        Module: Studio <br>
+#        'Required permission "get_translation_item_detail"'
 #      operationId: getTranslationItemById
 #      requestBody:
 #        required: true
@@ -8080,7 +8397,9 @@ paths:
 #      tags:
 #        - translation
 #      summary: Get translation item(s) detail
-#      description: 'Required permission "get_translation_item_detail"'
+#      description: |
+#        Module: Studio <br>
+#        'Required permission "get_translation_item_detail"'
 #      operationId: getTranslationItemByPath
 #      requestBody:
 #        required: true
@@ -8130,7 +8449,9 @@ paths:
 #      tags:
 #        - translation
 #      summary: Get list of target translation locales
-#      description: 'Required permission "get_translation_target_locales"'
+#      description: |
+#        Module: Studio <br>
+#        'Required permission "get_translation_target_locales"'
 #      operationId: getTranslationTargetLocales
 #      parameters:
 #        - name: siteId
@@ -8175,7 +8496,9 @@ paths:
 #      tags:
 #        - translation
 #      summary: Mark item to be translated to specific locales
-#      description: 'Required permission "mark_for_translation"'
+#      description: |
+#        Module: Studio <br>
+#        'Required permission "mark_for_translation"'
 #      operationId: markForTranslationById
 #      requestBody:
 #        description: Item and list of locales to translate to
@@ -8228,7 +8551,9 @@ paths:
 #      tags:
 #        - translation
 #      summary: Mark item to be translated to specific locales
-#      description: 'Required permission "mark_for_translation"'
+#      description: |
+#        Module: Studio <br>
+#        'Required permission "mark_for_translation"'
 #      operationId: markForTranslationByPath
 #      requestBody:
 #        description: Item and list of locales to translate to
@@ -8282,7 +8607,9 @@ paths:
       tags:
         - workflow
       summary: Get item workflow states for site
-      description: 'Required permission "get_item_states"'
+      description: |
+        Module: Studio <br>
+        'Required permission "get_item_states"'
       operationId: getItemStates
       parameters:
         - name: siteId
@@ -8343,7 +8670,9 @@ paths:
       tags:
         - workflow
       summary: Set item workflow states for site
-      description: 'Required permission "set_item_states"'
+      description: |
+        Module: Studio <br>
+        'Required permission "set_item_states"'
       operationId: setItemStates
       requestBody:
         description: List of items to set workflow state(s)
@@ -8406,7 +8735,9 @@ paths:
       tags:
         - workflow
       summary: Set item workflow states for site using query
-      description: 'Required permission "set_item_states"'
+      description: |
+        Module: Studio <br>
+        'Required permission "set_item_states"'
       operationId: updateItemStates
       requestBody:
         description: List of items to set workflow state(s)
@@ -8480,7 +8811,9 @@ paths:
       tags:
         - workflow
       summary: Get workflow affected paths
-      description: 'Required permission "content_read"'
+      description: |
+        Module: Studio <br>
+        'Required permission "content_read"'
       operationId: getWorkflowAffectedPaths
       parameters:
         - name: siteId
@@ -8525,7 +8858,9 @@ paths:
       tags:
         - workflow
       summary: Request publish for content
-      description: 'Required permission "site_member"'
+      description: |
+        Module: Studio <br>
+        'Required permission "site_member"'
       operationId: workflowRequestPublish
       requestBody:
         description: parameters for request publish
@@ -8591,7 +8926,9 @@ paths:
       tags:
         - workflow
       summary: Publish content
-      description: 'Required permission "publish"'
+      description: |
+        Module: Studio <br>
+        'Required permission "publish"'
       operationId: workflowPublish
       requestBody:
         description: parameters for publish content
@@ -8654,7 +8991,9 @@ paths:
       tags:
         - workflow
       summary: Approve request publish submission
-      description: 'Required permission "publish"'
+      description: |
+        Module: Studio <br>
+        'Required permission "publish"'
       operationId: workflowApprove
       requestBody:
         description: parameters for approve request publish submission
@@ -8717,7 +9056,9 @@ paths:
       tags:
         - workflow
       summary: Reject request publish submission
-      description: 'Required permission "publish"'
+      description: |
+        Module: Studio <br>
+        'Required permission "publish"'
       operationId: workflowReject
       requestBody:
         description: parameters for reject request publish submission
@@ -8767,7 +9108,9 @@ paths:
       tags:
         - workflow
       summary: List workflow packages order by scheduled date
-      description: Required permission "request_publish, publish"
+      description: |
+        Module: Studio <br>
+        Required permission "request_publish, publish"
       operationId: workflowListPackage
       parameters:
         - name: siteId
@@ -8850,7 +9193,9 @@ paths:
       tags:
         - workflow
       summary: Create workflow package
-      description: Required permission "request_publish, publish"
+      description: |
+        Module: Studio <br>
+        Required permission "request_publish, publish"
       operationId: workflowCreatePackage
       requestBody:
         description: parameters to create new workflow package
@@ -8909,7 +9254,9 @@ paths:
       tags:
         - workflow
       summary: Update workflow package
-      description: Required permission "request_publish, publish"
+      description: |
+        Module: Studio <br>
+        Required permission "request_publish, publish"
       operationId: workflowUpdatePackage
       requestBody:
         description: Workflow package entity to update
@@ -8946,7 +9293,9 @@ paths:
       tags:
         - workflow
       summary: Get workflow package by id
-      description: Required permission "request_publish, publish"
+      description: |
+        Module: Studio <br>
+        Required permission "request_publish, publish"
       operationId: workflowGetPackage
       parameters:
         - name: id
@@ -8984,7 +9333,9 @@ paths:
       tags:
         - workflow
       summary: Approve workflow package
-      description: Required permission "publish"
+      description: |
+        Module: Studio <br>
+        Required permission "publish"
       operationId: workflowApprovePackage
       requestBody:
         description: parameters to approve a workflow package
@@ -9044,7 +9395,9 @@ paths:
       tags:
         - workflow
       summary: Reject workflow package
-      description: Required permission "request_publish, publish"
+      description: |
+        Module: Studio <br>
+        Required permission "request_publish, publish"
       operationId: workflowRejectPackage
       requestBody:
         description: Parameters to reject a workflow package
@@ -9099,7 +9452,9 @@ paths:
       tags:
         - loggers
       summary: Get all loggers and their configured priority levels
-      description: Required permission "view_log_levels or configure_log_levels"
+      description: |
+        Module: Studio <br>
+        Required permission "view_log_levels or configure_log_levels"
       operationId: loggersGetAll
       responses:
         '200':
@@ -9126,7 +9481,9 @@ paths:
       tags:
         - loggers
       summary: Update logger priority level
-      description: Required permission "configure_log_levels"
+      description: |
+        Module: Studio <br>
+        Required permission "configure_log_levels"
       operationId: loggersUpdateLevel
       requestBody:
         description: parameters to update the logger level
@@ -9161,7 +9518,9 @@ paths:
       tags:
         - system
       summary: Read system properties
-      description: Required permission "system_properties_read"
+      description: |
+        Module: Studio <br>
+        Required permission "system_properties_read"
       operationId: getSystemProperties
       parameters:
         -   name: properties
@@ -9204,7 +9563,9 @@ paths:
       tags:
         - system
       summary: Update system properties
-      description: Required permission "system_properties_manage"
+      description: |
+        Module: Studio <br>
+        Required permission "system_properties_manage"
       operationId: updateSystemProperties
       requestBody:
         description: System properties to update. Setting a property value to null will remove the property.
@@ -9246,6 +9607,7 @@ paths:
       tags:
         - system
       summary: Get system maintenance mode status. This API is available for Enterprise only
+      description: "Module: Studio"
       security: []  # public endpoint (overrides global security)
       operationId: getMaintenanceMode
       responses:
@@ -9269,7 +9631,9 @@ paths:
       tags:
         - system
       summary: Set system maintenance mode status. This API is available for Enterprise only
-      description: Required permission "system_properties_manage".
+      description: |
+        Module: Studio <br>
+        Required permission "system_properties_manage".
       operationId: setMaintenanceMode
       requestBody:
         description: Maintenance mode status to set
