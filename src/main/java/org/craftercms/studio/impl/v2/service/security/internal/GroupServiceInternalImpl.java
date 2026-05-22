@@ -104,7 +104,7 @@ public class GroupServiceInternalImpl implements GroupService {
 	public List<Group> getAllGroups(String keyword, int offset, int limit, String sort)
 			throws ServiceLayerException {
 		try {
-			return groupDao.getAllGroupsForOrganization(keyword, offset, limit, sort);
+			return groupDao.getAllGroups(keyword, offset, limit, sort);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
 		}
@@ -113,7 +113,7 @@ public class GroupServiceInternalImpl implements GroupService {
 	@Override
 	public int getAllGroupsTotal(String keyword) throws ServiceLayerException {
 		try {
-			return groupDao.getAllGroupsForOrganizationTotal(keyword);
+			return groupDao.getAllGroupsTotal(keyword);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
 		}

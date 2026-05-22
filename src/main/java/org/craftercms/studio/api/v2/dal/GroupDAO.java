@@ -33,7 +33,7 @@ public interface GroupDAO {
 	 * @param sort    sort order
 	 * @return List of groups
 	 */
-	List<Group> getAllGroupsForOrganization(@Param(KEYWORD) String keyword,
+	List<Group> getAllGroups(@Param(KEYWORD) String keyword,
 						@Param(OFFSET) int offset, @Param(LIMIT) int limit,
 						@Param(SORT) String sort);
 
@@ -43,7 +43,7 @@ public interface GroupDAO {
 	 * @param keyword keyword to filter groups
 	 * @return total number of groups
 	 */
-	int getAllGroupsForOrganizationTotal(@Param(KEYWORD) String keyword);
+	int getAllGroupsTotal(@Param(KEYWORD) String keyword);
 
 	/**
 	 * Create group
