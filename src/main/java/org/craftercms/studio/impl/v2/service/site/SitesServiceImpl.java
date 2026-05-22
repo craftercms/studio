@@ -128,7 +128,7 @@ public class SitesServiceImpl implements SitesService {
 	@Override
 	@RequireSiteBootstrapComplete
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
-	public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled) {
+	public void enablePublishing(@SiteId String siteId, boolean enabled) {
 		sitesServiceInternal.enablePublishing(siteId, enabled);
 	}
 
