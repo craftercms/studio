@@ -21,7 +21,7 @@ import java.io.InputStream;
 import java.util.List;
 
 /**
- * Reads the configuration from an input stream or a Apache Commons Configuration object and maps it to actual asset processing
+ * Reads the configuration from an input stream and maps it to actual asset processing
  * configuration objects like {@link ProcessorPipelineConfiguration} and {@link ProcessorConfiguration}.
  *
  * @author avasquez
