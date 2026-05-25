@@ -5486,19 +5486,22 @@ paths:
                     content:
                         application/json:
                             schema:
-                                type: array
-                                items:
-                                    type: object
-                                    properties:
-                                        response:
-                                            $ref: '#/components/schemas/ApiResponse'
-                                        path:
-                                            type: string
-                                        order:
-                                            type: number
-                                            format: double
-                                        label:
-                                            type: string
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    items:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                path:
+                                                    type: string
+                                                order:
+                                                    type: number
+                                                    format: double
+                                                label:
+                                                    type: string
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':

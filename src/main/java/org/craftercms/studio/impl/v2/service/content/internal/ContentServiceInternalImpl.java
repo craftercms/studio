@@ -90,6 +90,7 @@ import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult.WriteContentResultItem;
+import org.craftercms.studio.model.rest.content.order.ItemOrder;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -883,6 +884,38 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			throw new ServiceLayerException(format("Failed to update database for processing created files in site '%s'", siteId), e);
 		}
 		logger.debug("Finished processing created files for site '{}'", siteId);
+	}
+
+	@Override
+	public List<ItemOrder> getItemsOrder(String siteId, String parentPath) throws ServiceLayerException {
+		Site site = siteService.getSite(siteId);
+		List<ContentItem> pages = itemDao.getChildrenByPath(site.getId(), parentPath, null, null,
+				List.of(CONTENT_TYPE_PAGE), null, null, null, null, 0, Integer.MAX_VALUE);
+		List<ItemOrder> result = new ArrayList<>(pages.size());
+		for (ContentItem child : pages) {
+			try {
+				Document document = convertStreamToXml(contentRepository.getContent(siteId, child.getPath()));
+				Element rootElement = document.getRootElement();
+				boolean placeInNav = Boolean.parseBoolean(rootElement.valueOf(PLACE_IN_NAV_XPATH));
+				if (!placeInNav) {
+					logger.debug("Skipping item order for site '{}' path '{}' because placeInNav is false", siteId, child.getPath());
+					continue;
+				}
+
+				String orderString = rootElement.valueOf(DEFAULT_ORDER_XPATH);
+				Double order = null;
+				if (isNotBlank(orderString)) {
+					order = Double.parseDouble(orderString);
+				}
+
+				ItemOrder itemOrder = new ItemOrder(child.getPath(), child.getLabel(), order);
+				result.add(itemOrder);
+			} catch (ContentNotFoundException | DocumentException | NumberFormatException e) {
+				throw new ServiceLayerException(format("Failed to get content item order for site '%s' path '%s'", siteId, child.getPath()), e);
+			}
+		}
+		result.sort(Comparator.comparingDouble(ItemOrder::getOrder));
+		return result;
 	}
 
 	/**

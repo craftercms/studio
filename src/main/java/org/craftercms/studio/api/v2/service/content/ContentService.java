@@ -36,6 +36,7 @@ import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParam
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
+import org.craftercms.studio.model.rest.content.order.ItemOrder;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
@@ -372,4 +373,13 @@ public interface ContentService {
 	 * @throws ServiceLayerException if an error occurs while processing the created files
 	 */
 	void processCreatedFiles(Site site, User creator) throws ServiceLayerException;
+
+	/**
+	 * Get the order of the items under a given parent path. This method will return the list of items with their path, label and order.
+	 *
+	 * @param siteId     the site id
+	 * @param parentPath the parent path to get the items order for
+	 * @return the list of {@link ItemOrder} objects
+	 */
+	List<ItemOrder> getItemsOrder(String siteId, String parentPath) throws ServiceLayerException;
 }

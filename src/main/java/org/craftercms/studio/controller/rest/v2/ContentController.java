@@ -49,6 +49,7 @@ import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
 import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
+import org.craftercms.studio.model.rest.content.order.ItemOrder;
 import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.dom4j.Document;
 import org.eclipse.jgit.lib.Constants;
@@ -371,15 +372,13 @@ public class ContentController {
 		return result;
 	}
 
-	// Get the existing items order for a given parent path
-	// Return an array of objects with:
-	// - item path
-	// - item order value
-	// - item label
 	@GetMapping(GET_ITEMS_ORDER)
-	public Result getItemsOrder(@ValidSiteId @PathVariable String siteId, @NotEmpty @ValidExistingContentPath @RequestParam String parentPath) {
-		// TODO
-		return null;
+	public ResultList<ItemOrder> getItemsOrder(@ValidSiteId @PathVariable String siteId, @NotEmpty @ValidExistingContentPath @RequestParam String parentPath) throws ServiceLayerException {
+		ResultList<ItemOrder> result = new ResultList<>();
+		List<ItemOrder> itemsOrder = contentService.getItemsOrder(siteId, parentPath);
+		result.setEntities(RESULT_KEY_ITEMS, itemsOrder);
+		result.setResponse(OK);
+		return result;
 	}
 
 	@PostMapping(REORDER_ITEM)
