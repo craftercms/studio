@@ -326,12 +326,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 	@Override
 	public Site getSite(String siteId) {
-		return siteDao.getSite(siteId);
+		Site site = siteDao.getSite(siteId);
+		checkBootstrappingState(site);
+		return site;
 	}
 
 	@Override
 	public SiteDetails getSiteDetails(String siteId) throws ServiceLayerException {
 		Site site = getSite(siteId);
+		checkBootstrappingState(site);
 		List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
 		return new SiteDetails(site, blobStores);
 	}
@@ -594,18 +597,26 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 	@Override
 	public List<Site> getSitesByState(String state) {
-		return siteDao.getSitesByState(state);
+		List<Site> sitesByState = siteDao.getSitesByState(state);
+		sitesByState.forEach(this::checkBootstrappingState);
+		return sitesByState;
 	}
 
 	@Override
 	public List<Site> getAllSites() {
 		List<Site> allSites = siteDao.getAllSites();
-		for (Site site : allSites) {
-			if (READY.equals(site.getState()) && !siteBootstrapStateProvider.isSiteReady(site.getSiteId())) {
-				site.setState(Site.State.BOOTSTRAPPING);
-			}
-		}
+		allSites.forEach(this::checkBootstrappingState);
 		return allSites;
+	}
+
+	/**
+	 * Check if the site is in READY state but the bootstrap state provider doesn't consider it ready, and if so, set the site state to BOOTSTRAPPING.
+	 * @param site the site to check
+	 */
+	protected void checkBootstrappingState(final Site site) {
+		if (READY.equals(site.getState()) && !siteBootstrapStateProvider.isSiteReady(site.getSiteId())) {
+			site.setState(Site.State.BOOTSTRAPPING);
+		}
 	}
 
 	@Override
