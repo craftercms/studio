@@ -1473,7 +1473,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		try {
 			return new FileInputStream(filePath.toFile());
 		} catch (FileNotFoundException e) {
-			throw new ContentNotFoundException(format("Content not found at site '%s' path '%s'", site, path), e);
+			throw new ContentNotFoundException(path, site, format("Content not found at site '%s' path '%s'", site, path), e);
 		}
 	}
 
@@ -1738,7 +1738,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		try {
 			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
 			if (repo == null) {
-				throw new ContentNotFoundException(format("Repository not found for site '%s'", site));
+				throw new ContentNotFoundException(path, site, format("Repository not found for site '%s'", site));
 			}
 			RevTree tree = helper.getTreeForCommit(repo, HEAD);
 			if (tree != null) {
@@ -1755,11 +1755,11 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					}
 				}
 			}
-			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'", site, path));
+			throw new ContentNotFoundException(path, site, format("Failed to get content from site '%s' path '%s'", site, path));
 		} catch (IOException | RepositoryException e) {
 			logger.error("Failed to get the content item at site '{}' path '{}' from HEAD",
 				site, path, e);
-			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'", site, path), e);
+			throw new ContentNotFoundException(path, site, format("Failed to get content from site '%s' path '%s'", site, path), e);
 		}
 	}
 

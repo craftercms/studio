@@ -91,6 +91,7 @@ import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParam
 import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult.WriteContentResultItem;
 import org.craftercms.studio.model.rest.content.order.ItemOrder;
+import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -145,8 +146,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.event.workflow.WorkflowEvent.WorkFlowEventType.DIRECT_PUBLISH;
 import static org.craftercms.studio.api.v2.utils.DalUtils.MY_BATIS_QUERY_BATCH_SIZE;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.*;
@@ -894,28 +894,98 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		List<ItemOrder> result = new ArrayList<>(pages.size());
 		for (ContentItem child : pages) {
 			try {
-				Document document = convertStreamToXml(contentRepository.getContent(siteId, child.getPath()));
-				Element rootElement = document.getRootElement();
-				boolean placeInNav = Boolean.parseBoolean(rootElement.valueOf(PLACE_IN_NAV_XPATH));
-				if (!placeInNav) {
-					logger.debug("Skipping item order for site '{}' path '{}' because placeInNav is false", siteId, child.getPath());
-					continue;
+				Double order = getItemOrder(siteId, child.getPath());
+				if (order != null) {
+					ItemOrder itemOrder = new ItemOrder(child.getPath(), child.getLabel(), order);
+					result.add(itemOrder);
 				}
-
-				String orderString = rootElement.valueOf(DEFAULT_ORDER_XPATH);
-				Double order = null;
-				if (isNotBlank(orderString)) {
-					order = Double.parseDouble(orderString);
-				}
-
-				ItemOrder itemOrder = new ItemOrder(child.getPath(), child.getLabel(), order);
-				result.add(itemOrder);
-			} catch (ContentNotFoundException | DocumentException | NumberFormatException e) {
+			} catch (ContentNotFoundException | NumberFormatException e) {
 				throw new ServiceLayerException(format("Failed to get content item order for site '%s' path '%s'", siteId, child.getPath()), e);
 			}
 		}
 		result.sort(Comparator.comparingDouble(ItemOrder::getOrder));
 		return result;
+	}
+
+	protected Double getItemOrder(String siteId, String path) throws ServiceLayerException {
+		Document document;
+		try {
+			document = convertStreamToXml(contentRepository.getContent(siteId, path));
+		} catch (DocumentException e) {
+			throw new ServiceLayerException(format("Error converting stream to XML for content at site '%s' path '%s'", siteId, path), e);
+		}
+
+		Element rootElement = document.getRootElement();
+		boolean placeInNav = Boolean.parseBoolean(rootElement.valueOf(PLACE_IN_NAV_XPATH));
+		if (!placeInNav) {
+			logger.debug("placeInNav is false for site '{}' path '{}', skipping order retrieval", siteId, path);
+			return null;
+		}
+
+		String orderString = rootElement.valueOf(DEFAULT_ORDER_XPATH);
+		Double order = null;
+		if (isNotBlank(orderString)) {
+			order = Double.parseDouble(orderString);
+		}
+		return order;
+	}
+
+	@Override
+	public double reorderItem(String siteId, ReorderItemRequest request) throws ServiceLayerException {
+		return switch (request) {
+			case ReorderItemRequest.AddBefore addBefore -> reorderItem(siteId, null, addBefore.getReferencePath());
+			case ReorderItemRequest.AddAfter addAfter -> reorderItem(siteId, addAfter.getReferencePath(), null);
+			case ReorderItemRequest.Insert insert ->
+					reorderItem(siteId, insert.getPreviousPath(), insert.getNextPath());
+		};
+	}
+
+	/**
+	 * Calculate the order value for an item being reordered based on the order values of the previous and next items.
+	 *
+	 * @param siteId       the site id
+	 * @param previousPath the path of the previous item, null if it should be before a reference item
+	 * @param nextPath     the path of the next item, null if it should be after a reference item
+	 * @return the new order value for the item being reordered
+	 * @throws ContentNotFoundException   if any of the previous or next items does not exist
+	 * @throws InvalidParametersException if the order values of the previous or next items are not valid, or if the previous item order is greater or equal to the next item order
+	 */
+	protected double reorderItem(String siteId, String previousPath, String nextPath) throws ServiceLayerException {
+		String previousParent = getParentUrl(previousPath);
+		String nextParent = getParentUrl(nextPath);
+		if (!CS.equals(previousParent, nextParent)) {
+			throw new InvalidParametersException(format("Previous item '%s' and next item '%s' for site '%s' do not have the same parent, cannot reorder item",
+					previousPath, nextPath, siteId));
+		}
+
+		Double beforeOrder = null;
+		if (previousPath != null) {
+			beforeOrder = getItemOrder(siteId, previousPath);
+			if (beforeOrder == null) {
+				throw new InvalidParametersException(format("Previous item '%s' for site '%s' does not have an order value, cannot reorder item", previousPath, siteId));
+			}
+		}
+		Double afterOrder = null;
+		if (nextPath != null) {
+			afterOrder = getItemOrder(siteId, nextPath);
+			if (afterOrder == null) {
+				throw new InvalidParametersException(format("Next item '%s' for site '%s' does not have an order value, cannot reorder item", nextPath, siteId));
+			}
+		}
+		if (beforeOrder != null && afterOrder != null) {
+			if (beforeOrder >= afterOrder) {
+				throw new InvalidParametersException(format("Invalid order for site '%s' previousPath '%s' and nextPath '%s'", siteId, previousPath, nextPath));
+			}
+			return (beforeOrder + afterOrder) / 2;
+		}
+
+		int increment = Integer.parseInt(studioConfiguration.getProperty(PAGE_NAVIGATION_ORDER_INCREMENT));
+
+		if (beforeOrder != null) {
+			return beforeOrder + increment;
+		}
+
+		return afterOrder - increment;
 	}
 
 	/**

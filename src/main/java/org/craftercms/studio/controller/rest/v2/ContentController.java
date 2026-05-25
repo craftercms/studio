@@ -382,8 +382,10 @@ public class ContentController {
 	}
 
 	@PostMapping(REORDER_ITEM)
-	public Result reorderItem(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody ReorderItemRequest request) {
-		// TODO
-		return null;
+	public ResultOne<Double> reorderItem(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody ReorderItemRequest request) throws ServiceLayerException {
+		ResultOne<Double> result = new ResultOne<>();
+		result.setEntity(RESULT_KEY_ORDER, contentService.reorderItem(siteId, request));
+		result.setResponse(OK);
+		return result;
 	}
 }

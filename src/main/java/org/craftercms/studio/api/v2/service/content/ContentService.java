@@ -37,6 +37,7 @@ import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.craftercms.studio.model.rest.content.order.ItemOrder;
+import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
@@ -382,4 +383,14 @@ public interface ContentService {
 	 * @return the list of {@link ItemOrder} objects
 	 */
 	List<ItemOrder> getItemsOrder(String siteId, String parentPath) throws ServiceLayerException;
+
+	/**
+	 * Reorder items under a given parent path. This method will return the order an item should have in order to meet the
+	 * requested order. e.g.: between page1 and page2, before page1, after page2, etc.
+	 *
+	 * @param siteId  the site id
+	 * @param request the reorder request containing the parent path and the reference paths to calculate the new order
+	 * @return the new order the item should have to meet the requested order
+	 */
+	double reorderItem(String siteId, ReorderItemRequest request) throws ServiceLayerException;
 }

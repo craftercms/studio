@@ -38,8 +38,8 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
-import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
+import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.repository.ContentWriteItem;
 import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository;
@@ -233,7 +233,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 			throw e;
 		} catch (ServiceLayerException e) {
 			logger.error("Failed to get content from site '{}' path '{}'. Failed to get a blob store for path", site, path);
-			throw new ContentNotFoundException(format("Failed to get content from site '%s' path '%s'. " +
+			throw new ContentNotFoundException(path, site, format("Failed to get content from site '%s' path '%s'. " +
 					"Failed to get a blob store for path", site, path), e);
 		}
 	}

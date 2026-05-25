@@ -31,17 +31,6 @@ import org.craftercms.commons.validation.annotations.param.ValidExistingContentP
 		@JsonSubTypes.Type(value = ReorderItemRequest.AddAfter.class, name = "addAfter")
 })
 public sealed abstract class ReorderItemRequest {
-	@NotBlank
-	@ValidExistingContentPath
-	protected String parentPath;
-
-	public String getParentPath() {
-		return parentPath;
-	}
-
-	public void setParentPath(String parentPath) {
-		this.parentPath = parentPath;
-	}
 
 	public static sealed abstract class ReferenceReorderItemRequest extends ReorderItemRequest {
 		@NotBlank
@@ -66,10 +55,10 @@ public sealed abstract class ReorderItemRequest {
 	public static final class Insert extends ReorderItemRequest {
 		@NotBlank
 		@ValidExistingContentPath
-		protected String previousPath;
+		private String previousPath;
 		@NotBlank
 		@ValidExistingContentPath
-		protected String nextPath;
+		private String nextPath;
 
 		public String getNextPath() {
 			return nextPath;

@@ -5567,7 +5567,8 @@ paths:
                                     response:
                                         $ref: '#/components/schemas/ApiResponse'
                                     order:
-                                        type: integer
+                                        type: number
+                                        format: double
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -10986,9 +10987,6 @@ components:
         ReorderItemRequestBase:
             type: object
             properties:
-                parentPath:
-                    type: string
-                    description: The path of the parent item
                 type:
                     type: string
                     description: The type of the reorder request
@@ -10997,7 +10995,6 @@ components:
                         - insertBetween
                         - addAfter
             required:
-                - parentPath
                 - type
 
         ReorderItemReferencePathRequest:

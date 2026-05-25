@@ -47,6 +47,7 @@ import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.craftercms.studio.model.rest.content.order.ItemOrder;
+import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.craftercms.studio.permissions.PermissionOrOwnership;
 import org.dom4j.Document;
@@ -355,6 +356,13 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<ItemOrder> getItemsOrder(@SiteId String siteId, @ContentPath String parentPath) throws ServiceLayerException {
 		return contentServiceInternal.getItemsOrder(siteId, parentPath);
+	}
+
+	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public double reorderItem(@SiteId String siteId, ReorderItemRequest request) throws ServiceLayerException {
+		return contentServiceInternal.reorderItem(siteId, request);
 	}
 
 	@SuppressWarnings("unused")
