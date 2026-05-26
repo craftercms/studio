@@ -37,10 +37,15 @@
 	<!-- Deployer configurations -->
 	<bean class="org.craftercms.studio.config.DeployerConfig"/>
 
-	<bean id="repositoryStartupCleanup" class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
-		<property name="siteService" ref="sitesServiceInternal"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
-		<property name="helper" ref="studio.gitRepositoryHelper"/>
+	<bean id="repositoryStartupCleanup" class="org.craftercms.commons.spring.ConditionalFactoryBean">
+		<constructor-arg name="flag" value="#{studioConfiguration.getProperty('studio.configuration.site.startup.cleanup.enabled')}"/>
+		<constructor-arg name="actualBean">
+			<bean class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
+				<property name="siteService" ref="sitesServiceInternal"/>
+				<property name="generalLockService" ref="cstudioGeneralLockService"/>
+				<property name="helper" ref="studio.gitRepositoryHelper"/>
+			</bean>
+		</constructor-arg>
 	</bean>
 
 	<!-- This makes FileStoreAttributes.getFileStoreAttributes() to return right away and continue the
@@ -66,7 +71,9 @@
 
 	<bean id="temporaryFilesCleanupTask" class="org.craftercms.studio.impl.v2.event.TemporaryFilesDirStartupTask"/>
 
-	<bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManager"/>
+	<bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManagerImpl"/>
+
+	<bean id="siteBootstrapStateProvider" class="org.craftercms.studio.impl.v2.utils.spring.context.SiteBootstrapStateProviderImpl"/>
 
 	<!-- ////////////////////////////////////// -->
 	<!--         Services                       -->
@@ -231,7 +238,6 @@
 	<bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
 		<constructor-arg name="generalLockService" ref="cstudioGeneralLockService"/>
 		<constructor-arg name="groupServiceInternal" ref="groupServiceInternal"/>
-		<constructor-arg name="organizationServiceInternal" ref="organizationServiceInternal"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="auditService" ref="auditServiceInternal"/>
 		<constructor-arg name="siteService" ref="sitesServiceInternal"/>
@@ -273,11 +279,6 @@
 		<constructor-arg name="sessionRegistry" ref="sessionRegistry"/>
 		<constructor-arg name="forgotPasswordTaskFactory" ref="forgotPasswordTaskFactory"/>
 		<constructor-arg name="taskExecutor" ref="forgotPasswordTaskExecutor"/>
-	</bean>
-
-	<bean id="organizationServiceInternal"
-	      class="org.craftercms.studio.impl.v2.service.security.internal.OrganizationServiceInternalImpl">
-
 	</bean>
 
 	<bean id="uiServiceInternal" class="org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternalImpl">
@@ -908,20 +909,6 @@
 		<constructor-arg name="configurationReader" ref="crafter.configurationReader"/>
 	</bean>
 
-	<bean id="studioTranscoderProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
-		<constructor-arg name="profilesModule"
-				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE)}"/>
-		<constructor-arg name="profilesPath"
-				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_PATH)}"/>
-		<constructor-arg name="profileMapper">
-			<bean class="org.craftercms.studio.impl.v1.aws.elastictranscoder.TranscoderProfileMapper">
-				<constructor-arg name="configurationResolver" ref="crafter.configurationResolver"/>
-			</bean>
-		</constructor-arg>
-		<constructor-arg name="contentService" ref="cstudioContentService"/>
-		<constructor-arg name="contextManager" ref="contextManager"/>
-	</bean>
-
 	<bean id="studioMediaConvertProfileLoader" class="org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader">
 		<constructor-arg name="profilesModule"
 				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_SITE_AWS_CONFIGURATION_MODULE)}"/>
@@ -983,10 +970,6 @@
 		</constructor-arg>
 		<constructor-arg name="contentService" ref="cstudioContentService"/>
 		<constructor-arg name="contextManager" ref="contextManager"/>
-	</bean>
-
-	<bean id="studioWebDavService" class="org.craftercms.studio.impl.v1.service.webdav.WebDavServiceImpl">
-		<constructor-arg name="profileLoader" ref="studioWebDavProfileLoader"/>
 	</bean>
 
 	<!--  v2 Service -->

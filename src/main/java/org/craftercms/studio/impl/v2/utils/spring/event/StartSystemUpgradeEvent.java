@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,9 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.impl.v2.utils.spring.event;
 
-package org.craftercms.studio.api.v2.service.security.internal;
+import org.springframework.context.ApplicationEvent;
 
-public interface OrganizationServiceInternal {
-	boolean organizationExists(long orgId);
+/**
+ * Event used to trigger all upgrade related beans during bootstrap
+ *
+ * @author joseross
+ * @since 4.0
+ */
+public class StartSystemUpgradeEvent extends ApplicationEvent {
+
+	public StartSystemUpgradeEvent(Object source) {
+		super(source);
+	}
+
 }

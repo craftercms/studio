@@ -53,6 +53,7 @@ import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SiteBootstrapStateProvider;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest.BlueprintSource;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest.RemoteSource;
@@ -126,6 +127,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	private StudioBlobStoreResolver blobStoreResolver;
 	private ContentService contentService;
 	private ContentMonitor contentMonitor;
+	private final SiteBootstrapStateProvider siteBootstrapStateProvider;
 	private ApplicationContext applicationContext;
 
 	@ConstructorProperties({"descriptorReader",
@@ -133,13 +135,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			"retryingDatabaseOperationFacade",
 			"deployer",
 			"auditService", "taskManager",
-			"entitlementValidator", "userService"})
+			"entitlementValidator", "userService",
+			"siteBootstrapStateProvider"})
 	public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader,
 									StudioConfiguration studioConfiguration, SiteDAO siteDao,
 									RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 									Deployer deployer,
 									AuditService auditService, TaskManager taskManager,
-									EntitlementValidator entitlementValidator, UserService userService) {
+									EntitlementValidator entitlementValidator, UserService userService,
+									SiteBootstrapStateProvider siteBootstrapStateProvider) {
 		this.descriptorReader = descriptorReader;
 		this.studioConfiguration = studioConfiguration;
 		this.siteDao = siteDao;
@@ -149,6 +153,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		this.taskManager = taskManager;
 		this.entitlementValidator = entitlementValidator;
 		this.userService = userService;
+		this.siteBootstrapStateProvider = siteBootstrapStateProvider;
 	}
 
 	@Override
@@ -321,12 +326,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 	@Override
 	public Site getSite(String siteId) {
-		return siteDao.getSite(siteId);
+		Site site = siteDao.getSite(siteId);
+		checkBootstrappingState(site);
+		return site;
 	}
 
 	@Override
 	public SiteDetails getSiteDetails(String siteId) throws ServiceLayerException {
 		Site site = getSite(siteId);
+		checkBootstrappingState(site);
 		List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
 		return new SiteDetails(site, blobStores);
 	}
@@ -568,6 +576,8 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 			// Set site state to READY
 			retryingDatabaseOperationFacade.retry(() -> siteDao.setSiteState(siteId, READY));
 			enablePublishing(siteId, true);
+			// Mark site as ready, since we don't need to run UM on duplicate
+			siteBootstrapStateProvider.markSiteAsReady(siteId);
 			applicationContext.publishEvent(new SiteReadyEvent(siteId, siteUuid));
 			logger.info("Site duplicate from '{}' to '{}' - COMPLETE", sourceSiteId, siteId);
 		} catch (ServiceLayerException ex) {
@@ -587,12 +597,26 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
 	@Override
 	public List<Site> getSitesByState(String state) {
-		return siteDao.getSitesByState(state);
+		List<Site> sitesByState = siteDao.getSitesByState(state);
+		sitesByState.forEach(this::checkBootstrappingState);
+		return sitesByState;
 	}
 
 	@Override
 	public List<Site> getAllSites() {
-		return siteDao.getAllSites();
+		List<Site> allSites = siteDao.getAllSites();
+		allSites.forEach(this::checkBootstrappingState);
+		return allSites;
+	}
+
+	/**
+	 * Check if the site is in READY state but the bootstrap state provider doesn't consider it ready, and if so, set the site state to BOOTSTRAPPING.
+	 * @param site the site to check
+	 */
+	protected void checkBootstrappingState(final Site site) {
+		if (READY.equals(site.getState()) && !siteBootstrapStateProvider.isSiteReady(site.getSiteId())) {
+			site.setState(Site.State.BOOTSTRAPPING);
+		}
 	}
 
 	@Override

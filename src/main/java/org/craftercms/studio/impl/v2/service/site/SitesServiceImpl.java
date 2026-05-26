@@ -26,10 +26,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
-import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
-import org.craftercms.studio.api.v2.annotation.RequireSiteState;
-import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.annotation.*;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
@@ -77,6 +74,7 @@ public class SitesServiceImpl implements SitesService {
 
 	@Override
 	@RequireSiteReady
+	@RequireSiteBootstrapComplete
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
 	public void updateSite(@SiteId String siteId, String name, String description)
 			throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
@@ -92,6 +90,7 @@ public class SitesServiceImpl implements SitesService {
 
 	@Override
 	@RequireSiteState(value = Site.State.LOCKED)
+	@RequireSiteBootstrapComplete
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
 	public void unlockSite(@SiteId String siteId) throws SiteNotFoundException, InvalidSiteStateException {
 		sitesServiceInternal.unlockSite(siteId);
@@ -99,6 +98,7 @@ public class SitesServiceImpl implements SitesService {
 
 	@Override
 	@RequireSiteExists
+	@RequireSiteBootstrapComplete
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_SITE)
 	public void deleteSite(@SiteId String siteId) throws ServiceLayerException {
 		sitesServiceInternal.deleteSite(siteId);
@@ -112,6 +112,7 @@ public class SitesServiceImpl implements SitesService {
 
 	@Override
 	@RequireSiteReady
+	@RequireSiteBootstrapComplete
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
 	public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException, RepositoryException {
 		return sitesServiceInternal.getPublishingStatus(siteId);
@@ -125,8 +126,9 @@ public class SitesServiceImpl implements SitesService {
 	}
 
 	@Override
+	@RequireSiteBootstrapComplete
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
-	public void enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, boolean enabled) {
+	public void enablePublishing(@SiteId String siteId, boolean enabled) {
 		sitesServiceInternal.enablePublishing(siteId, enabled);
 	}
 
@@ -169,6 +171,7 @@ public class SitesServiceImpl implements SitesService {
 
 	@Override
 	@RequireSiteReady
+	@RequireSiteBootstrapComplete
 	@HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_DUPLICATE_SITE, PERMISSION_CONTENT_READ,
 			PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
 	public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)

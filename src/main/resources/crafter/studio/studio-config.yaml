@@ -1127,3 +1127,8 @@ studio.configuration.availableLanguages:
         label: 한국어
     -   id: de
         label: Deutsch
+
+##################################################
+##         Startup tasks and checks             ##
+##################################################
+studio.configuration.site.startup.cleanup.enabled: true

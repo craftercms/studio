@@ -278,15 +278,6 @@ public class ExceptionHandlers {
 		return handleExceptionInternal(request, compositeException, response);
 	}
 
-	@ExceptionHandler(OrganizationNotFoundException.class)
-	@ResponseStatus(HttpStatus.NOT_FOUND)
-	public Result handleOrganizationNotFoundException(HttpServletRequest request,
-							  OrganizationNotFoundException e) {
-		ApiResponse response = new ApiResponse(ApiResponse.ORG_NOT_FOUND);
-		response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
-		return handleExceptionInternal(request, e, response);
-	}
-
 	@ExceptionHandler(GroupNotFoundException.class)
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public Result handleGroupNotFoundException(HttpServletRequest request, GroupNotFoundException e) {

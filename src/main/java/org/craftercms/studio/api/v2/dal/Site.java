@@ -145,5 +145,8 @@ public class Site {
 		public static final String READY = "READY";
 		public static final String DELETING = "DELETING";
 		public static final String DELETED = "DELETED";
+
+		// Special state used when system is bootstrapping and site is not fully checked/upgraded yet.
+		public static final String BOOTSTRAPPING = "BOOTSTRAPPING";
 	}
 }

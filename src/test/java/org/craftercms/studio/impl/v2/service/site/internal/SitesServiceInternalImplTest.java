@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SiteBootstrapStateProvider;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
@@ -94,6 +95,8 @@ public class SitesServiceInternalImplTest {
 	ContentService contentService;
 	@Mock
 	StudioUpgradeManager upgradeManager;
+	@Mock
+	SiteBootstrapStateProvider siteBootstrapStateProvider;
 	@Spy
 	@InjectMocks
 	SitesServiceInternalImpl sitesServiceInternal;
@@ -114,6 +117,7 @@ public class SitesServiceInternalImplTest {
 		site.setSiteId(SITE_ID);
 		site.setName("Site 1");
 		site.setSiteUuid(UUID.randomUUID().toString());
+		site.setState(Site.State.READY);
 		when(siteDAO.getSite(SITE_ID)).thenReturn(site);
 
 		Site rootSite = new Site();
@@ -306,5 +310,25 @@ public class SitesServiceInternalImplTest {
 					nullable(String.class), eq(true), eq(AuthenticationType.none), nullable(String.class), nullable(String.class),
 					nullable(String.class), nullable(String.class), argThat(m -> m == null || m.isEmpty()), eq(false), eq("user123"));
 		}
+	}
+
+	@Test
+	public void bootstrappingStateTest() {
+		when(siteBootstrapStateProvider.isSiteReady(SITE_ID)).thenReturn(false);
+
+		Site site = sitesServiceInternal.getSite(SITE_ID);
+		assertEquals(Site.State.BOOTSTRAPPING, site.getState());
+
+		verify(sitesServiceInternal).checkBootstrappingState(any());
+	}
+
+	@Test
+	public void readyStateTest() {
+		when(siteBootstrapStateProvider.isSiteReady(SITE_ID)).thenReturn(true);
+
+		Site site = sitesServiceInternal.getSite(SITE_ID);
+		assertEquals(Site.State.READY, site.getState());
+
+		verify(sitesServiceInternal).checkBootstrappingState(any());
 	}
 }

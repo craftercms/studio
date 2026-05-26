@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
+import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -32,8 +33,6 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.Map;

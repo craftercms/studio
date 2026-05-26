@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -21,7 +21,6 @@
 <mapper namespace="org.craftercms.studio.api.v2.dal.AuditDAO">
 	<resultMap id="AuditLogMap" type="org.craftercms.studio.api.v2.dal.AuditLog">
 		<id property="id" column="id"/>
-		<result property="organizationId" column="organization_id"/>
 		<result property="siteId" column="site_id"/>
 		<result property="siteName" column="site_name"/>
 		<result property="operation" column="operation"/>
@@ -162,9 +161,9 @@
 
 	<insert id="insertAuditLog" parameterType="org.craftercms.studio.api.v2.dal.AuditLog" useGeneratedKeys="true"
 		keyProperty="id">
-		INSERT INTO audit (organization_id, site_id, operation, operation_timestamp, origin, primary_target_id,
+		INSERT INTO audit (site_id, operation, operation_timestamp, origin, primary_target_id,
 				   primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details, cluster_node_id, commit_id)
-		VALUES (#{organizationId}, #{siteId}, #{operation}, IFNULL(#{operationTimestamp}, CURRENT_TIMESTAMP), #{origin},
+		VALUES (#{siteId}, #{operation}, IFNULL(#{operationTimestamp}, CURRENT_TIMESTAMP), #{origin},
 			#{primaryTargetId}, #{primaryTargetType}, #{primaryTargetSubtype}, #{primaryTargetValue}, #{actorId},
 			#{actorDetails}, #{clusterNodeId}, #{commitId})
 		;
