@@ -84,12 +84,7 @@ public class BootstrapManagerImpl implements SystemStatusProvider, BootstrapMana
 	public Object onCleanUpRepositories() {
 		logger.info("Successfully cleaned up repositories");
 		logger.info("Waiting for system upgrade to complete before starting sites upgrade");
-		try {
-			upgradeSemaphore.acquire();
-		} catch (InterruptedException e) {
-			logger.warn("Interrupted while waiting for system upgrade to complete, starting sites upgrade anyway", e);
-			Thread.currentThread().interrupt(); // restore interrupt status
-		}
+		upgradeSemaphore.acquireUninterruptibly();
 		logger.info("Start upgrade ...");
 		return new StartSitesUpgradeEvent(this);
 	}
