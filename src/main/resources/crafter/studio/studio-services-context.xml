@@ -41,9 +41,11 @@
         <constructor-arg name="flag" value="#{studioConfiguration.getProperty('studio.configuration.site.startup.cleanup.enabled')}"/>
         <constructor-arg name="actualBean">
             <bean class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
-                <property name="siteService" ref="sitesServiceInternal" />
-                <property name="generalLockService" ref="cstudioGeneralLockService" />
-                <property name="helper" ref="studio.gitRepositoryHelper" />
+                <constructor-arg name="siteService" ref="sitesServiceInternal" />
+                <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+                <constructor-arg name="helper" ref="studio.gitRepositoryHelper" />
+                <constructor-arg name="executorThreadCount" value="#{studioConfiguration.getProperty('studio.configuration.site.startup.cleanup.threadCount')}"/>
+                <constructor-arg name="executorTimeoutSeconds" value="#{studioConfiguration.getProperty('studio.configuration.site.startup.cleanup.timeoutSeconds')}"/>
             </bean>
         </constructor-arg>
     </bean>
