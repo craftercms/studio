@@ -185,8 +185,7 @@ public class SecurityServiceImpl implements SecurityService {
 		}
 	}
 
-	@Override
-	public Collection<NormalizedRole> getUserRoles(@ValidateStringParam final String site,
+	protected Collection<NormalizedRole> getUserRoles(@ValidateStringParam final String site,
 												   @ValidateStringParam String user) {
 		try {
 			return userService.getUserSiteRoles(-1, user, site);
@@ -389,9 +388,8 @@ public class SecurityServiceImpl implements SecurityService {
 		return config;
 	}
 
-	@Override
 	@Valid
-	public boolean isSystemAdmin(@ValidateStringParam String username) {
+	protected boolean isSystemAdmin(@ValidateStringParam String username) {
 		List<NormalizedRole> roles;
 		try {
 			roles = getUserGlobalRoles(-1, username);
@@ -446,9 +444,8 @@ public class SecurityServiceImpl implements SecurityService {
 		return toRet;
 	}
 
-	@Override
 	@Valid
-	public List<NormalizedRole> getUserGlobalRoles(long userId, @ValidateStringParam String username)
+	protected List<NormalizedRole> getUserGlobalRoles(long userId, @ValidateStringParam String username)
 		throws ServiceLayerException, UserNotFoundException {
 		List<Group> groups = userService.getUserGroups(userId, username);
 

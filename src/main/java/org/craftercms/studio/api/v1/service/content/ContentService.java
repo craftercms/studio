@@ -18,16 +18,10 @@ package org.craftercms.studio.api.v1.service.content;
 
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.springframework.core.io.Resource;
 
-import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Content Services that other services may use
@@ -35,43 +29,6 @@ import java.util.Optional;
  * @author russdanner
  */
 public interface ContentService {
-
-	/**
-	 * Check if content exists
-	 *
-	 * @param site site identifier
-	 * @param path path of the content
-	 * @return true if site has content object at path
-	 */
-	boolean contentExists(String site, String path);
-
-	/**
-	 * This is a faster, but less accurate, version of contentExists. This prioritizes
-	 * performance over checking the actual underlying repository if the content is actually in the store
-	 * or we simply hold a reference to the object in the actual store.
-	 *
-	 * @return true if site has content object at path
-	 */
-	boolean shallowContentExists(String site, String path);
-
-	/**
-	 * get document from wcm content
-	 *
-	 * @param site site identifier
-	 * @param path path of the content
-	 * @return document
-	 */
-	InputStream getContent(String site, String path) throws ContentNotFoundException;
-
-	/**
-	 * get document from wcm content
-	 *
-	 * @param site site identifier
-	 * @param path content path
-	 * @return document
-	 * @throws DocumentException XML document error
-	 */
-	Document getContentAsDocument(String site, String path) throws DocumentException;
 
 	/**
 	 * get the tree of content items (metadata) beginning at a root
@@ -90,38 +47,6 @@ public interface ContentService {
 	 * @return content item representation
 	 */
 	ContentItemTO getContentItem(String site, String path);
-
-	/**
-	 * get the content item (metadata) at a specific path
-	 *
-	 * @param site  - the project ID
-	 * @param path  - the path of the content item
-	 * @param depth - depth to get desendents
-	 * @return content item representation
-	 */
-	ContentItemTO getContentItem(String site, String path, int depth);
-
-	/**
-	 * return the content for a given version
-	 *
-	 * @param site    - the project ID
-	 * @param path    - the path item
-	 * @param version - version
-	 * @return content
-	 * @throws ContentNotFoundException content not found
-	 */
-	Optional<Resource> getContentVersion(String site, String path, String version) throws ContentNotFoundException;
-
-	/**
-	 * return the content for a given version
-	 *
-	 * @param site    - the project ID
-	 * @param path    - the path item
-	 * @param version - version
-	 * @return version number
-	 * @throws ContentNotFoundException content not found
-	 */
-	String getContentVersionAsString(String site, String path, String version) throws ContentNotFoundException;
 
 	List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 

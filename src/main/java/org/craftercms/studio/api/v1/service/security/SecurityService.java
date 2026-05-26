@@ -16,14 +16,10 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
-import jakarta.validation.Valid;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,8 +27,6 @@ import java.util.Set;
  * @author Dejan Brkic
  */
 public interface SecurityService {
-
-	@Valid Collection<NormalizedRole> getUserRoles(String site, String user);
 
 	Map<String, Object> getUserProfile(String user) throws ServiceLayerException, UserNotFoundException;
 
@@ -46,15 +40,4 @@ public interface SecurityService {
 	 * @return true if user belongs to admin group
 	 */
 	boolean isSiteAdmin(String username, String site);
-
-	/**
-	 * Check if given user has system_admin role
-	 *
-	 * @param username user
-	 * @return true if user is system_admin, false otherwise
-	 */
-	boolean isSystemAdmin(String username);
-
-	List<NormalizedRole> getUserGlobalRoles(long userId, String username)
-		throws ServiceLayerException, UserNotFoundException;
 }

@@ -17,7 +17,6 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import jakarta.validation.Valid;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
@@ -61,7 +60,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -71,7 +69,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
@@ -105,24 +102,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	protected ContentTypeService contentTypeService;
 
 	@Deprecated
-	@Override
 	@Valid
-	public boolean contentExists(@ValidSiteId String site,
+	protected boolean contentExists(@ValidSiteId String site,
 				     @ValidateSecurePathParam String path) {
 		// TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
 		return this.contentRepository.contentExists(site, path);
 	}
 
-	@Override
 	@Valid
-	public boolean shallowContentExists(String site,
-					    @ValidateSecurePathParam String path) {
-		return this.contentRepository.shallowContentExists(site, path);
-	}
-
-	@Override
-	@Valid
-	public InputStream getContent(String site,
+	protected InputStream getContent(String site,
 				      @ValidateSecurePathParam String path)
 		throws ContentNotFoundException {
 		// TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
@@ -133,9 +121,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 	}
 
-	@Override
 	@Valid
-	public Document getContentAsDocument(@ValidateStringParam String site,
+	protected Document getContentAsDocument(@ValidateStringParam String site,
 					     @ValidateSecurePathParam String path)
 		throws DocumentException {
 		// TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
@@ -433,10 +420,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return getContentItem(site, path, 2);
 	}
 
-	@Override
 	@Valid
 	@LogExecutionTime
-	public ContentItemTO getContentItem(@ValidSiteId String site,
+	protected ContentItemTO getContentItem(@ValidSiteId String site,
 					    @ValidateSecurePathParam String path,
 					    int depth) {
 		ContentItemTO item = null;
@@ -654,33 +640,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		return root;
 	}
 
-	@Override
-	@Valid
-	public Optional<Resource> getContentVersion(@ValidateStringParam String site,
-						    @ValidateSecurePathParam String path,
-						    @ValidateStringParam() String commitId) {
-		return contentRepository.getContentByCommitId(site, path, commitId);
-	}
-
-	@Override
-	@Valid
-	public String getContentVersionAsString(@ValidateStringParam String site,
-						@ValidateSecurePathParam String path,
-						@ValidateStringParam() String version) {
-		try {
-			Optional<Resource> resource = getContentVersion(site, path, version);
-			if (resource.isPresent()) {
-				try (InputStream is = resource.get().getInputStream()) {
-					return IOUtils.toString(is, UTF_8);
-				}
-			}
-		} catch (Exception e) {
-			logger.debug("Failed to get content as a string from site '{}' path '{}'", site, path, e);
-		}
-
-		return null;
-	}
-
 	private ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam String site,
 								    @ValidateSecurePathParam()
 								    String relativePath) throws SiteNotFoundException {
@@ -761,10 +720,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 	private String getContentTypeClass(@ValidateStringParam String site, String uri) throws SiteNotFoundException {
 		return ContentUtils.getContentTypeClass(servicesConfig, studioConfiguration, site, uri);
-	}
-
-	protected String getContentTypesBasePath() {
-		return studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH);
 	}
 
 	@Override
