@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SiteBootstrapStateProvider;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,6 +85,8 @@ public class SitesServiceInternalImplTest {
     ApplicationContext applicationContext;
     @Mock
     ItemServiceInternal itemServiceInternal;
+    @Mock
+    SiteBootstrapStateProvider siteBootstrapStateProvider;
     @Spy
     @InjectMocks
     SitesServiceInternalImpl sitesServiceInternal;
