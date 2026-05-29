@@ -39,17 +39,6 @@ class SpringContentServices {
 		return springBackedService.getItemOrders(site, path);
 	}
 
-	/**
-	 *  Get the content for a specific version
-	 * @param site - the project ID
-	 * @param path - the path of the item to retrieve
-	 * @param version - old version ID to base to version on
-	 */
-	def getContentVersionAtPath(site, path, version) {
-		def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-		return springBackedService.getContentVersionAsString(site, path, version)
-	}
-
 	def reorderItems(site, path, before, after) {
 		def springBackendService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);
 		return springBackendService.reorderItems(site, path, before, after, "default");

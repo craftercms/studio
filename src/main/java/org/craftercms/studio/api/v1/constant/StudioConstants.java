@@ -53,7 +53,6 @@ public final class StudioConstants {
 	public static final String CONTENT_TYPE = "content-type";
 
 	public static final String PERMISSION_VALUE_READ = "read";
-	public static final String PERMISSION_VALUE_NOT_ALLOWED = "not allowed";
 
 	/**
 	 * Repository Constants
@@ -66,7 +65,6 @@ public final class StudioConstants {
 	/**
 	 * Site Constants
 	 */
-	public static final String SITE_DEFAULT_GROUPS_DESCRIPTION = " site default group";
 	public static final String SITE_UUID_FILENAME = "site-uuid.txt";
 	public static final String SITE_UUID_FILE_COMMENT = "# THIS IS A SYSTEM FILE. PLEASE DO NOT EDIT NOR DELETE IT!!!";
 
@@ -87,8 +85,6 @@ public final class StudioConstants {
 	public static final String CONTENT_TYPE_GROUP = "group";
 	public static final String CONTENT_TYPE_TAXONOMY_REGEX = "/site/taxonomy/([^<]+)\\.xml";
 	public static final String CONTENT_TYPE_CONFIG_REGEX = "/config/([^<]+)\\.xml";
-	public static final String CONFIG_PATH_ROOT = "/config/";
-	public static final String CONTENT_TYPE_ALL = "all";
 	public static final String CONTENT_TYPE_FORM_DEFINITION = "formDefinition";
 	public static final String CONTENT_TYPE_SITE = "site";
 	public static final String CONTENT_TYPE_REMOTE_REPOSITORY = "remoteRepository";
@@ -115,12 +111,6 @@ public final class StudioConstants {
 	public static final String ADMIN_ROLE = "admin";
 	public static final NormalizedRole SYSTEM_ADMIN_NORMALIZED_ROLE = new NormalizedRole(SYSTEM_ADMIN_ROLE);
 	public static final NormalizedRole ADMIN_NORMALIZED_ROLE = new NormalizedRole(ADMIN_ROLE);
-
-	/**
-	 * Remote repository create option
-	 */
-	public static final String REMOTE_REPOSITORY_CREATE_OPTION_CLONE = "clone";
-	public static final String REMOTE_REPOSITORY_CREATE_OPTION_PUSH = "push";
 
 	public static final String INDEX_FILE = "index.xml";
 
@@ -163,8 +153,6 @@ public final class StudioConstants {
 	public static final String REPO_COMMIT_MESSAGE_USERNAME_VAR = "{username}";
 	public static final String REPO_COMMIT_MESSAGE_PATH_VAR = "{path}";
 	public static final String REPO_COMMIT_MESSAGE_USER_COMMENT_VAR = "{userComment}";
-
-	public static final int DEFAULT_ORGANIZATION_ID = 1;
 
 	public static final String REMOVE_SYSTEM_ADMIN_MEMBER_LOCK = "remove_system_admin_member_lock";
 

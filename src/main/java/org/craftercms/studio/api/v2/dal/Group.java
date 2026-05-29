@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,11 +18,10 @@ package org.craftercms.studio.api.v2.dal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.springframework.security.core.GrantedAuthority;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -35,7 +34,6 @@ public class Group implements Serializable, GrantedAuthority {
 
 	private long id = -1;
 	private ZonedDateTime recordLastUpdated;
-	private Organization organization;
 	private boolean externallyManaged;
 	@NotBlank
 	@Size(min = 3, max = 512)
@@ -68,16 +66,6 @@ public class Group implements Serializable, GrantedAuthority {
 	@JsonIgnore
 	public void setRecordLastUpdated(ZonedDateTime recordLastUpdated) {
 		this.recordLastUpdated = recordLastUpdated;
-	}
-
-	@JsonIgnore
-	public Organization getOrganization() {
-		return organization;
-	}
-
-	@JsonIgnore
-	public void setOrganization(Organization organization) {
-		this.organization = organization;
 	}
 
 	@JsonProperty("name")

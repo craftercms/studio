@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -27,7 +27,7 @@ import org.apache.commons.lang3.RegExUtils;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.spring.context.RestrictedApplicationContext;
 import org.craftercms.engine.util.spring.ApplicationContextAccessor;
-import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.scripting.ScriptEngineManager;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -56,9 +56,9 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
-	public Collection<User> getAllUsersForSite(long orgId, String siteId, String keyword, int offset, int limit, String sort)
+	public Collection<User> getAllUsersForSite(String siteId, String keyword, int offset, int limit, String sort)
 		throws ServiceLayerException {
-		return userServiceInternal.getAllUsersForSite(orgId, siteId, keyword, offset, limit, sort);
+		return userServiceInternal.getAllUsersForSite(siteId, keyword, offset, limit, sort);
 	}
 
 	@Override
@@ -69,8 +69,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
-	public int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException {
-		return userServiceInternal.getAllUsersForSiteTotal(orgId, siteId, keyword);
+	public int getAllUsersForSiteTotal(String siteId, String keyword) throws ServiceLayerException {
+		return userServiceInternal.getAllUsersForSiteTotal(siteId, keyword);
 	}
 
 	@Override

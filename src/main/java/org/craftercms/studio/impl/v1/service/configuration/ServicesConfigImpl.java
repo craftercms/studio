@@ -215,7 +215,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 					String name = configNode.valueOf("display-name");
 					siteConfig = new SiteConfigTO();
 					siteConfig.setName(name);
-					siteConfig.setWemProject(configNode.valueOf("wem-project"));
 					siteConfig.setTimezone(configNode.valueOf(SITE_CONFIG_XML_ELEMENT_LOCALE + "/" +
 						SITE_CONFIG_XML_ELEMENT_DATE_TIME_FORMAT_OPTIONS + "/" +
 						SITE_CONFIG_XML_ELEMENT_TIME_ZONE));

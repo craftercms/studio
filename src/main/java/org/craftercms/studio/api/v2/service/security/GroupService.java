@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 
 import java.util.List;
 
@@ -33,32 +32,27 @@ public interface GroupService {
 	 * Get all groups
 	 *
 	 * @param keyword keyword to filter groups
-	 * @param orgId   Organization identifier
 	 * @param offset  Result set offset
 	 * @param limit   Result set limit
 	 * @param sort    Sort order
 	 * @return List of groups
 	 * @throws ServiceLayerException         general service error
-	 * @throws OrganizationNotFoundException organization not found
 	 */
-	List<Group> getAllGroups(long orgId, String keyword, int offset, int limit, String sort)
-		throws ServiceLayerException, OrganizationNotFoundException;
+	List<Group> getAllGroups(String keyword, int offset, int limit, String sort)
+		throws ServiceLayerException;
 
 	/**
 	 * Get total number of all groups
 	 *
 	 * @param keyword keyword to filter groups
-	 * @param orgId   Organization identifier
 	 * @return Number of groups
 	 * @throws ServiceLayerException         general service error
-	 * @throws OrganizationNotFoundException organization not found
 	 */
-	int getAllGroupsTotal(long orgId, String keyword) throws ServiceLayerException, OrganizationNotFoundException;
+	int getAllGroupsTotal(String keyword) throws ServiceLayerException;
 
 	/**
 	 * Create group
 	 *
-	 * @param orgId             Organization identifier
 	 * @param groupName         Group name
 	 * @param groupDescription  Group description
 	 * @param externallyManaged true if group is externally managed, false otherwise
@@ -66,13 +60,12 @@ public interface GroupService {
 	 * @throws GroupAlreadyExistsException group already exist error
 	 * @throws ServiceLayerException       general service error
 	 */
-	Group createGroup(long orgId, String groupName, String groupDescription, boolean externallyManaged)
+	Group createGroup(String groupName, String groupDescription, boolean externallyManaged)
 		throws GroupAlreadyExistsException, ServiceLayerException;
 
 	/**
 	 * Update group
 	 *
-	 * @param orgId Organization identifier
 	 * @param group Group to update
 	 * @return the updated group
 	 * @throws ServiceLayerException           general service error
@@ -80,7 +73,7 @@ public interface GroupService {
 	 * @throws AuthenticationException         authentication error
 	 * @throws GroupExternallyManagedException if group is externally managed
 	 */
-	Group updateGroup(long orgId, Group group)
+	Group updateGroup(Group group)
 		throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException;
 
 	/**

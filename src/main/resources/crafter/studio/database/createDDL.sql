@@ -56,8 +56,8 @@ BEGIN
 	INSERT INTO dependency (id, site, source_path, target_path, type, valid)
 		SELECT null, siteId, d.source_path, d.target_path, d.type, d.valid FROM dependency d WHERE d.site = sourceSiteId;
 
-	INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, ignored)
-		SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
+	INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, ignored, saved_as_draft)
+		SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.ignored, i.saved_as_draft FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
 
 	SELECT id FROM site WHERE site_id = siteId AND deleted = 0 INTO @siteNumericId;
 
@@ -224,11 +224,10 @@ CREATE TABLE _meta (
 	PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.15', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.18', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
 	`id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
-	`organization_id`           BIGINT(20)    NOT NULL,
 	`site_id`                   BIGINT(20)    NOT NULL,
 	`operation`                 VARCHAR(32)   NOT NULL,
 	`operation_timestamp`       TIMESTAMP      NOT NULL,
@@ -403,75 +402,38 @@ CREATE TABLE IF NOT EXISTS `user_properties`
 	DEFAULT CHARSET = utf8
 	ROW_FORMAT = DYNAMIC ;
 
-CREATE TABLE IF NOT EXISTS `organization`
-(
-	`id`                  BIGINT(20)  NOT NULL AUTO_INCREMENT,
-	`record_last_updated` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	`org_name`            VARCHAR(32) NOT NULL,
-	`org_desc`            TEXT        NULL,
-	PRIMARY KEY (`id`),
-	INDEX `organization_ix_record_last_updated` (`record_last_updated` DESC),
-	UNIQUE INDEX `organization_ix_org_name` (`org_name`)
-)
-	ENGINE = InnoDB
-	DEFAULT CHARSET = utf8
-	ROW_FORMAT = DYNAMIC ;
-
-INSERT IGNORE INTO `organization` (id, record_last_updated, org_name, org_desc)
-VALUES (1, CURRENT_TIMESTAMP, 'studio', 'studio default organization') ;
-
-
-CREATE TABLE IF NOT EXISTS `organization_user`
-(
-	`user_id`   BIGINT(20) NOT NULL,
-	`org_id`    BIGINT(20) NOT NULL,
-	`record_last_updated` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	PRIMARY KEY (`user_id`, `org_id`),
-	FOREIGN KEY org_member_ix_user_id(user_id) REFERENCES `user` (`id`) ON DELETE CASCADE,
-	FOREIGN KEY org_member_ix_org_id(org_id) REFERENCES `organization` (`id`) ON DELETE CASCADE,
-	INDEX `org_member_ix_record_last_updated` (`record_last_updated` DESC)
-)
-	ENGINE = InnoDB
-	DEFAULT CHARSET = utf8
-	ROW_FORMAT = DYNAMIC ;
-
-INSERT IGNORE INTO `organization_user` (user_id, org_id)
-VALUES (1, 1) ;
-
 CREATE TABLE IF NOT EXISTS `group`
 (
 	`id`                  BIGINT(20)  NOT NULL AUTO_INCREMENT,
 	`record_last_updated` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	`org_id`              BIGINT(20)  NOT NULL,
 	`group_name`          VARCHAR(512) NOT NULL,
 	`group_description`   TEXT,
 	`externally_managed`  INT          NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`),
 	INDEX `group_ix_record_last_updated` (`record_last_updated` DESC),
-	FOREIGN KEY group_ix_org_id(org_id) REFERENCES `organization` (`id`) ON DELETE CASCADE,
 	UNIQUE INDEX `group_ix_group_name` (`group_name`)
 )
 	ENGINE = InnoDB
 	DEFAULT CHARSET = utf8
 	ROW_FORMAT = DYNAMIC ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
-VALUES (1, CURRENT_TIMESTAMP, 1, 'system_admin', 'System Administrator group', 0) ;
+INSERT IGNORE INTO `group` (id, record_last_updated, group_name, group_description, externally_managed)
+VALUES (1, CURRENT_TIMESTAMP, 'system_admin', 'System Administrator group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
-VALUES (2, CURRENT_TIMESTAMP, 1, 'site_admin', 'Site Administrator group', 0) ;
+INSERT IGNORE INTO `group` (id, record_last_updated, group_name, group_description, externally_managed)
+VALUES (2, CURRENT_TIMESTAMP, 'site_admin', 'Site Administrator group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
-VALUES (3, CURRENT_TIMESTAMP, 1, 'site_author', 'Site Author group', 0) ;
+INSERT IGNORE INTO `group` (id, record_last_updated, group_name, group_description, externally_managed)
+VALUES (3, CURRENT_TIMESTAMP, 'site_author', 'Site Author group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
-VALUES (4, CURRENT_TIMESTAMP, 1, 'site_publisher', 'Site Publisher group', 0) ;
+INSERT IGNORE INTO `group` (id, record_last_updated, group_name, group_description, externally_managed)
+VALUES (4, CURRENT_TIMESTAMP, 'site_publisher', 'Site Publisher group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
-VALUES (5, CURRENT_TIMESTAMP, 1, 'site_developer', 'Site Developer group', 0) ;
+INSERT IGNORE INTO `group` (id, record_last_updated, group_name, group_description, externally_managed)
+VALUES (5, CURRENT_TIMESTAMP, 'site_developer', 'Site Developer group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
-VALUES (6, CURRENT_TIMESTAMP, 1, 'site_reviewer', 'Site Reviewer group', 0) ;
+INSERT IGNORE INTO `group` (id, record_last_updated, group_name, group_description, externally_managed)
+VALUES (6, CURRENT_TIMESTAMP, 'site_reviewer', 'Site Reviewer group', 0) ;
 
 CREATE TABLE IF NOT EXISTS group_user
 (
@@ -511,6 +473,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   `size`                    BIGINT          NULL,
   `parent_id`               BIGINT          NULL,
   `ignored`                 INT             NOT NULL    DEFAULT 0,
+  `saved_as_draft`          BOOLEAN         NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY item_ix_created_by(`created_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_last_modified_by(`last_modified_by`) REFERENCES `user` (`id`),

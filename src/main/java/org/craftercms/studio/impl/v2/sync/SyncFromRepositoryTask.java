@@ -550,6 +550,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 				}
 				result.contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
 				result.disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
+				result.savedAsDraft = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_SAVED_AS_DRAFT));
 			}
 		} catch (DocumentException e) {
 			logger.error("Failed to extract metadata from the XML site '{}' path '{}'",
@@ -599,6 +600,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			.withLocaleCode(Locale.US.toString())
 			.withTranslationSourceId(null)
 			.withSize(contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()))
+			.withSavedAsDraft(metadata.savedAsDraft)
 			.build();
 		itemDao.upsertEntry(item);
 
@@ -636,7 +638,8 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
 				getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getPath()),
 			StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-			contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
+			contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()),
+				metadata.savedAsDraft);
 
 		logger.trace("Extract dependencies from site '{}' path '{}' while processing batch update", site.getSiteId(), repoOperation.getPath());
 		DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getPath(), null,
@@ -658,7 +661,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 							 Set<String> allAncestors) throws SiteNotFoundException, ContentNotFoundException {
 		ItemMetadata metadata = getItemMetadata(site.getSiteId(), repoOperation.getMoveToPath());
 		processAncestors(itemDao, site.getSiteId(), repoOperation.getMoveToPath(), user.getId(),
-			repoOperation.getDateTime(), allAncestors);
+				repoOperation.getDateTime(), allAncestors);
 		long onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
 		long offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
 		if (metadata.disabled) {
@@ -667,18 +670,19 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 			offStateBitmap = offStateBitmap | DISABLED.value;
 		}
 		if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) &&
-			!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
+				!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
 			itemDao.moveItemForSyncTask(site.getSiteId(), repoOperation.getPath(), repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap);
 
 			updateItemRow(itemDao, site.getId(),
-				repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
-				repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
+					repoOperation.getPath(), metadata.previewUrl, onStateBitMap, offStateBitmap, user.getId(),
+					repoOperation.getDateTime(), metadata.label, metadata.contentTypeId,
 					getContentTypeClass(servicesConfig, studioConfiguration, site.getSiteId(), repoOperation.getMoveToPath()),
-				StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-				contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()));
+					StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
+					contentRepository.getContentSize(site.getSiteId(), repoOperation.getPath()),
+					metadata.savedAsDraft);
 
 			DependencyUtils.updateDependencies(site.getSiteId(), repoOperation.getMoveToPath(),
-				repoOperation.getPath(), dependencyServiceInternal, dependencyDao, sqlSession);
+					repoOperation.getPath(), dependencyServiceInternal, dependencyDao, sqlSession);
 		}
 		invalidateConfigurationCacheIfRequired(site.getSiteId(), repoOperation.getMoveToPath());
 	}
@@ -702,11 +706,12 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 	private void updateItemRow(ItemDAO itemDao, long siteId, String path, String previewUrl, long onStatesBitMap,
 									   long offStatesBitMap, Long lastModifiedBy, ZonedDateTime lastModifiedOn,
 									   String label, String contentTypeId, String systemType, String mimeType,
-									   Long size) {
+									   Long size, boolean savedAsDraft) {
 		Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
 		String fileName = FilenameUtils.getName(path);
 		boolean ignored = org.apache.commons.lang3.ArrayUtils.contains(IGNORE_FILES, fileName);
-		itemDao.updateItemForSyncTask(siteId, path, previewUrl, onStatesBitMap, offStatesBitMap, lastModifiedBy, sqlTsLastModified.toString(), label, contentTypeId, systemType, mimeType, size, ignored);
+		itemDao.updateItemForSyncTask(siteId, path, previewUrl, onStatesBitMap, offStatesBitMap,
+				lastModifiedBy, sqlTsLastModified.toString(), label, contentTypeId, systemType, mimeType, size, ignored, savedAsDraft);
 	}
 
 	/**
@@ -781,6 +786,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 					.withLocaleCode(Locale.US.toString())
 					.withTranslationSourceId(null)
 					.withSize(0L)
+					.withSavedAsDraft(false)
 					.build();
 				itemDao.upsertEntry(item);
 				allAncestors.add(currentPath);
@@ -801,6 +807,7 @@ public class SyncFromRepositoryTask implements ApplicationEventPublisherAware {
 		String label;
 		String contentTypeId = EMPTY;
 		boolean disabled = false;
+		boolean savedAsDraft = false;
 
 		public ItemMetadata(final String path) {
 			label = FilenameUtils.getName(path);

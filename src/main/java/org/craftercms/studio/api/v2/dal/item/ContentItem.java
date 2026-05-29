@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -40,6 +40,7 @@ public class ContentItem {
 	private ZonedDateTime dateModified;
 	private long availableActions;
 	private int childrenCount;
+	private Boolean savedAsDraft;
 
 	private PublishTargetStatus staging;
 	private PublishTargetStatus live;
@@ -202,5 +203,13 @@ public class ContentItem {
 
 	public void setStaging(PublishTargetStatus staging) {
 		this.staging = staging;
+	}
+
+	public Boolean getSavedAsDraft() {
+		return savedAsDraft;
+	}
+
+	public void setSavedAsDraft(Boolean savedAsDraft) {
+		this.savedAsDraft = savedAsDraft;
 	}
 }

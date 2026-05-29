@@ -29,4 +29,8 @@ public class InvalidParametersException extends ServiceLayerException {
 		super(message);
 	}
 
+	public InvalidParametersException(final String message, final Throwable cause) {
+		super(message, cause);
+	}
+
 }

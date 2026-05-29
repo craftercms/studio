@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,8 +14,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.libs.EnvironmentOverrides
-import org.apache.commons.text.StringEscapeUtils
+ALTER TABLE `audit` DROP COLUMN IF EXISTS `organization_id` ;
 
-model.envConfig = EnvironmentOverrides.getValuesForSite(applicationContext, request, response)
-model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
+ALTER TABLE `group`
+	DROP FOREIGN KEY IF EXISTS `group_ix_org_id`,
+	DROP INDEX IF EXISTS `group_ix_org_id`,
+	DROP COLUMN IF EXISTS `org_id` ;
+DROP TABLE IF EXISTS `organization_user` ;
+DROP TABLE IF EXISTS `organization` ;

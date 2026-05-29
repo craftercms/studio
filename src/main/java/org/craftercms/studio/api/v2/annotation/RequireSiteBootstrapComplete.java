@@ -13,42 +13,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.annotation;
 
-package org.craftercms.studio.model;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-public class Site {
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-	private final String siteId;
-	private final String uuid;
-	private final String name;
-	private final String desc;
-	private final String state;
-
-	public Site(org.craftercms.studio.api.v2.dal.Site site) {
-		siteId = site.getSiteId();
-		uuid = site.getSiteUuid();
-		name = site.getName();
-		desc = site.getDescription();
-		state = site.getState();
-	}
-
-	public String getDesc() {
-		return desc;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public String getSiteId() {
-		return siteId;
-	}
-
-	public String getState() {
-		return state;
-	}
-
-	public String getUuid() {
-		return uuid;
-	}
+/**
+ * Indicates that the annotated method requires the site bootstrap process to be completed.
+ */
+@Inherited
+@Retention(RUNTIME)
+@Target({METHOD, ElementType.TYPE})
+@RequireSiteExists
+public @interface RequireSiteBootstrapComplete {
 }

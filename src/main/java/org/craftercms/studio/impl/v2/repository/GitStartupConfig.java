@@ -15,13 +15,14 @@
  */
 package org.craftercms.studio.impl.v2.repository;
 
+import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
 import org.eclipse.jgit.errors.ConfigInvalidException;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.util.SystemReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 
@@ -47,9 +48,9 @@ public class GitStartupConfig {
 		this.studioConfiguration = studioConfiguration;
 	}
 
+	@LogExecutionTime
 	@Order(HIGHEST_PRECEDENCE)
-	@EventListener(CleanupRepositoriesEvent.class)
-
+	@EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
 	public void onStartup() {
 		boolean enabled = studioConfiguration.getProperty(REPO_GIT_GLOBAL_CONFIG_ENABLED, Boolean.class, true);
 		if (!enabled) {

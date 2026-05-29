@@ -27,10 +27,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.reflect.Method;
 
 import static junit.framework.TestCase.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -84,7 +86,7 @@ public class ContentServiceImplTest {
 	@Test
 	public void testSiteNotFound() throws NoSuchMethodException {
 		Method method = ContentServiceImpl.class.getMethod("contentExists", String.class, String.class);
-		assertTrue(method.isAnnotationPresent(RequireSiteExists.class));
+		assertNotNull(AnnotationUtils.getAnnotation(method, RequireSiteExists.class));
 	}
 
 }

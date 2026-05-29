@@ -8144,11 +8144,11 @@ components:
                   * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
                   * `CODE:` 2001, `MESSAGE:` Unauthorized, `REMEDIAL ACTION:` You don't have permission to perform this task, please contact your administrator
                   * `CODE:` 2002, `MESSAGE:` Peer-review check failed, `REMEDIAL ACTION:` Users are not allowed to approve their own packages when peer-review is enabled
-                  * `CODE:` 3000, `MESSAGE:` Organization not found, `REMEDIAL ACTION:` Check if you sent in the right Org Id
-                  * `CODE:` 3001, `MESSAGE:` Organization already exists, `REMEDIAL ACTION:` Try a different organization name
                   * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
                   * `CODE:` 5000, `MESSAGE:` Site not found, `REMEDIAL ACTION:` Check if you sent in the right Site Id
                   * `CODE:` 5001, `MESSAGE:` Site already exists, `REMEDIAL ACTION:` Try a different site name
+                  * `CODE:` 5002, `MESSAGE:` Invalid site state, `REMEDIAL ACTION:` Requested site is not in the required state for this operation
+                  * `CODE:` 5003, `MESSAGE:` Site bootstrap not complete, `REMEDIAL ACTION:` Wait for the site bootstrap to complete before performing this operation
                   * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID or username
                   * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
                   * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
@@ -8870,7 +8870,7 @@ components:
                                 - none
                                 - basic
                                 - token
-                                - key
+                                - private_key
                     required:
                         - type
                 -   oneOf:
@@ -9942,6 +9942,9 @@ components:
                     type: integer
                     format: int32
                     description: number of children of the item
+                savedAsDraft:
+                    type: boolean
+                    description: true if item is saved as draft, otherwise false
                 staging:
                     $ref: '#/components/schemas/PublishTargetStatus'
                     description: status of the item in the staging target

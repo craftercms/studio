@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,40 +13,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.impl.v2.utils.spring.event;
 
-package org.craftercms.studio.api.v1.aws.s3;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * Represents metadata of an AWS S3 Upload.
+ * Event used to trigger all upgrade related beans during bootstrap
  *
  * @author joseross
+ * @since 4.0
  */
-public class S3Output {
+public class StartSystemUpgradeEvent extends ApplicationEvent {
 
-	/**
-	 * Name of the bucket where the upload was done.
-	 */
-	private String bucket;
-
-	/**
-	 * Key of the file uploaded.
-	 */
-	private String key;
-
-	public String getBucket() {
-		return bucket;
-	}
-
-	public void setBucket(final String bucket) {
-		this.bucket = bucket;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(final String key) {
-		this.key = key;
+	public StartSystemUpgradeEvent(Object source) {
+		super(source);
 	}
 
 }
