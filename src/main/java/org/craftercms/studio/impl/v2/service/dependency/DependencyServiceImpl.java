@@ -139,12 +139,6 @@ public class DependencyServiceImpl implements DependencyService {
 
 	@Override
 	@RequireSiteExists
-	public void validateDependencies(@SiteId String siteId) {
-		dependencyServiceInternal.validateDependencies(siteId);
-	}
-
-	@Override
-	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public List<LightItem> getItemSpecificDependencies(@SiteId String siteId, @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths) {
 		return dependencyServiceInternal.getItemSpecificDependencies(siteId, paths);

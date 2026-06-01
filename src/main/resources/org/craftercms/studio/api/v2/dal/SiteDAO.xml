@@ -110,7 +110,7 @@
 		AND deleted = 0
 	</select>
 
-	<insert id="createSite" parameterType="org.craftercms.studio.api.v2.dal.Site" flushCache="true">
+	<insert id="createSite" parameterType="org.craftercms.studio.api.v2.dal.Site" flushCache="true" useGeneratedKeys="true" keyProperty="id">
 		INSERT INTO site (site_uuid, site_id, name, description, publishing_status, sandbox_branch)
 		VALUES (#{siteUuid}, #{siteId}, #{name}, #{description}, #{publishingStatus}, #{sandboxBranch})
 	</insert>

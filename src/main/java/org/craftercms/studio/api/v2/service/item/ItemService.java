@@ -291,12 +291,6 @@ public interface ItemService {
 	 */
 	Collection<String> getChildrenPaths(long siteId, String path);
 
-	/*
-	 * Recalculate the parent id for all the items in the site
-	 * @param siteId the site id
-	 */
-	void updateParentId(String siteId);
-
 	/**
 	 * Recalculate the parent id for the given paths
 	 *

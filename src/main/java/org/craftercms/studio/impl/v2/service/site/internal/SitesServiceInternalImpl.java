@@ -649,7 +649,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	}
 
 	@Override
-	@Transactional(rollbackFor = Exception.class)
+	@Transactional(rollbackFor = Throwable.class)
 	public void createSite(CreateSiteRequest request) throws ServiceLayerException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException {
 		logger.debug("Create site with params: '{}'", request);
 		checkCanCreateSite(request.getSiteId(), request.getName());
@@ -686,12 +686,12 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		// Add site to the database
 		String siteUuid = UUID.randomUUID().toString();
 		addSiteUuidFile(siteId, siteUuid);
-		createSiteInDb(request, siteId, siteUuid);
+		Site site = createSiteInDb(request, siteId, siteUuid);
 
 		// Run the upgrade manager on the site
 		upgradeSite(siteId);
 
-		processCreatedContent(siteId);
+		processCreatedContent(site);
 		// Configure blob stores if serverless delivery is enabled
 		configureBlobStores(siteId);
 
@@ -702,8 +702,8 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		createDeployerTargets(siteId);
 
 		// Update the site last commit id in the database and set the site state to READY
-		updateLastCommitId(siteId, blobAwareRepository.getRepoLastCommitId(siteId));
-		retryingDatabaseOperationFacade.retry(() -> siteDao.setSiteState(siteId, READY));
+		siteDao.updateLastCommitId(siteId, blobAwareRepository.getRepoLastCommitId(siteId));
+		siteDao.setSiteState(siteId, READY);
 	}
 
 	/**
@@ -735,16 +735,16 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 * Process the created content after site creation, by calling the content service to process the created files
 	 * and create the corresponding content items in the database.
 	 *
-	 * @param siteId the created site id
+	 * @param site the created site
 	 * @throws ServiceLayerException if any error occurs during the processing of the created content
 	 */
-	protected void processCreatedContent(String siteId) throws ServiceLayerException {
+	protected void processCreatedContent(Site site) throws ServiceLayerException {
 		String currentUsername = getCurrentUsername();
 		try {
-			contentService.processCreatedFiles(siteId, userService.getUserByGitName(currentUsername));
+			contentService.processCreatedFiles(site, userService.getUserByGitName(currentUsername));
 		} catch (UserNotFoundException e) {
 			// This should not really happen since it is the current user
-			throw new ServiceLayerException(format("Failed to process created files for site '%s' after creation. User '%s' not found.", siteId, currentUsername), e);
+			throw new ServiceLayerException(format("Failed to process created files for site '%s' after creation. User '%s' not found.", site.getSiteId(), currentUsername), e);
 		}
 	}
 
@@ -857,7 +857,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	/**
 	 * Create a new site in the database
 	 */
-	protected void createSiteInDb(CreateSiteRequest request, String siteId,
+	protected Site createSiteInDb(CreateSiteRequest request, String siteId,
 								  String siteUuid) {
 		logger.info("Create site '{}' in the database", siteId);
 		Site site = new Site();
@@ -867,7 +867,8 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		site.setDescription(request.getDescription());
 		site.setPublishingStatus(PublishStatus.READY);
 		site.setSandboxBranch(request.getSandboxBranch());
-		retryingDatabaseOperationFacade.retry(() -> siteDao.createSite(site));
+		siteDao.createSite(site);
+		return site;
 	}
 
 	/**

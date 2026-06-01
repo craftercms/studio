@@ -178,13 +178,6 @@ public interface DependencyService {
 	void validateDependencies(String siteId, String targetPath) throws ServiceLayerException;
 
 	/**
-	 * Mark as valid all site dependencies if the target_path exists in the site
-	 *
-	 * @param siteId the site id
-	 */
-	void validateDependencies(String siteId);
-
-	/**
 	 * Indicate if the given path is a valid dependency source. e.g.: templates, pages, components
 	 * Some files cannot have dependencies, like images or txt files
 	 *

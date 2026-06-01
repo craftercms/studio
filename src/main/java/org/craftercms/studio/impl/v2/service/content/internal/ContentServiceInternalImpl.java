@@ -851,8 +851,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	@Override
-	public void processCreatedFiles(String siteId, User creator) throws ServiceLayerException {
-		Site site = siteService.getSite(siteId);
+	public void processCreatedFiles(Site site, User creator) throws ServiceLayerException {
+		String siteId = site.getSiteId();
 		ZonedDateTime now = ZonedDateTime.now();
 		logger.debug("Processing created files for site '{}'", siteId);
 
@@ -871,11 +871,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 						checkCounter.run();
 					}
 			);
-			sqlSession.commit();
 			logger.debug("Update parent ID for created items for site '{}'", siteId);
-			itemService.updateParentId(siteId);
+			itemDao.updateParentIdForSite(site.getId());
 			logger.debug("Validate dependencies for site '{}'", siteId);
-			dependencyService.validateDependencies(siteId);
+			dependencyDao.validateDependenciesForSite(siteId);
+			sqlSession.flushStatements();
 		} catch (Exception e) {
 			logger.error("Failed to update database for processing created files in site '{}'", siteId, e);
 			throw new ServiceLayerException(format("Failed to update database for processing created files in site '%s'", siteId), e);

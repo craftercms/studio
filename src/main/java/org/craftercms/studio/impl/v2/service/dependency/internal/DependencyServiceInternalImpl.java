@@ -220,11 +220,6 @@ public class DependencyServiceInternalImpl implements DependencyService {
 	}
 
 	@Override
-	public void validateDependencies(final String siteId) {
-		retryingDatabaseOperationFacade.retry(() -> dependencyDao.validateDependenciesForSite(siteId));
-	}
-
-	@Override
 	public boolean isValidDependencySource(final String siteId, final String path) throws SiteNotFoundException {
 		boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
 		boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);
