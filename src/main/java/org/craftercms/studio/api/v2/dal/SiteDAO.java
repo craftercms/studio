@@ -140,7 +140,6 @@ public interface SiteDAO {
 	 * @param description   the description of the new site
 	 * @param sandboxBranch the sandbox branch of the new site
 	 * @param siteUuid      the uuid of the new site
-	 * @see ItemService#updateParentId (String)
 	 */
 	void duplicate(@Param(SOURCE_SITE_ID) String sourceSiteId, @Param(SITE_ID) String siteId,
 				   @Param(NAME) String name, @Param(DESC) String description,

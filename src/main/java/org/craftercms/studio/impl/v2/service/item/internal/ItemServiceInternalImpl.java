@@ -381,11 +381,6 @@ public class ItemServiceInternalImpl implements ItemService {
 		return itemDao.getChildrenPaths(siteId, path);
 	}
 
-	public void updateParentId(final String siteId) {
-		Site site = siteDao.getSite(siteId);
-		retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentIdForSite(site.getId()));
-	}
-
 	@Override
 	public void updateParentId(final long siteId, final Collection<String> paths) {
 		retryingDatabaseOperationFacade.retry(() -> itemDao.updateParentId(siteId, paths));

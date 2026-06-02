@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
 import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.item.LightItem;
@@ -344,8 +345,8 @@ public class ContentServiceImpl implements ContentService {
 	@Override
 	@RequireSiteBootstrapComplete
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
-	public void processCreatedFiles(@SiteId String siteId, User creator) throws ServiceLayerException {
-		contentServiceInternal.processCreatedFiles(siteId, creator);
+	public void processCreatedFiles(@SiteId Site site, User creator) throws ServiceLayerException {
+		contentServiceInternal.processCreatedFiles(site, creator);
 	}
 
 	@SuppressWarnings("unused")
