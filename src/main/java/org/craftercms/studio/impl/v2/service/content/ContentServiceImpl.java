@@ -342,10 +342,9 @@ public class ContentServiceImpl implements ContentService {
 		return contentServiceInternal.getContentItemsByStates(siteId, statesBitMap, systemTypes, sortFields, offset, limit);
 	}
 
+	// This method is internal, no need for permission annotations
 	@Override
-	@RequireSiteBootstrapComplete
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
-	public void processCreatedFiles(@SiteId Site site, User creator) throws ServiceLayerException {
+	public void processCreatedFiles(Site site, User creator) throws ServiceLayerException {
 		contentServiceInternal.processCreatedFiles(site, creator);
 	}
 
