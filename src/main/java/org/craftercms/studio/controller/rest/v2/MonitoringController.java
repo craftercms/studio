@@ -20,6 +20,7 @@ import jakarta.validation.constraints.Positive;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.monitoring.MemoryInfo;
 import org.craftercms.commons.monitoring.StatusInfo;
+import org.craftercms.commons.monitoring.SysInfo;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
@@ -65,9 +66,9 @@ public class MonitoringController extends ManagementTokenAware {
     }
 
     @GetMapping(value = ROOT_URL + MEMORY_URL)
-    public ResultOne<MemoryInfo> getCurrentMemory(@RequestParam(name = REQUEST_PARAM_TOKEN, required = false) String token)
+    public ResultOne<MemoryInfo> getCurrentMemory(@RequestParam(name = REQUEST_PARAM_TOKEN) String token)
         throws InvalidManagementTokenException, InvalidParametersException {
-        validateToken(token);
+        validateToken(token, true);
         ResultOne<MemoryInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(RESULT_KEY_MEMORY, MemoryInfo.getCurrentMemory());
@@ -75,9 +76,9 @@ public class MonitoringController extends ManagementTokenAware {
     }
 
     @GetMapping(value = ROOT_URL + STATUS_URL)
-    public ResultOne<StatusInfo> getCurrentStatus(@RequestParam(name = REQUEST_PARAM_TOKEN, required = false) String token)
+    public ResultOne<StatusInfo> getCurrentStatus(@RequestParam(name = REQUEST_PARAM_TOKEN) String token)
         throws InvalidManagementTokenException, InvalidParametersException {
-        validateToken(token);
+        validateToken(token, true);
         ResultOne<StatusInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(RESULT_KEY_STATUS, StatusInfo.getCurrentStatus());
@@ -94,6 +95,16 @@ public class MonitoringController extends ManagementTokenAware {
         return result;
     }
 
+    @GetMapping(value = ROOT_URL + SYSINFO_URL)
+    public ResultOne<SysInfo> getCurrentSysInfo(@RequestParam(name = REQUEST_PARAM_TOKEN) String token)
+            throws InvalidManagementTokenException, IOException, InvalidParametersException {
+        validateToken(token, true);
+        ResultOne<SysInfo> result = new ResultOne<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntity(RESULT_KEY_SYSINFO, SysInfo.getInfo(getClass()));
+        return result;
+    }
+
     @GetMapping(value = ROOT_URL + LOG_URL, produces = APPLICATION_JSON_VALUE)
     public ResultList<Map<String,Object>> getLogEvents(@Positive @RequestParam long since,
                                                        @RequestParam(name = REQUEST_PARAM_TOKEN, required = false) String token)
@@ -106,9 +117,9 @@ public class MonitoringController extends ManagementTokenAware {
     }
 
     @GetMapping(value = ROOT_URL + DISK_URL, produces = APPLICATION_JSON_VALUE)
-    public Result getDiskInfo(@RequestParam(name = REQUEST_PARAM_TOKEN, required = false) String token)
+    public Result getDiskInfo(@RequestParam(name = REQUEST_PARAM_TOKEN) String token)
             throws InvalidParametersException, InvalidManagementTokenException {
-        validateToken(token);
+        validateToken(token, true);
         ResultOne<DiskStatus> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_DISK, monitorService.getDiskUsage());
         result.setResponse(ApiResponse.OK);

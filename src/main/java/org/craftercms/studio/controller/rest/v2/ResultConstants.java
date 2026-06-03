@@ -52,6 +52,7 @@ public final class ResultConstants {
 
     public static final String RESULT_KEY_STATUS = "status";
     public static final String RESULT_KEY_VERSION = "version";
+    public static final String RESULT_KEY_SYSINFO = "sysinfo";
     public static final String RESULT_KEY_MEMORY = "memory";
     public static final String RESULT_KEY_EVENTS = "events";
     public static final String RESULT_KEY_DISK = "disk";
