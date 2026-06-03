@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,6 +23,7 @@ import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 
 import java.util.Objects;
 
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN;
 
 /**
@@ -40,11 +41,24 @@ public abstract class ManagementTokenAware {
 	}
 
 	protected void validateToken(String token) throws InvalidManagementTokenException, InvalidParametersException {
-		if (StringUtils.isEmpty(SecurityUtils.getCurrentUsername())) {
+		validateToken(token, false);
+	}
+
+	/**
+	 * Validates the provided token against the configured one. If requireToken is false, the token
+	 * will only be validated if there is no authenticated user in the current session.
+	 *
+	 * @param token        the token to validate
+	 * @param requireToken if true, the token will always be validated, if false, the token will only be validated if there is no authenticated user in the current session
+	 * @throws InvalidManagementTokenException if the token is invalid
+	 * @throws InvalidParametersException      if the token is required but not provided
+	 */
+	protected void validateToken(String token, boolean requireToken) throws InvalidManagementTokenException, InvalidParametersException {
+		if (requireToken || StringUtils.isEmpty(SecurityUtils.getCurrentUsername())) {
 			if (Objects.isNull(token)) {
 				throw new InvalidParametersException("Missing parameter: 'token'");
 			}
-			if (!StringUtils.equals(token, getConfiguredToken())) {
+			if (!CS.equals(token, getConfiguredToken())) {
 				throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
 			}
 		}
