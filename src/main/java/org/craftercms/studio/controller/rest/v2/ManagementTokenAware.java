@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.controller.rest.v2;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
@@ -23,6 +22,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.Objects;
 
+import static org.apache.commons.lang3.Strings.CS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN;
 
 /**
@@ -33,26 +33,25 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  */
 public abstract class ManagementTokenAware {
 
-    protected final StudioConfiguration studioConfiguration;
-    protected final SecurityService securityService;
+	protected final StudioConfiguration studioConfiguration;
+	protected final SecurityService securityService;
 
-    public ManagementTokenAware(StudioConfiguration studioConfiguration, SecurityService securityService) {
-        this.studioConfiguration = studioConfiguration;
-        this.securityService = securityService;
-    }
+	public ManagementTokenAware(StudioConfiguration studioConfiguration, SecurityService securityService) {
+		this.studioConfiguration = studioConfiguration;
+		this.securityService = securityService;
+	}
 
-    protected void validateToken(String token) throws InvalidManagementTokenException, InvalidParametersException {
-        if (StringUtils.isEmpty(securityService.getCurrentUser())) {
-            if (Objects.isNull(token)) {
-                throw new InvalidParametersException("Missing parameter: 'token'");
-            } else if(!StringUtils.equals(token, getConfiguredToken())) {
-                throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
-            }
-        }
-    }
+	protected void validateToken(String token) throws InvalidManagementTokenException, InvalidParametersException {
+		if (Objects.isNull(token)) {
+			throw new InvalidParametersException("Missing parameter: 'token'");
+		}
+		if (!CS.equals(token, getConfiguredToken())) {
+			throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
+		}
+	}
 
-    protected String getConfiguredToken() {
-        return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN);
-    }
+	protected String getConfiguredToken() {
+		return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_AUTHORIZATION_TOKEN);
+	}
 
 }

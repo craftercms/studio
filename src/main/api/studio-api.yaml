@@ -1914,7 +1914,7 @@ paths:
       parameters:
         - name: token
           in: query
-          description: Management token - not required for authenticated users
+          description: Management token
           required: true
           schema:
             type: string
@@ -3996,7 +3996,7 @@ paths:
       parameters:
         - name: token
           in: query
-          description: Management token - not required for authenticated users
+          description: Management token
           required: true
           schema:
             type: string
@@ -4027,7 +4027,7 @@ paths:
       parameters:
         - name: token
           in: query
-          description: Management token - not required for authenticated users
+          description: Management token
           required: true
           schema:
             type: string
@@ -4069,7 +4069,7 @@ paths:
       parameters:
         - name: token
           in: query
-          description: Management token - not required for authenticated users
+          description: Management token
           required: true
           schema:
             type: string
@@ -4107,7 +4107,7 @@ paths:
             format: int64
         - name: token
           in: query
-          description: Management token - not required for authenticated users
+          description: Management token
           required: true
           schema:
             type: string
@@ -4140,7 +4140,8 @@ paths:
       parameters:
         -   name: token
             in: query
-            description: Management token - not required for authenticated users
+            description: Management token
+            required: true
             schema:
               type: string
       responses:
