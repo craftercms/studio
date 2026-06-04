@@ -54,6 +54,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.lang.String.format;
 import static java.nio.file.Paths.get;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.text.StringSubstitutor.replace;
@@ -248,6 +249,9 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 			if (!taskExecutor.awaitTermination(executorTimeoutSeconds, TimeUnit.SECONDS)) {
 				logger.warn("Timed out waiting for site upgrades to complete after {}s, some sites may not be upgraded. Forcing shutdown", executorTimeoutSeconds);
 				taskExecutor.shutdownNow();
+				upgradeException.addSuppressed(
+						new UpgradeException(format("Timed out waiting for site upgrades to complete after %ss", executorTimeoutSeconds)));
+				upgradeFailed.set(true);
 			}
 		} catch (InterruptedException e) {
 			logger.warn("Interrupted while waiting for site upgrades to complete, some sites may not be upgraded. Forcing shutdown", e);
