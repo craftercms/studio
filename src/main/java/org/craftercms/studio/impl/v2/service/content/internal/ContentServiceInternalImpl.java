@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableLong;
@@ -126,7 +125,9 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Set.of;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
-import static org.apache.commons.collections4.CollectionUtils.subtract;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.*;
 import static org.apache.commons.collections4.ListUtils.union;
 import static org.apache.commons.collections4.SetUtils.difference;
 import static org.apache.commons.collections4.SetUtils.union;
@@ -164,6 +165,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
 	private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
+	private static final int DEFAULT_PAGE_NAV_ORDER_INCREMENT = 1000;
+
 	private static final String MOVE_TRANSACTION_FORMAT = "CONTENT_MOVE_%s";
 	private static final String DELETE_TRANSACTION_FORMAT = "CONTENT_DELETE_%s";
 	private static final String COPY_TRANSACTION_FORMAT = "CONTENT_COPY_%s";
@@ -183,6 +186,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private final GitContentRepository contentRepository;
 	private final ItemDAO itemDao;
 	private final StudioConfiguration studioConfiguration;
+	private final Integer pageNavOrderIncrement;
 	private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
 	private final AuditService auditService;
 	private final DependencyService dependencyService;
@@ -242,6 +246,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		this.entitlementValidator = entitlementValidator;
 		this.sqlSessionFactory = sqlSessionFactory;
 		this.contentTypeService = contentTypeService;
+		this.pageNavOrderIncrement = studioConfiguration.getProperty(PAGE_NAVIGATION_ORDER_INCREMENT, Integer.class, DEFAULT_PAGE_NAV_ORDER_INCREMENT);
 	}
 
 	@Override
@@ -299,7 +304,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		List<ContentItem> childItems = itemDao.getChildrenByPath(site.getId(), path,
 				locale, keyword, List.of(CONTENT_TYPE_LEVEL_DESCRIPTOR), null, null,
 				null, null, 0, 1);
-		if (CollectionUtils.isEmpty(childItems)) {
+		if (isEmpty(childItems)) {
 			return null;
 		}
 		ContentItem levelDescriptorItem = childItems.getFirst();
@@ -338,7 +343,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	private void processResultSet(String siteId, List<ContentItem> resultSet)
 			throws ServiceLayerException, UserNotFoundException {
-		if (CollectionUtils.isEmpty(resultSet)) {
+		if (isEmpty(resultSet)) {
 			return;
 		}
 		String user = getCurrentUsername();
@@ -407,7 +412,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	private List<ContentItem> calculatePossibleActions(String siteId, List<ContentItem> items)
 			throws ServiceLayerException, UserNotFoundException {
-		if (CollectionUtils.isEmpty(items)) {
+		if (isEmpty(items)) {
 			return emptyList();
 		}
 		List<ContentItem> toRet = new ArrayList<>();
@@ -430,7 +435,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				Arrays.asList(studioConfiguration.getArray(CONTENT_ITEM_EDITABLE_TYPES, String.class));
 
 		MimeType itemMimeType;
-		if (isEmpty(mimeType)) {
+		if (StringUtils.isEmpty(mimeType)) {
 			itemMimeType = MimeType.valueOf(StudioUtils.getMimeType(itemPath));
 		} else {
 			itemMimeType = MimeType.valueOf(mimeType);
@@ -516,7 +521,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				}
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
 				if (isPageDescriptor(path)) {
-					updateNavOrder(siteId, path, document);
+					updateNavOrder(siteId, path, document, false);
 				}
 				Map<String, ContentWriteItem> dependencies = updateContentOnWrite(siteId, sourcePath, path, newItemLabel, operation, document.getRootElement());
 				Path tempFile = createTempFile(path, document);
@@ -548,17 +553,54 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		return lifecycleContent;
 	}
 
-	private boolean updateNavOrder(String siteId, String path, Document document) {
-		// TODO: Check the nav order exists in the document, if not, add it with the next item order value
-		return false;
+	/**
+	 * Update the content XML with the new label and update the dependencies if needed.
+	 * @param siteId the site id
+	 * @param path the content path
+	 * @param document the content XML document
+	 * @param force if true, the nav order will be updated even if it already has a value. This is used for move operations, where we want to update the nav order to the end of the list
+	 * @return true if the document was updated and needs to be saved, false otherwise
+	 * @throws ServiceLayerException if any error occurs during the update
+	 */
+	private boolean updateNavOrder(String siteId, String path, Document document, boolean force) throws ServiceLayerException {
+		Element root = document.getRootElement();
+		boolean placeInNav = Boolean.parseBoolean(readSingleDocumentFromXPath(root, PLACE_IN_NAV_XPATH));
+		if (!placeInNav) {
+			// Not placed in navigation, no need to update the order
+			return false;
+		}
+
+		String order = readSingleDocumentNodeText(root, ELM_ORDER_DEFAULT);
+		if (StringUtils.isNotEmpty(order) && !force) {
+			// Order already exists, and we are not forcing the update, no need to update the order
+			return false;
+		}
+
+		// ItemOrders for siblings of current item
+		List<ItemOrder> itemsOrder = getItemsOrder(siteId, getParentUrl(path))
+				.stream()
+				.filter(item -> !CS.equals(path, item.getPath()))
+				.toList();
+
+		if (isEmpty(itemsOrder)) {
+			// No siblings with order, set to default increment
+			addOrUpdateSingleDocumentNode(root, ELM_ORDER_DEFAULT, String.valueOf(pageNavOrderIncrement));
+		} else {
+			// If there are other nav items, set item as last: order to the max order + default increment
+			ItemOrder maxOrderItem = itemsOrder.getLast();
+			double newOrder = maxOrderItem.getOrder() + pageNavOrderIncrement;
+			addOrUpdateSingleDocumentNode(root, ELM_ORDER_DEFAULT, String.valueOf(newOrder));
+		}
+
+		return true;
 	}
 
 	/**
 	 * Update the XML content objectId and groupId fields
 	 */
 	protected void updateObjectIds(Element root, ContentItemIds itemIds) {
-		updateSingleDocumentNode(root, ELM_OBJECT_ID, itemIds.objectId);
-		updateSingleDocumentNode(root, ELM_GROUP_ID, itemIds.groupId);
+		addOrUpdateSingleDocumentNode(root, ELM_OBJECT_ID, itemIds.objectId);
+		addOrUpdateSingleDocumentNode(root, ELM_GROUP_ID, itemIds.groupId);
 	}
 
 	/**
@@ -979,13 +1021,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			return (beforeOrder + afterOrder) / 2;
 		}
 
-		int increment = Integer.parseInt(studioConfiguration.getProperty(PAGE_NAVIGATION_ORDER_INCREMENT));
-
 		if (beforeOrder != null) {
-			return beforeOrder + increment;
+			return beforeOrder + pageNavOrderIncrement;
 		}
 
-		return afterOrder - increment;
+		return afterOrder - pageNavOrderIncrement;
 	}
 
 	/**
@@ -1044,7 +1084,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				if (contentDoc != null) {
 					Element rootElement = contentDoc.getRootElement();
 					String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-					if (isNotEmpty(internalName)) {
+					if (StringUtils.isNotEmpty(internalName)) {
 						label = internalName;
 					}
 					contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
@@ -1098,7 +1138,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		String commitId = contentRepository.createFolder(siteId, path);
 
 		WriteContentResult writeContentResult = new WriteContentResult(commitId, List.of(new WriteContentResultItem(path, NEW, false)));
-		if (isEmpty(commitId)) {
+		if (StringUtils.isEmpty(commitId)) {
 			return writeContentResult;
 		}
 
@@ -1253,9 +1293,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											  String newLabel, LifecycleOperation operation)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
 		String siteId = site.getSiteId();
-//		if (underPagesRoot(sourcePath)) {
-//			pageNavOrderService.copy(siteId, sourcePath, targetPath);
-//		}
 		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
 		Map<String, ContentWriteItem> dependencies =
 				lifecycleContents.stream()
@@ -1277,7 +1314,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
 				.toList();
 		PasteContentResult pasteResult = new PasteContentResult(commitId, copyResultItems, targetPath);
-		if (isEmpty(commitId)) {
+		if (StringUtils.isEmpty(commitId)) {
 			return pasteResult;
 		}
 
@@ -1321,7 +1358,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 		persistWriteToDB(siteId, additionalItems.values(), newFolders, operationsByPath);
 
-		if (CollectionUtils.isNotEmpty(targetItemPaths)) {
+		if (isNotEmpty(targetItemPaths)) {
 			itemService.updateParentId(site.getId(), targetItemPaths);
 		}
 
@@ -1412,7 +1449,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				.toList();
 		WriteContentResult writeContentResult = new WriteContentResult(commitId, writeResultItems);
 
-		if (isEmpty(commitId)) {
+		if (StringUtils.isEmpty(commitId)) {
 			// If commitId is null it means the content was the same, so nothing to commit
 			return writeContentResult;
 		}
@@ -1765,7 +1802,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected void assertNotInWorkflow(final String siteId, final List<String> paths, final boolean includeChildren)
 			throws ServiceLayerException {
 		Collection<PublishPackage> packagesForItems = publishService.getActivePackagesForItems(siteId, paths, includeChildren);
-		if (CollectionUtils.isNotEmpty(packagesForItems)) {
+		if (isNotEmpty(packagesForItems)) {
 			throw new ContentInPublishQueueException("Unable to edit content that is part of an active publish package", packagesForItems);
 		}
 	}
@@ -2151,9 +2188,6 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											  Collection<LifecycleContent> lifecycleContents, Set<String> sourcePathChildren)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException, DocumentException, IOException {
 		String siteId = site.getSiteId();
-//		if (underPagesRoot(sourcePath)) {
-//			pageNavOrderService.move(siteId, sourcePath, targetPath);
-//		}
 		updateNavOrderForMove(siteId, sourcePath, lifecycleContents, sourcePathChildren);
 		// Consolidate the items into a single map
 		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
@@ -2173,7 +2207,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 				.map(i -> new WriteContentResultItem(i.repoPath(), operationsByPath.get(i.repoPath()), i.amended()))
 				.toList();
 		PasteContentResult pasteResult = new PasteContentResult(commitId, moveResultItems, targetPath);
-		if (isEmpty(commitId)) {
+		if (StringUtils.isEmpty(commitId)) {
 			return pasteResult;
 		}
 
@@ -2313,13 +2347,13 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		boolean contentExists = contentExists(siteId, path);
 
 		String nowFormatted = getCurrentTimeIso();
-		updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE, nowFormatted);
-		updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE_DT, nowFormatted);
+		addOrUpdateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE, nowFormatted);
+		addOrUpdateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE_DT, nowFormatted);
 
 		Map<String, ContentWriteItem> copyDependencies = new HashMap<>();
 		if (!contentExists) {
-			updateSingleDocumentNode(root, ELM_CREATED_DATE, nowFormatted);
-			updateSingleDocumentNode(root, ELM_CREATED_DATE_DT, nowFormatted);
+			addOrUpdateSingleDocumentNode(root, ELM_CREATED_DATE, nowFormatted);
+			addOrUpdateSingleDocumentNode(root, ELM_CREATED_DATE_DT, nowFormatted);
 			if (operation.isCopy) {
 				ContentItemIds newContentIds = generate();
 				ContentItemIds oldContentIds = extractContentIds(root);
@@ -2329,11 +2363,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 		}
 
 		// New label means there was a name collision, so we need to update file and folder name fields as well
-		if (isNotEmpty(newLabel)) {
-			updateSingleDocumentNode(root, ELM_FILE_NAME, getName(path));
+		if (StringUtils.isNotEmpty(newLabel)) {
+			addOrUpdateSingleDocumentNode(root, ELM_FILE_NAME, getName(path));
 			if (isPageDescriptor(path)) {
 				String folder = FilenameUtils.getBaseName(CS.removeEnd(path, SLASH_INDEX_FILE));
-				updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
+				addOrUpdateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
 			}
 			updateSingleDocumentFromXPath(root, INTERNAL_NAME_XPATH, newLabel);
 		}
@@ -2368,7 +2402,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected void updateNavOrderForMove(String siteId, String targetPath, Collection<LifecycleContent> lifecycleContents,
 										 Set<String> sourcePathChildren)
-			throws DocumentException, IOException {
+			throws DocumentException, IOException, ServiceLayerException {
 		for (LifecycleContent lifecycleContent : lifecycleContents) {
 			List<ContentLifecycleItem> itemsToUpdate =
 					lifecycleContent.getItems().values().stream()
@@ -2380,7 +2414,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 			for (ContentLifecycleItem navUpdated : itemsToUpdate) {
 				Document document = navUpdated.contentAsDocument();
-				if (updateNavOrder(siteId, navUpdated.repoPath(), document)) {
+				if (updateNavOrder(siteId, navUpdated.repoPath(), document, true)) {
 					// This will update the ContentLifecycleItem and clean the resources of the previous version
 					lifecycleContent.write(navUpdated.repoPath(), document);
 				}
@@ -2553,7 +2587,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			Element root = document.getRootElement();
 			oldLabel = readSingleDocumentFromXPath(root, INTERNAL_NAME_XPATH);
 		}
-		if (isNotEmpty(oldLabel)) {
+		if (StringUtils.isNotEmpty(oldLabel)) {
 			String baseLabel = oldLabel.replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
 			return format(INTERNAL_NAME_MODIFIER_FORMAT, baseLabel, modifier);
 		}
