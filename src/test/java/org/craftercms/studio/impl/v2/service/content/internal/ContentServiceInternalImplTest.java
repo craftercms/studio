@@ -46,6 +46,7 @@ import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl.PastedPath;
@@ -139,6 +140,9 @@ public class ContentServiceInternalImplTest {
 
 	@Mock
 	protected EntitlementValidator entitlementValidator;
+
+	@Mock
+	protected StudioConfiguration studioConfiguration;
 
 	@InjectMocks
 	@Spy
