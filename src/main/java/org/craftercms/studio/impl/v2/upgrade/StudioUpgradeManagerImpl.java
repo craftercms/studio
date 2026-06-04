@@ -237,7 +237,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 				taskExecutor.execute(() -> {
 					try {
 						upgrade(site);
-					} catch (UpgradeException e) {
+					} catch (Exception e) {
 						logger.error("Failed to upgrade site '{}'", site, e);
 						upgradeException.addSuppressed(e);
 						upgradeFailed.set(true);
