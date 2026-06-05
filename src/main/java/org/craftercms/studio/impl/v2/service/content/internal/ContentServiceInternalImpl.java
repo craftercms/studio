@@ -276,7 +276,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 */
 	protected GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
 												  List<String> systemTypes, List<String> excludes, String sortStrategy,
-											   String order, int offset, int limit)
+												  String order, int offset, int limit)
 			throws ServiceLayerException, UserNotFoundException {
 		if (!contentRepository.contentExists(siteId, path)) {
 			throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
@@ -555,10 +555,11 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	/**
 	 * Update the content XML with the new label and update the dependencies if needed.
-	 * @param siteId the site id
-	 * @param path the content path
+	 *
+	 * @param siteId   the site id
+	 * @param path     the content path
 	 * @param document the content XML document
-	 * @param force if true, the nav order will be updated even if it already has a value. This is used for move operations, where we want to update the nav order to the end of the list
+	 * @param force    if true, the nav order will be updated even if it already has a value. This is used for move operations, where we want to update the nav order to the end of the list
 	 * @return true if the document was updated and needs to be saved, false otherwise
 	 * @throws ServiceLayerException if any error occurs during the update
 	 */
@@ -719,7 +720,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	protected WriteContentResult doRevert(final String siteId, final String path,
-										 final InputStream content)
+										  final InputStream content)
 			throws UserNotFoundException, AuthenticationException, ServiceLayerException {
 		return doWrite(siteId, path, content, REVERT, null);
 	}
@@ -1032,8 +1033,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * Return a Runnable that will check if the counter has exceeded the batch size and if so,
 	 * execute the queries and reset the counter
 	 *
-	 * @param sqlSession   sql session instance
-	 * @param counter      The counter to check
+	 * @param sqlSession sql session instance
+	 * @param counter    The counter to check
 	 * @return runnable
 	 */
 	private ThrowingRunnable getCheckCounterFunction(final SqlSession sqlSession, final MutableLong counter, final String siteId) {
@@ -1291,8 +1292,13 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected PasteContentResult copyInternal(Site site, String sourcePath, String targetPath,
 											  Collection<LifecycleContent> lifecycleContents, Set<String> sourceItemPaths,
 											  String newLabel, LifecycleOperation operation)
-			throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+			throws ServiceLayerException, UserNotFoundException, AuthenticationException, DocumentException, IOException {
 		String siteId = site.getSiteId();
+		Set<String> sourcePathChildren = new HashSet<>(itemDao.getChildrenPaths(site.getId(), sourcePath));
+		if (!ContentUtils.areSiblings(sourcePath, targetPath)) {
+			// If the parent is the same, let's keep the nav order the same (so copy and original will be next to each other in the nav)
+			updateNavOrderForCopyOrMove(siteId, targetPath, lifecycleContents, sourcePathChildren);
+		}
 		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
 		Map<String, ContentWriteItem> dependencies =
 				lifecycleContents.stream()
@@ -2188,7 +2194,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 											  Collection<LifecycleContent> lifecycleContents, Set<String> sourcePathChildren)
 			throws ServiceLayerException, UserNotFoundException, AuthenticationException, DocumentException, IOException {
 		String siteId = site.getSiteId();
-		updateNavOrderForMove(siteId, sourcePath, lifecycleContents, sourcePathChildren);
+		updateNavOrderForCopyOrMove(siteId, sourcePath, lifecycleContents, sourcePathChildren);
 		// Consolidate the items into a single map
 		Map<String, ContentLifecycleItem> lifecycleItems = mergeLifecycleContents(lifecycleContents);
 		List<String> workflowAffectedPaths = getMoveOrCopyWorkflowAffectedPaths(targetPath, lifecycleItems);
@@ -2388,9 +2394,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	}
 
 	/**
-	 * Update the navigation order for the moved items.
+	 * Update the navigation order for the copied/moved items.
 	 * This method will update the navigation order for all page items that are not in the sourcePathChildren set
-	 * Notice that the paths in the sourcePathChildren set are the ones that were moved, so they do not need to be
+	 * Notice that the paths in the sourcePathChildren set are the ones that were copied/moved, so they do not need to be
 	 * updated (because they have the same parent)
 	 *
 	 * @param siteId             the site id
@@ -2400,8 +2406,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws DocumentException if there is an error parsing the document
 	 * @throws IOException       if there is an error reading the document or writing it back to the lifecycleContent
 	 */
-	protected void updateNavOrderForMove(String siteId, String targetPath, Collection<LifecycleContent> lifecycleContents,
-										 Set<String> sourcePathChildren)
+	protected void updateNavOrderForCopyOrMove(String siteId, String targetPath, Collection<LifecycleContent> lifecycleContents,
+											   Set<String> sourcePathChildren)
 			throws DocumentException, IOException, ServiceLayerException {
 		for (LifecycleContent lifecycleContent : lifecycleContents) {
 			List<ContentLifecycleItem> itemsToUpdate =
@@ -2568,7 +2574,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	/**
 	 * Reads the internal name of the content item and generates a new label, according to the
-	 * modifer parameter.
+	 * modifier parameter.
 	 *
 	 * @param siteId   the site id
 	 * @param path     the path of the content item

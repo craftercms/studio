@@ -22,7 +22,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ContentUtilsTest {
@@ -50,5 +50,18 @@ public class ContentUtilsTest {
 	public void calculateFolderParentUrlTest() {
 		String parentUrl = getParentUrl(FOLDER_URL);
 		assertEquals(FOLDER_URL_PARENT, parentUrl, format("Parent of '%s' does not match expected value", FOLDER_URL));
+	}
+
+	@Test
+	public void areSiblingsTest() {
+		String url1 = "/site/website/articles/testing/my-article/index.xml";
+		String url2 = "/site/website/articles/testing/another-article/index.xml";
+		String url3 = "/site/website/articles/my-article/index.xml";
+		String url4 = "/site/website/articles/subfolder/index.xml";
+
+		assertTrue(ContentUtils.areSiblings(url1, url2), format("'%s' and '%s' should be siblings", url1, url2));
+		assertFalse(ContentUtils.areSiblings(url1, url3), format("'%s' and '%s' should not be siblings", url1, url3));
+		assertFalse(ContentUtils.areSiblings(url1, url4), format("'%s' and '%s' should not be siblings", url1, url4));
+		assertTrue(ContentUtils.areSiblings(url3, url4), format("'%s' and '%s' should be siblings", url2, url4));
 	}
 }

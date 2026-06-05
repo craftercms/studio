@@ -330,4 +330,15 @@ public class ContentUtils {
 		}
 		return CONTENT_TYPE_FILE;
 	}
+
+	/**
+	 * Checks if two content items are siblings, meaning they have the same parent URL.
+	 *
+	 * @param sourcePath the path of the first content item
+	 * @param targetPath the path of the second content item
+	 * @return true if the content items are siblings, false otherwise
+	 */
+	public static boolean areSiblings(String sourcePath, String targetPath) {
+		return CS.equals(getParentUrl(sourcePath), getParentUrl(targetPath));
+	}
 }
