@@ -23,7 +23,6 @@ import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -55,15 +54,14 @@ import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
+import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
@@ -81,6 +79,7 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.apache.commons.lang3.exception.ExceptionUtils.throwableOfType;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PAGE_NAVIGATION_ORDER_INCREMENT;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.convertStreamToXml;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
@@ -95,6 +94,7 @@ public class ContentServiceInternalImplTest {
 
 	private static final long SITE_NUMERIC_ID = 1001;
 	private static final int PUBLISH_PACKAGE_ID = 101;
+	private static final int ORDER_INCREMENT = 10;
 
 	@Mock
 	protected GitContentRepository contentRepository;
@@ -144,17 +144,14 @@ public class ContentServiceInternalImplTest {
 	@Mock
 	protected StudioConfiguration studioConfiguration;
 
-	@InjectMocks
-	@Spy
 	protected ContentServiceInternalImpl serviceInternal;
 
 	private InputStream contentStream;
 
 	@Before
-	public void setUp() throws SiteNotFoundException {
+	public void setUp() throws ServiceLayerException {
 		when(contentRepository.contentExists(SITE_ID, PATH)).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, NON_EXIST_CONTENT_PATH)).thenReturn(false);
-		serviceInternal.setApplicationEventPublisher(applicationEventPublisher);
 
 		doNothing().when(retryingDatabaseOperationFacade).retry(any(Runnable.class));
 
@@ -164,6 +161,32 @@ public class ContentServiceInternalImplTest {
 		when(siteService.getSite(SITE_ID)).thenReturn(site);
 
 		contentStream = new ByteArrayInputStream("test content".getBytes());
+
+		doReturn(ORDER_INCREMENT).when(studioConfiguration).getProperty(eq(PAGE_NAVIGATION_ORDER_INCREMENT), eq(Integer.class), any());
+
+		doNothing().when(contentLifecycle).execute(any(), any(), any());
+
+		serviceInternal = spy(new ContentServiceInternalImpl(transactionManager,
+				studioConfiguration,
+				siteService,
+				retryingDatabaseOperationFacade,
+				publishService,
+				permissionEvaluator,
+				itemService,
+				itemDAO,
+				generalLockService,
+				dependencyService,
+				contentRepository,
+				contentLifecycle,
+				auditService,
+				contentLifecycle,
+				null,
+				activityStreamService,
+				entitlementValidator,
+				null,
+				null
+		));
+		serviceInternal.setApplicationEventPublisher(applicationEventPublisher);
 	}
 
 	@Test
@@ -874,6 +897,45 @@ public class ContentServiceInternalImplTest {
 		});
 
 		verify(contentRepository, never()).writeContent(eq(SITE_ID), anyCollection(), anySet(), anyString());
+	}
+
+	@Test
+	public void testReorderAddAfter() throws ServiceLayerException {
+		String path = "/site/website/page1/index.xml";
+		ReorderItemRequest.AddAfter request = new ReorderItemRequest.AddAfter();
+		request.setReferencePath(path);
+
+		doReturn(4.0).when(serviceInternal).getItemOrder(SITE_ID, path);
+
+		double newOrder = serviceInternal.reorderItem(SITE_ID, request);
+		assertEquals("New order should be previous + increment", 14, newOrder, 0.001);
+	}
+
+	@Test
+	public void testReorderAddBefore() throws ServiceLayerException {
+		String path = "/site/website/page1/index.xml";
+		ReorderItemRequest.AddBefore request = new ReorderItemRequest.AddBefore();
+		request.setReferencePath(path);
+
+		doReturn(4.0).when(serviceInternal).getItemOrder(SITE_ID, path);
+
+		double newOrder = serviceInternal.reorderItem(SITE_ID, request);
+		assertEquals("New order should be next - increment", -6, newOrder, 0.001);
+	}
+
+	@Test
+	public void testReorderInsert() throws ServiceLayerException {
+		String path = "/site/website/page1/index.xml";
+		String path2 = "/site/website/page2/index.xml";
+		ReorderItemRequest.Insert request = new ReorderItemRequest.Insert();
+		request.setPreviousPath(path);
+		request.setNextPath(path2);
+
+		doReturn(4.0).when(serviceInternal).getItemOrder(SITE_ID, path);
+		doReturn(10.0).when(serviceInternal).getItemOrder(SITE_ID, path2);
+
+		double neOrder = serviceInternal.reorderItem(SITE_ID, request);
+		assertEquals("New order should be between previous and next values", 7, neOrder, 0.001);
 	}
 
 	/**

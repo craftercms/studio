@@ -186,7 +186,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private final GitContentRepository contentRepository;
 	private final ItemDAO itemDao;
 	private final StudioConfiguration studioConfiguration;
-	private final Integer pageNavOrderIncrement;
+	private final int pageNavOrderIncrement;
 	private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
 	private final AuditService auditService;
 	private final DependencyService dependencyService;
@@ -996,7 +996,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	protected double reorderItem(String siteId, String previousPath, String nextPath) throws ServiceLayerException {
 		String previousParent = getParentUrl(previousPath);
 		String nextParent = getParentUrl(nextPath);
-		if (!CS.equals(previousParent, nextParent)) {
+		if (previousPath != null && nextPath != null && !CS.equals(previousParent, nextParent)){
 			throw new InvalidParametersException(format("Previous item '%s' and next item '%s' for site '%s' do not have the same parent, cannot reorder item",
 					previousPath, nextPath, siteId));
 		}
