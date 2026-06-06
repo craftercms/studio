@@ -4017,6 +4017,37 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/2/monitoring/sysinfo:
+    get:
+      tags:
+        - monitoring
+      summary: Get the current system information
+      description: "Module: Studio"
+      operationId: getSysInfo
+      parameters:
+        - name: token
+          in: query
+          description: Management token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  sysinfo:
+                    $ref: '#/components/schemas/SysInfoItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /api/2/monitoring/status:
     get:
       tags:
@@ -4027,7 +4058,7 @@ paths:
       parameters:
         - name: token
           in: query
-          description: Management token - not required for authenticated users
+          description: Management token
           required: true
           schema:
             type: string
@@ -4069,7 +4100,7 @@ paths:
       parameters:
         - name: token
           in: query
-          description: Management token - not required for authenticated users
+          description: Management token
           required: true
           schema:
             type: string
@@ -4140,7 +4171,7 @@ paths:
       parameters:
         -   name: token
             in: query
-            description: Management token - not required for authenticated users
+            description: Management token
             schema:
               type: string
       responses:
@@ -10482,24 +10513,30 @@ components:
           type: string
           format: date-time
           description: The build date of the current package
-        osName:
-          type: string
-          description: The name of the operating system
-        osVersion:
-          type: string
-          description: The version of the operating system
-        osArch:
-          type: string
-          description: The architecture of the operating system
-        javaVersion:
-          type: string
-          description: The version of java being used
-        javaVendor:
-          type: string
-          description: The name of the JVM vendor
-        javaVm:
-          type: string
-          description: The name of the JVM
+
+    SysInfoItem:
+      allOf:
+        - $ref: '#/components/schemas/VersionItem'
+        - type: object
+          properties:
+            osName:
+              type: string
+              description: The name of the operating system
+            osVersion:
+              type: string
+              description: The version of the operating system
+            osArch:
+              type: string
+              description: The architecture of the operating system
+            javaVersion:
+              type: string
+              description: The version of java being used
+            javaVendor:
+              type: string
+              description: The name of the JVM vendor
+            javaVm:
+              type: string
+              description: The name of the JVM
 
     StatusItem:
       type: object
