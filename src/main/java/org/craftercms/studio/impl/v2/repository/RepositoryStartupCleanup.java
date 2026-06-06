@@ -19,8 +19,9 @@ package org.craftercms.studio.impl.v2.repository;
 import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
@@ -30,10 +31,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 
+import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 
@@ -47,9 +52,24 @@ import static org.craftercms.studio.api.v2.dal.Site.State.READY;
 public class RepositoryStartupCleanup {
 	private static final Logger logger = LoggerFactory.getLogger(RepositoryStartupCleanup.class);
 
-	protected SitesService siteService;
-	protected GeneralLockService generalLockService;
-	protected GitRepositoryHelper helper;
+	protected final SitesService siteService;
+	protected final GeneralLockService generalLockService;
+	protected final GitRepositoryHelper helper;
+	protected final int executorThreadCount;
+	protected final int executorTimeoutSeconds;
+
+	@ConstructorProperties({"generalLockService", "siteService",
+			"helper", "executorThreadCount",
+			"executorTimeoutSeconds"})
+	public RepositoryStartupCleanup(GeneralLockService generalLockService, SitesService siteService,
+									GitRepositoryHelper helper, int executorThreadCount,
+									int executorTimeoutSeconds) {
+		this.generalLockService = generalLockService;
+		this.siteService = siteService;
+		this.helper = helper;
+		this.executorThreadCount = executorThreadCount;
+		this.executorTimeoutSeconds = executorTimeoutSeconds;
+	}
 
 	@Order(20)
 	@LogExecutionTime
@@ -58,27 +78,47 @@ public class RepositoryStartupCleanup {
 		logger.debug("Clean up git lock for all repositories.");
 		try {
 			unlockSitesRepositories();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			logger.warn("Repository startup cleanup interrupted", e);
 		} catch (Exception e) {
 			logger.error("Error cleaning up git lock", e);
 		}
 	}
 
-	protected void unlockSitesRepositories() {
-		siteService.getSitesByState(READY).forEach(site -> {
-			String siteId = site.getSiteId();
-			logger.debug("Unlock git lock for site '{}'", siteId);
-			String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
-
-			generalLockService.lock(gitLockKeySandbox);
-			try {
-				unlockRepository(siteId, SANDBOX);
-				removeIndexIfCorrupted(siteId, SANDBOX);
-			} catch (RepositoryException e) {
-				logger.error("Error unlocking git repository for site '{}'", siteId, e);
-			} finally {
-				generalLockService.unlock(gitLockKeySandbox);
+	protected void unlockSitesRepositories() throws InterruptedException {
+		ExecutorService taskExecutor = Executors.newFixedThreadPool(executorThreadCount);
+		try {
+			for (Site site : siteService.getSitesByState(READY)) {
+				taskExecutor.execute(() -> unlockSiteRepositories(site));
 			}
-		});
+			taskExecutor.shutdown();
+			if (!taskExecutor.awaitTermination(executorTimeoutSeconds, SECONDS)) {
+				logger.warn("Timed out waiting for tasks to complete after {}s, forcing shutdown", executorTimeoutSeconds);
+				taskExecutor.shutdownNow();
+			}
+		} catch (InterruptedException e) {
+			logger.warn("Interrupted while waiting for repository cleanup tasks to complete, forcing shutdown", e);
+			taskExecutor.shutdownNow();
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	protected void unlockSiteRepositories(Site site) {
+		String siteId = site.getSiteId();
+		logger.debug("Unlock git lock for site '{}'", siteId);
+		String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
+
+		generalLockService.lock(gitLockKeySandbox);
+		try {
+			unlockRepository(siteId, SANDBOX);
+			removeIndexIfCorrupted(siteId, SANDBOX);
+		} catch (RepositoryException e) {
+			logger.error("Error unlocking git repository for site '{}'", siteId, e);
+		} finally {
+			generalLockService.unlock(gitLockKeySandbox);
+		}
+
 	}
 
 	protected void unlockRepository(String siteId, GitRepositories repository) {
@@ -113,17 +153,5 @@ public class RepositoryStartupCleanup {
 		} catch (IOException e) {
 			logger.error("Error cleaning up git repository '{}'", repoDir.getAbsolutePath(), e);
 		}
-	}
-
-	public void setSiteService(final SitesService siteService) {
-		this.siteService = siteService;
-	}
-
-	public void setGeneralLockService(final GeneralLockService generalLockService) {
-		this.generalLockService = generalLockService;
-	}
-
-	public void setHelper(final GitRepositoryHelper helper) {
-		this.helper = helper;
 	}
 }
