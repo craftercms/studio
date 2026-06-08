@@ -31,15 +31,6 @@ import java.util.List;
 public interface ContentService {
 
 	/**
-	 * get the tree of content items (metadata) beginning at a root
-	 *
-	 * @param site - the project ID
-	 * @param path - the path to root at
-	 * @return content item with children tree
-	 */
-	ContentItemTO getContentItemTree(String site, String path, int depth);
-
-	/**
 	 * get the content item (metadata) at a specific path
 	 *
 	 * @param site - the project ID
@@ -47,7 +38,5 @@ public interface ContentService {
 	 * @return content item representation
 	 */
 	ContentItemTO getContentItem(String site, String path);
-
-	List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 
 }
