@@ -942,8 +942,8 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					ItemOrder itemOrder = new ItemOrder(child.getPath(), child.getLabel(), order);
 					result.add(itemOrder);
 				}
-			} catch (ContentNotFoundException | NumberFormatException e) {
-				throw new ServiceLayerException(format("Failed to get content item order for site '%s' path '%s'", siteId, child.getPath()), e);
+			} catch (NumberFormatException e) {
+				logger.debug("Invalid order value for site '{}' path '{}', skipping item in order calculation", siteId, child.getPath(), e);
 			}
 		}
 		result.sort(Comparator.comparingDouble(ItemOrder::getOrder));
@@ -967,8 +967,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 		String orderString = rootElement.valueOf(DEFAULT_ORDER_XPATH);
 		Double order = null;
-		if (isNotBlank(orderString)) {
-			order = Double.parseDouble(orderString);
+		try {
+			if (isNotBlank(orderString)) {
+				order = Double.parseDouble(orderString);
+			}
+		} catch (NumberFormatException e) {
+			logger.debug("Invalid order value '{}' for site '{}' path '{}'", orderString, siteId, path, e);
 		}
 		return order;
 	}
