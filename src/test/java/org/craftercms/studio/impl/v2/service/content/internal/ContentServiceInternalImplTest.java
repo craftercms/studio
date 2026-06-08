@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
@@ -54,6 +55,7 @@ import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
+import org.craftercms.studio.model.rest.content.order.ItemOrder;
 import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -73,11 +75,13 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.apache.commons.lang3.exception.ExceptionUtils.throwableOfType;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PAGE_NAVIGATION_ORDER_INCREMENT;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
@@ -937,6 +941,123 @@ public class ContentServiceInternalImplTest {
 		double neOrder = serviceInternal.reorderItem(SITE_ID, request);
 		assertEquals("New order should be between previous and next values", 7, neOrder, 0.001);
 	}
+
+	@Test
+	public void testGetItemsOrder_returnsSortedListWhenChildrenHaveValidNavOrder() throws Exception {
+		String parentPath = "/site/website/section";
+
+		// Create mock children with different nav orders
+		List<ContentItem> mockChildren = Arrays.asList(
+				createMockContentItem("/site/website/section/page1/index.xml"),
+				createMockContentItem("/site/website/section/page2/index.xml"),
+				createMockContentItem("/site/website/section/page3/index.xml")
+		);
+
+		when(itemDAO.getChildrenByPath(eq(SITE_NUMERIC_ID), eq(parentPath),
+				isNull(), isNull(),
+				anyList(),
+				isNull(), isNull(),
+				isNull(), isNull(),
+				anyInt(), anyInt()))
+				.thenReturn(mockChildren);
+
+		doReturn(1000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page2/index.xml");
+		doReturn(2000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page3/index.xml");
+		doReturn(3000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page1/index.xml");
+
+		List<ItemOrder> result = serviceInternal.getItemsOrder(SITE_ID, parentPath);
+
+		assertEquals("Should return 3 items", 3, result.size());
+		assertEquals("First item should have lowest order", 1000.0, result.get(0).getOrder(), 0.001);
+		assertEquals("Second item should have middle order", 2000.0, result.get(1).getOrder(), 0.001);
+		assertEquals("Third item should have highest order", 3000.0, result.get(2).getOrder(), 0.001);
+	}
+
+	@Test
+	public void testGetItemsOrder_excludesChildrenWherePlaceInNavIsFalse() throws Exception {
+		String parentPath = "/site/website/section";
+
+		List<ContentItem> mockChildren = Arrays.asList(
+				createMockContentItem("/site/website/section/page1/index.xml"),
+				createMockContentItem("/site/website/section/page2/index.xml"),
+				createMockContentItem("/site/website/section/page3/index.xml")
+		);
+
+		when(itemDAO.getChildrenByPath(eq(SITE_NUMERIC_ID), eq(parentPath),
+				isNull(), isNull(),
+				anyList(),
+				isNull(), isNull(),
+				isNull(), isNull(),
+				anyInt(), anyInt()))
+				.thenReturn(mockChildren);
+
+		// page1 has placeInNav = true, order = 1000
+		doReturn(1000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page1/index.xml");
+		// page2 has placeInNav = false, should be excluded
+		doReturn(null).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page2/index.xml");
+		// page3 has placeInNav = true, order = 3000
+		doReturn(3000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page3/index.xml");
+
+		List<ItemOrder> result = serviceInternal.getItemsOrder(SITE_ID, parentPath);
+
+		assertEquals("Should return only 2 items (excluding page2)", 2, result.size());
+		assertEquals("First item should be page1", "/site/website/section/page1/index.xml", result.get(0).getPath());
+		assertEquals("Second item should be page3", "/site/website/section/page3/index.xml", result.get(1).getPath());
+	}
+
+	@Test
+	public void testGetItemsOrder_excludesChildrenWithNoOrderValue() throws Exception {
+		String parentPath = "/site/website/section";
+
+		List<ContentItem> mockChildren = Arrays.asList(
+				createMockContentItem("/site/website/section/page1/index.xml"),
+				createMockContentItem("/site/website/section/page2/index.xml"),
+				createMockContentItem("/site/website/section/page3/index.xml")
+		);
+
+		when(itemDAO.getChildrenByPath(eq(SITE_NUMERIC_ID), eq(parentPath),
+				isNull(), isNull(),
+				anyList(),
+				isNull(), isNull(),
+				isNull(), isNull(),
+				anyInt(), anyInt()))
+				.thenReturn(mockChildren);
+
+		doReturn(1000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page1/index.xml");
+		doReturn(null).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page2/index.xml");
+		doReturn(2000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page3/index.xml");
+
+		List<ItemOrder> result = serviceInternal.getItemsOrder(SITE_ID, parentPath);
+
+		assertEquals("Should return only items with valid order", 2, result.size());
+		assertFalse("Result should not contain page2",
+				result.stream().anyMatch(item -> item.getPath().equals("/site/website/section/page2")));
+	}
+
+	@Test
+	public void testGetItemsOrder_returnsEmptyListWhenParentHasNoChildren() throws Exception {
+		String parentPath = "/site/website/empty-section";
+
+		when(itemDAO.getChildrenByPath(eq(SITE_NUMERIC_ID), eq(parentPath),
+				isNull(), isNull(),
+				anyList(),
+				isNull(), isNull(),
+				isNull(), isNull(),
+				anyInt(), anyInt()))
+				.thenReturn(emptyList());
+
+		List<ItemOrder> result = serviceInternal.getItemsOrder(SITE_ID, parentPath);
+
+		assertNotNull("Result should not be null", result);
+		assertTrue("Result should be empty", result.isEmpty());
+	}
+
+	private ContentItem createMockContentItem(String path) {
+		ContentItem item = mock(ContentItem.class);
+		when(item.getPath()).thenReturn(path);
+		return item;
+	}
+
 
 	/**
 	 * Runs the provided runnable in a mocked static context for DBUtils and SecurityUtils.
