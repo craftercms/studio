@@ -166,6 +166,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
 	private static final int FETCH_AUTHOR_FROM_COMMITS_BATCH_SIZE = 1000;
 	private static final int DEFAULT_PAGE_NAV_ORDER_INCREMENT = 1000;
+	// Limit the number of children to fetch for page navigation order update to avoid performance issues.
+	// There should not really be pages with that many children in the navigation anyway
+	private static final int MAX_CHILDREN_FOR_GET_NAV_ORDER = 10000;
 
 	private static final String MOVE_TRANSACTION_FORMAT = "CONTENT_MOVE_%s";
 	private static final String DELETE_TRANSACTION_FORMAT = "CONTENT_DELETE_%s";
@@ -933,7 +936,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	public List<ItemOrder> getItemsOrder(String siteId, String parentPath) throws ServiceLayerException {
 		Site site = siteService.getSite(siteId);
 		List<ContentItem> pages = itemDao.getChildrenByPath(site.getId(), parentPath, null, null,
-				List.of(CONTENT_TYPE_PAGE), null, null, null, null, 0, Integer.MAX_VALUE);
+				List.of(CONTENT_TYPE_PAGE), null, null, null, null, 0, MAX_CHILDREN_FOR_GET_NAV_ORDER);
 		List<ItemOrder> result = new ArrayList<>(pages.size());
 		for (ContentItem child : pages) {
 			try {
