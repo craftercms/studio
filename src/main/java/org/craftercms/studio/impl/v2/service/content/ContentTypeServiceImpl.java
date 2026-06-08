@@ -140,6 +140,13 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 	}
 
 	@Override
+	@RequireSiteReady
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+	public boolean isContentTypeAllowed(@SiteId String siteId, @ContentPath String path, String contentTypeId) throws ServiceLayerException {
+		return contentTypeServiceInternal.isContentTypeAllowed(siteId, path, contentTypeId);
+	}
+
+	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
 	public String getContentTypeControllerPath(String contentTypeId) {
 		return contentTypeServiceInternal.getContentTypeControllerPath(contentTypeId);
