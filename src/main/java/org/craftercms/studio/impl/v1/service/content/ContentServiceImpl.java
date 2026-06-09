@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v1.service.content;
 import jakarta.validation.Valid;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -30,7 +29,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmOrderTO;
 import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
@@ -65,7 +63,10 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,7 +77,6 @@ import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_SITE_WEBSI
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.matchesPatterns;
 
 /**
@@ -93,7 +93,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
 	private GitContentRepository contentRepository;
 	protected ServicesConfig servicesConfig;
-	protected DmPageNavigationOrderService dmPageNavigationOrderService;
 	protected StudioConfiguration studioConfiguration;
 	protected ItemService itemService;
 	protected UserService userService;
@@ -612,34 +611,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 		}
 	}
 
-	@Override
-	@Valid
-	@LogExecutionTime
-	public ContentItemTO getContentItemTree(@ValidateStringParam String site,
-						@ValidateSecurePathParam String path,
-						int depth) {
-		logger.debug("Get the content item tree for item at site '{}' path '{}' with depth '{}'", site, path, depth);
-
-		boolean isPages = (path.contains(DmConstants.SLASH_SITE_WEBSITE));
-		ContentItemTO root;
-
-		if (isPages && contentExists(site, path + DmConstants.SLASH_INDEX_FILE)) {
-			if (depth > 1) {
-				root = getContentItem(site, path + DmConstants.SLASH_INDEX_FILE, depth);
-			} else {
-				root = getContentItem(site, path + DmConstants.SLASH_INDEX_FILE);
-			}
-		} else {
-			if (depth > 1) {
-				root = getContentItem(site, path, depth);
-			} else {
-				root = getContentItem(site, path);
-			}
-		}
-
-		return root;
-	}
-
 	private ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam String site,
 								    @ValidateSecurePathParam()
 								    String relativePath) throws SiteNotFoundException {
@@ -723,154 +694,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 	}
 
 	@Override
-	@Valid
-	public List<DmOrderTO> getItemOrders(@ValidateStringParam String site,
-					     @ValidateSecurePathParam String path) {
-		List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
-		for (DmOrderTO dmOrderTO : dmOrderTOs) {
-			dmOrderTO.setName(StringEscapeUtils.escapeJava(dmOrderTO.getName()));
-		}
-		return dmOrderTOs;
-	}
-
-	private List<DmOrderTO> getOrders(String site, String relativePath, String orderName, boolean includeFloating) {
-		// TODO: SJ: Refactor this in 3.1+
-		// TODO: SJ: Crafter Core already does some of this, refactor/redo
-		// if the path ends with index.xml, remove index.xml and also remove the last folder
-		// otherwise remove the file name only
-		if (!isEmpty(relativePath)) {
-			if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
-				int index = relativePath.lastIndexOf(FILE_SEPARATOR);
-				if (index > 0) {
-					String fileName = relativePath.substring(index + 1);
-					String path = relativePath.substring(0, index);
-					if (DmConstants.INDEX_FILE.equals(fileName)) {
-						int secondIndex = path.lastIndexOf(FILE_SEPARATOR);
-						if (secondIndex > 0) {
-							path = path.substring(0, secondIndex);
-						}
-					}
-					relativePath = path;
-				}
-			}
-		}
-		// get the root item and its children
-		ContentItemTO item = getContentItem(site, relativePath);
-		if (item.getChildren() != null) {
-			List<DmOrderTO> orders = new ArrayList<>(item.getChildren().size());
-			String pathIndex = relativePath + FILE_SEPARATOR + DmConstants.INDEX_FILE;
-			for (ContentItemTO child : item.getChildren()) {
-				// exclude index.xml, the level descriptor and floating pages at the path
-				if (!(pathIndex.equals(child.getUri()) || child.isLevelDescriptor() || child.isDeleted()) &&
-					(!child.isFloating() || includeFloating)) {
-					DmOrderTO order = new DmOrderTO();
-					order.setId(child.getUri());
-					Double orderNumber = child.getOrder(orderName);
-					// add only if the page contains order information
-					if (orderNumber != null && orderNumber > 0) {
-						order.setOrder(child.getOrder(orderName));
-						order.setName(child.getInternalName());
-						if (child.isDisabled())
-							order.setDisabled("true");
-						else
-							order.setDisabled("false");
-
-						if (child.isNavigation())
-							order.setPlaceInNav("true");
-						else
-							order.setPlaceInNav("false");
-
-						orders.add(order);
-					}
-				}
-			}
-			return orders;
-		}
-		return null;
-	}
-
-	@Override
-	@Valid
-	public double reorderItems(@ValidateStringParam String site,
-				   @ValidateSecurePathParam() String relativePath,
-				   @ValidateSecurePathParam() String before,
-				   @ValidateSecurePathParam() String after,
-				   @ValidateStringParam() String orderName) {
-		Double beforeOrder = null;
-		Double afterOrder = null;
-		DmOrderTO beforeOrderTO = null;
-		DmOrderTO afterOrderTO = null;
-		// get the order of the content before
-		// if the path is not provided, the order is 0
-		if (!isEmpty(before)) {
-			ContentItemTO beforeItem = getContentItem(site, before, 0);
-			beforeOrder = beforeItem.getOrder(orderName);
-			beforeOrderTO = new DmOrderTO();
-			beforeOrderTO.setId(before);
-			if (beforeOrder != null && beforeOrder > 0) {
-				beforeOrderTO.setOrder(beforeOrder);
-			}
-		}
-		// get the order of the content after
-		// if the path is not provided, the order is the order of before +
-		// ORDER_INCREMENT
-		if (!isEmpty(after)) {
-			ContentItemTO afterItem = getContentItem(site, after, 0);
-			afterOrder = afterItem.getOrder(orderName);
-			afterOrderTO = new DmOrderTO();
-			afterOrderTO.setId(after);
-			if (afterOrder != null && afterOrder > 0) {
-				afterOrderTO.setOrder(afterOrder);
-			}
-		}
-
-		// if no after and before provided, the initial value is ORDER_INCREMENT
-		if (afterOrder == null && beforeOrder == null) {
-			return dmPageNavigationOrderService.getNewNavOrder(site,
-				ContentUtils.getParentUrl(relativePath));
-		} else if (beforeOrder == null) {
-			return (0 + afterOrder) / 2;
-		} else if (afterOrder == null) {
-			return dmPageNavigationOrderService.getNewNavOrder(site,
-				ContentUtils.getParentUrl(relativePath), beforeOrder);
-		} else {
-			//return (beforeOrder + afterOrder) / 2;
-			return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);
-		}
-	}
-
-	/**
-	 * Will need to include the floating pages as well for orderValue computation
-	 * Since the beforeOrder and afterOrder in the UI does not include floating pages will need to do special processing
-	 */
-	protected double computeReorder(String site, String relativePath, DmOrderTO beforeOrderTO, DmOrderTO afterOrderTO,
-					String orderName) {
-		// TODO: SJ: This seems excessive, all we need is: double result = (getBefore + getAfter) / 2; return result;
-
-		List<DmOrderTO> orderTO = getOrders(site, relativePath, orderName, true);
-		Collections.sort(orderTO);
-
-		int beforeIndex = orderTO.indexOf(beforeOrderTO);
-		int afterIndex = orderTO.indexOf(afterOrderTO);
-
-		if (!(beforeIndex + 1 == afterIndex)) {
-			beforeOrderTO = orderTO.get(afterIndex - 1);
-		}
-		return (beforeOrderTO.getOrder() + afterOrderTO.getOrder()) / 2;
-	}
-
-	@Override
 	public void setApplicationContext(@NonNull ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 	}
 
 	public void setServicesConfig(ServicesConfig servicesConfig) {
 		this.servicesConfig = servicesConfig;
-	}
-
-	@SuppressWarnings("unused")
-	public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
-		this.dmPageNavigationOrderService = dmPageNavigationOrderService;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

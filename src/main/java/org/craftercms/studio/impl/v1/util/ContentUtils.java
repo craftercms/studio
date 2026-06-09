@@ -167,14 +167,19 @@ public class ContentUtils {
 	}
 
 	/**
-	 * Helper method to update a single node element with the indicated value
+	 * Helper method to add or update a single node element with the indicated value
 	 *
 	 * @param root     root element
 	 * @param nodeName name of the node to update
-	 * @param value    new text value of the node, if found
+	 * @param value    new text value of the node
 	 */
-	public static void updateSingleDocumentNode(final Element root, final String nodeName, final String value) {
-		updateSingleDocumentFromXPath(root, format("//%s", nodeName), value);
+	public static void addOrUpdateSingleDocumentNode(final Element root, final String nodeName, final String value) {
+		Node node = root.selectSingleNode(format("//%s", nodeName));
+		if (node != null) {
+			node.setText(value);
+		} else {
+			root.addElement(nodeName).setText(value);
+		}
 	}
 
 	/**
@@ -324,5 +329,16 @@ public class ContentUtils {
 			return CONTENT_TYPE_CONFIGURATION;
 		}
 		return CONTENT_TYPE_FILE;
+	}
+
+	/**
+	 * Checks if two content items are siblings, meaning they have the same parent URL.
+	 *
+	 * @param sourcePath the path of the first content item
+	 * @param targetPath the path of the second content item
+	 * @return true if the content items are siblings, false otherwise
+	 */
+	public static boolean areSiblings(String sourcePath, String targetPath) {
+		return CS.equals(getParentUrl(sourcePath), getParentUrl(targetPath));
 	}
 }

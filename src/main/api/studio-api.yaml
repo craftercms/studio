@@ -2471,142 +2471,6 @@ paths:
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 
-    /api/1/services/api/1/content/get-item-orders.json:
-        get:
-            tags:
-                - content
-            summary: Get item orders.
-            description: |
-                    Module: Studio <br>
-                    Required role: N/A
-            operationId: getItemOrders
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/style/index.xml
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    item:
-                                        $ref: '#/components/schemas/ContentItemV1'
-                                    versions:
-                                        type: array
-                                        items:
-                                            $ref: '#/components/schemas/ContentItemOrder'
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-
-    /api/1/services/api/1/content/get-next-item-order.json:
-        get:
-            tags:
-                - content
-            summary: Get next item order.
-            description: |
-                    Module: Studio <br>
-                    Required role: N/A
-            operationId: getNextItemOrder
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the parent item
-                    required: true
-                    example: /site/website/index.xml
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    nextValue:
-                                        type: number
-                            example: 1000.0
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-
-    /api/1/services/api/1/content/reorder-items.json:
-        get:
-            tags:
-                - content
-            summary: Reorder content items.
-            description: |
-                    Module: Studio <br>
-                    Required role: N/A
-            operationId: reorderItems
-            parameters:
-                -   name: site_id
-                    in: query
-                    description: Project/Site ID to use
-                    required: true
-                    schema:
-                        type: string
-                -   name: path
-                    in: query
-                    schema:
-                        type: string
-                    description: Path of the content
-                    required: true
-                    example: /site/website/health/index.xml
-                -   name: before
-                    in: query
-                    schema:
-                        type: string
-                    description: Item before the item with given path
-                    required: true
-                    example: 1
-                -   name: after
-                    in: query
-                    schema:
-                        type: string
-                    description: Item after the item with given path
-                    required: true
-                    example: default
-            responses:
-                '200':
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    orderValue:
-                                        type: number
-                            example: 10500.0
-                '400':
-                    $ref: '#/components/responses/api1BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
-                '500':
-                    $ref: '#/components/responses/api1InternalServerError'
-
     /api/2/search/search:
         post:
             tags:
@@ -5595,6 +5459,125 @@ paths:
                     $ref: '#/components/responses/NotFound'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+
+    /api/2/content/{siteId}/order:
+        get:
+            tags:
+                - content
+            summary: Get the existing items order for a given parent path
+            description: 'Required permission "content_read"'
+            operationId: getItemsOrder
+            parameters:
+                - name: siteId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                  description: Site ID
+                - name: parentPath
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                  description: Parent path
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    items:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                path:
+                                                    type: string
+                                                order:
+                                                    type: number
+                                                    format: double
+                                                label:
+                                                    type: string
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
+    /api/2/content/{siteId}/order/reorder:
+        post:
+            tags:
+                - content
+            summary: Calculates the order value so the item is placed at the selected location.
+            description: 'Required permission "content_read"'
+            operationId: reorderItem
+            parameters:
+                - name: siteId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                  description: Site ID
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            discriminator:
+                                propertyName: type
+                                mapping:
+                                    addBefore: '#/components/schemas/ReorderItemReferencePathRequest'
+                                    insertBetween: '#/components/schemas/ReorderItemInsertBetweenRequest'
+                                    addAfter: '#/components/schemas/ReorderItemReferencePathRequest'
+                            oneOf:
+                                -   $ref: '#/components/schemas/ReorderItemInsertBetweenRequest'
+                                -   $ref: '#/components/schemas/ReorderItemReferencePathRequest'
+                        examples:
+                            addBefore:
+                                summary: Add before reference item
+                                value:
+                                    type: addBefore
+                                    referencePath: /site/website/article1/index.xml
+                            insertBetween:
+                                summary: Insert between two reference items
+                                value:
+                                    type: insertBetween
+                                    previousPath: /site/website/article1/index.xml
+                                    nextPath: /site/website/article2/index.xml
+                            addAfter:
+                                summary: Add after reference item
+                                value:
+                                    type: addAfter
+                                    referencePath: /site/website/article1/index.xml
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    response:
+                                        $ref: '#/components/schemas/ApiResponse'
+                                    order:
+                                        type: number
+                                        format: double
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+                '500':
+                    $ref: '#/components/responses/InternalServerError'
+
 
     /api/2/dependency/{siteId}/publish_dependencies:
         post:
@@ -11000,6 +10983,56 @@ components:
                     type: boolean
                 new:
                     type: boolean
+
+        ReorderItemRequestBase:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: The type of the reorder request
+                    enum:
+                        - addBefore
+                        - insertBetween
+                        - addAfter
+            required:
+                - type
+
+        ReorderItemReferencePathRequest:
+            allOf:
+                -   $ref: '#/components/schemas/ReorderItemRequestBase'
+                -   type: object
+                    properties:
+                        type:
+                            type: string
+                            enum:
+                                - addBefore
+                                - addAfter
+                        referencePath:
+                            type: string
+                            description: The reference path to reorder
+                    required:
+                        - referencePath
+                        - type
+
+        ReorderItemInsertBetweenRequest:
+            allOf:
+                -   $ref: '#/components/schemas/ReorderItemRequestBase'
+                -   type: object
+                    properties:
+                        type:
+                            type: string
+                            enum:
+                                - insertBetween
+                        previousPath:
+                            type: string
+                            description: The sibling item that is expected to be before the current item
+                        nextPath:
+                            type: string
+                            description: The sibling item that is expected to be after the current item
+                    required:
+                        - previousPath
+                        - nextPath
+                        - type
 
         ContentItemOrder:
             type: object

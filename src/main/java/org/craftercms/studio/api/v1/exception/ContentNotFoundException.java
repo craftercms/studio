@@ -22,29 +22,18 @@ public class ContentNotFoundException extends ServiceLayerException {
 	 */
 	protected static final long serialVersionUID = 8988159536378832232L;
 
-	protected String path;
+	protected final String path;
 
-	protected String site;
-
-	public ContentNotFoundException() {
-	}
+	protected final String site;
 
 	public ContentNotFoundException(String path, String site, String message) {
-		super(message);
+		this(path, site, message, null);
+	}
+
+	public ContentNotFoundException(String path, String site, String message, Exception e) {
+		super(message, e);
 		this.path = path;
 		this.site = site;
-	}
-
-	public ContentNotFoundException(Exception e) {
-		super(e);
-	}
-
-	public ContentNotFoundException(String message) {
-		super(message);
-	}
-
-	public ContentNotFoundException(String message, Exception e) {
-		super(message, e);
 	}
 
 	public String getPath() {

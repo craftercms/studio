@@ -82,7 +82,6 @@
 	<bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
 		<property name="contentRepository" ref="contentRepository"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="itemService" ref="itemService"/>
 		<property name="userService" ref="userServiceInternal"/>
@@ -121,14 +120,6 @@
 		<property name="configurationService" ref="configurationServiceInternal"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="configurationCache" ref="configurationCache"/>
-	</bean>
-
-	<bean id="cstudioPageNavOrderService" class="org.craftercms.studio.impl.v1.service.content.DmPageNavigationOrderServiceImpl">
-		<property name="contentService" ref="cstudioContentService"/>
-		<property name="generalLockService" ref="cstudioGeneralLockService"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="navigationOrderSequenceMapper" ref="navigationOrderSequenceMapper"/>
-		<property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
 	</bean>
 
 	<bean id="clipboardServiceInternal"

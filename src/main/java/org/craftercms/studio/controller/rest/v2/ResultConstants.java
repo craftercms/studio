@@ -81,6 +81,7 @@ public final class ResultConstants {
 	public static final String RESULT_KEY_XML = "xml";
 	public static final String RESULT_KEY_CONTENT = "content";
 	public static final String RESULT_KEY_EXISTS = "exists";
+	public static final String RESULT_KEY_ORDER = "order";
 
 	/**
 	 * Publish controller

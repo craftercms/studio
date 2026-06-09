@@ -184,6 +184,9 @@ public final class StudioConstants {
 	// Content items xml
 	public static final String INTERNAL_NAME_XPATH = "/*[1]/internal-name";
 
+	public static final String DEFAULT_ORDER_XPATH = "/*[1]/orderDefault_f";
+	public static final String PLACE_IN_NAV_XPATH = "/*[1]/placeInNav";
+
 	private StudioConstants() {
 	}
 }

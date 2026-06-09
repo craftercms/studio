@@ -36,7 +36,6 @@ END ;
 	 - remote_repository
 	 - dependency
 	 - item
-	 - navigation_order_sequence
 
 	 Note: this procedure depends on populateItemParentId
 **/
@@ -60,9 +59,6 @@ BEGIN
 		SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.ignored, i.saved_as_draft FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
 
 	SELECT id FROM site WHERE site_id = siteId AND deleted = 0 INTO @siteNumericId;
-
-	INSERT INTO navigation_order_sequence (folder_id, site, path, max_count)
-		SELECT UUID(), siteId, nos.path, nos.max_count FROM navigation_order_sequence nos WHERE nos.site = sourceSiteId;
 
 	SELECT id FROM site WHERE site_id = sourceSiteId AND deleted = 0 INTO @sourceSiteNumericId;
 
@@ -200,9 +196,6 @@ BEGIN
 		-- dependencies
 		DELETE FROM dependency WHERE site = siteId;
 
-		-- sequences
-		DELETE FROM navigation_order_sequence WHERE site = siteId;
-
 		-- remote repositories
 		DELETE FROM remote_repository WHERE site_id = siteId;
 
@@ -224,7 +217,7 @@ CREATE TABLE _meta (
 	PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.18', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.19', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
 	`id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -278,18 +271,6 @@ CREATE TABLE IF NOT EXISTS `dependency` (
 	KEY `dependency_site_idx` (`site`),
 	KEY `dependency_sourcepath_idx` (`source_path`(1000)),
 	KEY `dependency_targetpath_idx` (`target_path`(1000))
-)
-	ENGINE = InnoDB
-	DEFAULT CHARSET = utf8
-	ROW_FORMAT = DYNAMIC ;
-
-CREATE TABLE IF NOT EXISTS `navigation_order_sequence` (
-	`folder_id` VARCHAR(100) NOT NULL,
-	`site`      VARCHAR(50)  NOT NULL,
-	`path`      TEXT         NOT NULL,
-	`max_count` FLOAT        NOT NULL,
-	PRIMARY KEY (`folder_id`),
-	KEY `navigationorder_folder_idx` (`folder_id`)
 )
 	ENGINE = InnoDB
 	DEFAULT CHARSET = utf8

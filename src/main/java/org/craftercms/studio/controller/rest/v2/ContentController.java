@@ -49,6 +49,8 @@ import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
 import org.craftercms.studio.model.rest.content.*;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
+import org.craftercms.studio.model.rest.content.order.ItemOrder;
+import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.dom4j.Document;
 import org.eclipse.jgit.lib.Constants;
 import org.springframework.core.io.Resource;
@@ -338,8 +340,8 @@ public class ContentController {
 
 	@GetMapping(SITE_HISTORY)
 	public ResultList<RepositoryVersion> history(@ValidSiteId @PathVariable String siteId,
-											 @NotEmpty @RequestParam(defaultValue = Constants.HEAD) String start,
-											 @Positive @RequestParam(defaultValue = "10") int limit) throws ServiceLayerException {
+												 @NotEmpty @RequestParam(defaultValue = Constants.HEAD) String start,
+												 @Positive @RequestParam(defaultValue = "10") int limit) throws ServiceLayerException {
 		ResultList<RepositoryVersion> result = new ResultList<>();
 		result.setEntities(RESULT_KEY_ITEMS, contentService.getHistory(siteId, start, limit));
 		result.setResponse(OK);
@@ -367,6 +369,23 @@ public class ContentController {
 		WriteContentResult createFolderResult = contentService.createFolder(siteId, folderPath);
 		UnwrappedResult<WriteContentResult> result = UnwrappedResult.of(createFolderResult);
 		result.setResponse(CREATED);
+		return result;
+	}
+
+	@GetMapping(GET_ITEMS_ORDER)
+	public ResultList<ItemOrder> getItemsOrder(@ValidSiteId @PathVariable String siteId, @NotEmpty @ValidExistingContentPath @RequestParam String parentPath) throws ServiceLayerException {
+		ResultList<ItemOrder> result = new ResultList<>();
+		List<ItemOrder> itemsOrder = contentService.getItemsOrder(siteId, parentPath);
+		result.setEntities(RESULT_KEY_ITEMS, itemsOrder);
+		result.setResponse(OK);
+		return result;
+	}
+
+	@PostMapping(REORDER_ITEM)
+	public ResultOne<Double> reorderItem(@ValidSiteId @PathVariable String siteId, @Valid @RequestBody ReorderItemRequest request) throws ServiceLayerException {
+		ResultOne<Double> result = new ResultOne<>();
+		result.setEntity(RESULT_KEY_ORDER, contentService.reorderItem(siteId, request));
+		result.setResponse(OK);
 		return result;
 	}
 }

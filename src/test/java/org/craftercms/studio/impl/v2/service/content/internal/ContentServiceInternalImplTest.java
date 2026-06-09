@@ -23,11 +23,9 @@ import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v2.content.ContentLifecycle;
 import org.craftercms.studio.api.v2.content.LifecycleContent;
 import org.craftercms.studio.api.v2.content.LifecycleContent.ContentLifecycleItem;
@@ -35,6 +33,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
@@ -47,6 +46,7 @@ import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl.PastedPath;
@@ -55,15 +55,15 @@ import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.content.PasteContentResult;
 import org.craftercms.studio.model.rest.content.WriteContentResult;
+import org.craftercms.studio.model.rest.content.order.ItemOrder;
+import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
@@ -75,12 +75,15 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.apache.commons.lang3.exception.ExceptionUtils.throwableOfType;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PAGE_NAVIGATION_ORDER_INCREMENT;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.convertStreamToXml;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.getParentUrl;
@@ -95,6 +98,7 @@ public class ContentServiceInternalImplTest {
 
 	private static final long SITE_NUMERIC_ID = 1001;
 	private static final int PUBLISH_PACKAGE_ID = 101;
+	private static final int ORDER_INCREMENT = 10;
 
 	@Mock
 	protected GitContentRepository contentRepository;
@@ -136,25 +140,22 @@ public class ContentServiceInternalImplTest {
 	protected DependencyService dependencyService;
 
 	@Mock
-	protected DmPageNavigationOrderService pageNavOrderService;
-
-	@Mock
 	protected SitesService siteService;
 
 	@Mock
 	protected EntitlementValidator entitlementValidator;
 
-	@InjectMocks
-	@Spy
+	@Mock
+	protected StudioConfiguration studioConfiguration;
+
 	protected ContentServiceInternalImpl serviceInternal;
 
 	private InputStream contentStream;
 
 	@Before
-	public void setUp() throws SiteNotFoundException {
+	public void setUp() throws ServiceLayerException {
 		when(contentRepository.contentExists(SITE_ID, PATH)).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, NON_EXIST_CONTENT_PATH)).thenReturn(false);
-		serviceInternal.setApplicationEventPublisher(applicationEventPublisher);
 
 		doNothing().when(retryingDatabaseOperationFacade).retry(any(Runnable.class));
 
@@ -164,6 +165,32 @@ public class ContentServiceInternalImplTest {
 		when(siteService.getSite(SITE_ID)).thenReturn(site);
 
 		contentStream = new ByteArrayInputStream("test content".getBytes());
+
+		doReturn(ORDER_INCREMENT).when(studioConfiguration).getProperty(eq(PAGE_NAVIGATION_ORDER_INCREMENT), eq(Integer.class), any());
+
+		doNothing().when(contentLifecycle).execute(any(), any(), any());
+
+		serviceInternal = spy(new ContentServiceInternalImpl(transactionManager,
+				studioConfiguration,
+				siteService,
+				retryingDatabaseOperationFacade,
+				publishService,
+				permissionEvaluator,
+				itemService,
+				itemDAO,
+				generalLockService,
+				dependencyService,
+				contentRepository,
+				contentLifecycle,
+				auditService,
+				contentLifecycle,
+				null,
+				activityStreamService,
+				entitlementValidator,
+				null,
+				null
+		));
+		serviceInternal.setApplicationEventPublisher(applicationEventPublisher);
 	}
 
 	@Test
@@ -394,8 +421,6 @@ public class ContentServiceInternalImplTest {
 		assertEquals("Number of items should match", 3, moveResult.getItems().size());
 
 		verify(contentRepository, times(1)).moveContent(eq(SITE_ID), eq(sourceFolder), eq(targetFolder), anyCollection(), anySet());
-
-		verify(pageNavOrderService).move(SITE_ID, sourceFolder, targetFolder);
 
 		verify(serviceInternal, times(3)).runLifecycle(
 				eq(SITE_ID), any(), anyString(), any(), any(), any()
@@ -877,6 +902,162 @@ public class ContentServiceInternalImplTest {
 
 		verify(contentRepository, never()).writeContent(eq(SITE_ID), anyCollection(), anySet(), anyString());
 	}
+
+	@Test
+	public void testReorderAddAfter() throws ServiceLayerException {
+		String path = "/site/website/page1/index.xml";
+		ReorderItemRequest.AddAfter request = new ReorderItemRequest.AddAfter();
+		request.setReferencePath(path);
+
+		doReturn(4.0).when(serviceInternal).getItemOrder(SITE_ID, path);
+
+		double newOrder = serviceInternal.reorderItem(SITE_ID, request);
+		assertEquals("New order should be previous + increment", 14, newOrder, 0.001);
+	}
+
+	@Test
+	public void testReorderAddBefore() throws ServiceLayerException {
+		String path = "/site/website/page1/index.xml";
+		ReorderItemRequest.AddBefore request = new ReorderItemRequest.AddBefore();
+		request.setReferencePath(path);
+
+		doReturn(4.0).when(serviceInternal).getItemOrder(SITE_ID, path);
+
+		double newOrder = serviceInternal.reorderItem(SITE_ID, request);
+		assertEquals("New order should be next - increment", -6, newOrder, 0.001);
+	}
+
+	@Test
+	public void testReorderInsert() throws ServiceLayerException {
+		String path = "/site/website/page1/index.xml";
+		String path2 = "/site/website/page2/index.xml";
+		ReorderItemRequest.Insert request = new ReorderItemRequest.Insert();
+		request.setPreviousPath(path);
+		request.setNextPath(path2);
+
+		doReturn(4.0).when(serviceInternal).getItemOrder(SITE_ID, path);
+		doReturn(10.0).when(serviceInternal).getItemOrder(SITE_ID, path2);
+
+		double neOrder = serviceInternal.reorderItem(SITE_ID, request);
+		assertEquals("New order should be between previous and next values", 7, neOrder, 0.001);
+	}
+
+	@Test
+	public void testGetItemsOrder_returnsSortedListWhenChildrenHaveValidNavOrder() throws Exception {
+		String parentPath = "/site/website/section";
+
+		// Create mock children with different nav orders
+		List<ContentItem> mockChildren = Arrays.asList(
+				createMockContentItem("/site/website/section/page1/index.xml"),
+				createMockContentItem("/site/website/section/page2/index.xml"),
+				createMockContentItem("/site/website/section/page3/index.xml")
+		);
+
+		when(itemDAO.getChildrenByPath(eq(SITE_NUMERIC_ID), eq(parentPath),
+				isNull(), isNull(),
+				anyList(),
+				isNull(), isNull(),
+				isNull(), isNull(),
+				anyInt(), anyInt()))
+				.thenReturn(mockChildren);
+
+		doReturn(1000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page2/index.xml");
+		doReturn(2000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page3/index.xml");
+		doReturn(3000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page1/index.xml");
+
+		List<ItemOrder> result = serviceInternal.getItemsOrder(SITE_ID, parentPath);
+
+		assertEquals("Should return 3 items", 3, result.size());
+		assertEquals("First item should have lowest order", 1000.0, result.get(0).getOrder(), 0.001);
+		assertEquals("Second item should have middle order", 2000.0, result.get(1).getOrder(), 0.001);
+		assertEquals("Third item should have highest order", 3000.0, result.get(2).getOrder(), 0.001);
+	}
+
+	@Test
+	public void testGetItemsOrder_excludesChildrenWherePlaceInNavIsFalse() throws Exception {
+		String parentPath = "/site/website/section";
+
+		List<ContentItem> mockChildren = Arrays.asList(
+				createMockContentItem("/site/website/section/page1/index.xml"),
+				createMockContentItem("/site/website/section/page2/index.xml"),
+				createMockContentItem("/site/website/section/page3/index.xml")
+		);
+
+		when(itemDAO.getChildrenByPath(eq(SITE_NUMERIC_ID), eq(parentPath),
+				isNull(), isNull(),
+				anyList(),
+				isNull(), isNull(),
+				isNull(), isNull(),
+				anyInt(), anyInt()))
+				.thenReturn(mockChildren);
+
+		// page1 has placeInNav = true, order = 1000
+		doReturn(1000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page1/index.xml");
+		// page2 has placeInNav = false, should be excluded
+		doReturn(null).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page2/index.xml");
+		// page3 has placeInNav = true, order = 3000
+		doReturn(3000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page3/index.xml");
+
+		List<ItemOrder> result = serviceInternal.getItemsOrder(SITE_ID, parentPath);
+
+		assertEquals("Should return only 2 items (excluding page2)", 2, result.size());
+		assertEquals("First item should be page1", "/site/website/section/page1/index.xml", result.get(0).getPath());
+		assertEquals("Second item should be page3", "/site/website/section/page3/index.xml", result.get(1).getPath());
+	}
+
+	@Test
+	public void testGetItemsOrder_excludesChildrenWithNoOrderValue() throws Exception {
+		String parentPath = "/site/website/section";
+
+		List<ContentItem> mockChildren = Arrays.asList(
+				createMockContentItem("/site/website/section/page1/index.xml"),
+				createMockContentItem("/site/website/section/page2/index.xml"),
+				createMockContentItem("/site/website/section/page3/index.xml")
+		);
+
+		when(itemDAO.getChildrenByPath(eq(SITE_NUMERIC_ID), eq(parentPath),
+				isNull(), isNull(),
+				anyList(),
+				isNull(), isNull(),
+				isNull(), isNull(),
+				anyInt(), anyInt()))
+				.thenReturn(mockChildren);
+
+		doReturn(1000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page1/index.xml");
+		doReturn(null).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page2/index.xml");
+		doReturn(2000.0).when(serviceInternal).getItemOrder(SITE_ID, "/site/website/section/page3/index.xml");
+
+		List<ItemOrder> result = serviceInternal.getItemsOrder(SITE_ID, parentPath);
+
+		assertEquals("Should return only items with valid order", 2, result.size());
+		assertFalse("Result should not contain page2",
+				result.stream().anyMatch(item -> item.getPath().equals("/site/website/section/page2")));
+	}
+
+	@Test
+	public void testGetItemsOrder_returnsEmptyListWhenParentHasNoChildren() throws Exception {
+		String parentPath = "/site/website/empty-section";
+
+		when(itemDAO.getChildrenByPath(eq(SITE_NUMERIC_ID), eq(parentPath),
+				isNull(), isNull(),
+				anyList(),
+				isNull(), isNull(),
+				isNull(), isNull(),
+				anyInt(), anyInt()))
+				.thenReturn(emptyList());
+
+		List<ItemOrder> result = serviceInternal.getItemsOrder(SITE_ID, parentPath);
+
+		assertNotNull("Result should not be null", result);
+		assertTrue("Result should be empty", result.isEmpty());
+	}
+
+	private ContentItem createMockContentItem(String path) {
+		ContentItem item = mock(ContentItem.class);
+		when(item.getPath()).thenReturn(path);
+		return item;
+	}
+
 
 	/**
 	 * Runs the provided runnable in a mocked static context for DBUtils and SecurityUtils.

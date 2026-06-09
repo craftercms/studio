@@ -14,29 +14,43 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v1.service.content;
-
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DmOrderTO;
-
-import java.util.List;
+package org.craftercms.studio.model.rest.content.order;
 
 /**
- * Content Services that other services may use
- *
- * @author russdanner
+ * Represents a response item for the Item Nav Order API.
  */
-public interface ContentService {
+public class ItemOrder {
+	private String path;
+	private String label;
+	private Double order;
 
-	/**
-	 * get the content item (metadata) at a specific path
-	 *
-	 * @param site - the project ID
-	 * @param path - the path of the content item
-	 * @return content item representation
-	 */
-	ContentItemTO getContentItem(String site, String path);
+	public ItemOrder(String path, String label, Double order) {
+		this.label = label;
+		this.order = order;
+		this.path = path;
+	}
 
+	public String getLabel() {
+		return label;
+	}
+
+	public void setLabel(String label) {
+		this.label = label;
+	}
+
+	public Double getOrder() {
+		return order;
+	}
+
+	public void setOrder(Double order) {
+		this.order = order;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
 }
