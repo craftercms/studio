@@ -139,4 +139,15 @@ public interface ContentTypeService {
 	 * @return a collection of the ids of the content types allowed for the given site and path
 	 */
 	Collection<String> getAllowedContentTypes(String siteId, String path) throws ServiceLayerException;
+
+	/**
+	 * Checks if a given content type is allowed for the given site and path
+	 *
+	 * @param siteId        the id of the site
+	 * @param path          the path of the content item to be created
+	 * @param contentTypeId the id of the content type to check
+	 * @return true if the content type is allowed for the given site and path, false otherwise
+	 * @throws ServiceLayerException if there is any error checking if the content type is allowed
+	 */
+	boolean isContentTypeAllowed(String siteId, String path, String contentTypeId) throws ServiceLayerException;
 }

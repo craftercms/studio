@@ -523,6 +523,9 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					throw new InvalidParametersException("Content is not a valid XML document");
 				}
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
+				if (!contentTypeService.isContentTypeAllowed(siteId, path, contentType)) {
+					throw new InvalidParametersException(format("Content type '%s' is not allowed at site '%s' for path '%s'", contentType, siteId, path));
+				}
 				if (isPageDescriptor(path)) {
 					updateNavOrder(siteId, path, document, false);
 				}
@@ -1400,7 +1403,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws InvalidParametersException if any of the validations fail
 	 */
 	protected void validateCopyOperation(String siteId, String sourcePath, String targetPath, Set<String> childPaths)
-			throws ContentNotFoundException, InvalidParametersException {
+			throws ServiceLayerException, UserNotFoundException {
 		validateMoveOrCopyOperation(siteId, sourcePath, targetPath);
 		for (String childPath : childPaths) {
 			if (!equalsNormalized(sourcePath, childPath) && !directoryContains(sourcePath, childPath)) {
@@ -1424,7 +1427,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws ContentNotFoundException   if the parent path of the target does not exist
 	 */
 	protected void validateMoveOrCopyOperation(String siteId, String sourcePath, String targetPath)
-			throws InvalidParametersException, ContentNotFoundException {
+			throws ServiceLayerException, UserNotFoundException {
 		if (!CS.equals(getExtension(sourcePath), getExtension(targetPath))) {
 			throw new InvalidParametersException(format("Cannot copy or move content from '%s' to '%s': " +
 					"source and target paths must have the same extension", sourcePath, targetPath));
@@ -1443,6 +1446,12 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 							"from '%s' (%s) into '%s' (%s) for site '%s'. " +
 							"Pasting across top level folders is not supported.",
 					sourcePath, sourceTopLevel, targetPath, targetTopLevel, siteId));
+		}
+
+		ContentItem sourceItem = getItemByPath(siteId, sourcePath, true);
+		if (isNotEmpty(sourceItem.getContentTypeId()) && !contentTypeService.isContentTypeAllowed(siteId, targetPath, sourceItem.getContentTypeId())) {
+			throw new InvalidParametersException(format("Cannot copy or move content from '%s' to '%s': " +
+					"content type '%s' of the source item is not allowed in the target location", sourcePath, targetPath, sourceItem.getContentTypeId()));
 		}
 	}
 
@@ -2074,7 +2083,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 	 * @throws InvalidParametersException if any of the validation checks fail
 	 */
 	protected void validateMoveOperation(String siteId, String sourcePath, String targetPath)
-			throws ServiceLayerException {
+			throws ServiceLayerException, UserNotFoundException {
 		validateMoveOrCopyOperation(siteId, sourcePath, targetPath);
 		if (directoryContains(sourcePath, targetPath)) {
 			throw new InvalidParametersException(format("Cannot move content from '%s' to a directory of itself: '%s' in site '%s': " +

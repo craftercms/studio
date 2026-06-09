@@ -248,6 +248,12 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	}
 
 	@Override
+	public boolean isContentTypeAllowed(String siteId, String path, String contentTypeId) throws ServiceLayerException {
+		Collection<String> allowedContentTypes = getAllowedContentTypes(siteId, path);
+		return allowedContentTypes.contains(contentTypeId);
+	}
+
+	@Override
 	public ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException {
 
 		var usages = new ContentTypeUsage();
