@@ -29,7 +29,8 @@ import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringSubstitutor;
-import org.craftercms.commons.monitoring.VersionInfo;
+import org.craftercms.commons.git.utils.AuthenticationType;
+import org.craftercms.commons.monitoring.SysInfo;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.Installation;
@@ -326,7 +327,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceService, Initi
 
 	@Override
 	public void afterPropertiesSet() throws IOException {
-		VersionInfo versionInfo = VersionInfo.getVersion(MarketplaceServiceInternalImpl.class);
+		SysInfo versionInfo = SysInfo.getInfo(MarketplaceServiceInternalImpl.class);
 		if (versionInfo == null) {
 			logger.error("Failed to initialize the Marketplace service");
 			return;
