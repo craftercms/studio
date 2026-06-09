@@ -362,7 +362,7 @@ public class UsersController {
 		@PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
 		throws AuthenticationException, ServiceLayerException {
 		List<Site> allSites = userService.getCurrentUserSites();
-		List<Site> paginatedSites = PaginationUtils.paginate(allSites, offset, limit, "siteId");
+		List<Site> paginatedSites = PaginationUtils.paginate(allSites, offset, limit, "name");
 
 		PaginatedResultList<Site> result = new PaginatedResultList<>();
 		result.setResponse(OK);
