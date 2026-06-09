@@ -190,7 +190,11 @@ public class SecurityServiceImpl implements SecurityService {
 		try {
 			return userService.getUserSiteRoles(-1, user, site);
 		} catch (ServiceLayerException | UserNotFoundException e) {
-			logger.error("Failed to get groups for user '{}' in site '{}'", user, site, e);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Failed to get groups for user '{}' in site '{}'", user, site, e);
+			} else {
+				logger.error("Failed to get groups for user '{}' in site '{}'", user, site);
+			}
 		}
 
 		return new HashSet<>(0);
@@ -269,8 +273,13 @@ public class SecurityServiceImpl implements SecurityService {
 					cache.put(cacheKey, config);
 				}
 			} catch (ServiceLayerException e) {
-				logger.error("Failed to load the permission mappings from site '{}' path '{}'",
-					site, filename, e);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Failed to load the permission mappings from site '{}' path '{}'",
+							site, filename, e);
+				} else {
+					logger.error("Failed to load the permission mappings from site '{}' path '{}'",
+							site, filename);
+				}
 			}
 		}
 		return config;

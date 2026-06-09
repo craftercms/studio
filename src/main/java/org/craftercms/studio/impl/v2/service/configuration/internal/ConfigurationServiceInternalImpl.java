@@ -157,7 +157,11 @@ public class ConfigurationServiceInternalImpl implements ConfigurationService, A
 				}
 			}
 		} catch (ServiceLayerException e) {
-			logger.error("Failed to load role mappings from site '{}' path '{}'", siteId, roleMappingsConfigPath, e);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Failed to load role mappings from site '{}' path '{}'", siteId, roleMappingsConfigPath, e);
+			} else {
+				logger.error("Failed to load role mappings from site '{}' path '{}'", siteId, roleMappingsConfigPath);
+			}
 			throw new ConfigurationException(format("Failed to load role mappings from site '%s' path '%s'",
 					siteId, roleMappingsConfigPath), e);
 		}
