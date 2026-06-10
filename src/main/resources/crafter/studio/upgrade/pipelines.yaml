@@ -1400,3 +1400,9 @@ configurations:
                     -   type: xsltFileUpgrader
                         template: crafter/studio/upgrade/5.0.x/config/ui/ui-v5.0.0.1.xslt
                         commitDetails: Update the UI to use new icons for dashboard widgets
+            -   currentVersion: 5.0.0.1
+                nextVersion: 5.0.0.2
+                operations:
+                    -   type: xsltFileUpgrader
+                        template: crafter/studio/upgrade/5.0.x/config/ui/ui-v5.0.0.2.xslt
+                        commitDetails: Update the UI to remove autoresize_on_init from TinyMCE config
