@@ -29,6 +29,12 @@ public interface SiteBootstrapStateProvider {
 	void markSiteAsReady(String siteId);
 
 	/**
+	 * Unmarks the site as ready, meaning that it is not ready to be used.
+	 * @param siteId the id of the site
+	 */
+	void unmarkSiteAsReady(String siteId);
+
+	/**
 	 * Checks if the site is ready, meaning that it has finished its bootstrap process and is ready to be used.
 	 *
 	 * @param siteId the id of the site

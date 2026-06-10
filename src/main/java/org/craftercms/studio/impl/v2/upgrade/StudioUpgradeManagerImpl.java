@@ -148,7 +148,6 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 		pipeline.execute(context);
 
 		upgradeSiteConfiguration((StudioUpgradeContext) context);
-		siteBootstrapStateProvider.markSiteAsReady(context.getTarget());
 	}
 
 	@Override
@@ -238,6 +237,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 				taskExecutor.execute(() -> {
 					try {
 						upgrade(site);
+						siteBootstrapStateProvider.markSiteAsReady(site);
 					} catch (Exception e) {
 						logger.error("Failed to upgrade site '{}'", site, e);
 						upgradeException.addSuppressed(e);

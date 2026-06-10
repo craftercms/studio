@@ -254,6 +254,9 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		List<Exception> exceptions = new ArrayList<>();
 		startSiteDelete(site, exceptions);
 
+		logger.debug("Unmark site '{}' as ready in bootstrap state provider", siteId);
+		siteBootstrapStateProvider.unmarkSiteAsReady(siteId);
+
 		logger.debug("Delete deployer targets for site '{}'", siteId);
 		deleteDeployerTargets(siteId, exceptions);
 
@@ -704,6 +707,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		// Update the site last commit id in the database and set the site state to READY
 		siteDao.updateLastCommitId(siteId, blobAwareRepository.getRepoLastCommitId(siteId));
 		siteDao.setSiteState(siteId, READY);
+		siteBootstrapStateProvider.markSiteAsReady(siteId);
 	}
 
 	/**
@@ -785,6 +789,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		deployer.deleteTargets(siteId);
 		blobAwareRepository.deleteSite(siteId);
 		configurationService.invalidateConfiguration(siteId);
+		siteBootstrapStateProvider.unmarkSiteAsReady(siteId);
 	}
 
 	/**
