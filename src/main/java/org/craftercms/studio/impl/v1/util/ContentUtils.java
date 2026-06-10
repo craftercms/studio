@@ -31,7 +31,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -70,8 +73,8 @@ public class ContentUtils {
 	/**
 	 * convert InputStream to string
 	 *
-	 * @param is
-	 * @return string
+	 * @param is input stream to convert
+	 * @return the converted Document, or null if the document could not be parsed
 	 */
 	public static Document convertStreamToXml(InputStream is) throws DocumentException {
 		InputStreamReader isReader = null;
@@ -125,34 +128,6 @@ public class ContentUtils {
 	 */
 	public static String getParentUrl(String path) {
 		return getFullPathNoEndSeparator(CS.removeEnd(path, SLASH_INDEX_FILE));
-	}
-
-	/**
-	 * Returns the page name part (e.g.index.xml) of a given URL
-	 *
-	 * @param url
-	 * @return page name
-	 */
-	public static String getPageName(String url) {
-		int lastIndex = url.lastIndexOf(FILE_SEPARATOR);
-		return url.substring(lastIndex + 1);
-	}
-
-	/**
-	 * content the given document to stream
-	 *
-	 * @param document
-	 * @param encoding
-	 * @return XML as stream
-	 */
-	public static InputStream convertDocumentToStream(Document document, String encoding) {
-		try {
-			return new ByteArrayInputStream(
-					(XmlUtils.convertDocumentToString(document)).getBytes(encoding));
-		} catch (IOException e) {
-			logger.error("Failed to convert XML document to String with encoding '{}'", encoding, e);
-			return null;
-		}
 	}
 
 	/**
