@@ -2559,14 +2559,15 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			var modifier = 1;
 			var collisionFound = true;
 			while (collisionFound) {
-				var matcher = COPY_FILE_MODIFIER_PATTERN.matcher(adjustedDestPath);
+				String adjustedDestFilenameOnly = FilenameUtils.getName(adjustedDestPath);
+				var matcher = COPY_FILE_MODIFIER_PATTERN.matcher(adjustedDestFilenameOnly);
 				// check if the file already has a modifier (it is a copy of something)
 				if (matcher.matches()) {
 					// extract the values from the path
 					var existingModifier = matcher.group(1); // the full modifier
 					var modifierVersion = matcher.group(2); // the number of the modifier
 					// remove the existing modifier
-					adjustedDestPath = adjustedDestPath.replaceFirst(existingModifier, "");
+					adjustedDestPath = FilenameUtils.getFullPath(adjustedDestPath) + adjustedDestFilenameOnly.replaceFirst(existingModifier, "");
 					// calculate the new modifier
 					modifier = Integer.parseInt(modifierVersion) + 1;
 				}

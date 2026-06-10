@@ -40,8 +40,10 @@ import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentInPublishQueueException;
 import org.craftercms.studio.api.v2.repository.GitContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.audit.ActivityStreamService;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
+import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.item.ItemService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -81,7 +83,6 @@ import static junit.framework.TestCase.assertTrue;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.apache.commons.lang3.exception.ExceptionUtils.throwableOfType;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v2.content.LifecycleContent.LifecycleOperation.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PAGE_NAVIGATION_ORDER_INCREMENT;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.*;
@@ -148,6 +149,12 @@ public class ContentServiceInternalImplTest {
 	@Mock
 	protected StudioConfiguration studioConfiguration;
 
+	@Mock
+	protected SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
+
+	@Mock
+	protected ContentTypeService contentTypeService;
+
 	protected ContentServiceInternalImpl serviceInternal;
 
 	private InputStream contentStream;
@@ -170,6 +177,8 @@ public class ContentServiceInternalImplTest {
 
 		doNothing().when(contentLifecycle).execute(any(), any(), any());
 
+		doReturn(true).when(contentTypeService).isContentTypeAllowed(anyString(), anyString(), anyString());
+
 		serviceInternal = spy(new ContentServiceInternalImpl(transactionManager,
 				studioConfiguration,
 				siteService,
@@ -188,8 +197,9 @@ public class ContentServiceInternalImplTest {
 				activityStreamService,
 				entitlementValidator,
 				null,
-				null
+				contentTypeService
 		));
+		serviceInternal.setSemanticsAvailableActionsResolver(semanticsAvailableActionsResolver);
 		serviceInternal.setApplicationEventPublisher(applicationEventPublisher);
 	}
 
@@ -365,10 +375,12 @@ public class ContentServiceInternalImplTest {
 				"/site/website/test1/child2/index.xml");
 
 		when(contentRepository.contentExists(SITE_ID, sourcePath)).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, sourceFolder)).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, targetPath)).thenReturn(false);
 		when(contentRepository.contentExists(SITE_ID, "/site/website")).thenReturn(true);
 
 		when(itemDAO.getChildrenPaths(SITE_NUMERIC_ID, sourceFolder)).thenReturn(children);
+		when(itemDAO.getContentItemByPathPreferContent(SITE_NUMERIC_ID,sourceFolder)).thenReturn(mock(ContentItem.class));
 
 		Item sourceItem = mock(Item.class);
 		when(sourceItem.getSystemType()).thenReturn(CONTENT_TYPE_FOLDER);
@@ -574,10 +586,36 @@ public class ContentServiceInternalImplTest {
 	}
 
 	@Test
+	public void testPageCutPasteIntoCopiedParent() throws ServiceLayerException, DocumentException {
+		// This test is to prevent the "copy file modifier" number from being matched on a parent folder
+		// instead of the actual target
+		Collection<RepositoryItem> repoItems = getRepoItems(
+				"/site/website/health-copy-1",
+				List.of("style", "style-copy-1", "style-copy-2"),
+				false);
+		List<String> existentPaths = List.of(
+				"/site/website/health",
+				"/site/website/health-copy-1/style",
+				"/site/website/health-copy-1/style-copy-1",
+				"/site/website/health-copy-1/style-copy-2");
+		when(contentRepository.getContentChildren(SITE_ID, "/site/website/health-copy-1")).thenReturn(repoItems);
+		for (String path : existentPaths) {
+			when(serviceInternal.contentExists(SITE_ID, path)).thenReturn(true);
+		}
+
+		PastedPath targetPath = serviceInternal.constructNewPathForCutCopy(SITE_ID,
+				"/site/website/health-copy-1/style",
+				"/site/website/health-copy-1/index.xml");
+
+		assertEquals("File path is not the expected", "/site/website/health-copy-1/style-copy-3", targetPath.path);
+	}
+
+	@Test
 	public void testMoveToParentPath() throws ServiceLayerException, DocumentException, UserNotFoundException, AuthenticationException {
 		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location")).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location/style")).thenReturn(true);
 		when(contentRepository.isFolder(SITE_ID, "/site/website/new-location")).thenReturn(true);
+		when(contentRepository.contentExists(SITE_ID, "/site/website/articles/style")).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/site/website/articles/style/index.xml")).thenReturn(true);
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
 		when(contentRepository.moveContent(any(), any(), any(), anyCollection(), anySet())).thenReturn("COMMIT 123");
@@ -593,6 +631,8 @@ public class ContentServiceInternalImplTest {
 		Item parentItem = mock(Item.class);
 		when(parentItem.getId()).thenReturn(123L);
 		when(itemService.getItem(SITE_ID, "/site/website/new-location", true)).thenReturn(parentItem);
+
+		doReturn(mock(ContentItem.class)).when(itemDAO).getContentItemByPathPreferContent(SITE_NUMERIC_ID, "/site/website/articles/style");
 
 		doAnswer(invocation -> {
 			Runnable runnable = invocation.getArgument(0);
@@ -656,6 +696,7 @@ public class ContentServiceInternalImplTest {
 		Item parentItem = mock(Item.class);
 		when(parentItem.getId()).thenReturn(123L);
 		when(itemService.getItem(SITE_ID, "/site/website/articles", true)).thenReturn(parentItem);
+		when(itemDAO.getContentItemByPathPreferContent(SITE_NUMERIC_ID, "/site/website/articles/test1")).thenReturn(mock(ContentItem.class));
 
 		runInMockStatics(() -> serviceInternal.duplicate(SITE_ID, "/site/website/articles/test1"));
 
