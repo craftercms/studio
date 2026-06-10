@@ -409,7 +409,6 @@
                                 "convert_urls": false,
                                 "remove_trailing_brs": false,
                                 "media_live_embeds": true,
-                                "autoresize_on_init": false,
                                 "autoresize_bottom_margin": 0,
                                 "menu": {
                                     "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
@@ -598,6 +597,9 @@
                 </control>
             </controls>
             <dataSources>
+                <dataSource id="pages">
+                    <icon id="@mui/icons-material/DescriptionOutlined"/>
+                </dataSource>
                 <dataSource id="components">
                     <icon id="@mui/icons-material/ExtensionOutlined"/>
                 </dataSource>
