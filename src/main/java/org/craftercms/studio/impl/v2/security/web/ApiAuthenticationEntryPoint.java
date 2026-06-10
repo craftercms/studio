@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,26 +39,20 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  */
 public class ApiAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-	public static final Map<String, String> API_1_RESPONSE = Map.of("message", "Unauthorized");
-
 	public static final Map<String, Object> API_2_RESPONSE = Map.of("response", ApiResponse.UNAUTHENTICATED);
 
 	protected final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
-			     AuthenticationException authException) throws IOException {
+						 AuthenticationException authException) throws IOException {
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		response.setContentType(APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
 
 		PrintWriter out = response.getWriter();
 
-		if (StringUtils.startsWithIgnoreCase(request.getRequestURI(), "/api/1")) {
-			objectMapper.writeValue(out, API_1_RESPONSE);
-		} else {
-			objectMapper.writeValue(out, API_2_RESPONSE);
-		}
+		objectMapper.writeValue(out, API_2_RESPONSE);
 
 		out.flush();
 	}
