@@ -524,7 +524,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 					throw new InvalidParametersException("Content is not a valid XML document");
 				}
 				String contentType = document.getRootElement().valueOf(CONTENT_TYPE);
-				if (!contentTypeService.isContentTypeAllowed(siteId, path, contentType)) {
+				if (NEW.equals(operation) && !contentTypeService.isContentTypeAllowed(siteId, path, contentType)) {
 					throw new InvalidParametersException(format("Content type '%s' is not allowed at site '%s' for path '%s'", contentType, siteId, path));
 				}
 				if (isPageDescriptor(path)) {
