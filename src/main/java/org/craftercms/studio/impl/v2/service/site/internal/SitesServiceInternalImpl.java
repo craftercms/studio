@@ -16,8 +16,28 @@
 
 package org.craftercms.studio.impl.v2.service.site.internal;
 
+import java.beans.ConstructorProperties;
+import java.io.FileReader;
+import java.io.IOException;
+import static java.lang.String.format;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
@@ -26,13 +46,37 @@ import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.exception.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
+import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
+import org.craftercms.studio.api.v1.exception.DeployerTargetException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.content.ContentMonitor;
-import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DUPLICATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_DELETE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_BLUEPRINT;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SOURCE_SITE;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.Site;
+import static org.craftercms.studio.api.v2.dal.Site.State.LOCKED;
+import static org.craftercms.studio.api.v2.dal.Site.State.READY;
+import org.craftercms.studio.api.v2.dal.SiteDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
 import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
@@ -53,7 +97,24 @@ import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLOB_STORES_CONFIG_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLOB_STORES_SERVERLESS_DEFAULT_CONFIG_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.GLOBAL_REPO_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BLUEPRINTS_DESCRIPTOR_FILENAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_REMOTE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_ENABLED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 import org.craftercms.studio.api.v2.utils.spring.context.SiteBootstrapStateProvider;
+import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
+import static org.craftercms.studio.impl.v2.utils.db.DBUtils.runAfterCommit;
+import static org.craftercms.studio.impl.v2.utils.db.DBUtils.runAfterRollback;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest.BlueprintSource;
 import org.craftercms.studio.model.rest.sites.CreateSiteRequest.RemoteSource;
@@ -72,38 +133,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.beans.ConstructorProperties;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
-import static java.lang.String.format;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
-import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.Site.State.LOCKED;
-import static org.craftercms.studio.api.v2.dal.Site.State.READY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
-import static org.craftercms.studio.impl.v2.utils.db.DBUtils.runAfterCommit;
-import static org.craftercms.studio.impl.v2.utils.db.DBUtils.runAfterRollback;
-import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 
 public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
 
@@ -255,7 +284,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 		startSiteDelete(site, exceptions);
 
 		logger.debug("Unmark site '{}' as ready in bootstrap state provider", siteId);
-		siteBootstrapStateProvider.unmarkSiteAsReady(siteId);
+		unmarkSiteAsReadyInBootstrapState(siteId, exceptions);
 
 		logger.debug("Delete deployer targets for site '{}'", siteId);
 		deleteDeployerTargets(siteId, exceptions);
@@ -394,6 +423,17 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 	 */
 	private void deleteSiteRepositories(String siteId, List<Exception> exceptions) {
 		tryOperation(() -> blobAwareRepository.deleteSite(siteId), "Failed to delete site content repository for site '%s'", siteId, exceptions);
+	}
+
+	/**
+	 * Unmark the site as ready in the bootstrap state provider
+	 *
+	 * @param siteId     site id
+	 * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+	 */
+	private void unmarkSiteAsReadyInBootstrapState(final String siteId, final List<Exception> exceptions) {
+		tryOperation(() -> siteBootstrapStateProvider.unmarkSiteAsReady(siteId),
+			"Failed to unmark site '%s' as ready in bootstrap state provider", siteId, exceptions);
 	}
 
 	/**
