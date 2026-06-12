@@ -79,7 +79,7 @@ public class StudioEntitlementUsageProvider implements EntitlementUsageProvider 
 	}
 
 	protected int countUsers() throws ServiceLayerException {
-		return userService.getAllUsersTotal(null);
+		return userService.getAllUsersTotal(null, false);
 	}
 
 	protected int countItems() {

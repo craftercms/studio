@@ -75,7 +75,7 @@
 	      class="org.craftercms.studio.impl.v2.security.authentication.db.DbAuthenticationProvider">
 		<constructor-arg name="userDetailsService" ref="studioUserDetailsService"/>
 		<property name="passwordEncoder" ref="passwordEncoder"/>
-		<property name="preAuthenticationChecks" ref="deletedUserDetailsChecker"/>
+		<property name="preAuthenticationChecks" ref="accountStatusUserDetailsChecker"/>
 	</bean>
 
 	<bean id="publicUrlMatcher" class="org.craftercms.studio.impl.v2.utils.spring.security.OrRegexRequestMatcher">
@@ -83,8 +83,8 @@
 				 value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).SECURITY_PUBLIC_URLS)}"/>
 	</bean>
 
-	<bean id="deletedUserDetailsChecker"
-	      class="org.craftercms.studio.impl.v2.security.authentication.DeletedUserDetailsChecker"/>
+	<bean id="accountStatusUserDetailsChecker"
+	      class="org.springframework.security.authentication.AccountStatusUserDetailsChecker"/>
 
 	<bean id="sessionExpiredStrategy"
 	      class="org.craftercms.studio.impl.v2.security.web.session.StatusCodeSessionInformationExpiredStrategy"/>

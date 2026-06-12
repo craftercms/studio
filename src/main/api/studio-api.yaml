@@ -545,6 +545,13 @@ paths:
                     required: false
                     schema:
                         type: string
+                -   name: showDisabled
+                    in: query
+                    description: If true, include disabled users in the response
+                    required: false
+                    schema:
+                        type: boolean
+                        default: false
             responses:
                 '200':
                     description: OK
@@ -645,47 +652,6 @@ paths:
                     $ref: '#/components/responses/Unauthorized'
                 '404':
                     $ref: '#/components/responses/NotFound'
-                '500':
-                    $ref: '#/components/responses/InternalServerError'
-        delete:
-            tags:
-                - users
-            summary: Delete user(s)
-            description: |
-                    Module: Studio <br>
-                    Required Permission: "DELETE_USERS"
-            operationId: deleteUser
-            parameters:
-                -   name: id
-                    in: query
-                    description: The user ID(s). Can be repeated for multiple deletes (id=1&id=2&id=3)
-                    required: false
-                    schema:
-                        type: array
-                        items:
-                            type: string
-                -   name: username
-                    in: query
-                    description: The username(s). Can be repeated for multiple deletes (username=john&username=mark)
-                    required: false
-                    schema:
-                        type: array
-                        items:
-                            type: string
-            responses:
-                '200':
-                    description: Deleted
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    response:
-                                        $ref: '#/components/schemas/ApiResponse'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorized'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
 

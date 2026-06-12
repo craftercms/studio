@@ -635,6 +635,11 @@ pipelines:
                             -   src: repo-bootstrap/global/configuration/samples/sample-ui.xml
                                 dest: configuration/samples/sample-ui.xml
                         commitDetails: Add sample file for ui.xml
+            -   currentVersion: 5.0.0.21
+                nextVersion: 5.0.0.22
+                operations:
+                    -   type: dbScriptUpgrader
+                        filename: upgrade/5.0.x/5.0.0.21-to-5.0.0.22.sql
 
     # Pipeline to upgrade site repositories
     site:

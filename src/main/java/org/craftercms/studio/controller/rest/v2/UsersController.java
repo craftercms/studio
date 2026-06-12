@@ -57,8 +57,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
-import static java.util.Objects.requireNonNullElse;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNumeric;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SEARCH_KEYWORDS;
@@ -104,16 +102,17 @@ public class UsersController {
 		@PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
 		@PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
 		@SqlSort(columns = USER_SORT_COLUMNS) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
-			defaultValue = "id asc") String sort)
+			defaultValue = "id asc") String sort,
+		@RequestParam(value = REQUEST_PARAM_SHOW_DISABLED, required = false, defaultValue = "false") boolean showDisabled)
 		throws ServiceLayerException {
 		Collection<User> users;
 		int total;
 		if (isEmpty(siteId)) {
-			total = userService.getAllUsersTotal(keyword);
-			users = userService.getAllUsers(keyword, offset, limit, sort);
+			total = userService.getAllUsersTotal(keyword, showDisabled);
+			users = userService.getAllUsers(keyword, offset, limit, sort, showDisabled);
 		} else {
-			total = userService.getAllUsersForSiteTotal(siteId, keyword);
-			users = userService.getAllUsersForSite(siteId, keyword, offset, limit, sort);
+			total = userService.getAllUsersForSiteTotal(siteId, keyword, showDisabled);
+			users = userService.getAllUsersForSite(siteId, keyword, offset, limit, sort, showDisabled);
 		}
 
 		PaginatedResultList<UserResponse> result = new PaginatedResultList<>();
@@ -181,29 +180,6 @@ public class UsersController {
 		ResultOne<UserResponse> result = new ResultOne<>();
 		result.setResponse(OK);
 		result.setEntity(RESULT_KEY_USER, new UserResponse(userRequest));
-		return result;
-	}
-
-	/**
-	 * Delete users API
-	 *
-	 * @param userIds   List of user identifiers
-	 * @param usernames List of usernames
-	 * @return Response object
-	 */
-	@DeleteMapping
-	public Result deleteUsers(
-		@RequestParam(value = REQUEST_PARAM_ID, required = false) List<@NotNull Long> userIds,
-		@RequestParam(value = REQUEST_PARAM_USERNAME, required = false)
-		List<@NotBlank @EsapiValidatedParam(type = USERNAME) String> usernames)
-		throws ServiceLayerException, AuthenticationException, UserNotFoundException, UserExternallyManagedException, GroupNotFoundException {
-		ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
-
-		userService.deleteUsers(requireNonNullElse(userIds, emptyList()),
-			requireNonNullElse(usernames, emptyList()));
-
-		Result result = new Result();
-		result.setResponse(DELETED);
 		return result;
 	}
 

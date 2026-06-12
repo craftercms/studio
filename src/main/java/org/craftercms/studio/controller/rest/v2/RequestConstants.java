@@ -55,6 +55,7 @@ public final class RequestConstants {
 	public static final String REQUEST_PARAM_PREFER_CONTENT = "preferContent";
 	public static final String REQUEST_PARAM_DAYS = "days";
 	public static final String REQUEST_PARAM_KEYWORD = "keyword";
+	public static final String REQUEST_PARAM_SHOW_DISABLED = "showDisabled";
 	public static final String REQUEST_PARAM_COMMIT_ID = "commitId";
 	public static final String REQUEST_PARAM_USERNAMES = "usernames";
 	public static final String REQUEST_PARAM_ITEM_TYPE = "itemType";

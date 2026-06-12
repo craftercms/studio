@@ -217,7 +217,7 @@ CREATE TABLE _meta (
 	PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.21', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('5.0.0.22', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
 	`id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -326,7 +326,6 @@ CREATE TABLE IF NOT EXISTS `user`
 	`locale`                VARCHAR(8)   NULL,
 	`email`                 VARCHAR(255) NOT NULL,
 	`enabled`               INT          NOT NULL,
-	`deleted`               INT          NOT NULL DEFAULT 0,
 	`avatar`                TEXT         NULL, -- TODO: update the user service to include this new field
 	PRIMARY KEY (`id`),
 	INDEX `user_ix_record_last_updated` (`record_last_updated` DESC),
@@ -358,14 +357,14 @@ CREATE TABLE IF NOT EXISTS `activity_stream` (
 	ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_name, last_name,
-						   externally_managed, timezone, locale, email, enabled, deleted)
+						   externally_managed, timezone, locale, email, enabled)
 VALUES (1, CURRENT_TIMESTAMP, 'admin', 'vTwNOJ8GJdyrP7rrvQnpwsd2hCV1xRrJdTX2sb51i+w=|R68ms0Od3AngQMdEeKY6lA==',
-		'admin', 'admin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1, 0) ;
+		'admin', 'admin', 0, 'EST5EDT', 'en/US', 'evaladmin@example.com', 1) ;
 
 INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_name, last_name,
-						   externally_managed, timezone, locale, email, enabled, deleted)
+						   externally_managed, timezone, locale, email, enabled)
 VALUES (2, CURRENT_TIMESTAMP, 'git_repo_user', '',
-		   'Git Repo', 'User', 0, 'EST5EDT', 'en/US', 'evalgit@example.com', 1, 0) ;
+		   'Git Repo', 'User', 0, 'EST5EDT', 'en/US', 'evalgit@example.com', 1) ;
 
 CREATE TABLE IF NOT EXISTS `user_properties`
 (

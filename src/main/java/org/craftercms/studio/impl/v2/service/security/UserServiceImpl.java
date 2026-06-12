@@ -56,27 +56,30 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
-	public Collection<User> getAllUsersForSite(String siteId, String keyword, int offset, int limit, String sort)
+	public Collection<User> getAllUsersForSite(String siteId, String keyword, int offset, int limit, String sort,
+						   boolean showDisabled)
 		throws ServiceLayerException {
-		return userServiceInternal.getAllUsersForSite(siteId, keyword, offset, limit, sort);
+		return userServiceInternal.getAllUsersForSite(siteId, keyword, offset, limit, sort, showDisabled);
 	}
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
-	public Collection<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException {
-		return userServiceInternal.getAllUsers(keyword, offset, limit, sort);
+	public Collection<User> getAllUsers(String keyword, int offset, int limit, String sort, boolean showDisabled)
+		throws ServiceLayerException {
+		return userServiceInternal.getAllUsers(keyword, offset, limit, sort, showDisabled);
 	}
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
-	public int getAllUsersForSiteTotal(String siteId, String keyword) throws ServiceLayerException {
-		return userServiceInternal.getAllUsersForSiteTotal(siteId, keyword);
+	public int getAllUsersForSiteTotal(String siteId, String keyword, boolean showDisabled)
+		throws ServiceLayerException {
+		return userServiceInternal.getAllUsersForSiteTotal(siteId, keyword, showDisabled);
 	}
 
 	@Override
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
-	public int getAllUsersTotal(String keyword) throws ServiceLayerException {
-		return userServiceInternal.getAllUsersTotal(keyword);
+	public int getAllUsersTotal(String keyword, boolean showDisabled) throws ServiceLayerException {
+		return userServiceInternal.getAllUsersTotal(keyword, showDisabled);
 	}
 
 	@Override
@@ -108,14 +111,6 @@ public class UserServiceImpl implements UserService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
 	public User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException {
 		return userServiceInternal.getUserByGitName(gitName);
-	}
-
-	@Override
-	@HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_USERS)
-	public void deleteUsers(List<Long> userIds, List<String> usernames)
-		throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException, AuthenticationException, GroupNotFoundException {
-		checkExternallyManagedUsers(userIds, usernames);
-		userServiceInternal.deleteUsers(userIds, usernames);
 	}
 
 	@Override

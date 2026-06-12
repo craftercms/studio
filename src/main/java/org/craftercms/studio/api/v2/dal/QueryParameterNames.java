@@ -111,6 +111,8 @@ public final class QueryParameterNames {
 	public static final String EMAIL = "email";
 	// Active
 	public static final String ENABLED = "enabled";
+	// Show disabled users in list queries
+	public static final String SHOW_DISABLED = "showDisabled";
 	// First name and Last name
 	public static final String GIT_NAME = "gitName";
 

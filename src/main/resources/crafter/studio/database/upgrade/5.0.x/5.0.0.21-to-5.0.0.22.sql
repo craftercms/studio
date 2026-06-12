@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,22 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.event.user;
+UPDATE `user` SET enabled = 0 WHERE deleted = 1 ;
 
-import java.util.Collection;
-
-/**
- * Event fired when users are deleted
- */
-public class UsersDeletedEvent {
-
-	private final Collection<Long> userIds;
-
-	public UsersDeletedEvent(Collection<Long> userIds) {
-		this.userIds = userIds;
-	}
-
-	public Collection<Long> getUserIds() {
-		return userIds;
-	}
-}
+ALTER TABLE `user` DROP COLUMN `deleted` ;

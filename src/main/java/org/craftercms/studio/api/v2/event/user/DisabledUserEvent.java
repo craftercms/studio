@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,24 +13,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.security.authentication;
 
-import org.springframework.security.authentication.AccountStatusException;
+package org.craftercms.studio.api.v2.event.user;
+
+import org.craftercms.studio.api.v2.event.StudioEvent;
+
+import java.util.Collection;
 
 /**
- * Extension of {@link AccountStatusException} thrown when a deleted user tries to authenticate.
- *
- * @author joseross
- * @since 4.0
+ * Event fired when users are disabled.
  */
-public class DeletedException extends AccountStatusException {
+public class DisabledUserEvent extends StudioEvent {
 
-	public DeletedException(String msg) {
-		super(msg);
+	private final Collection<Long> userIds;
+
+	public DisabledUserEvent(Collection<Long> userIds) {
+		this.userIds = userIds;
 	}
 
-	public DeletedException(String msg, Throwable cause) {
-		super(msg, cause);
+	public Collection<Long> getUserIds() {
+		return userIds;
 	}
 
 }
