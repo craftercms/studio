@@ -477,6 +477,40 @@ public class XsltTest {
 		testXsltTemplate(template, content, expected, params);
 	}
 
+	@Test(dataProvider = "ui5002TestData")
+	public void ui5002Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
+	@DataProvider(name = "ui5002TestData")
+	public Object[][] ui5002TestData() {
+		return new Object[][]{
+				new Object[] {
+						new ClassPathResource("crafter/studio/upgrade/5.0.x/config/ui/ui-v5.0.0.2.xslt"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/ui/v5.0/5.0.0.2/input.xml"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/ui/v5.0/5.0.0.2/expected.xml"),
+						emptyMap()
+				}
+		};
+	}
+
+	@Test(dataProvider = "ui5003TestData")
+	public void ui5003Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
+	@DataProvider(name = "ui5003TestData")
+	public Object[][] ui5003TestData() {
+		return new Object[][]{
+				new Object[] {
+						new ClassPathResource("crafter/studio/upgrade/5.0.x/config/ui/ui-v5.0.0.3.xslt"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/ui/v5.0/5.0.0.3/input.xml"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/ui/v5.0/5.0.0.3/expected.xml"),
+						emptyMap()
+				}
+		};
+	}
+
 	private void testXsltTemplate(Resource template, Resource content, Resource expected, Map<String, Object> params)
 		throws IOException, TransformerException {
 		try (InputStream templateIs = template.getInputStream();

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
   ~
@@ -15,6 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
+    <version>5.0.0.2</version>
     <widget
         id="craftercms.components.Preview"
         initialEditModeOn="true"
@@ -30,67 +31,59 @@
                         <widget id="craftercms.components.SiteDashboard"/>
                     </configuration>
                 </widget>
-                <widget id="craftercms.components.ToolsPanelPageButton">
+                <widget id="craftercms.components.PathNavigatorTree">
                     <configuration>
-                        <title id="previewSiteExplorerPanel.title" defaultMessage="Site Explorer"/>
-                        <icon id="craftercms.icons.SiteExplorer"/>
-                        <widgets>
-                            <widget id="craftercms.components.PathNavigatorTree">
-                                <configuration>
-                                    <id>Pages</id>
-                                    <label id="pathNavigatorTree.pages" defaultMessage="Pages"/>
-                                    <icon id="@mui/icons-material/DescriptionOutlined"/>
-                                    <rootPath>/site/website</rootPath>
-                                    <locale>en</locale>
-                                </configuration>
-                            </widget>
-                            <widget id="craftercms.components.PathNavigatorTree">
-                                <configuration>
-                                    <id>Components</id>
-                                    <label id="pathNavigatorTree.components" defaultMessage="Components"/>
-                                    <icon id="craftercms.icons.Component"/>
-                                    <rootPath>/site/components</rootPath>
-                                    <locale>en</locale>
-                                </configuration>
-                            </widget>
-                            <widget id="craftercms.components.PathNavigatorTree">
-                                <configuration>
-                                    <id>Taxonomy</id>
-                                    <label id="pathNavigatorTree.taxonomy" defaultMessage="Taxonomy"/>
-                                    <icon id="@mui/icons-material/LocalOfferOutlined"/>
-                                    <rootPath>/site/taxonomy</rootPath>
-                                    <locale>en</locale>
-                                </configuration>
-                            </widget>
-                            <widget id="craftercms.components.PathNavigatorTree">
-                                <configuration>
-                                    <id>StaticAssets</id>
-                                    <label id="pathNavigatorTree.staticAssets" defaultMessage="Static Assets"/>
-                                    <icon id="@mui/icons-material/ImageOutlined"/>
-                                    <rootPath>/static-assets</rootPath>
-                                    <locale>en</locale>
-                                </configuration>
-                            </widget>
-                            <widget id="craftercms.components.PathNavigatorTree">
-                                <configuration>
-                                    <label id="pathNavigatorTree.templates" defaultMessage="Templates"/>
-                                    <icon id="@mui/icons-material/InsertDriveFileOutlined"/>
-                                    <rootPath>/templates</rootPath>
-                                    <locale>en</locale>
-                                </configuration>
-                            </widget>
-                            <widget id="craftercms.components.PathNavigatorTree">
-                                <configuration>
-                                    <label id="pathNavigatorTree.scripts" defaultMessage="Scripts"/>
-                                    <icon id="@mui/icons-material/CodeRounded"/>
-                                    <rootPath>/scripts</rootPath>
-                                    <locale>en</locale>
-                                </configuration>
-                            </widget>
-                        </widgets>
+                        <id>Pages</id>
+                        <label id="pathNavigatorTree.pages" defaultMessage="Pages"/>
+                        <icon id="@mui/icons-material/DescriptionOutlined"/>
+                        <rootPath>/site/website/index.xml</rootPath>
+                        <locale>en</locale>
                     </configuration>
                 </widget>
-                <widget id="craftercms.components.ToolsPanelPageButton">
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <id>Components</id>
+                        <label id="pathNavigatorTree.components" defaultMessage="Components"/>
+                        <icon id="craftercms.icons.Component"/>
+                        <rootPath>/site/components</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <id>Taxonomy</id>
+                        <label id="pathNavigatorTree.taxonomy" defaultMessage="Taxonomy"/>
+                        <icon id="@mui/icons-material/LocalOfferOutlined"/>
+                        <rootPath>/site/taxonomy</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <id>StaticAssets</id>
+                        <label id="pathNavigatorTree.staticAssets" defaultMessage="Static Assets"/>
+                        <icon id="@mui/icons-material/ImageOutlined"/>
+                        <rootPath>/static-assets</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <label id="pathNavigatorTree.templates" defaultMessage="Templates"/>
+                        <icon id="@mui/icons-material/InsertDriveFileOutlined"/>
+                        <rootPath>/templates</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <label id="pathNavigatorTree.scripts" defaultMessage="Scripts"/>
+                        <icon id="@mui/icons-material/CodeRounded"/>
+                        <rootPath>/scripts</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelEmbeddedAppViewButton">
                     <permittedRoles>
                         <role>admin</role>
                         <role>developer</role>
@@ -98,9 +91,7 @@
                     <configuration>
                         <title id="siteTools.title" defaultMessage="Project Tools"/>
                         <icon id="@mui/icons-material/ConstructionRounded"/>
-                        <widgets>
-                            <widget id="craftercms.components.SiteToolsPanel"/>
-                        </widgets>
+                        <widget id="craftercms.components.EmbeddedSiteTools"/>
                     </configuration>
                 </widget>
             </widgets>
@@ -109,6 +100,11 @@
     <widget id="craftercms.components.ICEToolsPanel">
         <configuration>
             <widgets>
+                <widget id="craftercms.components.PaddingModeSwitchListItem">
+                    <configuration>
+                        <disabled>false</disabled>
+                    </configuration>
+                </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
                         <target id="icePanel"/>
@@ -122,8 +118,8 @@
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
                         <target id="icePanel"/>
-                        <title id="previewComponentsPanel.title" defaultMessage="Add Components"/>
-                        <icon id="@mui/icons-material/ExtensionOutlined"/>
+                        <title id="previewComponentsPanelTitle" defaultMessage="Create Content"/>
+                        <icon id="craftercms.icons.AddComponents"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewComponentsPanel"/>
                         </widgets>
@@ -132,8 +128,8 @@
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
                         <target id="icePanel"/>
-                        <title id="previewBrowseComponentsPanel.title" defaultMessage="Browse Components"/>
-                        <icon id="@mui/icons-material/ExtensionOutlined"/>
+                        <title id="previewBrowseComponentsPanelTitle" defaultMessage="Existing Content"/>
+                        <icon id="craftercms.icons.BrowseComponents"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewBrowseComponentsPanel"/>
                         </widgets>
@@ -142,8 +138,8 @@
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
                         <target id="icePanel"/>
-                        <title id="previewDropTargetsPanel.title" defaultMessage="Component Drop Targets"/>
-                        <icon id="@mui/icons-material/ExtensionOutlined"/>
+                        <title id="previewDropTargetsPanelTitle" defaultMessage="Drop Targets"/>
+                        <icon id="@mui/icons-material/MoveToInboxRounded"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewDropTargetsPanel"/>
                         </widgets>
@@ -193,7 +189,9 @@
                                         <name>
                                             <id>name</id>
                                             <name id="previewAudiencesPanel.nameLabel" defaultMessage="Name"/>
-                                            <description>User's first and last name.</description>
+                                            <description>
+                                                User's first and last name.
+                                            </description>
                                             <type>input</type>
                                             <helpText id="previewAudiencesPanel.nameHelpText" defaultMessage="Enter user's first and last name"/>
                                         </name>
@@ -257,7 +255,8 @@
                 <widget id="craftercms.components.LauncherSection">
                     <configuration>
                         <title id="launcher.siteSectionTitle">
-                            <defaultMessage><![CDATA[Project <muted>• {siteName}</muted>]]></defaultMessage>
+                            <defaultMessage>
+                                <![CDATA[Project <muted>• {siteName}</muted>]]></defaultMessage>
                         </title>
                         <widgets>
                             <widget id="craftercms.components.LauncherLinkTile">
@@ -339,48 +338,12 @@
         <configuration>
             <mainSection>
                 <widgets>
-                    <widget id="craftercms.components.MyRecentActivityDashlet">
-                        <permittedRoles>
-                            <role>admin</role>
-                            <role>developer</role>
-                            <role>publisher</role>
-                        </permittedRoles>
-                    </widget>
-                    <widget id="craftercms.components.UnpublishedDashlet">
-                        <permittedRoles>
-                            <role>admin</role>
-                            <role>developer</role>
-                            <role>publisher</role>
-                        </permittedRoles>
-                    </widget>
-                    <widget id="craftercms.components.PendingApprovalDashlet">
-                        <permittedRoles>
-                            <role>admin</role>
-                            <role>developer</role>
-                            <role>publisher</role>
-                        </permittedRoles>
-                    </widget>
-                    <widget id="craftercms.components.ScheduledDashlet">
-                        <permittedRoles>
-                            <role>admin</role>
-                            <role>developer</role>
-                            <role>publisher</role>
-                        </permittedRoles>
-                    </widget>
-                    <widget id="craftercms.components.RecentlyPublishedDashlet">
-                        <permittedRoles>
-                            <role>admin</role>
-                            <role>developer</role>
-                            <role>publisher</role>
-                        </permittedRoles>
-                    </widget>
-                    <widget id="craftercms.components.ExpiringDashlet">
-                        <permittedRoles>
-                            <role>admin</role>
-                            <role>developer</role>
-                            <role>publisher</role>
-                        </permittedRoles>
-                    </widget>
+                    <widget id="craftercms.components.MyRecentActivityDashlet"/>
+                    <widget id="craftercms.components.UnpublishedDashlet"/>
+                    <widget id="craftercms.components.PendingApprovalDashlet"/>
+                    <widget id="craftercms.components.ScheduledDashlet"/>
+                    <widget id="craftercms.components.RecentlyPublishedDashlet"/>
+                    <widget id="craftercms.components.ExpiringDashlet"/>
                 </widgets>
             </mainSection>
         </configuration>
@@ -393,35 +356,35 @@
                     <!-- Plugins: https://www.tiny.cloud/docs/plugins/opensource/ -->
                     <tinymceOptions>
                         <![CDATA[
-                            {
-                                "menubar": true,
-                                "theme": "silver",
-                                "plugins": "preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help acecode",
-                                "extended_valid_elements": "",
-                                "valid_children": "",
-                                "toolbar1": "formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
-                                "code_editor_wrap": false,
-                                "toolbar_sticky": true,
-                                "image_advtab": true,
-                                "encoding": "xml",
-                                "relative_urls": false,
-                                "remove_script_host": false,
-                                "convert_urls": false,
-                                "remove_trailing_brs": false,
-                                "media_live_embeds": true,
-                                "autoresize_bottom_margin": 0,
-                                "menu": {
-                                    "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
-                                },
-                                "automatic_uploads": true,
-                                "file_picker_types":  "image media file",
-                                "paste_data_images": true,
-                                "templates": [],
-                                "content_css": [],
-                                "content_style": "body {}",
-                                "contextmenu": false
-                            }
-                    ]]>
+                {
+                    "menubar": true,
+                    "theme": "silver",
+                    "plugins": "preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help acecode",
+                    "extended_valid_elements": "",
+                    "valid_children": "",
+                    "toolbar1": "blocks | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
+                    "code_editor_wrap": false,
+                    "toolbar_sticky": true,
+                    "image_advtab": true,
+                    "encoding": "xml",
+                    "relative_urls": false,
+                    "remove_script_host": false,
+                    "convert_urls": false,
+                    "remove_trailing_brs": false,
+                    "media_live_embeds": true,
+                    "autoresize_bottom_margin": 0,
+                    "menu": {
+                        "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
+                    },
+                    "automatic_uploads": true,
+                    "file_picker_types":  "image media file",
+                    "paste_data_images": true,
+                    "templates": [],
+                    "content_css": [],
+                    "content_style": "body {}",
+                    "contextmenu": false
+                }
+            ]]>
                     </tinymceOptions>
                 </setup>
             </setups>
@@ -715,7 +678,7 @@
                     <title id="workflowStates.title" defaultMessage="Workflow States"/>
                     <icon id="@mui/icons-material/SettingsOutlined"/>
                     <url>item-states</url>
-                    <widget id="craftercms.components.ItemStatesManagement"/>
+                    <widget id="craftercms.components.WorkflowStateManagement"/>
                 </tool>
                 <tool>
                     <title id="GlobalMenu.LogConsoleEntryLabel" defaultMessage="Log Console"/>
@@ -734,10 +697,10 @@
                     <widget id="craftercms.components.PublishingDashboard"/>
                 </tool>
                 <tool>
-                    <title id="remoteRepositories.title" defaultMessage="Remote Repositories"/>
-                    <icon id="@mui/icons-material/StorageRounded"/>
-                    <url>remote-repositories</url>
-                    <widget id="craftercms.components.RemoteRepositoriesManagement"/>
+                    <title id="words.git" defaultMessage="Git"/>
+                    <icon id="craftercms.icons.Git"/>
+                    <url>git</url>
+                    <widget id="craftercms.components.GitManagement"/>
                 </tool>
                 <tool>
                     <title>GraphQL</title>
@@ -768,18 +731,18 @@
             </transformPathToUrl>
             <renderComponentsList label="Render list of components">
                 <value><![CDATA[<#list contentModel.VARIABLE_NAME.item as module>
-	<@renderComponent component=module />
+        <@renderComponent component=module />
 </#list>]]></value>
             </renderComponentsList>
             <iterateItemsListLoadContentItem label="Iterate over a list of items and load content item">
                 <value><![CDATA[<#list contentModel.VARIABLE_NAME.item as myItem>
-	<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
-	${myContentItem.variableName}
+        <#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
+        ${myContentItem.variableName}
 </#list>]]></value>
             </iterateItemsListLoadContentItem>
             <iterateRepeatGroup label="Iterate over repeat group">
                 <value><![CDATA[<#list contentModel.VARIABLE_NAME.item as row>
-	${row.VARIABLE_NAME}
+        ${row.VARIABLE_NAME}
 </#list>]]></value>
             </iterateRepeatGroup>
             <fremarkerValueAssignment label="Freemarker value assignment">
@@ -787,12 +750,12 @@
             </fremarkerValueAssignment>
             <freemarkerIf label="Freemarker value IF">
                 <value><![CDATA[<#if CONDITION>
-	...
+        ...
 </#if>]]></value>
             </freemarkerIf>
             <freemarkerLoop label="Freemarker value LOOP">
                 <value><![CDATA[<#list ARRAY as value>
-	${value_index}: ${value}
+        ${value_index}: ${value}
 </#list>]]></value>
             </freemarkerLoop>
             <freemarkerFragmentInclude label="Freemarker Fragment include">
@@ -816,48 +779,6 @@
   </body>
 </html>]]></value>
             </htmlPage>
-            <specificHTMLTag label="Field (Specific HTML Tag)">
-                <value><![CDATA[<@crafter.DESIRED_TAG $field="FIELD_ID">${contentModel.FIELD_ID}</@crafter.DESIRED_TAG>]]></value>
-            </specificHTMLTag>
-            <renderComponentCollection label="Render Component Collection">
-                <value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=renderComponentCollection&check_keywords=yes&area=default -->
-<@crafter.renderComponentCollection $field="features_o" $containerAttributes={ "class": "features-container" } $itemAttributes={ "data-custom-attribute": "true" } />]]></value>
-            </renderComponentCollection>
-            <renderRepeatGroup label="Render Repeat Group">
-                <value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=renderRepeatCollection&check_keywords=yes&area=default -->
-<@crafter.renderRepeatGroup
-  $field="VARIABLE_NAME"
-  $containerAttributes={'attr': 'value'};
-  item, index
->
-  <@crafter.div
-    $field="sections_o.section_html"
-    $index=index
-  >
-    ${item.itemField}
-  </@crafter.div>
-</@crafter.renderRepeatGroup>]]></value>
-            </renderRepeatGroup>
-            <navigation label="Navigation">
-                <value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=crafter.navigation&check_keywords=yes&area=default -->
-  <@crafter.navigation
-    showNavElement=false
-    url="NAVIGATION_URL"
-    containerElementClass="container-class"
-    itemWrapperClass="item-wrapper-class"
-    itemClass="item-class"
-    depth=2
-  />]]></value>
-            </navigation>
-            <breadcrumb label="Breadcrumb">
-                <value><![CDATA[<#-- Macro docs @ https://craftercms.com/docs/current/search.html?q=crafter.breadcrumb&check_keywords=yes&area=default -->
-  <@crafter.breadcrumb
-    url=contentModel.storeUrl
-    containerElementClass="container-element-class"
-    itemWrapperClass="item-wrapper-class"
-    navElementAttributes={ "data-custom-attribute": "true" }
-  />]]></value>
-            </breadcrumb>
         </reference>
         <reference id="craftercms.groovyCodeSnippets">
             <accessContentModel label="Access Content variable">
