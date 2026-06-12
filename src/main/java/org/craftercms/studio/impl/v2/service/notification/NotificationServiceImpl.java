@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,15 +29,17 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
@@ -56,6 +58,8 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.isPageDescriptor;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.getPreviewUrl;
 
 public class NotificationServiceImpl implements NotificationService {
 	private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
@@ -384,12 +388,18 @@ public class NotificationServiceImpl implements NotificationService {
 		return null;
 	}
 
-	protected Set<ContentItemTO> convertPathsToContent(final String site, final Collection<String> listOfPaths) {
-		Set<ContentItemTO> files = new HashSet<>(listOfPaths.size());
-		for (String path : listOfPaths) {
-			files.add(contentService.getContentItem(site, path));
+	protected Collection<NotificationContentItem> convertPathsToContent(final String site, final Collection<String> listOfPaths) throws UserNotFoundException, ServiceLayerException {
+		List<NotificationContentItem> notificationItems = new ArrayList<>(listOfPaths.size());
+		List<ContentItem> contentItems = contentService.getContentItemsByPath(site, listOfPaths, true);
+
+		for (ContentItem contentItem : contentItems) {
+			NotificationContentItem item = new NotificationContentItem(isPageDescriptor(contentItem.getPath()),
+					contentItem.getLabel(),
+					getPreviewUrl(servicesConfig, site, contentItem.getPath())
+			);
+			notificationItems.add(item);
 		}
-		return files;
+		return notificationItems;
 	}
 
 	@Override
@@ -443,5 +453,42 @@ public class NotificationServiceImpl implements NotificationService {
 	public void setCache(Cache<String, NotificationConfigTO> cache) {
 		this.cache = cache;
 	}
+
+	/**
+	 * Simple class representing content items in notifications. It contains only the information needed for notifications
+	 */
+	public static class NotificationContentItem {
+		private final boolean page;
+		private final String label;
+		private final String browserUri;
+
+		/**
+		 * @param page       indicates if the content item is a page descriptor or not
+		 * @param label      item label
+		 * @param browserUri for pages, item URI to be used in notifications
+		 */
+		public NotificationContentItem(boolean page, String label, String browserUri) {
+			this.page = page;
+			this.label = label;
+			this.browserUri = browserUri;
+		}
+
+		public boolean isPage() {
+			return page;
+		}
+
+		public String getInternalName() {
+			return label;
+		}
+
+		public String getName() {
+			return label;
+		}
+
+		public String getBrowserUri() {
+			return browserUri;
+		}
+	}
+
 }
 

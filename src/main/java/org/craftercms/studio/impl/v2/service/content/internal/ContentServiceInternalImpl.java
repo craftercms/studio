@@ -401,13 +401,15 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			throws ServiceLayerException, UserNotFoundException {
 		if (Objects.nonNull(item)) {
 			String user = getCurrentUsername();
-			item.setAvailableActions(
-					semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
+			if (user != null) {
+				item.setAvailableActions(
+						semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
+			}
 		}
 	}
 
 	@Override
-	public List<ContentItem> getContentItemsByPath(String siteId, List<String> paths, boolean preferContent)
+	public List<ContentItem> getContentItemsByPath(String siteId, Collection<String> paths, boolean preferContent)
 			throws ServiceLayerException, UserNotFoundException {
 		Site site = siteService.getSite(siteId);
 		List<ContentItem> items = itemDao.getContentItemsByPath(site.getId(), paths, preferContent);
@@ -425,8 +427,10 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 			if (!contentRepository.contentExists(siteId, item.getPath())) {
 				logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
 			} else {
-				item.setAvailableActions(
-						semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
+				if (user != null) {
+					item.setAvailableActions(
+							semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
+				}
 				toRet.add(item);
 			}
 		}

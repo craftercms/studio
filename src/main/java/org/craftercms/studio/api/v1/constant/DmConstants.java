@@ -46,14 +46,10 @@ public class DmConstants {
 
 	/* TODO: move this to configuration */
 	public static final String ROOT_PATTERN_PAGES = "/site/website";
-	public static final String ROOT_PATTERN_COMPONENTS = "/site/(components|component-bindings|indexes|resources)";
 	public static final String ROOT_PATTERN_ASSETS = "/static-assets";
 	public static final String ROOT_PATTERN_DOCUMENTS = "/site/documents";
 
 	public static final String CONTENT_LIFECYCLE_OPERATION = "contentLifecycleOperation";
-
-	/* Workflow queries */
-	public static final String JSON_KEY_ORDER_DEFAULT = "default";
 
 	public static final String KEY_APPLICATION_CONTEXT = "applicationContext";
 }

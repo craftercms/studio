@@ -177,8 +177,6 @@ public class ContentServiceInternalImplTest {
 
 		doNothing().when(contentLifecycle).execute(any(), any(), any());
 
-		doReturn(true).when(contentTypeService).isContentTypeAllowed(anyString(), anyString(), anyString());
-
 		serviceInternal = spy(new ContentServiceInternalImpl(transactionManager,
 				studioConfiguration,
 				siteService,

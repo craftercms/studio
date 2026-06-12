@@ -79,15 +79,6 @@
 	<!-- ////////////////////////////////////// -->
 	<!--         Services                       -->
 	<!-- ////////////////////////////////////// -->
-	<bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
-		<property name="contentRepository" ref="contentRepository"/>
-		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="itemService" ref="itemService"/>
-		<property name="userService" ref="userServiceInternal"/>
-		<property name="publishService" ref="publishServiceInternal"/>
-		<property name="contentTypeService" ref="contentTypeServiceInternal"/>
-	</bean>
 
 	<!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
 	<bean id="cstudioNotificationService"
@@ -95,7 +86,7 @@
 		<property name="emailMessages" ref="cstudioEmailMessageQueue"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
 		<property name="securityService" ref="cstudioSecurityService"/>
-		<property name="contentService" ref="cstudioContentService"/>
+		<property name="contentService" ref="contentServiceInternal"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="configurationService" ref="configurationServiceInternal"/>
 		<property name="cache" ref="configurationCache"/>

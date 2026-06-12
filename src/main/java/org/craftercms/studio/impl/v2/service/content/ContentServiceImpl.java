@@ -157,7 +157,7 @@ public class ContentServiceImpl implements ContentService {
 	@RequireSiteBootstrapComplete
 	@HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
 	public List<ContentItem> getContentItemsByPath(@SiteId String siteId,
-												   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
+												   @ProtectedResourceId(PATH_LIST_RESOURCE_ID) Collection<String> paths,
 												   boolean preferContent)
 			throws ServiceLayerException, UserNotFoundException {
 		return contentServiceInternal.getContentItemsByPath(siteId, paths, preferContent);
