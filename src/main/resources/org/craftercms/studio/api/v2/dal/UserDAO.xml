@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License version 3 as published by
@@ -83,7 +83,7 @@
 		</if>
 		<if test="keyword != null">
 			<bind name="pattern" value="'%' + keyword + '%'"/>
-			AND u.username like #{pattern}
+			AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
 		</if>
 		<if test="sort != null and sort != '' ">
 			ORDER BY ${sort}
@@ -180,16 +180,16 @@
 		</if>
 		<if test="keyword != null">
 			<bind name="pattern" value="'%' + keyword + '%'"/>
-			AND u.username like #{pattern}
+			AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
 		</if>
 	</select>
 
 	<select id="getAllUsersTotal" resultType="int" parameterType="java.util.Map">
 		SELECT COUNT(DISTINCT username)
-		FROM `user`
+		FROM `user` u
 		<where>
 			<if test="showDisabled == null or showDisabled == false">
-				enabled = 1
+				u.enabled = 1
 			</if>
 			<if test="keyword != null">
 				<bind name="pattern" value="'%' + keyword + '%'"/>
