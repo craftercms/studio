@@ -28,6 +28,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.KEYWORD;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROPERTIES;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SHOW_DISABLED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
@@ -47,19 +48,21 @@ public interface UserDAO {
 	 * @return List of users
 	 */
 	List<User> getAllUsersForSite(@Param(GROUP_NAMES) List<String> groupNames, @Param(KEYWORD) String keyword,
-				      @Param(OFFSET) int offset, @Param(LIMIT) int limit, @Param(SORT) String sort);
+				      @Param(OFFSET) int offset, @Param(LIMIT) int limit, @Param(SORT) String sort,
+				      @Param(SHOW_DISABLED) boolean showDisabled);
 
 	/**
 	 * Get all users
 	 *
-	 * @param keyword keyword to filter users
-	 * @param offset  offset for pagination
-	 * @param limit   limit number of users per page
-	 * @param sort    sort order;
+	 * @param keyword       keyword to filter users
+	 * @param offset        offset for pagination
+	 * @param limit         limit number of users per page
+	 * @param sort          sort order;
+	 * @param showDisabled  if true, include disabled users
 	 * @return List of users
 	 */
 	List<User> getAllUsers(@Param(KEYWORD) String keyword, @Param(OFFSET) int offset, @Param(LIMIT) int limit,
-			       @Param(SORT) String sort);
+			       @Param(SORT) String sort, @Param(SHOW_DISABLED) boolean showDisabled);
 
 	/**
 	 * Create user
@@ -76,14 +79,6 @@ public interface UserDAO {
 	 * @return Number of rows affected in DB
 	 */
 	int updateUser(Map params);
-
-	/**
-	 * Delete users
-	 *
-	 * @param params SQL query params
-	 * @return Number of rows affected in DB
-	 */
-	int deleteUsers(Map params);
 
 	/**
 	 * Get user by id or username
@@ -116,15 +111,17 @@ public interface UserDAO {
 	 * @param keyword    keyword to filter users
 	 * @return total number of users for site
 	 */
-	int getAllUsersForSiteTotal(@Param(GROUP_NAMES) List<String> groupNames, @Param(KEYWORD) String keyword);
+	int getAllUsersForSiteTotal(@Param(GROUP_NAMES) List<String> groupNames, @Param(KEYWORD) String keyword,
+				    @Param(SHOW_DISABLED) boolean showDisabled);
 
 	/**
 	 * Get total number of users
 	 *
-	 * @param keyword keyword to filter users
+	 * @param keyword      keyword to filter users
+	 * @param showDisabled if true, include disabled users
 	 * @return total number of all users
 	 */
-	int getAllUsersTotal(@Param(KEYWORD) String keyword);
+	int getAllUsersTotal(@Param(KEYWORD) String keyword, @Param(SHOW_DISABLED) boolean showDisabled);
 
 	/**
 	 * Set password for user
@@ -178,12 +175,5 @@ public interface UserDAO {
 	 */
 	void updateUserProperties(@Param(USER_ID) long userId, @Param(SITE_ID) long siteId,
 				  @Param(PROPERTIES) Map<String, String> properties);
-
-	/**
-	 * Deletes all user properties for a given user
-	 *
-	 * @param userIds the id of the user
-	 */
-	void deleteUserPropertiesByUserIds(@Param(USER_IDS) List<Long> userIds);
 
 }

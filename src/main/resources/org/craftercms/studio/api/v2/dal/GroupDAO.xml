@@ -108,7 +108,7 @@
 	<select id="getGroupMembers" parameterType="java.util.Map" resultMap="UserMap">
 		SELECT u.* FROM `user` u INNER JOIN `group_user` gu ON u.id = gu.user_id
 		WHERE gu.group_id = #{groupId}
-		AND u.deleted = 0
+		AND u.enabled = 1
 		<if test="sort != null and sort != '' ">
 			ORDER BY ${sort}
 		</if>
@@ -120,7 +120,7 @@
 		FROM `user` u
 			     INNER JOIN `group_user` gu ON u.id = gu.user_id
 		WHERE gu.group_id = #{groupId}
-		  AND u.deleted = 0
+		  AND u.enabled = 1
 	</select>
 
 	<insert id="addGroupMembers" parameterType="java.util.Map">

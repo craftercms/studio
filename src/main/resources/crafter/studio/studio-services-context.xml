@@ -252,14 +252,11 @@
 		<constructor-arg name="zxcvbn">
 			<bean class="com.nulabinc.zxcvbn.Zxcvbn"/>
 		</constructor-arg>
-		<constructor-arg name="groupService" ref="groupServiceInternal"/>
 		<constructor-arg name="entitlementValidator" ref="crafter.entitlementValidator"/>
-		<constructor-arg name="generalLockService" ref="cstudioGeneralLockService"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="auditService" ref="auditServiceInternal"/>
 		<constructor-arg name="instanceService" ref="instanceService"/>
 		<constructor-arg name="encryptor" ref="internalTextEncryptor"/>
-		<constructor-arg name="sessionRegistry" ref="sessionRegistry"/>
 		<constructor-arg name="forgotPasswordTaskFactory" ref="forgotPasswordTaskFactory"/>
 		<constructor-arg name="taskExecutor" ref="forgotPasswordTaskExecutor"/>
 	</bean>

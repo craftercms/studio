@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+  * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License version 3 as published by
@@ -32,7 +32,6 @@
 		<result property="locale" column="locale"/>
 		<result property="email" column="email"/>
 		<result property="enabledAsInt" column="enabled"/>
-		<result property="deletedAsInt" column="deleted"/>
 
 		<collection property="groups" ofType="org.craftercms.studio.api.v2.dal.UserGroup">
 			<result property="recordLastUpdated" column="record_last_updated"/>
@@ -75,14 +74,16 @@
 		SELECT u.*
 		FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
 		INNER JOIN `group` g ON gu.group_id = g.id)
-		WHERE u.deleted = 0
-		AND g.group_name IN
+		WHERE g.group_name IN
 		<foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
 			#{groupName}
 		</foreach>
+		<if test="showDisabled == null or showDisabled == false">
+			AND u.enabled = 1
+		</if>
 		<if test="keyword != null">
 			<bind name="pattern" value="'%' + keyword + '%'"/>
-			AND u.username like #{pattern}
+			AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
 		</if>
 		<if test="sort != null and sort != '' ">
 			ORDER BY ${sort}
@@ -93,11 +94,15 @@
 	<select id="getAllUsers" parameterType="java.util.Map" resultMap="UserMap">
 		SELECT u.*
 		FROM `user` u
-		WHERE u.deleted = 0
-		<if test="keyword != null">
-			<bind name="pattern" value="'%' + keyword + '%'"/>
-			AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
-		</if>
+		<where>
+			<if test="showDisabled == null or showDisabled == false">
+				u.enabled = 1
+			</if>
+			<if test="keyword != null">
+				<bind name="pattern" value="'%' + keyword + '%'"/>
+				AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
+			</if>
+		</where>
 		<if test="sort != null and sort !=  '' ">
 			ORDER BY ${sort}
 		</if>
@@ -106,9 +111,9 @@
 
 	<insert id="createUser" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
 		INSERT INTO `user` (record_last_updated, username, password, first_name, last_name,
-		externally_managed, timezone, locale, email, enabled, deleted)
+		externally_managed, timezone, locale, email, enabled)
 		VALUES (CURRENT_TIMESTAMP, #{username}, #{password}, #{firstName}, #{lastName},
-		#{externallyManaged}, #{timezone}, #{locale}, #{email}, #{enabled}, 0)
+		#{externallyManaged}, #{timezone}, #{locale}, #{email}, #{enabled})
 		<selectKey resultType="long" order="AFTER" keyProperty="id">
 			select LAST_INSERT_ID() as id
 		</selectKey>
@@ -134,14 +139,6 @@
 			,locale = #{locale}
 		</if>
 		WHERE id = #{userId}
-	</update>
-
-	<update id="deleteUsers" parameterType="java.util.Map">
-		UPDATE `user` SET deleted = 1
-		WHERE id IN
-		<foreach collection="userIds" item="userId" index="index" separator="," open="(" close=")">
-			#{userId}
-		</foreach>
 	</update>
 
 	<select id="getUserByIdOrUsername" parameterType="java.util.Map" resultMap="UserMap">
@@ -174,23 +171,31 @@
 		SELECT count(1)
 		FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
 		INNER JOIN `group` g ON gu.group_id = g.id)
-		WHERE u.deleted = 0 AND g.group_name IN
+		WHERE g.group_name IN
 		<foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
 			#{groupName}
 		</foreach>
+		<if test="showDisabled == null or showDisabled == false">
+			AND u.enabled = 1
+		</if>
 		<if test="keyword != null">
 			<bind name="pattern" value="'%' + keyword + '%'"/>
-			AND u.username like #{pattern}
+			AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
 		</if>
 	</select>
 
 	<select id="getAllUsersTotal" resultType="int" parameterType="java.util.Map">
 		SELECT COUNT(DISTINCT username)
-		FROM `user` WHERE deleted = 0
-		<if test="keyword != null">
-			<bind name="pattern" value="'%' + keyword + '%'"/>
-			AND username like #{pattern}
-		</if>
+		FROM `user` u
+		<where>
+			<if test="showDisabled == null or showDisabled == false">
+				u.enabled = 1
+			</if>
+			<if test="keyword != null">
+				<bind name="pattern" value="'%' + keyword + '%'"/>
+				AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
+			</if>
+		</where>
 	</select>
 
 	<update id="setUserPassword" parameterType="java.util.Map">
@@ -210,7 +215,7 @@
 		SELECT *
 		FROM `user`
 		WHERE CONCAT(first_name, ' ', last_name) = #{gitName}
-		  AND deleted = 0 LIMIT 1
+		  AND enabled = 1 LIMIT 1
 	</select>
 
 	<!-- TODO: Update to support multiple sites when needed -->
@@ -235,12 +240,5 @@
 		</foreach>
 		ON DUPLICATE KEY UPDATE property_value = VALUES(property_value)
 	</insert>
-
-	<delete id="deleteUserPropertiesByUserIds">
-		DELETE FROM user_properties WHERE user_id in
-		<foreach collection="userIds" item="userId" open="(" close=")" separator=",">
-			#{userId}
-		</foreach>
-	</delete>
 
 </mapper>

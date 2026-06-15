@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,8 +15,9 @@
  */
 package org.craftercms.studio.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.studio.api.v2.dal.User;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a {@link User} that has been authenticated.
@@ -37,7 +38,6 @@ public class AuthenticatedUser extends User {
 		setFirstName(user.getFirstName());
 		setLastName(user.getLastName());
 		setEnabled(user.isEnabled());
-		setDeleted(user.isDeleted());
 		setExternallyManaged(user.isExternallyManaged());
 		setTimezone(user.getTimezone());
 		setLocale(user.getLocale());

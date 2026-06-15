@@ -41,43 +41,49 @@ public interface UserService {
 	 * @param keyword keyword to filter users
 	 * @param offset  offset for pagination
 	 * @param limit   limit number of users to return per page
-	 * @param sort    sort order
+	 * @param sort         sort order
+	 * @param showDisabled if true, include disabled users
 	 * @return requested page of list of users
 	 * @throws ServiceLayerException if there is an error fetching the users
 	 */
-	Collection<User> getAllUsersForSite(String site, String keyword, int offset, int limit, String sort)
+	Collection<User> getAllUsersForSite(String site, String keyword, int offset, int limit, String sort,
+					    boolean showDisabled)
 		throws ServiceLayerException;
 
 	/**
 	 * Get paginated list of all users filtered by keyword
 	 *
-	 * @param keyword keyword to filter users
-	 * @param offset  offset for pagination
-	 * @param limit   limit number of users to return per page
-	 * @param sort    sort order
+	 * @param keyword      keyword to filter users
+	 * @param offset       offset for pagination
+	 * @param limit        limit number of users to return per page
+	 * @param sort         sort order
+	 * @param showDisabled if true, include disabled users
 	 * @return requested page of list of users
 	 * @throws ServiceLayerException if there is an error fetching the users
 	 */
-	Collection<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
+	Collection<User> getAllUsers(String keyword, int offset, int limit, String sort, boolean showDisabled)
+		throws ServiceLayerException;
 
 	/**
 	 * Get total number of users for site filtered by keyword
 	 *
-	 * @param site    site identifier
-	 * @param keyword keyword to filter users
+	 * @param site         site identifier
+	 * @param keyword      keyword to filter users
+	 * @param showDisabled if true, include disabled users
 	 * @return total number of users for site filtered by keyword
 	 * @throws ServiceLayerException if there is an error fetching the total number of users
 	 */
-	int getAllUsersForSiteTotal(String site, String keyword) throws ServiceLayerException;
+	int getAllUsersForSiteTotal(String site, String keyword, boolean showDisabled) throws ServiceLayerException;
 
 	/**
 	 * Get total number of users filtered by keyword
 	 *
-	 * @param keyword keyword to filter user
+	 * @param keyword      keyword to filter user
+	 * @param showDisabled if true, include disabled users
 	 * @return total number of users filtered by keyword
 	 * @throws ServiceLayerException if there is an error fetching the total number of users
 	 */
-	int getAllUsersTotal(String keyword) throws ServiceLayerException;
+	int getAllUsersTotal(String keyword, boolean showDisabled) throws ServiceLayerException;
 
 	/**
 	 * Get user by id or username
@@ -129,20 +135,6 @@ public interface UserService {
 	 * @throws UserExternallyManagedException if the user is externally managed
 	 */
 	void updateUser(User user) throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException;
-
-	/**
-	 * Delete users by ids and usernames
-	 *
-	 * @param userIds   list of user ids
-	 * @param usernames list of usernames
-	 * @throws UserNotFoundException          if a user is not found
-	 * @throws ServiceLayerException          general service error
-	 * @throws AuthenticationException        if there is no user authenticated
-	 * @throws UserExternallyManagedException if trying to delete an externally managed user
-	 * @throws GroupNotFoundException         if the system_admin group cannot be found (this method tries to ensure
-	 *                                        that the system_admin group is not left without members)
-	 */
-	void deleteUsers(List<Long> userIds, List<String> usernames) throws UserNotFoundException, ServiceLayerException, AuthenticationException, UserExternallyManagedException, GroupNotFoundException;
 
 	/**
 	 * Enable or disable users

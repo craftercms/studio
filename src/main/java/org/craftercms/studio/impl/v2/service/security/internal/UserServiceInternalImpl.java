@@ -16,39 +16,99 @@
 
 package org.craftercms.studio.impl.v2.service.security.internal;
 
-import com.google.common.cache.Cache;
-import com.nulabinc.zxcvbn.Strength;
-import com.nulabinc.zxcvbn.Zxcvbn;
+import java.beans.ConstructorProperties;
+import static java.lang.String.format;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonMap;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toMap;
+
 import org.apache.commons.collections4.CollectionUtils;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import org.apache.commons.collections4.MapUtils;
+import static org.apache.commons.collections4.MapUtils.isNotEmpty;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.joinWith;
+import static org.apache.commons.lang3.Strings.CS;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_NORMALIZED_ROLE;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.*;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DISABLE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ENABLE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.Group;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FIRST_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PASSWORD;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.UserDAO;
+import org.craftercms.studio.api.v2.dal.UserProperty;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
+import org.craftercms.studio.api.v2.event.user.DisabledUserEvent;
 import org.craftercms.studio.api.v2.event.user.UserUpdatedEvent;
-import org.craftercms.studio.api.v2.event.user.UsersDeletedEvent;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import org.craftercms.studio.impl.v2.security.password.ForgotPasswordTaskFactory;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.UserResponse;
 import org.jspecify.annotations.NonNull;
@@ -61,33 +121,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
 
-import java.beans.ConstructorProperties;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.collections4.MapUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.apache.commons.lang3.StringUtils.joinWith;
-import static org.apache.commons.lang3.Strings.CS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
-import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.*;
+import com.google.common.cache.Cache;
+import com.nulabinc.zxcvbn.Strength;
+import com.nulabinc.zxcvbn.Zxcvbn;
 
 public class UserServiceInternalImpl implements UserService, ApplicationEventPublisherAware {
 
@@ -108,26 +145,20 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	private final TextEncryptor encryptor;
 	private final InstanceService instanceService;
 	private SecurityService securityService;
-	private final GeneralLockService generalLockService;
-	private final GroupService groupService;
-	private final SessionRegistry sessionRegistry;
 
 	private ApplicationEventPublisher eventPublisher;
 
 	@ConstructorProperties({"userDao", "studioConfiguration",
 			"retryingDatabaseOperationFacade", "userCache", "zxcvbn",
 			"auditService", "entitlementValidator", "taskExecutor", "forgotPasswordTaskFactory",
-			"encryptor", "instanceService", "generalLockService",
-			"groupService", "sessionRegistry"})
+			"encryptor", "instanceService"})
 	public UserServiceInternalImpl(UserDAO userDao,
 								   StudioConfiguration studioConfiguration,
 								   RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
 								   Cache<String, User> userCache, Zxcvbn zxcvbn,
 								   AuditService auditService, EntitlementValidator entitlementValidator,
 								   TaskExecutor taskExecutor, ObjectFactory<ForgotPasswordTaskFactory> forgotPasswordTaskFactory,
-								   TextEncryptor encryptor, InstanceService instanceService,
-								   GeneralLockService generalLockService,
-								   GroupService groupService, SessionRegistry sessionRegistry) {
+								   TextEncryptor encryptor, InstanceService instanceService) {
 		this.userDao = userDao;
 		this.studioConfiguration = studioConfiguration;
 		this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
@@ -139,9 +170,6 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		this.forgotPasswordTaskFactory = forgotPasswordTaskFactory;
 		this.encryptor = encryptor;
 		this.instanceService = instanceService;
-		this.generalLockService = generalLockService;
-		this.groupService = groupService;
-		this.sessionRegistry = sessionRegistry;
 	}
 
 	protected void invalidateCache(String username) {
@@ -199,34 +227,36 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Override
 	public Collection<User> getAllUsersForSite(String siteId, String keyword, int offset, int limit,
-											   String sort)
+											   String sort, boolean showDisabled)
 			throws ServiceLayerException {
 		List<NormalizedGroup> groupNames = configurationService.getSiteGroups(siteId);
 		try {
 			return userDao.getAllUsersForSite(
 					groupNames.stream()
 							.map(NormalizedGroup::toString)
-							.toList(), keyword, offset, limit, sort);
+							.toList(), keyword, offset, limit, sort, showDisabled);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
 		}
 	}
 
 	@Override
-	public Collection<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException {
+	public Collection<User> getAllUsers(String keyword, int offset, int limit, String sort, boolean showDisabled)
+		throws ServiceLayerException {
 		try {
-			return userDao.getAllUsers(keyword, offset, limit, sort);
+			return userDao.getAllUsers(keyword, offset, limit, sort, showDisabled);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
 		}
 	}
 
 	@Override
-	public int getAllUsersForSiteTotal(String siteId, String keyword) throws ServiceLayerException {
+	public int getAllUsersForSiteTotal(String siteId, String keyword, boolean showDisabled)
+		throws ServiceLayerException {
 		List<NormalizedGroup> groupNames = configurationService.getSiteGroups(siteId);
 		try {
 			return userDao.getAllUsersForSiteTotal(
-					groupNames.stream().map(NormalizedGroup::toString).toList(), keyword
+					groupNames.stream().map(NormalizedGroup::toString).toList(), keyword, showDisabled
 			);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
@@ -234,9 +264,9 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	}
 
 	@Override
-	public int getAllUsersTotal(String keyword) throws ServiceLayerException {
+	public int getAllUsersTotal(String keyword, boolean showDisabled) throws ServiceLayerException {
 		try {
-			return userDao.getAllUsersTotal(keyword);
+			return userDao.getAllUsersTotal(keyword, showDisabled);
 		} catch (Exception e) {
 			throw new ServiceLayerException("Unknown database error", e);
 		}
@@ -329,8 +359,12 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		try {
 			retryingDatabaseOperationFacade.retry(() -> userDao.updateUser(params));
 			invalidateCache(oldUser.getUsername());
-			// Force a re-authentication if the user is currently logged-in
-			eventPublisher.publishEvent(new UserUpdatedEvent(oldUser.getId()));
+			if (oldUser.isEnabled() && !user.isEnabled()) {
+				eventPublisher.publishEvent(new DisabledUserEvent(List.of(oldUser.getId())));
+			} else {
+				// Force a re-authentication if the user is currently logged-in
+				eventPublisher.publishEvent(new UserUpdatedEvent(oldUser.getId()));
+			}
 		} catch (Exception e) {
 			throw new ServiceLayerException("Failed to update user", e);
 		}
@@ -346,138 +380,6 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
 		auditLog.setPrimaryTargetValue(updatedUser.getUsername());
 		auditService.insertAuditLog(auditLog);
-	}
-
-	/**
-	 * Audit the deletion of the given users.
-	 */
-	private void auditDeleteUsers(List<User> deleted) throws SiteNotFoundException {
-		Site site = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-		AuditLog auditLog = createAuditLogEntry();
-		auditLog.setOperation(OPERATION_DELETE);
-		auditLog.setSiteId(site.getId());
-		auditLog.setActorId(getCurrentUsername());
-		auditLog.setPrimaryTargetId(site.getSiteId());
-		auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
-		auditLog.setPrimaryTargetValue(site.getName());
-		List<AuditLogParameter> parameters = new ArrayList<>();
-		for (User deletedUser : deleted) {
-			AuditLogParameter parameter = new AuditLogParameter();
-			parameter.setTargetId(Long.toString(deletedUser.getId()));
-			parameter.setTargetType(TARGET_TYPE_USER);
-			parameter.setTargetValue(deletedUser.getUsername());
-			parameters.add(parameter);
-		}
-		auditLog.setParameters(parameters);
-		auditService.insertAuditLog(auditLog);
-	}
-
-	@Override
-	public void deleteUsers(final List<Long> userIds, final List<String> usernames)
-			throws UserNotFoundException, ServiceLayerException, AuthenticationException {
-		User currentUser = getCurrentUser();
-
-		if (CollectionUtils.containsAny(userIds, List.of(currentUser.getId())) ||
-				CollectionUtils.containsAny(usernames, List.of(currentUser.getUsername()))) {
-			throw new ServiceLayerException("Cannot delete self.");
-		}
-
-		User gitRepoUser = getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
-		if (CollectionUtils.containsAny(userIds, List.of(gitRepoUser.getId())) ||
-				CollectionUtils.containsAny(usernames, List.of(gitRepoUser.getUsername()))) {
-			throw new ServiceLayerException("Cannot delete generic Git Repo User.");
-		}
-
-		generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
-		try {
-			ensureSystemAdminNotEmpty(userIds, usernames);
-			List<User> deleted = doDeleteUsers(userIds, usernames);
-			cleanUpAfterUsersDelete(deleted);
-			auditDeleteUsers(deleted);
-		} finally {
-			generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
-		}
-	}
-
-	/**
-	 * Check the users to be deleted and ensure that the System Admin group is not left empty
-	 *
-	 * @throws ServiceLayerException if the System Admin group is not found or if all members are being removed
-	 */
-	private void ensureSystemAdminNotEmpty(final List<Long> userIds, final List<String> usernames) throws ServiceLayerException {
-		try {
-			Group g = groupService.getGroupByName(SYSTEM_ADMIN_GROUP);
-			List<User> members =
-					groupService.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE, StringUtils.EMPTY);
-			if (!isNotEmpty(members)) {
-				return;
-			}
-			List<User> membersAfterRemove = new LinkedList<>(members);
-			members.forEach(m -> {
-				if (isNotEmpty(userIds)) {
-					if (userIds.contains(m.getId())) {
-						membersAfterRemove.remove(m);
-					}
-				}
-				if (isNotEmpty(usernames)) {
-					if (usernames.contains(m.getUsername())) {
-						membersAfterRemove.remove(m);
-					}
-				}
-			});
-			if (CollectionUtils.isEmpty(membersAfterRemove)) {
-				throw new ServiceLayerException("Removing all members of the System Admin group is not allowed." +
-						" We must have at least one system administrator.");
-			}
-		} catch (GroupNotFoundException e) {
-			throw new ServiceLayerException("Failed to delete users. System Admin group not found", e);
-		}
-	}
-
-	/**
-	 * Invalidate the sessions and tokens for the users that were deleted.
-	 */
-	private void cleanUpAfterUsersDelete(List<User> deleted) {
-		logger.debug("Search the current sessions for deleted users '{}'", deleted);
-		Set<AuthenticatedUser> principals = sessionRegistry.getAllPrincipals().stream()
-				.map(principal -> (AuthenticatedUser) principal)
-				.filter(authenticatedUser -> deleted.stream()
-						.anyMatch(user -> authenticatedUser.getId() == user.getId()))
-				.collect(toSet());
-		principals.forEach(principal -> {
-			// Invalidate any open session
-			List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
-			sessions.forEach(session -> {
-				logger.debug("Invalidate the session '{}' for user '{}'",
-						session.getSessionId(), principal.getUsername());
-				session.expireNow();
-			});
-		});
-
-		logger.debug("Trigger event so tokens are removed for deleted users '{}", deleted);
-		eventPublisher.publishEvent(new UsersDeletedEvent(deleted.stream()
-				.map(User::getId).toList()));
-	}
-
-	/**
-	 * Delete from the database the users (and user properties) identified by the given user ids and usernames.
-	 */
-	private List<User> doDeleteUsers(List<Long> userIds, List<String> usernames) throws UserNotFoundException, ServiceLayerException {
-		List<User> deleted = getUsersByIdOrUsername(userIds, usernames);
-
-		var ids = deleted.stream().map(User::getId).collect(Collectors.toList());
-		Map<String, Object> params = new HashMap<>();
-		params.put(USER_IDS, ids);
-
-		try {
-			retryingDatabaseOperationFacade.retry(() -> userDao.deleteUsers(params));
-			invalidateCache(deleted);
-			// Cleanup user properties...
-			retryingDatabaseOperationFacade.retry(() -> userDao.deleteUserPropertiesByUserIds(ids));
-		} catch (Exception e) {
-			throw new ServiceLayerException("Unknown database error", e);
-		}
-		return deleted;
 	}
 
 	@Override
@@ -518,6 +420,10 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		}
 		auditLog.setParameters(parameters);
 		auditService.insertAuditLog(auditLog);
+
+		if (!enabled) {
+			eventPublisher.publishEvent(new DisabledUserEvent(users.stream().map(User::getId).toList()));
+		}
 
 		return getUsersByIdOrUsername(userIds, usernames);
 	}
