@@ -16,21 +16,76 @@
 
 package org.craftercms.studio.impl.v2.service.security.internal;
 
-import com.google.common.cache.Cache;
-import com.nulabinc.zxcvbn.Strength;
-import com.nulabinc.zxcvbn.Zxcvbn;
+import java.beans.ConstructorProperties;
+import static java.lang.String.format;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonMap;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toMap;
+
 import org.apache.commons.collections4.CollectionUtils;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import org.apache.commons.collections4.MapUtils;
+import static org.apache.commons.collections4.MapUtils.isNotEmpty;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.joinWith;
+import static org.apache.commons.lang3.Strings.CS;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_NORMALIZED_ROLE;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.*;
-import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.AuditLog;
+import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DISABLE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ENABLE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
+import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.Group;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FIRST_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PASSWORD;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.UserDAO;
+import org.craftercms.studio.api.v2.dal.UserProperty;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.event.user.DisabledUserEvent;
@@ -44,8 +99,16 @@ import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import org.craftercms.studio.impl.v2.security.password.ForgotPasswordTaskFactory;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUser;
+import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.UserResponse;
 import org.jspecify.annotations.NonNull;
@@ -59,29 +122,9 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.task.TaskExecutor;
 
-import java.beans.ConstructorProperties;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.collections4.MapUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.apache.commons.lang3.StringUtils.joinWith;
-import static org.apache.commons.lang3.Strings.CS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.dal.AuditLog.createAuditLogEntry;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
-import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.*;
+import com.google.common.cache.Cache;
+import com.nulabinc.zxcvbn.Strength;
+import com.nulabinc.zxcvbn.Zxcvbn;
 
 public class UserServiceInternalImpl implements UserService, ApplicationEventPublisherAware {
 
@@ -316,8 +359,12 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 		try {
 			retryingDatabaseOperationFacade.retry(() -> userDao.updateUser(params));
 			invalidateCache(oldUser.getUsername());
-			// Force a re-authentication if the user is currently logged-in
-			eventPublisher.publishEvent(new UserUpdatedEvent(oldUser.getId()));
+			if (oldUser.isEnabled() && !user.isEnabled()) {
+				eventPublisher.publishEvent(new DisabledUserEvent(List.of(oldUser.getId())));
+			} else {
+				// Force a re-authentication if the user is currently logged-in
+				eventPublisher.publishEvent(new UserUpdatedEvent(oldUser.getId()));
+			}
 		} catch (Exception e) {
 			throw new ServiceLayerException("Failed to update user", e);
 		}
