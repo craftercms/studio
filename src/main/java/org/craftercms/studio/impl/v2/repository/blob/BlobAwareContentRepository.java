@@ -15,19 +15,40 @@
  */
 package org.craftercms.studio.impl.v2.repository.blob;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import static java.lang.String.format;
+import java.nio.file.Paths;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import static java.util.stream.Collectors.toList;
+import java.util.stream.Stream;
+
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.prependIfMissing;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.apache.commons.lang3.StringUtils.removeStart;
 import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -55,6 +76,7 @@ import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import static org.eclipse.jgit.lib.Constants.HEAD;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -62,20 +84,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.function.ThrowingConsumer;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.stream.Stream;
-
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.eclipse.jgit.lib.Constants.HEAD;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 /**
  * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository}
@@ -608,7 +619,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
         logger.debug("Publish the items '{}' in site '{}' to target '{}'", deploymentItems, site, environment);
         Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
         MultiValueMap<String, DeploymentItemTO> items = new LinkedMultiValueMap<>();
-        List<DeploymentItemTO> localItems = new LinkedList<>();
+        Map<String, DeploymentItemTO> localItems = new HashMap<>();
         try {
             for (DeploymentItemTO item : deploymentItems) {
                 boolean pointerExists = pointersExist(site, item.getPath()) &&
@@ -619,11 +630,11 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                     if (store != null) {
                         stores.putIfAbsent(store.getId(), store);
                         items.add(store.getId(), item);
-                        localItems.add(mapDeploymentItem(item));
+                        localItems.put(item.getPath(), mapDeploymentItem(item));
                         continue;
                     }
                 }
-                localItems.add(item);
+                localItems.put(item.getPath(), item);
             }
             List<String> failedPaths = new ArrayList<>();
             for (String storeId : stores.keySet()) {
@@ -631,8 +642,11 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                         site, environment, storeId);
                 failedPaths.addAll(stores.get(storeId).publish(site, sandboxBranch, items.get(storeId), environment, author, comment));
             }
+            for (String failedPath : failedPaths) {
+               localItems.remove(failedPath);
+            }
             logger.debug("Publish the local files in site '{}' to target '{}'", site, environment);
-            localRepositoryV2.publish(site, sandboxBranch, localItems, environment, author, comment);
+            localRepositoryV2.publish(site, sandboxBranch, new ArrayList(localItems.values()), environment, author, comment);
             return failedPaths;
         } catch (Exception e) {
             logger.error("Failed to publish items in site '{}' to target '{}'", site, environment, e);
