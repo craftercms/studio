@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,15 +15,13 @@
  */
 package org.craftercms.studio.api.v1.service.deployment;
 
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import java.util.List;
+import java.util.Set;
+
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-
-import jakarta.validation.Valid;
-import java.util.List;
-import java.util.Set;
 
 /**
  *document
@@ -34,7 +32,16 @@ public interface PublishingManager {
 
     DeploymentItemTO processItem(PublishRequest item) throws DeploymentException, ServiceLayerException, UserNotFoundException;
 
-    void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems, List<String> failedPaths)
+    /**
+     * Mark items as completed
+     *
+     * @param site the site id
+     * @param environment the environment where the items were published
+     * @param processedItems the items that were published
+     * @param failedPaths the paths that failed to publish
+     * @throws DeploymentException if the items cannot be marked as completed
+     */
+    void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems, Set<String> failedPaths)
         throws DeploymentException;
 
     void markItemsProcessing(String site, String environment, List<PublishRequest> itemsToDeploy)
@@ -60,9 +67,11 @@ public interface PublishingManager {
     /**
      * Updates item states to publish state according to the publishing
      * environment (stage vs live)
+     *
      * @param siteId the site id
      * @param environment the environment where the items were published
      * @param items the published items
+     * @param failedPaths the paths that failed to publish
      */
-    void setPublishedState(String siteId, String environment, List<PublishRequest> items, List<String> failedPaths);
+    void setPublishedState(String siteId, String environment, List<PublishRequest> items, Set<String> failedPaths);
 }

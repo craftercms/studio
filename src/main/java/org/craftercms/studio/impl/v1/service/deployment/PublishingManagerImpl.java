@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static java.util.Objects.isNull;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
@@ -170,7 +171,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 logger.debug("The file in site '{}' path '{}' matches the publishing blacklist and will not be " +
                                 "published", site, item.getPath());
                 // TODO: JM: Should these be marked as CANCELLED instead of COMPLETED ?
-                markItemsCompleted(site, item.getEnvironment(), List.of(item), Collections.emptyList());
+                markItemsCompleted(site, item.getEnvironment(), List.of(item), Collections.emptySet());
                 deploymentItem = null;
             }
         }
@@ -178,7 +179,7 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void setPublishedState(String site, String environment, List<PublishRequest> items, List<String> failedPaths) {
+    public void setPublishedState(String site, String environment, List<PublishRequest> items, Set<String> failedPaths) {
         boolean isLive = isLiveEnv(site, environment);
         items.parallelStream()
                 .forEach(publishRequest -> {
@@ -305,7 +306,7 @@ public class PublishingManagerImpl implements PublishingManager {
     @Valid
     public void markItemsCompleted(@ValidateStringParam String site,
             @ValidateStringParam String environment,
-            List<PublishRequest> processedItems, List<String> failedPaths) {
+            List<PublishRequest> processedItems, Set<String> failedPaths) {
         ZonedDateTime publishedOn = DateUtils.getCurrentTime();
         processedItems.parallelStream()
                 .forEach(item -> {

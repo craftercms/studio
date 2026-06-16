@@ -25,11 +25,13 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 
@@ -614,7 +616,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public List<String> publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+    public Set<String> publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
         logger.debug("Publish the items '{}' in site '{}' to target '{}'", deploymentItems, site, environment);
         Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
@@ -636,7 +638,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                 }
                 localItems.put(item.getPath(), item);
             }
-            List<String> failedPaths = new ArrayList<>();
+            Set<String> failedPaths = new HashSet<>();
             for (String storeId : stores.keySet()) {
                 logger.trace("Publish the blobs in site '{}' to target '{}' using the store '{}'",
                         site, environment, storeId);
@@ -646,7 +648,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                localItems.remove(failedPath);
             }
             logger.debug("Publish the local files in site '{}' to target '{}'", site, environment);
-            localRepositoryV2.publish(site, sandboxBranch, new ArrayList(localItems.values()), environment, author, comment);
+            localRepositoryV2.publish(site, sandboxBranch, new ArrayList<>(localItems.values()), environment, author, comment);
             return failedPaths;
         } catch (Exception e) {
             logger.error("Failed to publish items in site '{}' to target '{}'", site, environment, e);

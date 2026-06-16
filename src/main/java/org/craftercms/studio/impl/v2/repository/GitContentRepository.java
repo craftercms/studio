@@ -613,10 +613,10 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public List<String> publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+    public Set<String> publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
         if (CollectionUtils.isEmpty(deploymentItems)) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
         String gitLockKey = helper.getPublishedRepoLockKey(site);
         generalLockService.lock(gitLockKey);
@@ -824,7 +824,7 @@ public class GitContentRepository implements ContentRepository {
                 }
             }
             // We don't fail individual items here
-            return Collections.emptyList();
+            return Collections.emptySet();
         } catch (Exception e) {
             logger.error("Failed to publish site '{}' to publishing target '{}'",
                     site, environment, e);

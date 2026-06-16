@@ -21,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -135,7 +136,7 @@ public interface ContentRepository {
      * @return list of failed paths
      * @throws DeploymentException deployment error
      */
-    List<String> publish(String siteId, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+    Set<String> publish(String siteId, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                  String author, String comment) throws DeploymentException;
 
     /**

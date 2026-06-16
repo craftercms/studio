@@ -22,8 +22,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -440,26 +442,26 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public List<String> publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+    public Set<String> publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) {
         // If store is in readonly mode, nothing to do here.
         if (readOnly) {
             logger.warn("Publish request ignored in blobstore '{}' because it is readonly", id);
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
 
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping envMapping = getMapping(environment);
         logger.debug("Publish content in site '{}' from bucket '{}' to bucket '{}'",
                 site, previewMapping.target, envMapping.target);
-                List<String> failedPaths = new ArrayList<>();
+        Set<String> failedPaths = new HashSet<>();
         for (DeploymentItemTO item : deploymentItems) {
             publish(site, previewMapping, envMapping, item, failedPaths);
         }
         return failedPaths;
     }
 
-    private void publish(String site, Mapping previewMapping, Mapping envMapping, DeploymentItemTO item, List<String> failedPaths) {
+    private void publish(String site, Mapping previewMapping, Mapping envMapping, DeploymentItemTO item, Set<String> failedPaths) {
         if (item.isDelete()) {
             logger.trace("Delete content at site '{}' path '{}'", site, getFullKey(envMapping, item.getPath()));
             try {

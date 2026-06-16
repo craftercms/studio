@@ -184,7 +184,7 @@ public class StudioPublisherTask extends StudioClockTask {
             publishingProgressServiceInternal.addObserver(observer);
             logger.debug("Start repository processing for site '{}' to target '{}'",
                     siteId, environment);
-            List<String> failedPaths = deploy(siteId, environment, completeDeploymentItemList, author,
+            Set<String> failedPaths = deploy(siteId, environment, completeDeploymentItemList, author,
                     sbComment.toString());
             logger.debug("Done repository processing for site'{}' to target '{}'",
                     siteId, environment);
@@ -236,7 +236,7 @@ public class StudioPublisherTask extends StudioClockTask {
         }
     }
 
-    private List<String> deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
+    private Set<String> deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
             throws DeploymentException, SiteNotFoundException {
         logger.trace("Publish '{}' items from site '{}' to target '{}' by author '{}' with comment '{}'",
                 items.size(), site, environment, author, comment);
