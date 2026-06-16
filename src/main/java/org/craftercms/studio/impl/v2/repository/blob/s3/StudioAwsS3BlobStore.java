@@ -15,12 +15,30 @@
  */
 package org.craftercms.studio.impl.v2.repository.blob.s3;
 
+import java.beans.ConstructorProperties;
+import java.io.InputStream;
+import static java.lang.String.format;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import static org.apache.commons.io.FilenameUtils.getExtension;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import org.craftercms.commons.aws.AwsUtils;
+import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
@@ -33,23 +51,29 @@ import org.craftercms.studio.api.v2.exception.blob.BlobStoreNotWritableModeExcep
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.COPY_PART_SIZE;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.DELETE_BATCH_SIZE;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.MIN_PART_SIZE;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.copyFile;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.copyFolder;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.uploadStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
-
-import java.beans.ConstructorProperties;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.util.*;
-
-import static java.lang.String.format;
-import static org.apache.commons.io.FilenameUtils.getExtension;
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.*;
 
 /**
  * Implementation of {@link StudioBlobStore} for AWS S3
@@ -418,71 +442,81 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+    public Set<String> publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) {
         // If store is in readonly mode, nothing to do here.
         if (readOnly) {
             logger.warn("Publish request ignored in blobstore '{}' because it is readonly", id);
-            return;
+            return Collections.emptySet();
         }
 
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping envMapping = getMapping(environment);
         logger.debug("Publish content in site '{}' from bucket '{}' to bucket '{}'",
                 site, previewMapping.target, envMapping.target);
+        Set<String> failedPaths = new HashSet<>();
         for (DeploymentItemTO item : deploymentItems) {
-            if (item.isDelete()) {
-                logger.trace("Delete content at site '{}' path '{}'", site, getFullKey(envMapping, item.getPath()));
-                try {
-                    deleteS3Object(getClient(), envMapping.target, getKey(envMapping, item.getPath()));
-                    if (isNotEmpty(item.getOldPath())) {
-                        logger.trace("Delete content at site '{}' path '{}'",
-                                site, getFullKey(envMapping, item.getOldPath()));
-                        deleteS3Object(getClient(), envMapping.target, getKey(envMapping, item.getOldPath()));
-                    }
-                } catch (Exception e) {
-                    logger.error("Failed to delete content at site '{}' path '{}'",
+            publish(site, previewMapping, envMapping, item, failedPaths);
+        }
+        return failedPaths;
+    }
+
+    private void publish(String site, Mapping previewMapping, Mapping envMapping, DeploymentItemTO item, Set<String> failedPaths) {
+        if (item.isDelete()) {
+            logger.trace("Delete content at site '{}' path '{}'", site, getFullKey(envMapping, item.getPath()));
+            try {
+                deleteS3Object(getClient(), envMapping.target, getKey(envMapping, item.getPath()));
+                if (isNotEmpty(item.getOldPath())) {
+                    logger.trace("Delete content at site '{}' path '{}'",
+                            site, getFullKey(envMapping, item.getOldPath()));
+                    deleteS3Object(getClient(), envMapping.target, getKey(envMapping, item.getOldPath()));
+                }
+            } catch (Exception e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to delete content at site '{}' path '{}'",
                             site, getFullKey(previewMapping, item.getPath()), e);
-                    throw new BlobStoreException(format("Failed to delete content at site '%s' path '%s'",
-                            site, getFullKey(previewMapping, item.getPath())), e);
+                } else {
+                    logger.error("Failed to delete content at site '{}' path '{}'",
+                            site, getFullKey(envMapping, item.getPath()));
                 }
-            } else if (item.isMove()) {
-                logger.trace("Move content in site '{}' from '{}' to '{}'",
-                        site, getFullKey(envMapping, item.getOldPath()), getFullKey(envMapping, item.getPath()));
-                try {
-                    copyFile(previewMapping.target, getKey(previewMapping, item.getPath()), envMapping.target,
-                            getKey(envMapping, item.getPath()), COPY_PART_SIZE, this::getClient);
-                    if (!StringUtils.equals(item.getOldPath(), item.getPath())) {
-                        deleteS3Object(getClient(), envMapping.target, getKey(envMapping, item.getOldPath()));
-                    }
-                } catch (Exception e) {
+                failedPaths.add(item.getPath());
+            }
+        } else if (item.isMove()) {
+            logger.trace("Move content in site '{}' from '{}' to '{}'",
+                    site, getFullKey(envMapping, item.getOldPath()), getFullKey(envMapping, item.getPath()));
+            try {
+                copyFile(previewMapping.target, getKey(previewMapping, item.getPath()), envMapping.target,
+                        getKey(envMapping, item.getPath()), COPY_PART_SIZE, this::getClient);
+                if (!StringUtils.equals(item.getOldPath(), item.getPath())) {
+                    deleteS3Object(getClient(), envMapping.target, getKey(envMapping, item.getOldPath()));
+                }
+            } catch (Exception e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to move content in site '{}' from '{}' to '{}'",
+                            site, getFullKey(envMapping, item.getOldPath()), getFullKey(envMapping, item.getPath()), e);
+                } else {
                     logger.error("Failed to move content in site '{}' from '{}' to '{}'",
-                            site,
-                            getFullKey(envMapping, item.getOldPath()),
-                            getFullKey(envMapping, item.getPath()),
-                            e);
-                    throw new BlobStoreException(format("Failed to move content in site '%s' from '%s' to '%s'",
-                            site,
-                            getFullKey(envMapping, item.getOldPath()),
-                            getFullKey(envMapping, item.getPath())), e);
+                            site, getFullKey(envMapping, item.getOldPath()), getFullKey(envMapping, item.getPath()));
                 }
-            } else {
-                logger.trace("Copy content in site '{}' from '{}' to '{}'",
-                        site, getFullKey(previewMapping, item.getPath()), getFullKey(envMapping, item.getPath()));
-                try {
-                    copyFile(previewMapping.target, getKey(previewMapping, item.getPath()), envMapping.target,
-                            getKey(envMapping, item.getPath()), COPY_PART_SIZE, this::getClient);
-                } catch (Exception e) {
+                failedPaths.add(item.getPath());
+            }
+        } else {
+            logger.trace("Copy content in site '{}' from '{}' to '{}'",
+                    site, getFullKey(previewMapping, item.getPath()), getFullKey(envMapping, item.getPath()));
+            try {
+                copyFile(previewMapping.target, getKey(previewMapping, item.getPath()), envMapping.target,
+                        getKey(envMapping, item.getPath()), COPY_PART_SIZE, this::getClient);
+            } catch (Exception e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to copy content in site '{}' from '{}' to '{}'",
+                            site, getFullKey(previewMapping, item.getPath()), getFullKey(envMapping, item.getPath()), e);
+                } else {
                     logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
-                            site,
+                        site,
                             getFullKey(previewMapping, item.getPath()),
-                            getFullKey(envMapping, item.getPath()),
-                            e);
-                    throw new BlobStoreException(format("Failed to copy content in site '%s' from '%s' to '%s'",
-                            site,
-                            getFullKey(previewMapping, item.getPath()),
-                            getFullKey(envMapping, item.getPath())), e);
+                            getFullKey(envMapping, item.getPath()));
                 }
+                failedPaths.add(item.getPath());
             }
         }
     }

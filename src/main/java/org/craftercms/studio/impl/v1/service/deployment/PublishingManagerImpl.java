@@ -15,11 +15,26 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import jakarta.validation.Valid;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import static java.util.Arrays.asList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import static java.util.Objects.isNull;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.split;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
+import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
+import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -31,32 +46,27 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.Item;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PUBLISHING_BLACKLIST_REGEX;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.matchesPatterns;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
-import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
-import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PUBLISHING_BLACKLIST_REGEX;
-import static org.craftercms.studio.impl.v1.util.ContentUtils.matchesPatterns;
+import jakarta.validation.Valid;
 
 public class PublishingManagerImpl implements PublishingManager {
 
@@ -161,7 +171,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 logger.debug("The file in site '{}' path '{}' matches the publishing blacklist and will not be " +
                                 "published", site, item.getPath());
                 // TODO: JM: Should these be marked as CANCELLED instead of COMPLETED ?
-                markItemsCompleted(site, item.getEnvironment(), List.of(item));
+                markItemsCompleted(site, item.getEnvironment(), List.of(item), Collections.emptySet());
                 deploymentItem = null;
             }
         }
@@ -169,39 +179,42 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public void setPublishedState(String site, String environment, List<PublishRequest> items) {
+    public void setPublishedState(String site, String environment, List<PublishRequest> items, Set<String> failedPaths) {
         boolean isLive = isLiveEnv(site, environment);
-        items.parallelStream().forEach(publishRequest -> {
-            String path = publishRequest.getPath();
-            Workflow workflowEntry =
-                    workflowServiceInternal.getWorkflowEntry(site, path, publishRequest.getPackageId());
-            if (workflowEntry != null) {
-                setPublishedState(path, site, isLive);
-                return;
-            }
-            if (!contentService.contentExists(site, path)) {
-                logger.warn("Item in site '{}' path '{}' doesn't exist in the database nor the git repository. " +
-                        "Skipping publishing of this item.", site, path);
-                return;
-            }
-            Item it = itemServiceInternal.getItem(site, path, true);
-            if (isNull(it)) {
-                logger.warn("Item in site '{}' path '{}' doesn't exist in the database, but it does exist " +
-                                "in git. This may cause problems in the publishing target '{}'",
-                        site, path, environment);
-            } else {
-                setPublishedState(path, site, isLive);
-            }
-        });
+        items.parallelStream()
+                .forEach(publishRequest -> {
+                    String path = publishRequest.getPath();
+                    Workflow workflowEntry
+                            = workflowServiceInternal.getWorkflowEntry(site, path, publishRequest.getPackageId());
+                    if (workflowEntry != null) {
+                        setPublishedState(path, site, isLive, !failedPaths.contains(path));
+                        return;
+                    }
+                    if (!contentService.contentExists(site, path)) {
+                        logger.warn("Item in site '{}' path '{}' doesn't exist in the database nor the git repository. "
+                                + "Skipping publishing of this item.", site, path);
+                        return;
+                    }
+                    Item it = itemServiceInternal.getItem(site, path, true);
+                    if (isNull(it)) {
+                        logger.warn("Item in site '{}' path '{}' doesn't exist in the database, but it does exist "
+                                + "in git. This may cause problems in the publishing target '{}'",
+                                site, path, environment);
+                    } else {
+                        setPublishedState(path, site, isLive, !failedPaths.contains(path));
+                    }
+                });
     }
 
-    private void setPublishedState(String path, String site, boolean isLive) {
-        if (isLive) {
-            itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
-                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+    private void setPublishedState(String path, String site, boolean isLive, boolean success) {
+        long onMask = 0;
+        long offMask = isLive ? PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK : PUBLISH_TO_STAGE_OFF_MASK;
+        if (success) {
+            onMask = isLive ? PUBLISH_TO_STAGE_AND_LIVE_ON_MASK : PUBLISH_TO_STAGE_ON_MASK;
+        }
+        itemServiceInternal.updateStateBits(site, path, onMask, offMask);
+        if (isLive && success) {
             itemServiceInternal.clearPreviousPath(site, path);
-        } else {
-            itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
         }
     }
 
@@ -295,14 +308,15 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     @Valid
     public void markItemsCompleted(@ValidateStringParam String site,
-                                   @ValidateStringParam String environment,
-                                   List<PublishRequest> processedItems) {
+            @ValidateStringParam String environment,
+            List<PublishRequest> processedItems, Set<String> failedPaths) {
         ZonedDateTime publishedOn = DateUtils.getCurrentTime();
-        processedItems.parallelStream().forEach(item-> {
-            item.setState(PublishRequest.State.COMPLETED);
-            item.setPublishedOn(publishedOn);
-            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.markItemCompleted(item));
-        });
+        processedItems.parallelStream()
+                .forEach(item -> {
+                    item.setState(failedPaths.contains(item.getPath()) ? PublishRequest.State.FAILED : PublishRequest.State.COMPLETED);
+                    item.setPublishedOn(publishedOn);
+                    retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.markItemCompleted(item));
+                });
     }
 
     @Override
