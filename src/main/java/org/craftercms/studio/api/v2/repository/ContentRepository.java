@@ -16,6 +16,12 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -30,16 +36,9 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import static org.eclipse.jgit.lib.Constants.HEAD;
 import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
-
-import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public interface ContentRepository {
 
@@ -133,9 +132,10 @@ public interface ContentRepository {
      * @param environment environment to publish to
      * @param author author
      * @param comment submission comment
+     * @return list of failed paths
      * @throws DeploymentException deployment error
      */
-    void publish(String siteId, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+    List<String> publish(String siteId, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                  String author, String comment) throws DeploymentException;
 
     /**

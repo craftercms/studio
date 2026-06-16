@@ -16,10 +16,20 @@
 
 package org.craftercms.studio.impl.v2.job;
 
+import java.util.ArrayList;
+import static java.util.Collections.emptyList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.Strings.CS;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -28,7 +38,15 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_PUBLISHING_PACKAGE;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.ERROR;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.PROCESSING;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.PUBLISHING;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
@@ -41,15 +59,6 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.UncategorizedSQLException;
-
-import java.util.*;
-
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toList;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.*;
-
 public class StudioPublisherTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioPublisherTask.class);
@@ -156,7 +165,7 @@ public class StudioPublisherTask extends StudioClockTask {
             Set<String> packageIds = new HashSet<>();
             for (PublishRequest item : itemsToDeploy) {
                 processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
-                if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
+                if (!CS.equals(currentPackageId, item.getPackageId())) {
                     currentPackageId = item.getPackageId();
                     publishingProgressServiceInternal.updateObserver(siteId, currentPackageId);
                 } else {
@@ -175,16 +184,16 @@ public class StudioPublisherTask extends StudioClockTask {
             publishingProgressServiceInternal.addObserver(observer);
             logger.debug("Start repository processing for site '{}' to target '{}'",
                     siteId, environment);
-            deploy(siteId, environment, completeDeploymentItemList, author,
+            List<String> failedPaths = deploy(siteId, environment, completeDeploymentItemList, author,
                     sbComment.toString());
             logger.debug("Done repository processing for site'{}' to target '{}'",
                     siteId, environment);
             logger.debug("Generate workflow activity for site '{}' and target '{}'", siteId, environment);
             generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
             logger.debug("Generated workflow activity for site '{}' and target '{}'", siteId, environment);
-            publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
+            publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy, failedPaths);
             logger.debug("Items marked completed for site '{}' and target '{}'", siteId, environment);
-            publishingManager.setPublishedState(siteId, environment, itemsToDeploy);
+            publishingManager.setPublishedState(siteId, environment, itemsToDeploy, failedPaths);
 
             logger.info("Published '{}' items in site '{}' to target '{}'",
                     itemsToDeploy.size(), siteId, environment);
@@ -227,19 +236,19 @@ public class StudioPublisherTask extends StudioClockTask {
         }
     }
 
-    private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
+    private List<String> deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
             throws DeploymentException, SiteNotFoundException {
         logger.trace("Publish '{}' items from site '{}' to target '{}' by author '{}' with comment '{}'",
                 items.size(), site, environment, author, comment);
         SiteFeed siteFeed = siteService.getSite(site);
         if (servicesConfig.isStagingEnvironmentEnabled(site)) {
             String liveEnvironment = servicesConfig.getLiveEnvironment(site);
-            if (StringUtils.equals(liveEnvironment, environment)) {
+            if (CS.equals(liveEnvironment, environment)) {
                 String stagingEnvironment = servicesConfig.getStagingEnvironment(site);
                 contentRepository.publish(site, siteFeed.getSandboxBranch(), items, stagingEnvironment, author, comment);
             }
         }
-        contentRepository.publish(site, siteFeed.getSandboxBranch(), items, environment, author, comment);
+        return contentRepository.publish(site, siteFeed.getSandboxBranch(), items, environment, author, comment);
     }
 
     protected void generateWorkflowActivity(String site, String environment, Set<String> packageIds, String username,

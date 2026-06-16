@@ -44,6 +44,7 @@ public class PublishRequest implements Serializable {
         public final static String READY_FOR_LIVE = "READY_FOR_LIVE";
         public final static String PROCESSING = "PROCESSING";
         public final static String COMPLETED = "COMPLETED";
+        public final static String FAILED = "FAILED";
         public final static String CANCELLED = "CANCELLED";
         public final static String BLOCKED = "BLOCKED";
     }

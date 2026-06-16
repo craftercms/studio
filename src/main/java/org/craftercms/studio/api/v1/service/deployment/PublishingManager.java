@@ -34,7 +34,7 @@ public interface PublishingManager {
 
     DeploymentItemTO processItem(PublishRequest item) throws DeploymentException, ServiceLayerException, UserNotFoundException;
 
-    void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems)
+    void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems, List<String> failedPaths)
         throws DeploymentException;
 
     void markItemsProcessing(String site, String environment, List<PublishRequest> itemsToDeploy)
@@ -64,5 +64,5 @@ public interface PublishingManager {
      * @param environment the environment where the items were published
      * @param items the published items
      */
-    void setPublishedState(String siteId, String environment, List<PublishRequest> items);
+    void setPublishedState(String siteId, String environment, List<PublishRequest> items, List<String> failedPaths);
 }

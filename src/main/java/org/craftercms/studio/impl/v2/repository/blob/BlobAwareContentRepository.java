@@ -603,7 +603,7 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
     }
 
     @Override
-    public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
+    public List<String> publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
         logger.debug("Publish the items '{}' in site '{}' to target '{}'", deploymentItems, site, environment);
         Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
@@ -625,13 +625,15 @@ public class BlobAwareContentRepository implements ContentRepository, StudioBlob
                 }
                 localItems.add(item);
             }
+            List<String> failedPaths = new ArrayList<>();
             for (String storeId : stores.keySet()) {
                 logger.trace("Publish the blobs in site '{}' to target '{}' using the store '{}'",
                         site, environment, storeId);
-                stores.get(storeId).publish(site, sandboxBranch, items.get(storeId), environment, author, comment);
+                failedPaths.addAll(stores.get(storeId).publish(site, sandboxBranch, items.get(storeId), environment, author, comment));
             }
             logger.debug("Publish the local files in site '{}' to target '{}'", site, environment);
             localRepositoryV2.publish(site, sandboxBranch, localItems, environment, author, comment);
+            return failedPaths;
         } catch (Exception e) {
             logger.error("Failed to publish items in site '{}' to target '{}'", site, environment, e);
             throw new DeploymentException(format("Failed to publish items in site '%s' to target '%s'",
