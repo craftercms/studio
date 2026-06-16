@@ -213,6 +213,9 @@ public class PublishingManagerImpl implements PublishingManager {
             onMask = isLive ? PUBLISH_TO_STAGE_AND_LIVE_ON_MASK : PUBLISH_TO_STAGE_ON_MASK;
         }
         itemServiceInternal.updateStateBits(site, path, onMask, offMask);
+        if (isLive && success) {
+            itemServiceInternal.clearPreviousPath(site, path);
+        }
     }
 
     /**
