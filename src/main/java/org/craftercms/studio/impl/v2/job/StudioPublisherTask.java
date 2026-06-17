@@ -181,6 +181,10 @@ public class StudioPublisherTask extends StudioClockTask {
             }
             publishingProgressServiceInternal.removeObserver(siteId);
             siteService.updatePublishingStatus(siteId, PUBLISHING);
+            if (CollectionUtils.isEmpty(completeDeploymentItemList)) {
+                logger.error("No valid items to publish for site '{}' and target '{}'", siteId, environment);
+                throw new DeploymentException("No valid items to publish for site '" + siteId + "' and target '" + environment + "'");
+            }
             String pkgId = completeDeploymentItemList.get(0).getPackageId();
             PublishingProgressObserver observer = new PublishingProgressObserver(siteId, pkgId, environment,
                     completeDeploymentItemList.size());
