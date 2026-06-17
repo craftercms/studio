@@ -106,6 +106,9 @@ public enum ItemState {
     public static final long PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK =
             NEW.value + MODIFIED.value + USER_LOCKED.value + SYSTEM_PROCESSING.value + IN_WORKFLOW.value +  SCHEDULED.value;
 
+    public static final long PUBLISH_FAILED_OFF_MASK =
+            USER_LOCKED.value + SYSTEM_PROCESSING.value + IN_WORKFLOW.value +  SCHEDULED.value;
+
     public static final long NEW_MASK = NEW.value;
     public static final long MODIFIED_MASK = MODIFIED.value;
     public static final long SUBMITTED_MASK = IN_WORKFLOW.value;

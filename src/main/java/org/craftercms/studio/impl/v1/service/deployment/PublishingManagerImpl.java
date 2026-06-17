@@ -46,6 +46,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.Item;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_FAILED_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_OFF_MASK;
@@ -207,10 +208,14 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     private void setPublishedState(String path, String site, boolean isLive, boolean success) {
-        long onMask = 0;
-        long offMask = isLive ? PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK : PUBLISH_TO_STAGE_OFF_MASK;
+        long onMask;
+        long offMask;
         if (success) {
+            offMask = isLive ? PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK : PUBLISH_TO_STAGE_OFF_MASK;
             onMask = isLive ? PUBLISH_TO_STAGE_AND_LIVE_ON_MASK : PUBLISH_TO_STAGE_ON_MASK;
+        } else {
+            offMask = PUBLISH_FAILED_OFF_MASK;
+            onMask = 0;
         }
         itemServiceInternal.updateStateBits(site, path, onMask, offMask);
         if (isLive && success) {
