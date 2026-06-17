@@ -113,7 +113,10 @@ public class StudioPublisherTask extends StudioClockTask {
                                 new PublishingProgressObserver(siteId, packageId, environment,
                                         itemsToDeploy.size());
                         publishingProgressServiceInternal.addObserver(observer);
-                        doPublishing(siteId, itemsToDeploy, environment);
+                        Set<String> failedPaths = doPublishing(siteId, itemsToDeploy, environment);
+                        if (CollectionUtils.isNotEmpty(failedPaths)) {
+                            notificationService.notifyDeploymentError(siteId, null, itemsToDeploy.stream().filter(item -> failedPaths.contains(item.getPath())).toList());
+                        }
                         applicationContext.publishEvent(new PublishEvent(siteId));
                         retryCounter.remove(siteId);
                         dbErrorNotifiedSites.remove(siteId);
@@ -151,7 +154,7 @@ public class StudioPublisherTask extends StudioClockTask {
         }
     }
 
-    private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment)
+    private Set<String> doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
         siteService.updatePublishingStatus(siteId, PROCESSING);
         String status;
@@ -204,6 +207,7 @@ public class StudioPublisherTask extends StudioClockTask {
                 status = QUEUED;
             }
             siteService.updatePublishingStatus(siteId, status);
+            return failedPaths;
         } catch (Exception e) {
             logger.error("Failed to publish '{}' items in site '{}'", itemsToDeploy.size(), siteId, e);
             publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
