@@ -113,7 +113,10 @@ public class StudioPublisherTask extends StudioClockTask {
                                 new PublishingProgressObserver(siteId, packageId, environment,
                                         itemsToDeploy.size());
                         publishingProgressServiceInternal.addObserver(observer);
-                        doPublishing(siteId, itemsToDeploy, environment);
+                        Set<String> failedPaths = doPublishing(siteId, itemsToDeploy, environment);
+                        if (CollectionUtils.isNotEmpty(failedPaths)) {
+                            notificationService.notifyDeploymentError(siteId, null, itemsToDeploy.stream().filter(item -> failedPaths.contains(item.getPath())).toList());
+                        }
                         applicationContext.publishEvent(new PublishEvent(siteId));
                         retryCounter.remove(siteId);
                         dbErrorNotifiedSites.remove(siteId);
@@ -151,7 +154,7 @@ public class StudioPublisherTask extends StudioClockTask {
         }
     }
 
-    private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment)
+    private Set<String> doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
         siteService.updatePublishingStatus(siteId, PROCESSING);
         String status;
@@ -178,6 +181,10 @@ public class StudioPublisherTask extends StudioClockTask {
             }
             publishingProgressServiceInternal.removeObserver(siteId);
             siteService.updatePublishingStatus(siteId, PUBLISHING);
+            if (CollectionUtils.isEmpty(completeDeploymentItemList)) {
+                logger.error("No valid items to publish for site '{}' and target '{}'", siteId, environment);
+                throw new DeploymentException("No valid items to publish for site '" + siteId + "' and target '" + environment + "'");
+            }
             String pkgId = completeDeploymentItemList.get(0).getPackageId();
             PublishingProgressObserver observer = new PublishingProgressObserver(siteId, pkgId, environment,
                     completeDeploymentItemList.size());
@@ -204,6 +211,7 @@ public class StudioPublisherTask extends StudioClockTask {
                 status = QUEUED;
             }
             siteService.updatePublishingStatus(siteId, status);
+            return failedPaths;
         } catch (Exception e) {
             logger.error("Failed to publish '{}' items in site '{}'", itemsToDeploy.size(), siteId, e);
             publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
