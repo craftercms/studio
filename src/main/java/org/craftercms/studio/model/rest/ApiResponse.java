@@ -215,6 +215,8 @@ public class ApiResponse {
 	// 56000 - 57000
 	public static final ApiResponse CONTENT_TYPE_IN_USE = new ApiResponse(56000, "The content type cannot be deleted because it is still in use by content items",
 			"Check if you sent in the right content type id or add 'deleteDependencies' to force delete", StringUtils.EMPTY);
+	public static final ApiResponse CONTENT_TYPE_INVALID_LOCATION = new ApiResponse(56001, "The content type does not allow the specified location",
+			"Check the content type configuration", StringUtils.EMPTY);
 
 	private int code;
 	private String message;

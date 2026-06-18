@@ -19,8 +19,10 @@ package org.craftercms.studio.controller.rest.v2;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
@@ -84,8 +86,11 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+
+import org.craftercms.studio.api.v2.exception.contentType.ContentTypeInvalidLocationException;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.INVALID_PARAMS;
+import static org.craftercms.studio.model.rest.ApiResponse.CONTENT_TYPE_INVALID_LOCATION;
 import static org.slf4j.event.Level.DEBUG;
 import static org.slf4j.event.Level.ERROR;
 import static org.springframework.http.HttpStatus.*;
@@ -185,6 +190,14 @@ public class ExceptionHandlers {
 	@ResponseStatus(BAD_REQUEST)
 	public Result handleInvalidParametersException(HttpServletRequest request, InvalidParametersException e) {
 		ApiResponse response = new ApiResponse(INVALID_PARAMS);
+		response.setMessage(response.getMessage() + " : " + e.getMessage());
+		return handleExceptionInternal(request, e, response);
+	}
+
+	@ExceptionHandler(ContentTypeInvalidLocationException.class)
+	@ResponseStatus(BAD_REQUEST)
+	public Result handleContentTypeInvalidLocationException(HttpServletRequest request, ContentTypeInvalidLocationException e) {
+		ApiResponse response = new ApiResponse(CONTENT_TYPE_INVALID_LOCATION);
 		response.setMessage(response.getMessage() + " : " + e.getMessage());
 		return handleExceptionInternal(request, e, response);
 	}
