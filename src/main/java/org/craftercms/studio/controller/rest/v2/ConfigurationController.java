@@ -16,8 +16,14 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import java.beans.ConstructorProperties;
+import java.io.InputStream;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import org.apache.commons.io.IOUtils;
+import static org.apache.commons.lang3.Strings.CS;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import org.craftercms.commons.validation.annotations.param.ValidConfigurationPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -26,27 +32,29 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CLEAR_CACHE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CONFIGURATION;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CONFIGURATION;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CONFIGURATION_HISTORY;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.TRANSLATION;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.WRITE_CONFIGURATION;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONFIG;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HISTORY;
 import org.craftercms.studio.model.config.TranslationConfiguration;
+import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.WriteConfigurationRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import java.beans.ConstructorProperties;
-import java.io.InputStream;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.lang3.Strings.CS;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONFIG;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HISTORY;
-import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Validated
 @RestController
@@ -55,8 +63,6 @@ public class ConfigurationController {
 
 	private final ConfigurationService configurationService;
 	private final StudioConfiguration studioConfiguration;
-	@SuppressWarnings("unused")
-	private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
 
 	@ConstructorProperties({"configurationService", "studioConfiguration"})
 	public ConfigurationController(ConfigurationService configurationService, StudioConfiguration studioConfiguration) {

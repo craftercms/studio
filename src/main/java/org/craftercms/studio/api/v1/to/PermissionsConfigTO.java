@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,13 +16,11 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
-import org.dom4j.Document;
 import org.dom4j.Node;
 
 /**
@@ -31,54 +29,15 @@ import org.dom4j.Node;
  * @author Sandra O'Keeffe
  * @author Sweta Chalasani
  */
-public class PermissionsConfigTO implements TimeStamped, Serializable {
+public class PermissionsConfigTO implements Serializable {
 
 	private static final long serialVersionUID = -8150776631439025097L;
-	/**
-	 * site-filename key
-	 **/
-	protected String key = null;
-	/**
-	 * mappings Document object containing either permissions or role mapping details
-	 **/
-	protected Document mapping = null;
-
-	/**
-	 * configuration time stamp
-	 **/
-	protected ZonedDateTime lastUpdated = null;
 
 	protected Map<NormalizedGroup, List<NormalizedRole>> roles = null;
 	protected Map<String, Map<NormalizedRole, List<Node>>> permissions = null;
 
-	@Override
-	public void setLastUpdated(ZonedDateTime lastUpdated) {
-		this.lastUpdated = lastUpdated;
-	}
-
-	@Override
-	public ZonedDateTime getLastUpdated() {
-		return lastUpdated;
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	public Document getMapping() {
-		return mapping;
-	}
-
 	public Map<NormalizedGroup, List<NormalizedRole>> getRoles() {
 		return roles;
-	}
-
-	public void setMapping(Document mapping) {
-		this.mapping = mapping;
 	}
 
 	public void setRoles(Map<NormalizedGroup, List<NormalizedRole>> roles) {

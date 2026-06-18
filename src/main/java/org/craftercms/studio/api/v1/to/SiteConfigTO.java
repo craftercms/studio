@@ -16,7 +16,6 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -32,21 +31,6 @@ public class SiteConfigTO implements Serializable {
 	 *
 	 */
 	protected static final long serialVersionUID = 3411780412457597813L;
-
-	/**
-	 * site name
-	 */
-	protected String siteName = null;
-
-	/**
-	 * site display name
-	 */
-	protected String name = null;
-
-	/**
-	 * the last updated date of site configuration
-	 **/
-	protected ZonedDateTime lastUpdated = null;
 
 	/**
 	 * web project configuration if the site is dm-based
@@ -96,11 +80,6 @@ public class SiteConfigTO implements Serializable {
 	protected String authoringUrl;
 
 	/**
-	 * Staging url
-	 */
-	protected String stagingUrl;
-
-	/**
 	 * Live url
 	 */
 	protected String liveUrl;
@@ -115,26 +94,6 @@ public class SiteConfigTO implements Serializable {
 	protected List<String> protectedFolderPatterns;
 
 	protected ContentMonitorConfigTO contentMonitorConfig;
-
-	public String getSiteName() {
-		return siteName;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public void setLastUpdated(ZonedDateTime lastUpdated) {
-		this.lastUpdated = lastUpdated;
-	}
-
-	public ZonedDateTime getLastUpdated() {
-		return lastUpdated;
-	}
 
 	public RepositoryConfigTO getRepositoryConfig() {
 		return repositoryConfig;
@@ -214,14 +173,6 @@ public class SiteConfigTO implements Serializable {
 
 	public void setAuthoringUrl(String authoringUrl) {
 		this.authoringUrl = authoringUrl;
-	}
-
-	public String getStagingUrl() {
-		return stagingUrl;
-	}
-
-	public void setStagingUrl(String stagingUrl) {
-		this.stagingUrl = stagingUrl;
 	}
 
 	public String getLiveUrl() {

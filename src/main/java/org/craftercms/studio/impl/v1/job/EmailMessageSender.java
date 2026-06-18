@@ -15,21 +15,21 @@
  */
 package org.craftercms.studio.impl.v1.job;
 
-import jakarta.mail.Message;
-import jakarta.mail.internet.InternetAddress;
+import java.util.List;
+
 import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
 import org.craftercms.studio.api.v1.to.EmailMessageTO;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_FROM_DEFAULT;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_SMTP_AUTH;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 
-import java.util.List;
-
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_FROM_DEFAULT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_SMTP_AUTH;
+import jakarta.mail.Message;
+import jakarta.mail.internet.InternetAddress;
 
 public class EmailMessageSender implements Runnable {
 
@@ -59,13 +59,10 @@ public class EmailMessageSender implements Runnable {
 				if (emailMessages.size() > 0) {
 					List<EmailMessageTO> list = emailMessages.getAll();
 					for (EmailMessageTO emailMessage : list) {
-						emailMessage.preprocessEmail();
 						String userEmailAddress = emailMessage.getTo();
 						String content = emailMessage.getContent();
 						String subject = emailMessage.getSubject();
-						String replyTo = emailMessage.getReplyTo();
-						String personalFromName = emailMessage.getPersonalFromName();
-						boolean success = sendEmail(subject, content, userEmailAddress, replyTo, personalFromName);
+						boolean success = sendEmail(subject, content, userEmailAddress);
 						if (success) {
 							logger.debug("Successfully sent email to '{}'", userEmailAddress);
 						} else {
@@ -83,20 +80,12 @@ public class EmailMessageSender implements Runnable {
 		}
 	}
 
-	protected boolean sendEmail(final String subject, final String content, final String userEmailAddress,
-				    final String replyTo, final String personalFromName) {
+	protected boolean sendEmail(final String subject, final String content, final String userEmailAddress) {
 		boolean success = true;
 		MimeMessagePreparator preparator = mimeMessage -> {
 
 			mimeMessage.addRecipients(Message.RecipientType.TO, InternetAddress.parse(userEmailAddress));
-			InternetAddress[] replyTos = new InternetAddress[1];
-			if ((replyTo != null) && (!replyTo.isEmpty())) {
-				replyTos[0] = new InternetAddress(replyTo);
-				mimeMessage.setReplyTo(replyTos);
-			}
 			InternetAddress fromAddress = new InternetAddress(getDefaultFromAddress());
-			if (personalFromName != null)
-				fromAddress.setPersonal(personalFromName);
 			mimeMessage.setFrom(fromAddress);
 			mimeMessage.setContent(content, "text/html; charset=utf-8");
 			mimeMessage.setSubject(subject);

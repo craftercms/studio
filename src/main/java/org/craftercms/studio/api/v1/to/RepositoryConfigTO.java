@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,19 +22,10 @@ public class RepositoryConfigTO implements Serializable {
 
 	private static final long serialVersionUID = 1148516942728141172L;
 
-
-	/**
-	 * root prefix
-	 **/
-	protected String rootPrefix;
 	/**
 	 * level descriptor name
 	 **/
 	protected String levelDescriptorName;
-	/**
-	 * top level folders
-	 **/
-	protected List<DmFolderConfigTO> folders = null;
 
 	/**
 	 * page path patterns
@@ -68,44 +59,6 @@ public class RepositoryConfigTO implements Serializable {
 	 * level descriptors path patterns
 	 **/
 	protected List<String> levelDescriptorPatterns = null;
-
-	/**
-	 * content to display in widgets
-	 **/
-	protected List<String> displayPatterns = null;
-
-	/**
-	 * previewable mimetypes patterns
-	 **/
-	private List<String> previewableMimetypesPaterns;
-
-	/**
-	 * @return the rootPrefix
-	 */
-	public String getRootPrefix() {
-		return rootPrefix;
-	}
-
-	/**
-	 * @param rootPrefix the rootPrefix to set
-	 */
-	public void setRootPrefix(String rootPrefix) {
-		this.rootPrefix = rootPrefix;
-	}
-
-	/**
-	 * @return the folders
-	 */
-	public List<DmFolderConfigTO> getFolders() {
-		return folders;
-	}
-
-	/**
-	 * @param folders the folders to set
-	 */
-	public void setFolders(List<DmFolderConfigTO> folders) {
-		this.folders = folders;
-	}
 
 	/**
 	 * @param pagePatterns the pagePatterns to set
@@ -175,29 +128,6 @@ public class RepositoryConfigTO implements Serializable {
 	 */
 	public List<String> getDocumentPatterns() {
 		return documentPatterns;
-	}
-
-	/**
-	 * @param displayPatterns the displayPatterns to set
-	 */
-	public void setDisplayPatterns(List<String> displayPatterns) {
-		this.displayPatterns = displayPatterns;
-	}
-
-	/**
-	 * @return the displayPatterns
-	 */
-	public List<String> getDisplayPatterns() {
-		return displayPatterns;
-	}
-
-	public List<String> getPreviewableMimetypesPaterns() {
-		return previewableMimetypesPaterns;
-	}
-
-
-	public void setPreviewableMimetypesPaterns(List<String> patterns) {
-		this.previewableMimetypesPaterns = patterns;
 	}
 
 	public List<String> getRenderingTemplatePatterns() {

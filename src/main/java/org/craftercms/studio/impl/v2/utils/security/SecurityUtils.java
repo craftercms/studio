@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.utils.security;
 
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -36,19 +35,11 @@ public class SecurityUtils {
 	public static String getCurrentUsername() {
 		String username = null;
 		var context = SecurityContextHolder.getContext();
+		// SecurityContext.getContext() is never null
+		var auth = context.getAuthentication();
 
-		if (context != null) {
-			var auth = context.getAuthentication();
-
-			if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
-				username = auth.getName();
-			}
-		} else {
-			CronJobContext cronJobContext = CronJobContext.getCurrent();
-
-			if (cronJobContext != null) {
-				username = cronJobContext.getCurrentUser();
-			}
+		if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
+			username = auth.getName();
 		}
 
 		return username;
