@@ -21,7 +21,6 @@ package org.craftercms.studio.api.v1.constant;
  */
 public final class DmXmlConstants {
 
-	public static final String ELM_FILE_NAME = StudioXmlConstants.DOCUMENT_ELM_FILE_NAME;
 	public static final String ELM_FOLDER_NAME = "folder-name";
 	public static final String ELM_ORDER_DEFAULT = "orderDefault_f";
 	public static final String ELM_OBJECT_ID = "objectId";

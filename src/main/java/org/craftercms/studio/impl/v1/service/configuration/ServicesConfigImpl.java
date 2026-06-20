@@ -15,21 +15,55 @@
  */
 package org.craftercms.studio.impl.v1.service.configuration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.cache.Cache;
-import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.util.XmlUtils;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_CONFIG_URL;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_ADMIN_EMAIL_ADDRESS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_AUTHORING_URL;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_LIVE_URL;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SITE_URLS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_CONTENT_MONITORING;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_DATE_TIME_FORMAT_OPTIONS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LOCALE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_TIME_ZONE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_WORKFLOW;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.ContentMonitorConfigTO;
+import org.craftercms.studio.api.v1.to.FacetRangeTO;
+import org.craftercms.studio.api.v1.to.FacetTO;
+import org.craftercms.studio.api.v1.to.RepositoryConfigTO;
+import org.craftercms.studio.api.v1.to.SiteConfigTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.utils.DateUtils;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_TIME_ZONE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_STAGING;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -37,12 +71,11 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.cache.Cache;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import jakarta.validation.Valid;
 
 /**
  * Implementation of ServicesConfigImpl. This class requires a configuration
@@ -64,7 +97,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected static final String PATTERN_SCRIPTS = "scripts";
 	protected static final String PATTERN_CONFIGURATION = "config";
 	protected static final String PATTERN_LEVEL_DESCRIPTOR = "level-descriptor";
-	protected static final String PATTERN_PREVIEWABLE_MIMETYPES = "previewable-mimetypes";
 
 	/**
 	 * xml element names
@@ -214,7 +246,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 					Node configNode = root.selectSingleNode("/site-config");
 					String name = configNode.valueOf("display-name");
 					siteConfig = new SiteConfigTO();
-					siteConfig.setName(name);
 					siteConfig.setTimezone(configNode.valueOf(SITE_CONFIG_XML_ELEMENT_LOCALE + "/" +
 						SITE_CONFIG_XML_ELEMENT_DATE_TIME_FORMAT_OPTIONS + "/" +
 						SITE_CONFIG_XML_ELEMENT_TIME_ZONE));
@@ -252,9 +283,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 					String adminEmailAddressValue = configNode.valueOf(SITE_CONFIG_ELEMENT_ADMIN_EMAIL_ADDRESS);
 					siteConfig.setAdminEmailAddress(adminEmailAddressValue);
 
-					loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
-					// set the last updated date
-					siteConfig.setLastUpdated(DateUtils.getCurrentTime());
+					loadSiteRepositoryConfiguration(name, siteConfig, configNode.selectSingleNode("repository"));
 
 					loadSearchFields(configNode, siteConfig);
 					loadFacetConfiguration(configNode, siteConfig);
@@ -312,10 +341,6 @@ public class ServicesConfigImpl implements ServicesConfig {
 		if (Objects.nonNull(configNode)) {
 			String authoringUrlValue = configNode.valueOf(SITE_CONFIG_ELEMENT_AUTHORING_URL);
 			siteConfig.setAuthoringUrl(authoringUrlValue);
-
-			String stagingUrlValue = configNode.valueOf(SITE_CONFIG_ELEMENT_STAGING_URL);
-			siteConfig.setStagingUrl(stagingUrlValue);
-
 			String liveUrlValue = configNode.valueOf(SITE_CONFIG_ELEMENT_LIVE_URL);
 			siteConfig.setLiveUrl(liveUrlValue);
 		}
@@ -381,15 +406,14 @@ public class ServicesConfigImpl implements ServicesConfig {
 	/**
 	 * load the web-project configuration
 	 */
-	protected void loadSiteRepositoryConfiguration(SiteConfigTO siteConfig, Node node) {
+	protected void loadSiteRepositoryConfiguration(String siteName, SiteConfigTO siteConfig, Node node) {
+		if (node == null) {
+			LOGGER.warn("Site '{}' does not have repository configuration.", siteName);
+			return;
+		}
 		RepositoryConfigTO repoConfigTO = new RepositoryConfigTO();
-		repoConfigTO.setRootPrefix(node.valueOf("@rootPrefix"));
 		repoConfigTO.setLevelDescriptorName(node.valueOf("level-descriptor"));
-		loadFolderConfiguration(siteConfig, repoConfigTO, node.selectNodes("folders/folder"));
-		loadPatterns(siteConfig, repoConfigTO, node.selectNodes("patterns/pattern-group"));
-		List<String> displayPatterns =
-			getStringList(node.selectNodes("display-in-widget-patterns/display-in-widget-pattern"));
-		repoConfigTO.setDisplayPatterns(displayPatterns);
+		loadPatterns(siteName, siteConfig, repoConfigTO, node.selectNodes("patterns/pattern-group"));
 		siteConfig.setRepositoryConfig(repoConfigTO);
 	}
 
@@ -413,7 +437,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 	/**
 	 * Load page/component/assets patterns configuration
 	 */
-	protected void loadPatterns(SiteConfigTO site, RepositoryConfigTO repo, List<Node> nodes) {
+	protected void loadPatterns(String siteName, SiteConfigTO site, RepositoryConfigTO repo, List<Node> nodes) {
 		if (nodes != null) {
 			for (Node node : nodes) {
 				String patternKey = node.valueOf(ATTR_NAME);
@@ -435,51 +459,18 @@ public class ServicesConfigImpl implements ServicesConfig {
 							case PATTERN_RENDERING_TEMPLATE -> repo.setRenderingTemplatePatterns(patterns);
 							case PATTERN_SCRIPTS -> repo.setScriptsPatterns(patterns);
 							case PATTERN_LEVEL_DESCRIPTOR -> repo.setLevelDescriptorPatterns(patterns);
-							case PATTERN_PREVIEWABLE_MIMETYPES -> repo.setPreviewableMimetypesPaterns(patterns);
 							case PATTERN_CONFIGURATION -> repo.setConfigurationPatterns(patterns);
 							default ->
-								LOGGER.error("Unknown pattern key: '{}' is provided in site '{}'", patternKey, site.getName());
+								LOGGER.warn("Unknown pattern key: '{}' is provided in site '{}'", patternKey, siteName);
 						}
 					}
 				} else {
-					LOGGER.error("No pattern key provided in site '{}' configuration. Skipping the pattern.", site.getName());
+					LOGGER.error("No pattern key provided in site '{}' configuration. Skipping the pattern.", siteName);
 				}
 			}
 		} else {
-			LOGGER.warn("Site '{}' does not have any pattern configuration.", site.getName());
+			LOGGER.warn("Site '{}' does not have any pattern configuration.", siteName);
 		}
-	}
-
-	/**
-	 * Load top level folder configuration
-	 */
-	protected void loadFolderConfiguration(SiteConfigTO site, RepositoryConfigTO repo, List<Node> folderNodes) {
-		if (folderNodes != null) {
-			List<DmFolderConfigTO> folders = new ArrayList<>(folderNodes.size());
-			for (Node folderNode : folderNodes) {
-				DmFolderConfigTO folderConfig = new DmFolderConfigTO();
-				folderConfig.setName(folderNode.valueOf(ATTR_NAME));
-				folderConfig.setPath(folderNode.valueOf(ATTR_PATH));
-				folderConfig.setReadDirectChildren(
-						Boolean.parseBoolean(folderNode.valueOf(ATTR_READ_DIRECT_CHILDREN)));
-				folderConfig.setAttachRootPrefix(
-						Boolean.parseBoolean(folderNode.valueOf(ATTR_ATTACH_ROOT_PREFIX)));
-				folders.add(folderConfig);
-			}
-			repo.setFolders(folders);
-		} else {
-			LOGGER.warn("Site '{}' does not have any folder configuration.", site.getName());
-		}
-	}
-
-	@Override
-	@Valid
-	public List<String> getPreviewableMimetypesPaterns(@ValidateStringParam String site) throws SiteNotFoundException {
-		SiteConfigTO config = loadConfiguration(site);
-		if (config.getRepositoryConfig() != null) {
-			return config.getRepositoryConfig().getPreviewableMimetypesPaterns();
-		}
-		return null;
 	}
 
 	public String getConfigFileName() {

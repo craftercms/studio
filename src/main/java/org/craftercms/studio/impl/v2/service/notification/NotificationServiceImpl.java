@@ -16,25 +16,39 @@
 
 package org.craftercms.studio.impl.v2.service.notification;
 
-import com.google.common.cache.Cache;
-import freemarker.core.HTMLOutputFormat;
-import freemarker.template.Configuration;
-import freemarker.template.DefaultObjectWrapperBuilder;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import jakarta.validation.Valid;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import static java.util.Collections.singletonList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TimeZone;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_APPROVER_EMAILS;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_EMAIL_TEMPLATES;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.to.*;
+import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
+import org.craftercms.studio.api.v1.to.EmailMessageTO;
+import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
+import org.craftercms.studio.api.v1.to.NotificationConfigTO;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
@@ -42,24 +56,25 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.NOTIFICATION_CONFIGURATION_FILE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.NOTIFICATION_TIMEZONE;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.isPageDescriptor;
+import static org.craftercms.studio.impl.v1.util.ContentUtils.getPreviewUrl;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.*;
+import com.google.common.cache.Cache;
 
-import static java.util.Collections.singletonList;
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.api.v2.utils.StudioUtils.isPageDescriptor;
-import static org.craftercms.studio.impl.v1.util.ContentUtils.getPreviewUrl;
+import freemarker.core.HTMLOutputFormat;
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapperBuilder;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import jakarta.validation.Valid;
 
 public class NotificationServiceImpl implements NotificationService {
 	private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
@@ -82,7 +97,6 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String MESSAGE_ELEMENT_SUBJECT = "subject";
 	private static final String MESSAGE_ELEMENT_BODY = "body";
 	private static final String MESSAGE_ATTRIBUTE_KEY = "key";
-	private static final String MESSAGE_ATTRIBUTE_TITLE = "title";
 
 	protected ContentService contentService;
 	protected EmailMessageQueueTo emailMessages;
@@ -236,14 +250,8 @@ public class NotificationServiceImpl implements NotificationService {
 				Element root = document.getRootElement();
 
 				if (root.getNodeType() == Node.ELEMENT_NODE) {
-					loadGenericMessage((Element) root.selectSingleNode(DOCUMENT_ELEMENT_GENERAL_MESSAGES),
-						config.getMessages());
-					loadGenericMessage((Element) root.selectSingleNode(DOCUMENT_ELEMENT_COMPLETE_MESSAGES),
-						config.getCompleteMessages());
 					loadEmailTemplates((Element) root.selectSingleNode(DOCUMENT_ELEMENT_EMAIL_TEMPLATES),
 						config.getEmailMessageTemplates());
-					loadCannedMessages((Element) root.selectSingleNode(DOCUMENT_ELEMENT_CANNED_MESSAGES),
-						config.getCannedMessages());
 
 					String adminEmailAddress = getAdminEmailAddress(site);
 					loadEmailList(site, (Element) root.selectSingleNode(DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION),
@@ -297,23 +305,6 @@ public class NotificationServiceImpl implements NotificationService {
 		return null;
 	}
 
-	protected void loadGenericMessage(final Element emailTemplates, final Map<String, String> messageContainer) {
-		if (emailTemplates != null) {
-			List<Element> messages = emailTemplates.elements();
-			if (!messages.isEmpty()) {
-				for (Element message : messages) {
-					final String messageKey = message.attributeValue("key");
-					final String messageText = message.getText();
-					messageContainer.put(messageKey, messageText);
-				}
-			} else {
-				logger.error("Failed to load generic messages");
-			}
-		} else {
-			logger.error("Failed to load generic messages, the email template element was not found");
-		}
-	}
-
 	protected void loadEmailTemplates(final Element emailTemplates,
 					  final Map<String, EmailMessageTemplateTO> messageContainer) {
 		if (emailTemplates != null) {
@@ -336,29 +327,6 @@ public class NotificationServiceImpl implements NotificationService {
 			}
 		} else {
 			logger.error("Failed to load email templates, the email template element was not found");
-		}
-	}
-
-	protected void loadCannedMessages(final Element completedMessages, final Map<String, List<MessageTO>>
-		messageContainer) {
-		if (completedMessages != null) {
-			List<Element> messages = completedMessages.elements();
-			if (!messages.isEmpty()) {
-				for (Element message : messages) {
-					final String messageKey = message.attributeValue(MESSAGE_ATTRIBUTE_KEY);
-					final String messageContent = message.getText();
-					final String messageTitle = message.attributeValue(MESSAGE_ATTRIBUTE_TITLE);
-					if (!messageContainer.containsKey(messageKey)) {
-						messageContainer.put(messageKey, new ArrayList<>());
-					}
-					List<MessageTO> messageTOs = messageContainer.get(messageKey);
-					messageTOs.add(new MessageTO(messageTitle, messageContent, messageKey));
-				}
-			} else {
-				logger.error("Failed to load canned messages, the messages field is empty");
-			}
-		} else {
-			logger.error("Failed to load canned messages, the email template element was not found");
 		}
 	}
 

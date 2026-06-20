@@ -19,9 +19,6 @@ public class DeployerTargetException extends ServiceLayerException {
 
 	private static final long serialVersionUID = 6422788562443045181L;
 
-	public DeployerTargetException() {
-	}
-
 	public DeployerTargetException(Exception e) {
 		super(e);
 	}

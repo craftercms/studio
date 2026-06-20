@@ -16,13 +16,12 @@
 
 package org.craftercms.studio.api.v1.to;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 import java.util.Collection;
+import static java.util.Collections.emptyList;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * Site content monitor configuration

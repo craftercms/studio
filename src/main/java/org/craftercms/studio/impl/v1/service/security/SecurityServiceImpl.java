@@ -16,14 +16,31 @@
 
 package org.craftercms.studio.impl.v1.service.security;
 
-import com.google.common.cache.Cache;
-import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERNALLY_MANAGED;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTNAME;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.ADMIN_NORMALIZED_ROLE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_NORMALIZED_ROLE;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -34,23 +51,25 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
+import static org.craftercms.studio.api.v2.dal.security.NormalizedRole.WILDCARD_ROLE;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.utils.DateUtils;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import com.google.common.cache.Cache;
 
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.dal.security.NormalizedRole.WILDCARD_ROLE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
+import jakarta.validation.Valid;
 
 /**
  * Default implementation of the {@link SecurityService}.
@@ -258,7 +277,6 @@ public class SecurityServiceImpl implements SecurityService {
 					configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, filename, environment);
 				if (document != null) {
 					config = new PermissionsConfigTO();
-					config.setMapping(document);
 					Element root = document.getRootElement();
 
 					// roles file
@@ -266,9 +284,6 @@ public class SecurityServiceImpl implements SecurityService {
 
 					// permissions file
 					loadPermissions(site, root, config);
-
-					config.setKey(site + ":" + filename);
-					config.setLastUpdated(DateUtils.getCurrentTime());
 
 					cache.put(cacheKey, config);
 				}
@@ -348,15 +363,10 @@ public class SecurityServiceImpl implements SecurityService {
 				Document document = configurationService.getGlobalConfigurationAsDocument(globalPermissionsConfigPath);
 				if (document != null) {
 					config = new PermissionsConfigTO();
-					config.setMapping(document);
 					Element root = document.getRootElement();
 
 					// permissions file
 					loadPermissions("###GLOBAL###", root, config);
-
-					String globalPermissionsKey = "###GLOBAL###:" + getGlobalPermissionsFileName();
-					config.setKey(globalPermissionsKey);
-					config.setLastUpdated(DateUtils.getCurrentTime());
 
 					cache.put(cacheKey, config);
 				}
@@ -380,16 +390,10 @@ public class SecurityServiceImpl implements SecurityService {
 		}
 		if (document != null) {
 			config = new PermissionsConfigTO();
-			config.setMapping(document);
 			Element root = document.getRootElement();
 
 			// roles file
 			loadRoles(root, config);
-
-			String globalRolesKey = "###GLOBAL###:" + getGlobalRoleMappingsFileName();
-			config.setKey(globalRolesKey);
-			config.setLastUpdated(DateUtils.getCurrentTime());
-
 		} else {
 			logger.error("The global roles mapping file was not found at path '{}'",
 				globalRolesConfigPath);

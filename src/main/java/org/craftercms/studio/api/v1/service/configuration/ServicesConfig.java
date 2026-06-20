@@ -15,12 +15,12 @@
  */
 package org.craftercms.studio.api.v1.service.configuration;
 
+import java.util.List;
+import java.util.Map;
+
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentMonitorConfigTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * This class provides the repository configuration information
@@ -101,8 +101,6 @@ public interface ServicesConfig {
 	 * @return default timezone
 	 */
 	String getDefaultTimezone(String site) throws SiteNotFoundException;
-
-	List<String> getPreviewableMimetypesPaterns(String site) throws SiteNotFoundException;
 
 	/**
 	 * Get the pattern for the plugin folder in the given site

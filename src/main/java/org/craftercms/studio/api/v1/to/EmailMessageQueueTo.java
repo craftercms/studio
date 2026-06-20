@@ -16,19 +16,15 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
-import java.util.Queue;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Queue;
 
 public class EmailMessageQueueTo implements Serializable {
 
 	private static final long serialVersionUID = -8731745205175488556L;
 	protected Queue<EmailMessageTO> pendingEmailMessages = new LinkedList<>();
-
-	public synchronized EmailMessageTO getNext() {
-		return pendingEmailMessages.poll();
-	}
 
 	public synchronized List<EmailMessageTO> getAll() {
 		ArrayList<EmailMessageTO> list = new ArrayList<>();

@@ -46,10 +46,7 @@ public final class StudioXmlConstants {
 	public static final String DOCUMENT_ATTR_NAME = "@name";
 
 	// Notification config
-	public static final String DOCUMENT_ELEMENT_GENERAL_MESSAGES = "//generalMessages";
-	public static final String DOCUMENT_ELEMENT_COMPLETE_MESSAGES = "//completeMessages";
 	public static final String DOCUMENT_ELEMENT_EMAIL_TEMPLATES = "//emailTemplates";
-	public static final String DOCUMENT_ELEMENT_CANNED_MESSAGES = "//cannedMessages";
 	public static final String DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION = "//deploymentFailureNotification";
 	public static final String DOCUMENT_ELEMENT_APPROVER_EMAILS = "//approverEmails";
 	public static final String DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION =

@@ -23,19 +23,16 @@ public class EmailMessageTemplateTO implements Serializable {
 	/**
 	 * message title
 	 **/
-	protected String _subject;
+	protected final String _subject;
 	/**
 	 * message body
 	 **/
-	protected String _message;
+	protected final String _message;
 
 
 	public EmailMessageTemplateTO(final String _subject, final String _message) {
 		this._subject = _subject;
 		this._message = _message;
-	}
-
-	public EmailMessageTemplateTO() {
 	}
 
 	/**
@@ -46,24 +43,10 @@ public class EmailMessageTemplateTO implements Serializable {
 	}
 
 	/**
-	 * @param subject the title to set
-	 */
-	public void setSubject(final String subject) {
-		this._subject = subject;
-	}
-
-	/**
 	 * @return the body
 	 */
 	public String getMessage() {
 		return _message;
-	}
-
-	/**
-	 * @param message the body to set
-	 */
-	public void setMessage(final String message) {
-		this._message = message;
 	}
 
 }

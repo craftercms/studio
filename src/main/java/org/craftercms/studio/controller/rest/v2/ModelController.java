@@ -15,30 +15,24 @@
  */
 package org.craftercms.studio.controller.rest.v2;
 
+import java.beans.ConstructorProperties;
+
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.model.contentType.ModelDefinitions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.beans.ConstructorProperties;
-
-import static org.craftercms.studio.model.rest.ApiResponse.OK;
-
 @Validated
 @RestController
 @RequestMapping("/api/2/model")
 public class ModelController {
-
-	@SuppressWarnings("unused")
-	private static final Logger logger = LoggerFactory.getLogger(ModelController.class);
 	private final ContentTypeService contentTypeService;
 
 	@ConstructorProperties({"contentTypeService"})
