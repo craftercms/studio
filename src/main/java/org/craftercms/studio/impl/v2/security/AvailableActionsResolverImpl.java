@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
+import org.craftercms.studio.api.v2.security.PermissionMappingsProvider;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

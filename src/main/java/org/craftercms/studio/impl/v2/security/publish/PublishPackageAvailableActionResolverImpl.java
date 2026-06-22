@@ -30,7 +30,7 @@ import org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActi
 import static org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActions.APPROVE;
 import static org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActions.getPossibleActionsForPackageStates;
 import org.craftercms.studio.api.v2.service.security.UserService;
-import org.craftercms.studio.impl.v2.security.PermissionMappingsProvider;
+import org.craftercms.studio.api.v2.security.PermissionMappingsProvider;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

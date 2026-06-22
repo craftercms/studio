@@ -54,7 +54,7 @@ public class SitePermissionMappingsTest {
 
 	@Test
 	public void getAvailableActionsUsesDirectUserRoleMappingWithoutGroups() {
-		SitePermissionMappings userMapped = new SitePermissionMappings();
+		SitePermissionMappingsImpl userMapped = new SitePermissionMappingsImpl();
 		userMapped.addGroupToRolesMapping(new NormalizedGroup("jane"),
 			List.of(new NormalizedRole("author")));
 		userMapped.addRolePermissionMapping("author", authorRoleMappings());
@@ -74,7 +74,7 @@ public class SitePermissionMappingsTest {
 
 	@Test
 	public void isSiteAdminReturnsTrueWhenUserHasAdminRole() {
-		SitePermissionMappings adminMappings = new SitePermissionMappings();
+		SitePermissionMappingsImpl adminMappings = new SitePermissionMappingsImpl();
 		adminMappings.addGroupToRolesMapping(new NormalizedGroup("site_admin"),
 			List.of(new NormalizedRole("admin")));
 		adminMappings.addRolePermissionMapping("admin", authorRoleMappings());
@@ -120,13 +120,13 @@ public class SitePermissionMappingsTest {
 
 	@Test
 	public void getUserPermissionsForPathExcludesNonMatchingRoleRules() {
-		RolePermissionMappings authorRules = new RolePermissionMappings();
+		RolePermissionMappingsImpl authorRules = new RolePermissionMappingsImpl();
 		authorRules.addRuleContentItemPermissionsMapping("/site/website/.*",
 			List.of(PERMISSION_CONTENT_READ));
 		authorRules.addRuleContentItemPermissionsMapping("/site/components/.*",
 			List.of(PERMISSION_CONTENT_WRITE));
 
-		SitePermissionMappings siteMappings = new SitePermissionMappings();
+		SitePermissionMappingsImpl siteMappings = new SitePermissionMappingsImpl();
 		siteMappings.addGroupToRolesMapping(new NormalizedGroup("site_author"),
 			List.of(new NormalizedRole("author")));
 		siteMappings.addRolePermissionMapping("author", authorRules);
@@ -153,8 +153,8 @@ public class SitePermissionMappingsTest {
 		assertEquals(Set.of(PERMISSION_CONTENT_READ), pathPermissions);
 	}
 
-	private static SitePermissionMappings editorialSiteMappings() {
-		SitePermissionMappings siteMappings = new SitePermissionMappings();
+	private static SitePermissionMappingsImpl editorialSiteMappings() {
+		SitePermissionMappingsImpl siteMappings = new SitePermissionMappingsImpl();
 		siteMappings.addGroupToRolesMapping(new NormalizedGroup("site_author"),
 			List.of(new NormalizedRole("author")));
 		siteMappings.addRolePermissionMapping("author", authorRoleMappings());
@@ -162,15 +162,15 @@ public class SitePermissionMappingsTest {
 		return siteMappings;
 	}
 
-	private static RolePermissionMappings authorRoleMappings() {
-		RolePermissionMappings roleMappings = new RolePermissionMappings();
+	private static RolePermissionMappingsImpl authorRoleMappings() {
+		RolePermissionMappingsImpl roleMappings = new RolePermissionMappingsImpl();
 		roleMappings.addRuleContentItemPermissionsMapping("/site/website/.*",
 			List.of(PERMISSION_CONTENT_READ, PERMISSION_CONTENT_CREATE));
 		return roleMappings;
 	}
 
-	private static RolePermissionMappings wildcardRoleMappings() {
-		RolePermissionMappings roleMappings = new RolePermissionMappings();
+	private static RolePermissionMappingsImpl wildcardRoleMappings() {
+		RolePermissionMappingsImpl roleMappings = new RolePermissionMappingsImpl();
 		roleMappings.addRuleContentItemPermissionsMapping(".*",
 			List.of(PERMISSION_CONTENT_READ, PERMISSION_GET_CHILDREN));
 		return roleMappings;

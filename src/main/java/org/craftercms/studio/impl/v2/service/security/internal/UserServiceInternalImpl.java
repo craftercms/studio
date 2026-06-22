@@ -103,7 +103,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
-import org.craftercms.studio.impl.v2.security.PermissionMappingsProvider;
+import org.craftercms.studio.api.v2.security.PermissionMappingsProvider;
 import org.craftercms.studio.impl.v2.security.password.ForgotPasswordTaskFactory;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;

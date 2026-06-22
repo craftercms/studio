@@ -269,7 +269,7 @@
 		<constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
 	</bean>
 
-	<bean id="studio.permissionMappingsProvider" class="org.craftercms.studio.impl.v2.security.PermissionMappingsProvider">
+	<bean id="studio.permissionMappingsProvider" class="org.craftercms.studio.impl.v2.security.PermissionMappingsProviderImpl">
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="configurationService" ref="configurationServiceInternal"/>
 		<constructor-arg name="cache" ref="configurationCache"/>

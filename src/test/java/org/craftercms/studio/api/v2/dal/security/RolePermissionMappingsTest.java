@@ -36,11 +36,11 @@ import static org.junit.Assert.assertTrue;
 
 public class RolePermissionMappingsTest {
 
-	private RolePermissionMappings mappings;
+	private RolePermissionMappingsImpl mappings;
 
 	@Before
 	public void setUp() {
-		mappings = new RolePermissionMappings();
+		mappings = new RolePermissionMappingsImpl();
 	}
 
 	@Test
