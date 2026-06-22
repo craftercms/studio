@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.impl.v2.security;
 
+import java.util.List;
+
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Group;
@@ -24,10 +26,6 @@ import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * Default implementation of {@link AvailableActionsResolver}
@@ -62,12 +60,8 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 	private long calculateAvailableActions(String username, String path,
 										   SitePermissionMappings sitePermissionMappings)
 		throws ServiceLayerException, UserNotFoundException {
-		long toReturn = 0L;
 		List<Group> groups = userService.getUserGroups(-1, username);
-		if (isNotEmpty(groups)) {
-			toReturn = sitePermissionMappings.getAvailableActions(username, groups, path);
-		}
-		return toReturn;
+		return sitePermissionMappings.getAvailableActions(username, groups, path);
 	}
 
 }

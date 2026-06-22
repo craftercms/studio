@@ -35,6 +35,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERNALLY_MANAGED;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTNAME;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_APPROVER_EMAILS;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION;
@@ -44,17 +48,18 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
 import org.craftercms.studio.api.v1.to.EmailMessageTO;
 import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
 import org.craftercms.studio.api.v1.to.NotificationConfigTO;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.item.ContentItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.NOTIFICATION_CONFIGURATION_FILE;
@@ -101,7 +106,7 @@ public class NotificationServiceImpl implements NotificationService {
 	protected ContentService contentService;
 	protected EmailMessageQueueTo emailMessages;
 	protected ServicesConfig servicesConfig;
-	protected SecurityService securityService;
+	protected UserService userService;
 	private Configuration configuration;
 	protected StudioConfiguration studioConfiguration;
 	protected ConfigurationService configurationService;
@@ -138,7 +143,7 @@ public class NotificationServiceImpl implements NotificationService {
 		logger.debug("Sending content approval notification for site '{}', package '{}'", siteId, publishPackage.getId());
 		try {
 			String submitterUsername = publishPackage.getSubmitter().getUsername();
-			final Map<String, Object> submitterUser = securityService.getUserProfile(submitterUsername);
+			final Map<String, Object> submitterUser = getUserProfile(submitterUsername);
 			Map<String, Object> templateModel = new HashMap<>();
 			templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
 			templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
@@ -158,7 +163,7 @@ public class NotificationServiceImpl implements NotificationService {
 		String siteId = publishPackage.getSite().getSiteId();
 		logger.debug("Sending content rejection notification for site '{}', package '{}'", siteId, publishPackage.getId());
 		try {
-			Map<String, Object> submitterUser = securityService.getUserProfile(publishPackage.getSubmitter().getUsername());
+			Map<String, Object> submitterUser = getUserProfile(publishPackage.getSubmitter().getUsername());
 			Map<String, Object> templateModel = new HashMap<>();
 			templateModel.put(TEMPLATE_MODEL_PACKAGE, publishPackage);
 			templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(siteId, paths));
@@ -171,6 +176,18 @@ public class NotificationServiceImpl implements NotificationService {
 		} catch (Exception e) {
 			logger.error("Failed to send content rejection notification for site '{}'", siteId, e);
 		}
+	}
+
+	protected Map<String, Object> getUserProfile(String username)
+		throws ServiceLayerException, UserNotFoundException {
+		Map<String, Object> toRet = new HashMap<>();
+		User user = userService.getUserByIdOrUsername(-1, username);
+		toRet.put(KEY_USERNAME, username);
+		toRet.put(KEY_FIRSTNAME, user.getFirstName());
+		toRet.put(KEY_LASTNAME, user.getLastName());
+		toRet.put(KEY_EMAIL, user.getEmail());
+		toRet.put(KEY_EXTERNALLY_MANAGED, user.isExternallyManaged());
+		return toRet;
 	}
 
 	@Override
@@ -406,8 +423,8 @@ public class NotificationServiceImpl implements NotificationService {
 		this.servicesConfig = servicesConfig;
 	}
 
-	public void setSecurityService(final SecurityService securityService) {
-		this.securityService = securityService;
+	public void setUserService(final UserService userService) {
+		this.userService = userService;
 	}
 
 	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

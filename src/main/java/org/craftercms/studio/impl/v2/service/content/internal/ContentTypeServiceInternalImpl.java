@@ -23,10 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
@@ -37,6 +35,7 @@ import org.craftercms.studio.api.v2.exception.contentType.ContentTypeUsageExcept
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v2.utils.Wrapper;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
@@ -85,7 +84,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 
 	private static final Logger logger = LoggerFactory.getLogger(ContentTypeServiceInternalImpl.class);
 
-	protected final SecurityService securityService;
+	protected final UserService userService;
 	protected final ConfigurationService configurationService;
 	protected final ItemDAO itemDao;
 	protected ContentService contentService;
@@ -103,13 +102,13 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 	private final Cache<String, ContentType> cache;
 	private final XmlMapper xmlMapper;
 
-	@ConstructorProperties({"securityService", "configurationService", "itemDao",
+	@ConstructorProperties({"userService", "configurationService", "itemDao",
 			"contentTypeBasePathPattern", "contentTypeDefinitionFilename",
 			"contentTypesRootPath",
 			"templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
 			"formControllerFilePath", "gitRepositoryHelper",
 			"cache"})
-	public ContentTypeServiceInternalImpl(SecurityService securityService,
+	public ContentTypeServiceInternalImpl(UserService userService,
 										  ConfigurationService configurationService, ItemDAO itemDao, String contentTypeBasePathPattern,
 										  String contentTypeDefinitionFilename,
 										  String contentTypesRootPath, String templateXPath,
@@ -117,7 +116,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 										  String previewImageXPath, String defaultPreviewImagePath,
 										  String formControllerFilePath, GitRepositoryHelper gitRepositoryHelper,
 										  Cache<String, ContentType> cache) {
-		this.securityService = securityService;
+		this.userService = userService;
 		this.configurationService = configurationService;
 		this.itemDao = itemDao;
 		this.contentTypeBasePathPattern = contentTypeBasePathPattern;
@@ -147,9 +146,9 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 				.filter(ContentType::isQuickCreate)
 				.filter(contentType -> {
 					try {
-						return securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUsername())
+						return userService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUsername())
 								.contains(PERMISSION_CONTENT_CREATE);
-					} catch (SiteNotFoundException e) {
+					} catch (ServiceLayerException | UserNotFoundException e) {
 						// This should never happen. If the site does not exist then getAllContentTypes() call above should have thrown an exception
 						return false;
 					}

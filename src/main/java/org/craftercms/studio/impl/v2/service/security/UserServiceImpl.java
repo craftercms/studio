@@ -16,10 +16,17 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.*;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
+import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Group;
@@ -28,15 +35,12 @@ import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.Site;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_USERS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_READ_GROUPS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_READ_USERS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_UPDATE_USERS;
 import org.jspecify.annotations.NonNull;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class UserServiceImpl implements UserService {
 	private UserService userServiceInternal;
@@ -235,7 +239,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@RequireSiteExists
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-	public List<String> getCurrentUserSitePermissions(@SiteId String site)
+	public Set<String> getCurrentUserSitePermissions(@SiteId String site)
 		throws ServiceLayerException, UserNotFoundException, ExecutionException {
 		return userServiceInternal.getCurrentUserSitePermissions(site);
 	}
@@ -247,7 +251,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<String> getCurrentUserGlobalPermissions() throws ServiceLayerException, UserNotFoundException, ExecutionException {
+	public Set<String> getCurrentUserGlobalPermissions() throws ServiceLayerException, UserNotFoundException, ExecutionException {
 		return userServiceInternal.getCurrentUserGlobalPermissions();
 	}
 
@@ -265,6 +269,16 @@ public class UserServiceImpl implements UserService {
 	@SuppressWarnings("unused")
 	public void setUserServiceInternal(final UserService userServiceInternal) {
 		this.userServiceInternal = userServiceInternal;
+	}
+
+	@Override
+	public boolean isSiteAdmin(String username, String siteId) throws ServiceLayerException, UserNotFoundException {
+		return userServiceInternal.isSiteAdmin(username, siteId);
+	}
+
+	@Override
+	public Set<String> getUserPermissions(String site, String path, String user) throws ServiceLayerException, UserNotFoundException {
+		return userServiceInternal.getUserPermissions(site, path, user);
 	}
 
 }

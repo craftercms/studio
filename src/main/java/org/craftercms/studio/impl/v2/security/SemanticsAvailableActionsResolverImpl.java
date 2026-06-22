@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.security;
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
@@ -31,6 +30,7 @@ import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.model.rest.Person;
 
 import java.util.List;
@@ -53,8 +53,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailableActionsResolver {
 
-	private org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1;
-
+	private UserService userService;
 	private AvailableActionsResolver availableActionsResolver;
 	private ContentService contentService;
 	private ItemDAO itemDAO;
@@ -95,12 +94,12 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	 * @param username The username of the user to check.
 	 * @return {@code true} if the user has the unlock permission; {@code false} otherwise.
 	 */
-	private boolean hasUnlockPermission(Person lockOwner, long state, String siteId, String path, String username) throws SiteNotFoundException {
+	private boolean hasUnlockPermission(Person lockOwner, long state, String siteId, String path, String username) throws ServiceLayerException, UserNotFoundException {
 		boolean itemLocked = ItemState.isUserLocked(state);
 		String lockOwnerUsername = itemLocked && lockOwner != null ? lockOwner.getUsername() : null;
 		boolean isLockOwner = CS.equals(username, lockOwnerUsername);
 
-		Set<String> userPermissions = securityServiceV1.getUserPermissions(siteId, path, username);
+		Set<String> userPermissions = userService.getUserPermissions(siteId, path, username);
 		boolean hasUnlockPermission = CollectionUtils.isNotEmpty(userPermissions) && userPermissions.contains(PERMISSION_ITEM_UNLOCK);
 
 		return isLockOwner || hasUnlockPermission;
@@ -116,7 +115,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 		// The item is locked and the user is not the owner of the lock
 		if ((itemState & USER_LOCKED.value) > 0 && (result & ITEM_UNLOCK) == 0) {
 			// If the user is system_admin or site_admin, add the unlock action back
-			if (securityServiceV1.isSiteAdmin(username, siteId)) {
+			if (userService.isSiteAdmin(username, siteId)) {
 				result |= ITEM_UNLOCK;
 			}
 		}
@@ -268,8 +267,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 	}
 
 	@SuppressWarnings("unused")
-	public void setSecurityServiceV1(org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1) {
-		this.securityServiceV1 = securityServiceV1;
+	public void setUserService(UserService userService) {
+		this.userService = userService;
 	}
 
 	@SuppressWarnings("unused")

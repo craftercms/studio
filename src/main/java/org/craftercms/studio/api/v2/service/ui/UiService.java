@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.ui;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.ui.MenuItem;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public interface UiService {
 	 * @throws AuthenticationException if not user is logged in
 	 * @throws ServiceLayerException   if another error occurs
 	 */
-	List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException;
+	List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * Returns the active environment.

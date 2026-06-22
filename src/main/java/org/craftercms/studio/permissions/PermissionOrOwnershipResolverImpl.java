@@ -20,13 +20,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.Permission;
 import org.craftercms.commons.security.permissions.PermissionResolver;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.service.item.ItemService;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
+import java.beans.ConstructorProperties;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -38,13 +40,20 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Implementation of {@link PermissionResolver} that resolves user permissions based on Studio's
- * {@link SecurityService} and content ownership.
+ * {@link UserService} and content ownership.
  */
 public class PermissionOrOwnershipResolverImpl implements PermissionResolver<String, Map<String, Object>> {
 
-	private SecurityService securityService;
-	private StudioConfiguration studioConfiguration;
-	private ItemService itemService;
+	private final UserService userService;
+	private final StudioConfiguration studioConfiguration;
+	private final ItemService itemService;
+
+	@ConstructorProperties({"itemService", "studioConfiguration", "userService"})
+	public PermissionOrOwnershipResolverImpl(ItemService itemService, StudioConfiguration studioConfiguration, UserService userService) {
+		this.itemService = itemService;
+		this.studioConfiguration = studioConfiguration;
+		this.userService = userService;
+	}
 
 	@Override
 	public Permission getGlobalPermission(String username) throws PermissionException {
@@ -70,9 +79,9 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 
 		Set<String> allowedActions = null;
 		try {
-			allowedActions = securityService.getUserPermissions(siteName, path, username);
-		} catch (SiteNotFoundException e) {
-			throw new ActionsDeniedException(format("Failed to load permissions for user '%s'. Site '%s' was not found", username, siteName), e);
+			allowedActions = userService.getUserPermissions(siteName, path, username);
+		} catch (ServiceLayerException | UserNotFoundException e) {
+			throw new ActionsDeniedException(format("Failed to load permissions for user '%s' for site '%s'", username, siteName), e);
 		}
 		Item item = itemService.getItem(siteName, path);
 
@@ -83,17 +92,5 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 		}
 
 		return permission;
-	}
-
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
-	}
-
-	public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-		this.studioConfiguration = studioConfiguration;
-	}
-
-	public void setItemService(ItemService itemService) {
-		this.itemService = itemService;
 	}
 }

@@ -16,12 +16,16 @@
 
 package org.craftercms.studio.api.v2.dal.security;
 
-import org.craftercms.studio.permissions.StudioPermissionsConstants;
-
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapPermissionsToContentItemAvailableActions;
+import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_WIDE_RULE_REGEXES;
 
 /**
@@ -34,7 +38,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_
 public class RolePermissionMappings {
 
 	// Rule path -> available actions
-	private final Map<Pattern, Long> ruleContentItemPermissions = new HashMap<>();
+	private final Map<Pattern, PermissionsActions> ruleContentItemPermissions = new HashMap<>();
 	private final Set<String> siteWidePermissions = new HashSet<>();
 
 	/**
@@ -45,7 +49,8 @@ public class RolePermissionMappings {
 	 */
 	public void addRuleContentItemPermissionsMapping(final String ruleRegex, final Collection<String> permissions) {
 		Pattern pattern = Pattern.compile(ruleRegex);
-		ruleContentItemPermissions.put(pattern, mapPermissionsToContentItemAvailableActions(permissions));
+		PermissionsActions permissionsActions = new PermissionsActions(permissions, mapPermissionsToContentItemAvailableActions(permissions));
+		ruleContentItemPermissions.put(pattern, permissionsActions);
 		if (SITE_WIDE_RULE_REGEXES.stream().anyMatch(ruleRegex::equals)) {
 			this.siteWidePermissions.addAll(permissions);
 		}
@@ -61,8 +66,24 @@ public class RolePermissionMappings {
 	public long getActionsForPath(final String path) {
 		return ruleContentItemPermissions.entrySet().stream()
 			.filter(entry -> entry.getKey().matcher(path).matches())
-			.mapToLong(Map.Entry::getValue)
+			.map(Map.Entry::getValue)
+			.mapToLong(PermissionsActions::actions)
 			.reduce(0L, (a, b) -> a | b);
+	}
+
+	/**
+	 * Get the permissions for a given path.
+	 *
+	 * @param path path of the content
+	 * @return set of permissions
+	 */
+	public Set<String> getPermissionsForPath(final String path) {
+		return ruleContentItemPermissions.entrySet().stream()
+			.filter(entry -> entry.getKey().matcher(path).matches())
+			.map(Map.Entry::getValue)
+			.map(PermissionsActions::permissions)
+			.flatMap(Collection::stream)
+			.collect(Collectors.toSet());
 	}
 
 	/**
@@ -73,5 +94,21 @@ public class RolePermissionMappings {
 	 */
 	public Collection<String> getSiteWidePermissions() {
 		return siteWidePermissions;
+	}
+
+	public Collection<String> getAllPermissions() {
+		return ruleContentItemPermissions.values().stream()
+			.map(PermissionsActions::permissions)
+			.flatMap(Collection::stream)
+			.collect(Collectors.toSet());
+	}
+
+	/**
+	 * Record to store permissions and actions for a given rule.
+	 *
+	 * @param permissions permissions for the rule
+	 * @param actions mapped actions for the rule
+	 */
+	protected record PermissionsActions(Collection<String> permissions, long actions) {
 	}
 }

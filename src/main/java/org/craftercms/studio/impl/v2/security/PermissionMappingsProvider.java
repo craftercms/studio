@@ -16,8 +16,16 @@
 
 package org.craftercms.studio.impl.v2.security;
 
-import com.google.common.cache.Cache;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.Strings.CS;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
@@ -26,20 +34,20 @@ import org.craftercms.studio.api.v2.dal.security.RolePermissionMappings;
 import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import com.google.common.cache.Cache;
 
 /**
  * Keeps a cached mapping of roles and available actions.
@@ -90,7 +98,7 @@ public class PermissionMappingsProvider {
 		loadRoles(globalRoleMappingsDocument, sitePermissionMappings);
 		loadPermissions(globalPermissionMappingsDocument, sitePermissionMappings);
 
-		if (!StringUtils.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+		if (isNotEmpty(site) && !CS.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
 			Document roleMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
 				studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME),
 				studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
@@ -119,7 +127,10 @@ public class PermissionMappingsProvider {
 				ruleNodes.forEach(r -> {
 					String regex = r.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
 					List<Node> permissionNodes = r.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
-					List<String> permissions = permissionNodes.stream().map(Node::getText).toList();
+					List<String> permissions = permissionNodes.stream()
+					.map(Node::getText)
+					.map(String::toLowerCase)
+					.toList();
 					rolePermissionMappings.addRuleContentItemPermissionsMapping(regex, permissions);
 				});
 				sitePermissionMappings.addRolePermissionMapping(roleName, rolePermissionMappings);
