@@ -512,7 +512,7 @@ public class UsersController {
 	@GetMapping(value = ME + SITES + PATH_PARAM_SITE + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
 	public ResultList<String> getCurrentUserSitePermissions(@ValidSiteId @PathVariable(REQUEST_PARAM_SITE) String site)
 		throws ServiceLayerException, UserNotFoundException, ExecutionException {
-		Set<String> permissions = userService.getCurrentUserSitePermissions(site);
+		List<String> permissions = userService.getCurrentUserSitePermissions(site).stream().sorted().toList();
 		ResultList<String> result = new ResultList<>();
 		result.setResponse(OK);
 		result.setEntities(RESULT_KEY_PERMISSIONS, permissions);
