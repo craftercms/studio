@@ -16,7 +16,11 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
@@ -272,11 +276,13 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
 	public boolean isSiteAdmin(String username, String siteId) throws ServiceLayerException, UserNotFoundException {
 		return userServiceInternal.isSiteAdmin(username, siteId);
 	}
 
 	@Override
+	@HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
 	public Set<String> getUserPermissions(String site, String path, String user) throws ServiceLayerException, UserNotFoundException {
 		return userServiceInternal.getUserPermissions(site, path, user);
 	}
