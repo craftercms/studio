@@ -142,26 +142,27 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 
 	@Override
 	public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws ServiceLayerException {
-		return getAllContentTypes(siteId).stream()
-				.filter(ContentType::isQuickCreate)
-				.filter(contentType -> {
-					try {
-						return userService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUsername())
-								.contains(PERMISSION_CONTENT_CREATE);
-					} catch (ServiceLayerException | UserNotFoundException e) {
-						// This should never happen. If the site does not exist then getAllContentTypes() call above should have thrown an exception
-						return false;
-					}
-				})
-				.map(contentType -> {
+		List<ContentType> quickCreateContentTypes = getAllContentTypes(siteId).stream()
+				.filter(ContentType::isQuickCreate).collect(toList());
+
+		List<QuickCreateItem> result = new ArrayList<>();
+		for (ContentType contentType : quickCreateContentTypes) {
+			try {
+				if (userService.getUserPermissions(siteId, contentType.getQuickCreatePath(), SecurityUtils.getCurrentUsername())
+						.contains(PERMISSION_CONTENT_CREATE)) {
 					QuickCreateItem item = new QuickCreateItem();
 					item.setSiteId(siteId);
 					item.setContentTypeId(contentType.getId());
 					item.setLabel(contentType.getLabel());
 					item.setPath(contentType.getQuickCreatePath());
-					return item;
-				})
-				.collect(toList());
+					result.add(item);
+				}
+			} catch (UserNotFoundException e) {
+				// This should never happen. If the site does not exist then getAllContentTypes() call above should have thrown an exception
+				logger.trace("User not found, unable to get permissions for content type '{}'", contentType.getId(), e);
+			}
+		}
+		return result;
 	}
 
 	@Override
