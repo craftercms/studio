@@ -17,7 +17,6 @@
 package org.craftercms.studio.api.v2.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
 
 /**
  * Provides cached site permission mappings loaded from configuration.

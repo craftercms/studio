@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.dal.security;
+package org.craftercms.studio.impl.v2.security;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,8 +27,12 @@ import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.ADMIN_NORMALIZED_ROLE;
 import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import static org.craftercms.studio.api.v2.dal.security.NormalizedRole.WILDCARD_ROLE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapSiteWidePermissionsToItemAvailableActions;
+import org.craftercms.studio.api.v2.security.RolePermissionMappings;
+import org.craftercms.studio.api.v2.security.SitePermissionMappings;
 import static org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActions.mapSiteWidePermissionsToPackageAvailableActions;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
@@ -39,7 +43,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class SitePermissionMappingsImpl implements SitePermissionMappings {
 
-	private final Map<NormalizedRole, RolePermissionMappings> rolePermissions = new HashMap<>();
+	private final Map<NormalizedRole, RolePermissionMappingsImpl> rolePermissions = new HashMap<>();
 	private final Map<NormalizedGroup, List<NormalizedRole>> groupToRolesMapping = new HashMap<>();
 
 	@Override
@@ -149,11 +153,11 @@ public class SitePermissionMappingsImpl implements SitePermissionMappings {
 		return permissions;
 	}
 
-	public void addGroupToRolesMapping(NormalizedGroup group, List<NormalizedRole> roles) {
-		groupToRolesMapping.put(group, roles);
+	void addGroupToRolesMapping(NormalizedGroup group, List<NormalizedRole> roles) {
+		groupToRolesMapping.put(group, List.copyOf(roles));
 	}
 
-	public void addRolePermissionMapping(String role, RolePermissionMappingsImpl rolePermissionMappings) {
+	void addRolePermissionMapping(String role, RolePermissionMappingsImpl rolePermissionMappings) {
 		rolePermissions.put(new NormalizedRole(role), rolePermissionMappings);
 	}
 }

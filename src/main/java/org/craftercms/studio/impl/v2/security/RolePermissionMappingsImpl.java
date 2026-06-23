@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.dal.security;
+package org.craftercms.studio.impl.v2.security;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapPermissionsToContentItemAvailableActions;
+import org.craftercms.studio.api.v2.security.RolePermissionMappings;
 import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_WIDE_RULE_REGEXES;
 
@@ -47,7 +48,7 @@ public class RolePermissionMappingsImpl implements RolePermissionMappings {
 	 * @param ruleRegex   regex to match the content item paths
 	 * @param permissions granted permissions for the rule
 	 */
-	public void addRuleContentItemPermissionsMapping(final String ruleRegex, final Collection<String> permissions) {
+	void addRuleContentItemPermissionsMapping(final String ruleRegex, final Collection<String> permissions) {
 		Pattern pattern = Pattern.compile(ruleRegex);
 		// Copy the permissions to a set to avoid modifying the original collection
 		HashSet<String> permissionsSet = new HashSet<>(permissions);
@@ -85,7 +86,7 @@ public class RolePermissionMappingsImpl implements RolePermissionMappings {
 	 */
 	@Override
 	public Collection<String> getSiteWidePermissions() {
-		return siteWidePermissions;
+		return Set.copyOf(siteWidePermissions);
 	}
 
 	@Override

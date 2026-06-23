@@ -159,7 +159,7 @@ public class ContentTypeServiceInternalImpl implements org.craftercms.studio.api
 				}
 			} catch (UserNotFoundException e) {
 				// This should never happen. If the site does not exist then getAllContentTypes() call above should have thrown an exception
-				logger.trace("User not found, unable to get permissions for content type '{}'", contentType.getId(), e);
+				logger.trace(format("User not found, unable to get permissions for content type '%s'", contentType.getId()), e);
 			}
 		}
 		return result;

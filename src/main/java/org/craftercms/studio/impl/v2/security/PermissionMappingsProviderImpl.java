@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.security;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -30,10 +31,8 @@ import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
 import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
-import org.craftercms.studio.api.v2.dal.security.RolePermissionMappingsImpl;
-import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
-import org.craftercms.studio.api.v2.dal.security.SitePermissionMappingsImpl;
 import org.craftercms.studio.api.v2.security.PermissionMappingsProvider;
+import org.craftercms.studio.api.v2.security.SitePermissionMappings;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
@@ -133,7 +132,7 @@ public class PermissionMappingsProviderImpl implements PermissionMappingsProvide
 					List<Node> permissionNodes = r.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
 					List<String> permissions = permissionNodes.stream()
 					.map(Node::getText)
-					.map(String::toLowerCase)
+					.map(permission -> permission.toLowerCase(Locale.ROOT))
 					.toList();
 					rolePermissionMappings.addRuleContentItemPermissionsMapping(regex, permissions);
 				});

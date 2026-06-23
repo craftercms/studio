@@ -14,13 +14,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.dal.security;
+package org.craftercms.studio.impl.v2.security;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.security.NormalizedGroup;
+import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.BITMAP_CONTENT_CREATE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.BITMAP_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
@@ -33,9 +35,9 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SitePermissionMappingsTest {
+public class SitePermissionMappingsImplTest {
 
-	private SitePermissionMappings mappings;
+	private SitePermissionMappingsImpl mappings;
 
 	@Before
 	public void setUp() {

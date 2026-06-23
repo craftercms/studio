@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.dal.security;
+package org.craftercms.studio.api.v2.security;
 
 import java.util.Collection;
 import java.util.List;

@@ -25,12 +25,13 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
-import org.craftercms.studio.api.v2.dal.security.SitePermissionMappings;
 import org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActionResolver;
 import static org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActions.APPROVE;
 import static org.craftercms.studio.api.v2.security.publish.PublishPackageAvailableActions.getPossibleActionsForPackageStates;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.security.PermissionMappingsProvider;
+import org.craftercms.studio.api.v2.security.SitePermissionMappings;
+
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getCurrentUsername;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

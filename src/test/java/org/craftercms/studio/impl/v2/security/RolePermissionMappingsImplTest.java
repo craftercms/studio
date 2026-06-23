@@ -14,10 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.dal.security;
-
-import org.junit.Before;
-import org.junit.Test;
+package org.craftercms.studio.impl.v2.security;
 
 import java.util.List;
 import java.util.Set;
@@ -34,7 +31,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class RolePermissionMappingsTest {
+import org.junit.Before;
+import org.junit.Test;
+
+import org.craftercms.studio.api.v2.security.RolePermissionMappings;
+import org.craftercms.studio.impl.v2.security.RolePermissionMappingsImpl;
+
+public class RolePermissionMappingsImplTest {
 
 	private RolePermissionMappingsImpl mappings;
 
