@@ -49,10 +49,12 @@ public class RolePermissionMappingsImpl implements RolePermissionMappings {
 	 */
 	public void addRuleContentItemPermissionsMapping(final String ruleRegex, final Collection<String> permissions) {
 		Pattern pattern = Pattern.compile(ruleRegex);
-		PermissionsActions permissionsActions = new PermissionsActions(permissions, mapPermissionsToContentItemAvailableActions(permissions));
+		// Copy the permissions to a set to avoid modifying the original collection
+		HashSet<String> permissionsSet = new HashSet<>(permissions);
+		PermissionsActions permissionsActions = new PermissionsActions(permissionsSet, mapPermissionsToContentItemAvailableActions(permissionsSet));
 		ruleContentItemPermissions.put(pattern, permissionsActions);
 		if (SITE_WIDE_RULE_REGEXES.stream().anyMatch(ruleRegex::equals)) {
-			this.siteWidePermissions.addAll(permissions);
+			this.siteWidePermissions.addAll(permissionsSet);
 		}
 	}
 
