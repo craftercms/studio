@@ -546,7 +546,7 @@ public class UsersController {
 	@GetMapping(value = ME + GLOBAL + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
 	public ResultList<String> getCurrentUserGlobalPermissions()
 		throws ServiceLayerException, UserNotFoundException, ExecutionException {
-		Set<String> permissions = userService.getCurrentUserGlobalPermissions();
+		List<String> permissions = userService.getCurrentUserGlobalPermissions().stream().sorted().toList();
 
 		ResultList<String> result = new ResultList<>();
 		result.setResponse(OK);
