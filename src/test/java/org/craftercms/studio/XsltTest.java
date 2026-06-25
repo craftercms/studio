@@ -511,6 +511,23 @@ public class XsltTest {
 		};
 	}
 
+	@DataProvider(name = "globalPermissions50023TestData")
+	public Object[][] globalPermissions50023TestData() {
+		return new Object[][]{
+				new Object[] {
+						new ClassPathResource("crafter/studio/upgrade/5.0.x/system/global-permission-mappings-config-v5.0.0.23.xslt"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0/5.0.0.23/input.xml"),
+						new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/5.0/5.0.0.23/expected.xml"),
+						emptyMap()
+				}
+		};
+	}
+
+	@Test(dataProvider = "globalPermissions50023TestData")
+	public void globalPermissions50023Test(Resource template, Resource content, Resource expected, Map<String, Object> params) throws IOException, TransformerException {
+		testXsltTemplate(template, content, expected, params);
+	}
+
 	private void testXsltTemplate(Resource template, Resource content, Resource expected, Map<String, Object> params)
 		throws IOException, TransformerException {
 		try (InputStream templateIs = template.getInputStream();
