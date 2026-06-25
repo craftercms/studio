@@ -106,19 +106,21 @@
 	</bean>
 
 	<bean id="crafter.studioPermissionResolver" class="org.craftercms.studio.permissions.PermissionResolverImpl">
+		<constructor-arg name="userService" ref="userServiceInternal"/>
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 	</bean>
 
 	<bean id="crafter.studioCompositePermissionResolver"
 	      class="org.craftercms.studio.permissions.CompositePermissionResolverImpl">
-		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
+		<constructor-arg name="userService" ref="userServiceInternal"/>
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 	</bean>
 
 	<bean id="crafter.studioPermissionOrOwnershipResolver"
 	      class="org.craftercms.studio.permissions.PermissionOrOwnershipResolverImpl">
-		<property name="securityService" ref="cstudioSecurityService"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="itemService" ref="itemService"/>
+		<constructor-arg name="userService" ref="userServiceInternal"/>
+		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+		<constructor-arg name="itemService" ref="itemService"/>
 	</bean>
 
 	<bean id="crafter.studioPermissionEvaluator"
@@ -267,7 +269,7 @@
 		<constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
 	</bean>
 
-	<bean id="studio.permissionMappingsProvider" class="org.craftercms.studio.impl.v2.security.PermissionMappingsProvider">
+	<bean id="studio.permissionMappingsProvider" class="org.craftercms.studio.impl.v2.security.PermissionMappingsProviderImpl">
 		<constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
 		<constructor-arg name="configurationService" ref="configurationServiceInternal"/>
 		<constructor-arg name="cache" ref="configurationCache"/>
@@ -280,7 +282,7 @@
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
 		<property name="studioBlobStoreResolver" ref="blobStoreResolver"/>
 		<property name="contentTypeService" ref="contentTypeServiceInternal"/>
-		<property name="securityServiceV1" ref="cstudioSecurityService"/>
+		<property name="userService" ref="userServiceInternal"/>
 		<property name="itemDAO" ref="itemDao"/>
 	</bean>
 

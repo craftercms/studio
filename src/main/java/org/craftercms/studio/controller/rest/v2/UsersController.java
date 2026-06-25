@@ -53,6 +53,7 @@ import java.beans.ConstructorProperties;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -511,7 +512,7 @@ public class UsersController {
 	@GetMapping(value = ME + SITES + PATH_PARAM_SITE + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
 	public ResultList<String> getCurrentUserSitePermissions(@ValidSiteId @PathVariable(REQUEST_PARAM_SITE) String site)
 		throws ServiceLayerException, UserNotFoundException, ExecutionException {
-		List<String> permissions = userService.getCurrentUserSitePermissions(site);
+		List<String> permissions = userService.getCurrentUserSitePermissions(site).stream().sorted().toList();
 		ResultList<String> result = new ResultList<>();
 		result.setResponse(OK);
 		result.setEntities(RESULT_KEY_PERMISSIONS, permissions);
@@ -545,7 +546,7 @@ public class UsersController {
 	@GetMapping(value = ME + GLOBAL + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
 	public ResultList<String> getCurrentUserGlobalPermissions()
 		throws ServiceLayerException, UserNotFoundException, ExecutionException {
-		List<String> permissions = userService.getCurrentUserGlobalPermissions();
+		List<String> permissions = userService.getCurrentUserGlobalPermissions().stream().sorted().toList();
 
 		ResultList<String> result = new ResultList<>();
 		result.setResponse(OK);

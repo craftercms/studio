@@ -19,7 +19,8 @@ package org.craftercms.studio.impl.v2.service.ui;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.ui.UiService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.ui.internal.UiServiceInternal;
@@ -39,12 +40,12 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.DEFAU
  */
 public class UiServiceImpl implements UiService {
 
-	private final SecurityService securityService;
+	private final UserService userService;
 	private final UiServiceInternal uiServiceInternal;
 	private StudioConfiguration studioConfiguration;
 
-	public UiServiceImpl(SecurityService securityService, UiServiceInternal uiServiceInternal) {
-		this.securityService = securityService;
+	public UiServiceImpl(UserService userService, UiServiceInternal uiServiceInternal) {
+		this.userService = userService;
 		this.uiServiceInternal = uiServiceInternal;
 	}
 
@@ -53,10 +54,10 @@ public class UiServiceImpl implements UiService {
 	}
 
 	@Override
-	public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
+	public List<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException, UserNotFoundException {
 		String user = SecurityUtils.getCurrentUsername();
 		if (StringUtils.isNotEmpty(user)) {
-			Set<String> permissions = securityService.getUserPermissions(StringUtils.EMPTY, DEFAULT_PATH_RESOURCE_VALUE, user);
+			Set<String> permissions = userService.getUserPermissions(StringUtils.EMPTY, DEFAULT_PATH_RESOURCE_VALUE, user);
 
 			return uiServiceInternal.getGlobalMenu(permissions);
 		} else {

@@ -14,27 +14,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.service.security;
+package org.craftercms.studio.api.v2.security;
 
-import org.craftercms.studio.api.v2.dal.security.NormalizedRole;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 /**
- * Provides security related services
+ * Provides cached site permission mappings loaded from configuration.
  */
-public interface SecurityService {
+public interface PermissionMappingsProvider {
 
 	/**
-	 * Get user permissions for given site
+	 * Get the permission mappings for a site.
 	 *
-	 * @param siteId   crafter site Id
-	 * @param username user
-	 * @param roles    roles the user is assigned to
-	 * @return list of user permissions
+	 * @param site site identifier
+	 * @return site permission mappings
+	 * @throws ServiceLayerException if configuration cannot be loaded
 	 */
-	List<String> getUserPermission(String siteId, String username, Collection<NormalizedRole> roles) throws ExecutionException;
+	SitePermissionMappings getPermissionMappings(String site) throws ServiceLayerException;
 
 }

@@ -94,7 +94,6 @@ import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedExceptio
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
@@ -104,6 +103,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
+import org.craftercms.studio.api.v2.security.PermissionMappingsProvider;
 import org.craftercms.studio.impl.v2.security.password.ForgotPasswordTaskFactory;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import static org.craftercms.studio.impl.v2.utils.security.SecurityUtils.getAuthentication;
@@ -144,7 +144,7 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	private final ObjectFactory<ForgotPasswordTaskFactory> forgotPasswordTaskFactory;
 	private final TextEncryptor encryptor;
 	private final InstanceService instanceService;
-	private SecurityService securityService;
+	private PermissionMappingsProvider permissionMappingsProvider;
 
 	private ApplicationEventPublisher eventPublisher;
 
@@ -182,6 +182,21 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	protected void invalidateCache(Collection<User> users) {
 		invalidateCache(users.stream().map(User::getUsername).collect(Collectors.toList()));
+	}
+
+	@Override
+	public boolean isSiteAdmin(String username, String siteId) throws ServiceLayerException, UserNotFoundException {
+		return isSystemAdmin(username) || permissionMappingsProvider.getPermissionMappings(siteId).isSiteAdmin(username, getUserGroups(-1, username));
+	}
+
+	protected Set<String> getUserPermission(String siteId, String username)
+			throws ExecutionException, ServiceLayerException, UserNotFoundException {
+		return permissionMappingsProvider.getPermissionMappings(siteId).getUserPermissions(username, getUserGroups(-1, username), isSystemAdmin(username));
+	}
+
+	@Override
+	public Set<String> getUserPermissions(String siteId, String path, String username) throws ServiceLayerException, UserNotFoundException {
+		return permissionMappingsProvider.getPermissionMappings(siteId).getUserPermissions(username, getUserGroups(-1, username), path, isSystemAdmin(username));
 	}
 
 	@NonNull
@@ -670,11 +685,10 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	}
 
 	@Override
-	public List<String> getCurrentUserSitePermissions(String site)
+	public Set<String> getCurrentUserSitePermissions(String site)
 			throws ServiceLayerException, UserNotFoundException, ExecutionException {
 		String currentUser = getCurrentUsername();
-		List<NormalizedRole> roles = getUserSiteRoles(-1, currentUser, site);
-		return securityService.getUserPermission(site, currentUser, roles);
+		return getUserPermission(site, currentUser);
 	}
 
 	@Override
@@ -745,22 +759,21 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 	public Map<String, Boolean> hasCurrentUserSitePermissions(final String site, final Collection<String> permissions)
 			throws ServiceLayerException, UserNotFoundException, ExecutionException {
 		Map<String, Boolean> toRet = new HashMap<>();
-		List<String> userPermissions = getCurrentUserSitePermissions(site);
+		Collection<String> userPermissions = getCurrentUserSitePermissions(site);
 		permissions.forEach(p -> toRet.put(p, userPermissions.contains(p)));
 		return toRet;
 	}
 
 	@Override
-	public List<String> getCurrentUserGlobalPermissions() throws ServiceLayerException, UserNotFoundException, ExecutionException {
+	public Set<String> getCurrentUserGlobalPermissions() throws ServiceLayerException, UserNotFoundException, ExecutionException {
 		String currentUser = getCurrentUsername();
-		Collection<NormalizedRole> roles = getUserGlobalRoles(currentUser);
-		return securityService.getUserPermission(StringUtils.EMPTY, currentUser, roles);
+		return getUserPermission(StringUtils.EMPTY, currentUser);
 	}
 
 	@Override
 	public Map<String, Boolean> hasCurrentUserGlobalPermissions(List<String> permissions) throws ServiceLayerException, UserNotFoundException, ExecutionException {
 		Map<String, Boolean> toRet = new HashMap<>();
-		List<String> userPermissions = getCurrentUserGlobalPermissions();
+		Collection<String> userPermissions = getCurrentUserGlobalPermissions();
 		permissions.forEach(p -> toRet.put(p, userPermissions.contains(p)));
 		return toRet;
 	}
@@ -925,14 +938,14 @@ public class UserServiceInternalImpl implements UserService, ApplicationEventPub
 
 	@Autowired
 	@Lazy
-	public void setSecurityService(SecurityService securityService) {
-		this.securityService = securityService;
+	@Qualifier("sitesServiceInternal")
+	public void setSiteService(SitesService siteService) {
+		this.siteService = siteService;
 	}
 
 	@Autowired
 	@Lazy
-	@Qualifier("sitesServiceInternal")
-	public void setSiteService(SitesService siteService) {
-		this.siteService = siteService;
+	public void setPermissionMappingsProvider(PermissionMappingsProvider permissionMappingsProvider) {
+		this.permissionMappingsProvider = permissionMappingsProvider;
 	}
 }

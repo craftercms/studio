@@ -21,9 +21,10 @@ import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.Permission;
 import org.craftercms.commons.security.permissions.PermissionResolver;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.beans.ConstructorProperties;
@@ -37,18 +38,18 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Implementation of {@link PermissionResolver} that resolves user permissions based on Studio's
- * {@link SecurityService}.
+ * {@link UserService}.
  *
  * @author avasquez
  */
 public class PermissionResolverImpl implements PermissionResolver<String, Map<String, Object>> {
 
-	private final SecurityService securityService;
+	private final UserService userService;
 	private final StudioConfiguration studioConfiguration;
 
-	@ConstructorProperties({"securityService", "studioConfiguration"})
-	public PermissionResolverImpl(final SecurityService securityService, final StudioConfiguration studioConfiguration) {
-		this.securityService = securityService;
+	@ConstructorProperties({"userService", "studioConfiguration"})
+	public PermissionResolverImpl(final UserService userService, final StudioConfiguration studioConfiguration) {
+		this.userService = userService;
 		this.studioConfiguration = studioConfiguration;
 	}
 
@@ -76,9 +77,9 @@ public class PermissionResolverImpl implements PermissionResolver<String, Map<St
 
 		Set<String> allowedActions = null;
 		try {
-			allowedActions = securityService.getUserPermissions(siteName, path, username);
-		} catch (SiteNotFoundException e) {
-			throw new ActionsDeniedException(format("Failed to load permissions for user '%s'. Site '%s' was not found", username, siteName), e);
+			allowedActions = userService.getUserPermissions(siteName, path, username);
+		} catch (ServiceLayerException | UserNotFoundException e) {
+			throw new ActionsDeniedException(format("Failed to load permissions for user '%s' for site '%s'", username, siteName), e);
 		}
 
 		DefaultPermission permission = new DefaultPermission();

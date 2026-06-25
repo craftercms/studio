@@ -85,7 +85,7 @@
 	      class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl" init-method="init">
 		<property name="emailMessages" ref="cstudioEmailMessageQueue"/>
 		<property name="servicesConfig" ref="cstudioServicesConfig"/>
-		<property name="securityService" ref="cstudioSecurityService"/>
+		<property name="userService" ref="userServiceInternal"/>
 		<property name="contentService" ref="contentServiceInternal"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 		<property name="configurationService" ref="configurationServiceInternal"/>
@@ -99,19 +99,6 @@
 	</bean>
 
 	<bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"/>
-
-	<bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="userService" ref="userServiceInternal"/>
-		<property name="configurationService" ref="configurationServiceInternal"/>
-		<property name="cache" ref="configurationCache"/>
-	</bean>
-
-	<bean id="studio.securityService" class="org.craftercms.studio.impl.v2.service.security.SecurityServiceImpl">
-		<property name="configurationService" ref="configurationServiceInternal"/>
-		<property name="studioConfiguration" ref="studioConfiguration"/>
-		<property name="configurationCache" ref="configurationCache"/>
-	</bean>
 
 	<bean id="clipboardServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.clipboard.internal.ClipboardServiceInternalImpl">
@@ -267,7 +254,7 @@
 	</bean>
 
 	<bean id="uiService" class="org.craftercms.studio.impl.v2.service.ui.UiServiceImpl">
-		<constructor-arg name="securityService" ref="cstudioSecurityService"/>
+		<constructor-arg name="userService" ref="userServiceInternal"/>
 		<constructor-arg name="uiServiceInternal" ref="uiServiceInternal"/>
 		<property name="studioConfiguration" ref="studioConfiguration"/>
 	</bean>
@@ -360,7 +347,7 @@
 
 	<bean id="contentTypeServiceInternal"
 	      class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl">
-		<constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
+		<constructor-arg name="userService" ref="userServiceInternal"/>
 		<constructor-arg name="configurationService" ref="configurationServiceInternal"/>
 		<constructor-arg name="itemDao" ref="itemDao"/>
 		<constructor-arg name="contentTypeBasePathPattern"

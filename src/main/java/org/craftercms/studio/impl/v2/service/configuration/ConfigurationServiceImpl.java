@@ -15,6 +15,11 @@
  */
 package org.craftercms.studio.impl.v2.service.configuration;
 
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -35,15 +40,14 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.i18n.Language;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PATH_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_READ_CONFIGURATION;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_CONFIGURATION;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_GLOBAL_CONFIGURATION;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.SITE_ID_RESOURCE_ID;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
-
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 
 public class ConfigurationServiceImpl implements ConfigurationService {
