@@ -57,6 +57,9 @@
 				<permission>update_users</permission>
 				<permission>delete_users</permission>
 				<permission>read_cluster</permission>
+				<permission>create_cluster</permission>
+				<permission>update_cluster</permission>
+				<permission>delete_cluster</permission>
 				<permission>audit_log</permission>
 				<permission>read_logs</permission>
 				<permission>add_remote</permission>
