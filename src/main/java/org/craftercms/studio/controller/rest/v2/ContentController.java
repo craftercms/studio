@@ -149,7 +149,7 @@ public class ContentController {
 	public Result getChildrenByPaths(@PathVariable @ValidSiteId String siteId, @Valid @RequestBody GetChildrenBulkRequest request)
 			throws ServiceLayerException, UserNotFoundException {
 		Map<String, PathParams> paramsMap = request.getPaths().stream()
-				.collect(toMap(PathParams::getPath, identity()));
+				.collect(toMap(PathParams::getPath, identity(), (existing, replacement) -> existing));
 		GetChildrenByPathsBulkResult children = contentService.getChildrenByPaths(siteId,
 				new ArrayList<>(paramsMap.keySet()), paramsMap);
 		Result result = UnwrappedResult.of(children);
