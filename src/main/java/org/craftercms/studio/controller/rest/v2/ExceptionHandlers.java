@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
 
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
@@ -68,6 +69,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -78,9 +80,13 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.ExceptionHandlerMethodResolver;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -105,6 +111,69 @@ import static org.springframework.http.HttpStatus.*;
 public class ExceptionHandlers {
 
 	private static final Logger logger = LoggerFactory.getLogger(ExceptionHandlers.class);
+
+	private final ExceptionHandlerMethodResolver exceptionHandlerMethodResolver =
+		new ExceptionHandlerMethodResolver(getClass());
+
+	@ExceptionHandler({UndeclaredThrowableException.class, InvocationTargetException.class})
+	public Result handleWrappedException(HttpServletRequest request, HttpServletResponse response, Exception e)
+		throws Exception {
+		Throwable unwrapped = unwrapException(e);
+		if (unwrapped instanceof Exception ex) {
+			return invokeExceptionHandler(request, response, ex);
+		}
+		return handleException(request, e);
+	}
+
+	/**
+	 * Invokes the exception handler for the given exception. If the exception
+	 * is a wrapped exception, it will be unwrapped and the exception handler
+	 * for the unwrapped exception will be invoked.
+	 *
+	 * @param request the HTTP request
+	 * @param response the HTTP response
+	 * @param ex the exception to invoke the exception handler for
+	 * @return the result of the exception handler
+	 * @throws Exception if the exception handler throws an exception
+	 */
+	private Result invokeExceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception ex)
+			throws Exception {
+		if (ex instanceof UndeclaredThrowableException || ex instanceof InvocationTargetException) {
+			return handleException(request, ex);
+		}
+
+		Method method = exceptionHandlerMethodResolver.resolveMethod(ex);
+		if (method == null) {
+			return handleException(request, ex);
+		}
+
+		ResponseStatus responseStatus = AnnotatedElementUtils.findMergedAnnotation(method, ResponseStatus.class);
+		if (responseStatus != null) {
+			response.setStatus(responseStatus.code().value());
+		}
+
+		return (Result) method.invoke(this, request, ex);
+	}
+
+	/**
+	 * Unwraps the exception to get the actual exception.
+	 *
+	 * @param ex the exception to unwrap
+	 * @return the actual exception
+	 */
+	private static Throwable unwrapException(Throwable ex) {
+		Throwable current = ex;
+		while (current != null) {
+			if (current instanceof UndeclaredThrowableException ute) {
+				current = ute.getUndeclaredThrowable();
+			} else if (current instanceof InvocationTargetException ite) {
+				current = ite.getTargetException();
+			} else {
+				break;
+			}
+		}
+		return current != null ? current : ex;
+	}
 
 	@ExceptionHandler(AuthenticationException.class)
 	@ResponseStatus(HttpStatus.UNAUTHORIZED)

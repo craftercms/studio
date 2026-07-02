@@ -16,6 +16,9 @@
 
 package org.craftercms.studio.api.v2.annotation;
 
+import java.beans.ConstructorProperties;
+import java.lang.reflect.Method;
+
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -24,18 +27,16 @@ import org.craftercms.commons.aop.AopUtils;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
-
-import java.beans.ConstructorProperties;
-import java.lang.reflect.Method;
 
 /**
  * Handles the {@link RequireSiteExists} annotation.
  * Checks if the site exists.
  */
 @Aspect
-@Order(10)
+@Order(HIGHEST_PRECEDENCE)
 public class RequireSiteExistsAnnotationHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(RequireSiteExistsAnnotationHandler.class);
