@@ -16,6 +16,13 @@
 
 package org.craftercms.studio.api.v2.service.content;
 
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.core.service.Item;
@@ -40,9 +47,6 @@ import org.craftercms.studio.model.rest.content.order.ItemOrder;
 import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
-
-import java.io.InputStream;
-import java.util.*;
 
 /**
  * Provide access to content operations
@@ -214,9 +218,10 @@ public interface ContentService {
 	 * @param path     path of the content
 	 * @param commitId commit id of the content version
 	 * @return the content if available
+	 * @throws ServiceLayerException if an error occurs while getting the content
 	 */
 	Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-			throws ContentNotFoundException;
+			throws ServiceLayerException;
 
 	/**
 	 * Rename content for given path

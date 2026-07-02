@@ -1135,9 +1135,12 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public Optional<Resource> getContentByCommitId(String site, String path, String commitId) {
+	public Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ServiceLayerException {
 		try {
 			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
+			if (repo.resolve(commitId) == null) {
+				throw new InvalidParametersException(format("Invalid commit ID '%s' for site '%s'", commitId, site));
+			}
 			RevTree tree = helper.getTreeForCommit(repo, commitId);
 			if (tree != null) {
 				try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {

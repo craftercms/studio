@@ -542,7 +542,7 @@ public class BlobAwareContentRepository implements StudioBlobAwareContentReposit
 	}
 
 	@Override
-	public Optional<Resource> getContentByCommitId(String site, String path, String commitId) {
+	public Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ServiceLayerException {
 		return localRepository.getContentByCommitId(site, path, commitId);
 	}
 

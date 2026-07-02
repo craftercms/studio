@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
@@ -158,8 +159,9 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param path     path of the content
 	 * @param commitId version to return
 	 * @return the resource if available
+	 * @throws ServiceLayerException if there is any error while getting the content by commit id
 	 */
-	Optional<Resource> getContentByCommitId(String site, String path, String commitId);
+	Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ServiceLayerException;
 
 	/**
 	 * Check if published repository exists for given site.

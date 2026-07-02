@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -253,7 +254,7 @@ public class ContentController {
 	@GetMapping(GET_CONTENT_BY_COMMIT_ID)
 	public ResponseEntity<Resource> getContentByCommitId(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
 														 @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
-														 @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
+														 @NotBlank @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
 			throws ServiceLayerException, UserNotFoundException {
 		Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
 
