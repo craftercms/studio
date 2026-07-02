@@ -16,17 +16,20 @@
 
 package org.craftercms.studio.model.rest.content;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
+
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
-import jakarta.validation.constraints.NotEmpty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.util.List;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 
 @JsonIgnoreProperties
 public class GetDeletePackageRequestBody {
 
+	@NotBlank
 	@ValidSiteId
 	private String siteId;
 

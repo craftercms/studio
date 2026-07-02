@@ -114,7 +114,7 @@ public class ContentController {
 	}
 
 	@GetMapping(LIST_QUICK_CREATE_CONTENT)
-	public ResultList<QuickCreateItem> listQuickCreateContent(@ValidSiteId @RequestParam(name = "siteId") String siteId)
+	public ResultList<QuickCreateItem> listQuickCreateContent(@NotBlank @ValidSiteId @RequestParam(name = "siteId") String siteId)
 			throws ServiceLayerException {
 		List<QuickCreateItem> items = contentTypeService.getQuickCreatableContentTypes(siteId);
 		ResultList<QuickCreateItem> result = new ResultList<>();
