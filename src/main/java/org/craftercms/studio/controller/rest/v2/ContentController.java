@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -113,7 +114,7 @@ public class ContentController {
 	}
 
 	@GetMapping(LIST_QUICK_CREATE_CONTENT)
-	public ResultList<QuickCreateItem> listQuickCreateContent(@ValidSiteId @RequestParam(name = "siteId") String siteId)
+	public ResultList<QuickCreateItem> listQuickCreateContent(@NotBlank @ValidSiteId @RequestParam(name = "siteId") String siteId)
 			throws ServiceLayerException {
 		List<QuickCreateItem> items = contentTypeService.getQuickCreatableContentTypes(siteId);
 		ResultList<QuickCreateItem> result = new ResultList<>();
@@ -149,7 +150,7 @@ public class ContentController {
 	public Result getChildrenByPaths(@PathVariable @ValidSiteId String siteId, @Valid @RequestBody GetChildrenBulkRequest request)
 			throws ServiceLayerException, UserNotFoundException {
 		Map<String, PathParams> paramsMap = request.getPaths().stream()
-				.collect(toMap(PathParams::getPath, identity()));
+				.collect(toMap(PathParams::getPath, identity(), (existing, replacement) -> existing));
 		GetChildrenByPathsBulkResult children = contentService.getChildrenByPaths(siteId,
 				new ArrayList<>(paramsMap.keySet()), paramsMap);
 		Result result = UnwrappedResult.of(children);
@@ -253,7 +254,7 @@ public class ContentController {
 	@GetMapping(GET_CONTENT_BY_COMMIT_ID)
 	public ResponseEntity<Resource> getContentByCommitId(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
 														 @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
-														 @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
+														 @NotBlank @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
 			throws ServiceLayerException, UserNotFoundException {
 		Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
 

@@ -16,23 +16,25 @@
 
 package org.craftercms.studio.model.rest.content;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-
 import java.util.Set;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import static org.craftercms.studio.api.v2.service.publish.PublishService.PACKAGE_COMMENT_MAX_LENGTH;
 import static org.craftercms.studio.api.v2.service.publish.PublishService.PACKAGE_TITLE_MAX_LENGTH;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 /**
  * Request body for deleting content items.
  */
 public class DeleteRequestBody {
 
+	@NotBlank
 	@EsapiValidatedParam(type = SITE_ID)
 	private String siteId;
 	@NotEmpty

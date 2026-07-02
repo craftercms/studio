@@ -456,7 +456,7 @@ public class ContentServiceInternalImpl implements ContentService, ApplicationEv
 
 	@Override
 	public Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-			throws ContentNotFoundException {
+			throws ServiceLayerException {
 		return contentRepository.getContentByCommitId(siteId, path, commitId);
 	}
 

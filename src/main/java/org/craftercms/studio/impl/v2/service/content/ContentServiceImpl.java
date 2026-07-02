@@ -16,7 +16,14 @@
 
 package org.craftercms.studio.impl.v2.service.content;
 
-import jakarta.validation.Valid;
+import java.io.InputStream;
+import static java.lang.String.format;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -30,7 +37,11 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.annotation.*;
+import org.craftercms.studio.api.v2.annotation.ContentPath;
+import org.craftercms.studio.api.v2.annotation.RequireContentExists;
+import org.craftercms.studio.api.v2.annotation.RequireSiteBootstrapComplete;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
 import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
@@ -44,24 +55,30 @@ import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.policy.Type;
-import org.craftercms.studio.model.rest.content.*;
+import static org.craftercms.studio.model.policy.Type.COPY;
+import org.craftercms.studio.model.rest.content.DeleteContentResult;
 import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
+import org.craftercms.studio.model.rest.content.PasteContentResult;
+import org.craftercms.studio.model.rest.content.WriteContentResult;
 import org.craftercms.studio.model.rest.content.order.ItemOrder;
 import org.craftercms.studio.model.rest.content.order.ReorderItemRequest;
 import org.craftercms.studio.permissions.CompositePermission;
+import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import org.craftercms.studio.permissions.PermissionOrOwnership;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PATH_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_FOLDER_CREATE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_GET_CHILDREN;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 import org.dom4j.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
-import java.io.InputStream;
-import java.util.*;
-
-import static java.lang.String.format;
-import static org.craftercms.studio.model.policy.Type.COPY;
-import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
+import jakarta.validation.Valid;
 
 public class ContentServiceImpl implements ContentService {
 
@@ -189,7 +206,7 @@ public class ContentServiceImpl implements ContentService {
 	@HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
 	public Optional<Resource> getContentByCommitId(@SiteId String siteId,
 												   @ProtectedResourceId(PATH_RESOURCE_ID) String path,
-												   String commitId) throws ContentNotFoundException {
+												   String commitId) throws ServiceLayerException {
 		return contentServiceInternal.getContentByCommitId(siteId, path, commitId);
 	}
 

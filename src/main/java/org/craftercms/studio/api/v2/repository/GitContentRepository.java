@@ -16,6 +16,17 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SequencedCollection;
+import java.util.Set;
+
 import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -25,18 +36,12 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
 import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 
 /**
  * Interface for content repositories that support git operations
@@ -154,8 +159,9 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param path     path of the content
 	 * @param commitId version to return
 	 * @return the resource if available
+	 * @throws ServiceLayerException if there is any error while getting the content by commit id
 	 */
-	Optional<Resource> getContentByCommitId(String site, String path, String commitId);
+	Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ServiceLayerException;
 
 	/**
 	 * Check if published repository exists for given site.
@@ -200,8 +206,9 @@ public interface GitContentRepository extends ContentRepository {
 	 * @param limit      maximum number of versions to return
 	 * @return list of repository versions
 	 * @throws RepositoryException if there is any error reading the git log
+	 * @throws ServiceLayerException
 	 */
-	List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws RepositoryException;
+	List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws RepositoryException, ServiceLayerException;
 
 	/**
 	 * Get the new commits introduced by <code>commitId</code> into <code>baseCommit</code>.<br/>

@@ -15,17 +15,18 @@
  */
 package org.craftercms.studio.model.rest.content;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
+
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.validation.Valid;
-
-import java.util.List;
-
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * Holds the parameters  for the getChildrenByPaths request
@@ -46,6 +47,7 @@ public class GetChildrenBulkRequest {
 
 	public static class PathParams {
 		@ValidExistingContentPath
+		@NotBlank
 		private String path;
 		@ValidateNoTagsParam
 		private String localeCode;

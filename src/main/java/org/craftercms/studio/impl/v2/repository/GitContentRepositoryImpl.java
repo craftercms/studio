@@ -16,16 +16,65 @@
 
 package org.craftercms.studio.impl.v2.repository;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import static java.lang.String.format;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Instant;
+import static java.time.ZoneOffset.UTC;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
+import static java.util.Collections.emptyList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.SequencedCollection;
+import java.util.Set;
+import java.util.function.Function;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import java.util.stream.Stream;
+
 import org.apache.commons.collections4.CollectionUtils;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.subtract;
 import org.apache.commons.io.FileUtils;
+import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.Strings.CS;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.GLOBAL_REPOSITORY_GIT_LOCK;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_FROM_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_TO_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_PATH_VAR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_USERNAME_VAR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_USER_COMMENT_VAR;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -37,37 +86,89 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.annotation.LogExecutionTime;
 import org.craftercms.studio.api.v2.core.ContextManager;
-import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.ProcessedCommitsDAO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.Site;
+import org.craftercms.studio.api.v2.dal.SiteDAO;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.publish.PublishItem.Action;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
+import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
 import org.craftercms.studio.api.v2.dal.publish.PublishPackage;
 import org.craftercms.studio.api.v2.dal.repository.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.repository.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.repository.RepoOperation;
+import static org.craftercms.studio.api.v2.dal.repository.RepoOperation.Action.COPY;
+import static org.craftercms.studio.api.v2.dal.repository.RepoOperation.Action.CREATE;
+import static org.craftercms.studio.api.v2.dal.repository.RepoOperation.Action.MOVE;
+import static org.craftercms.studio.api.v2.dal.repository.RepoOperation.Action.UPDATE;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.exception.publish.PublishException;
 import org.craftercms.studio.api.v2.exception.repository.RepositoryException;
-import org.craftercms.studio.api.v2.repository.*;
+import org.craftercms.studio.api.v2.repository.ContentWriteItem;
+import org.craftercms.studio.api.v2.repository.GitContentRepository;
+import org.craftercms.studio.api.v2.repository.GitPublishCapableRepository;
+import org.craftercms.studio.api.v2.repository.PublishItemTO;
+import org.craftercms.studio.api.v2.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.repository.publish.GitPublishChangeSet;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.task.TaskManager;
 import org.craftercms.studio.api.v2.task.TaskProgress;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COPY_CONTENT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_EMPTY_FILE_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_FOLDER_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DELETE_CONTENT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_PUBLISH_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_MOVE_CONTENT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_WRITE_COMMIT_MESSAGE;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.security.SecurityUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.history.RepositoryVersion;
 import org.craftercms.studio.model.task.PublishTask.PublishTaskId;
-import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.CreateBranchCommand;
+import org.eclipse.jgit.api.DeleteBranchCommand;
+import org.eclipse.jgit.api.DiffCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.LogCommand;
+import org.eclipse.jgit.api.RemoteRemoveCommand;
+import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.StopWalkException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
-import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.lib.Constants;
+import static org.eclipse.jgit.lib.Constants.HEAD;
+import static org.eclipse.jgit.lib.Constants.OBJ_BLOB;
+import static org.eclipse.jgit.lib.Constants.OBJ_TREE;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
+import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefUpdate;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.FollowFilter;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevSort;
+import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
+import static org.eclipse.jgit.revwalk.RevSort.TOPO;
+import static org.eclipse.jgit.revwalk.RevSort.TOPO_KEEP_BRANCH_TOGETHER;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -76,37 +177,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.function.ThrowingConsumer;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
-import static java.lang.String.format;
-import static java.time.ZoneOffset.UTC;
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.*;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.collections4.CollectionUtils.subtract;
-import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.Strings.CS;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.dal.repository.RepoOperation.Action.*;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.ADD;
-import static org.craftercms.studio.api.v2.dal.publish.PublishItem.Action.DELETE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
-import static org.eclipse.jgit.lib.Constants.*;
-import static org.eclipse.jgit.revwalk.RevSort.*;
 
 /**
  * Implementation of the GitContentRepositoryImpl interface.
@@ -1066,9 +1136,10 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public Optional<Resource> getContentByCommitId(String site, String path, String commitId) {
+	public Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ServiceLayerException {
 		try {
 			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
+			getRevCommit(repo, site, commitId);
 			RevTree tree = helper.getTreeForCommit(repo, commitId);
 			if (tree != null) {
 				try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
@@ -1087,6 +1158,29 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				site, path, commitId, e);
 		}
 		return Optional.empty();
+	}
+
+	/**
+	 * Get the commit object from the repository
+	 *
+	 * @param repo the repository
+	 * @param site the site
+	 * @param commitId the commit ID
+	 * @return the commit object
+	 * @throws IOException if an error occurs
+	 * @throws InvalidParametersException if the commit ID is invalid
+	 */
+	protected RevCommit getRevCommit(Repository repo, String site, String commitId) throws IOException, ServiceLayerException {
+		var objectId = repo.resolve(commitId);
+
+		if (objectId == null) {
+			throw new InvalidParametersException(format("Invalid commit ID '%s' for site '%s'", commitId, site));
+		}
+		try {
+			return repo.parseCommit(objectId);
+		} catch (IncorrectObjectTypeException e) {
+			throw new InvalidParametersException(format("Invalid commit ID '%s' for site '%s'", commitId, site));
+		}
 	}
 
 	@Override
@@ -1371,13 +1465,14 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	}
 
 	@Override
-	public List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws RepositoryException {
+	public List<RepositoryVersion> getHistory(String siteId, String commitFrom, int limit) throws RepositoryException, ServiceLayerException {
 		List<RepositoryVersion> versionHistory = new ArrayList<>();
 		String repoLockKey = helper.getSandboxRepoLockKey(siteId);
 		Repository repo = helper.getRepository(siteId, SANDBOX);
 		generalLockService.lock(repoLockKey);
 		try (Git git = Git.wrap(repo); RevWalk revWalk = new RevWalk(git.getRepository())) {
 			revWalk.setFirstParent(true);
+			RevCommit commitFromId = getRevCommit(repo, siteId, commitFrom);
 			revWalk.setRevFilter(new RevFilter() {
 				private int count = 0;
 
@@ -1394,7 +1489,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					return this;
 				}
 			});
-			revWalk.markStart(revWalk.parseCommit(repo.resolve(commitFrom)));
+			revWalk.markStart(commitFromId);
 			revWalk.sort(TOPO);
 			for (RevCommit revCommit : revWalk) {
 				versionHistory.add(new RepositoryVersion(revCommit));
