@@ -147,6 +147,7 @@ import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.StopWalkException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.Constants;
@@ -1138,9 +1139,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 	public Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ServiceLayerException {
 		try {
 			Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
-			if (repo.resolve(commitId) == null) {
-				throw new InvalidParametersException(format("Invalid commit ID '%s' for site '%s'", commitId, site));
-			}
+			getRevCommit(repo, site, commitId);
 			RevTree tree = helper.getTreeForCommit(repo, commitId);
 			if (tree != null) {
 				try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
@@ -1159,6 +1158,29 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 				site, path, commitId, e);
 		}
 		return Optional.empty();
+	}
+
+	/**
+	 * Get the commit object from the repository
+	 *
+	 * @param repo the repository
+	 * @param site the site
+	 * @param commitId the commit ID
+	 * @return the commit object
+	 * @throws IOException if an error occurs
+	 * @throws InvalidParametersException if the commit ID is invalid
+	 */
+	protected RevCommit getRevCommit(Repository repo, String site, String commitId) throws IOException, ServiceLayerException {
+		var objectId = repo.resolve(commitId);
+
+		if (objectId == null) {
+			throw new InvalidParametersException(format("Invalid commit ID '%s' for site '%s'", commitId, site));
+		}
+		try {
+			return repo.parseCommit(objectId);
+		} catch (IncorrectObjectTypeException e) {
+			throw new InvalidParametersException(format("Invalid commit ID '%s' for site '%s'", commitId, site));
+		}
 	}
 
 	@Override
@@ -1450,10 +1472,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 		generalLockService.lock(repoLockKey);
 		try (Git git = Git.wrap(repo); RevWalk revWalk = new RevWalk(git.getRepository())) {
 			revWalk.setFirstParent(true);
-			ObjectId commitFromId = repo.resolve(commitFrom);
-			if (commitFromId == null) {
-				throw new InvalidParametersException(format("Invalid commit '%s' for site '%s'", commitFrom, siteId));
-			}
+			RevCommit commitFromId = getRevCommit(repo, siteId, commitFrom);
 			revWalk.setRevFilter(new RevFilter() {
 				private int count = 0;
 
@@ -1470,7 +1489,7 @@ public class GitContentRepositoryImpl implements GitContentRepository, GitPublis
 					return this;
 				}
 			});
-			revWalk.markStart(revWalk.parseCommit(commitFromId));
+			revWalk.markStart(commitFromId);
 			revWalk.sort(TOPO);
 			for (RevCommit revCommit : revWalk) {
 				versionHistory.add(new RepositoryVersion(revCommit));
