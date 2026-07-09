@@ -10271,6 +10271,9 @@ components:
                 - lockOwner
                 - staging
                 - availableActions
+                - live
+                - creator
+                - dateCreated
 
         PublishTargetStatus:
             type: object
