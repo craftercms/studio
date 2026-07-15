@@ -38,15 +38,14 @@ public abstract class AuditLogConstants {
 	public static final String OPERATION_PUSH_TO_REMOTE = "PUSH_TO_REMOTE";
 	public static final String OPERATION_PULL_FROM_REMOTE = "PULL_FROM_REMOTE";
 	public static final String OPERATION_REQUEST_PUBLISH = "REQUEST_PUBLISH";
-	public static final String OPERATION_APPROVE = "APPROVE";
 	public static final String OPERATION_APPROVE_SCHEDULED = "APPROVE_SCHEDULED";
-	public static final String OPERATION_REJECT = "REJECT";
 	public static final String OPERATION_PUBLISHED = "PUBLISHED";
 	public static final String OPERATION_REVERT = "REVERT";
 	public static final String OPERATION_ENABLE = "ENABLE";
 	public static final String OPERATION_DISABLE = "DISABLE";
 	public static final String OPERATION_START_PUBLISHER = "START_PUBLISHER";
 	public static final String OPERATION_STOP_PUBLISHER = "STOP_PUBLISHER";
+	public static final String OPERATION_APPROVE_PUBLISH_PACKAGE = "APPROVE_PUBLISH_PACKAGE";
 	public static final String OPERATION_CANCEL_PUBLISH_PACKAGE = "CANCEL_PUBLISH_PACKAGE";
 	public static final String OPERATION_REJECT_PUBLISH_PACKAGE = "REJECT_PUBLISH_PACKAGE";
 	public static final String OPERATION_PUBLISH = "PUBLISH";
