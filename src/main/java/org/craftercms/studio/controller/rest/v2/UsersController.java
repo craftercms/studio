@@ -515,7 +515,7 @@ public class UsersController {
     @DeleteMapping(value = ME + PROPERTIES, produces = APPLICATION_JSON_VALUE)
     public ResultOne<Map<String, String>> deleteUserProperties(
             @ValidSiteId @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId,
-            @Valid @NotEmpty @RequestParam List<@NotBlank String> properties) throws ServiceLayerException {
+            @NotEmpty @RequestParam List<@Valid @NotBlank String> properties) throws ServiceLayerException {
         ResultOne<Map<String, String>> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity("properties", userService.deleteUserProperties(siteId, properties)); //TODO: Extract key
