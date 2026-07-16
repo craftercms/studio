@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,11 +24,14 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.engine.util.url.ContentStoreUrlConnection;
 import org.craftercms.studio.api.v2.core.ContextManager;
+import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.scripting.ScriptEngineManager;
+import org.craftercms.studio.impl.v2.utils.GroovyClassLoaderUtils;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.RejectASTTransformsCustomizer;
 import org.kohsuke.groovy.sandbox.SandboxTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 
 import java.beans.ConstructorProperties;
 import java.io.File;
@@ -38,8 +41,6 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static org.craftercms.studio.api.v2.utils.StudioUtils.getSiteId;
 
 /**
  * Default implementation of {@link ScriptEngineManager}
@@ -100,7 +101,21 @@ public class ScriptEngineManagerImpl implements ScriptEngineManager {
     @Override
     public void reloadScriptEngine(String siteId) {
         logger.debug("Reload the Script Engine for site '{}'", siteId);
-        scriptEngines.compute(siteId, (key, old) -> createScriptEngine(siteId));
+        scriptEngines.compute(siteId, (key, old) -> {
+            if (old != null) {
+                GroovyClassLoaderUtils.closeQuietly(old.getGroovyClassLoader());
+            }
+            return createScriptEngine(siteId);
+        });
+    }
+
+    @EventListener
+    public void onSiteDeleting(SiteDeletingEvent event) {
+        logger.debug("Remove the Script Engine for site '{}'", event.getSiteId());
+        GroovyScriptEngine removed = scriptEngines.remove(event.getSiteId());
+        if (removed != null) {
+            GroovyClassLoaderUtils.closeQuietly(removed.getGroovyClassLoader());
+        }
     }
 
     // Internal classes used to load the scripts from the site

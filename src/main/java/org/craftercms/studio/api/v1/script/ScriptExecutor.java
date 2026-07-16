@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,5 +21,12 @@ import java.util.Map;
 
 public interface ScriptExecutor {
 
-    void executeScriptString(String script, Map<String, Object> model) throws ScriptException;
+    /**
+     * Execute a Groovy script string using the script engine for the given site
+     *
+     * @param siteId the site id
+     * @param script the script to execute
+     * @param model  bindings available to the script
+     */
+    void executeScriptString(String siteId, String script, Map<String, Object> model) throws ScriptException;
 }
