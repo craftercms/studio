@@ -15,11 +15,15 @@
  */
 package org.craftercms.studio.impl.v2.scripting;
 
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyResourceLoader;
-import groovy.util.GroovyScriptEngine;
-import groovy.util.ResourceConnector;
-import groovy.util.ResourceException;
+import java.beans.ConstructorProperties;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.engine.util.url.ContentStoreUrlConnection;
@@ -33,14 +37,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 
-import java.beans.ConstructorProperties;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import groovy.lang.GroovyClassLoader;
+import groovy.lang.GroovyResourceLoader;
+import groovy.util.GroovyScriptEngine;
+import groovy.util.ResourceConnector;
+import groovy.util.ResourceException;
 
 /**
  * Default implementation of {@link ScriptEngineManager}
@@ -102,10 +103,11 @@ public class ScriptEngineManagerImpl implements ScriptEngineManager {
     public void reloadScriptEngine(String siteId) {
         logger.debug("Reload the Script Engine for site '{}'", siteId);
         scriptEngines.compute(siteId, (key, old) -> {
+            GroovyScriptEngine fresh = createScriptEngine(siteId);
             if (old != null) {
                 GroovyClassLoaderUtils.closeQuietly(old.getGroovyClassLoader());
             }
-            return createScriptEngine(siteId);
+            return fresh;
         });
     }
 
