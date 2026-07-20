@@ -15,9 +15,10 @@
  */
 package org.craftercms.studio.impl.v2.utils;
 
-import groovy.lang.GroovyClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import groovy.lang.GroovyClassLoader;
 
 /**
  * Helpers for releasing {@link GroovyClassLoader} resources.
@@ -48,7 +49,6 @@ public abstract class GroovyClassLoaderUtils {
 				break;
 			}
 			try {
-				groovyClassLoader.clearCache();
 				groovyClassLoader.close();
 			} catch (Exception e) {
 				logger.warn("Failed to close Groovy class loader", e);
