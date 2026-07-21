@@ -651,6 +651,7 @@ public class ContentServiceInternalImplTest {
 		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location")).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/site/website/new-location/style")).thenReturn(true);
 		when(contentRepository.isFolder(SITE_ID, "/site/website/new-location")).thenReturn(true);
+		when(contentRepository.isFolder(SITE_ID, "/site/website/articles/style")).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/site/website/articles/style")).thenReturn(true);
 		when(contentRepository.contentExists(SITE_ID, "/site/website/articles/style/index.xml")).thenReturn(true);
 		when(permissionEvaluator.isAllowed(any(), any(), any())).thenReturn(true);
