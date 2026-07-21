@@ -147,9 +147,21 @@ public class SitePermissionMappingsImplTest {
 	}
 
 	@Test
-	public void getUserPermissionsReturnsContentReadWhenUserHasNoRoles() {
+	public void getUserPermissionsReturnsEmptySetWhenUserHasNoRoles() {
 		Set<String> sitePermissions = mappings.getUserPermissions("unknown", Collections.emptyList(), false);
 		Set<String> pathPermissions = mappings.getUserPermissions("unknown", Collections.emptyList(),
+			"/site/website/index.xml", false);
+
+		assertEquals(emptySet(), sitePermissions);
+		assertEquals(emptySet(), pathPermissions);
+	}
+
+	@Test
+	public void getUserPermissionsReturnsEmptySetWhenSiteHasNoRoles() {
+		SitePermissionMappingsImpl siteMappings = new SitePermissionMappingsImpl();
+
+		Set<String> sitePermissions = siteMappings.getUserPermissions("jane", Collections.emptyList(), false);
+		Set<String> pathPermissions = siteMappings.getUserPermissions("jane", Collections.emptyList(),
 			"/site/website/index.xml", false);
 
 		assertEquals(emptySet(), sitePermissions);
