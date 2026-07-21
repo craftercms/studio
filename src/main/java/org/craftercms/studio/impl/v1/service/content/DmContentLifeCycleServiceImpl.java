@@ -100,7 +100,7 @@ public class DmContentLifeCycleServiceImpl implements DmContentLifeCycleService,
         if (StringUtils.isNotEmpty(script)) {
             Map<String, Object> model = buildModel(site, user, path, contentType, operation.toString(), params);
             try {
-                scriptExecutor.executeScriptString(script, model);
+                scriptExecutor.executeScriptString(site, script, model);
             } catch (Exception e) {
                 logger.error("Failed to execute content lifecycle script in site '{}' path '{}'", site, path, e);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,63 +16,107 @@
 
 package org.craftercms.studio.impl.v1.script;
 
-import groovy.lang.GroovyClassLoader;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
-import org.craftercms.studio.api.v1.script.ScriptExecutor;
-import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.RejectASTTransformsCustomizer;
-import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SandboxInterceptor;
-import org.kohsuke.groovy.sandbox.SandboxTransformer;
+import java.beans.ConstructorProperties;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
-import java.beans.ConstructorProperties;
-import java.util.List;
-import java.util.Map;
 
+import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
+import org.craftercms.studio.api.v1.script.ScriptExecutor;
+import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
+import org.craftercms.studio.impl.v2.utils.GroovyClassLoaderUtils;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.RejectASTTransformsCustomizer;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SandboxInterceptor;
+import org.kohsuke.groovy.sandbox.SandboxTransformer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
+
+import groovy.lang.GroovyClassLoader;
+
+/**
+ * Executes content-lifecycle Groovy scripts with a shared parent classloader for configured
+ * classpath entries and a closable per-site child classloader for compiled scripts.
+ */
 public class GroovyScriptExecutor implements ScriptExecutor {
 
-	protected final static String GROOVY_ENGINE_NAME = "groovy";
+	private static final Logger logger = LoggerFactory.getLogger(GroovyScriptExecutor.class);
+
+	protected static final String GROOVY_ENGINE_NAME = "groovy";
 	protected final SandboxInterceptor sandboxInterceptor;
 	protected final boolean enableScriptSandbox;
 	protected final List<String> scriptsClassPath;
-	protected GroovyScriptEngineImpl scriptEngine;
+
+	protected CompilerConfiguration compilerConfig;
+	protected GroovyClassLoader sharedClassLoader;
+	protected ScriptEngineManager scriptEngineFactory;
+	protected final Map<String, GroovyScriptEngineImpl> scriptEngines = new ConcurrentHashMap<>();
 
 	@ConstructorProperties({"sandboxInterceptor", "scriptsClassPath", "enableScriptSandbox"})
-	public GroovyScriptExecutor(SandboxInterceptor sandboxInterceptor, List<String> scriptsClassPath, boolean enableScriptSandbox) {
+	public GroovyScriptExecutor(SandboxInterceptor sandboxInterceptor, List<String> scriptsClassPath,
+								boolean enableScriptSandbox) {
 		this.sandboxInterceptor = sandboxInterceptor;
 		this.scriptsClassPath = scriptsClassPath;
 		this.enableScriptSandbox = enableScriptSandbox;
 	}
 
 	protected void init() {
-		ScriptEngineManager factory = new ScriptEngineManager();
-		this.scriptEngine = (GroovyScriptEngineImpl) factory.getEngineByName(GROOVY_ENGINE_NAME);
-		CompilerConfiguration config = new CompilerConfiguration();
+		compilerConfig = new CompilerConfiguration();
 		if (enableScriptSandbox) {
-			config.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
+			compilerConfig.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
 		}
-		scriptEngine.setClassLoader(new GroovyClassLoader(scriptEngine.getClassLoader(), config));
+		sharedClassLoader = new GroovyClassLoader(getClass().getClassLoader(), compilerConfig);
 		for (String classPath : scriptsClassPath) {
-			scriptEngine.getClassLoader().addClasspath(classPath);
+			sharedClassLoader.addClasspath(classPath);
 		}
+		scriptEngineFactory = new ScriptEngineManager();
 	}
 
 	@Override
-	public void executeScriptString(String script, Map<String, Object> model) throws ScriptException {
-		if (scriptEngine == null) {
+	public void executeScriptString(String siteId, String script, Map<String, Object> model) throws ScriptException {
+		if (sharedClassLoader == null) {
 			throw new IllegalStateException("GroovyScriptExecutor not initialized (init() not called)");
 		}
 		if (enableScriptSandbox && sandboxInterceptor != null) {
 			sandboxInterceptor.register();
 		}
 		try {
-			this.scriptEngine.eval(script, new SimpleBindings(model));
+			getScriptEngine(siteId).eval(script, new SimpleBindings(model));
 		} finally {
 			if (enableScriptSandbox && sandboxInterceptor != null) {
 				sandboxInterceptor.unregister();
 			}
+		}
+	}
+
+	protected GroovyScriptEngineImpl getScriptEngine(String siteId) {
+		return scriptEngines.computeIfAbsent(siteId, this::createScriptEngine);
+	}
+
+	protected GroovyScriptEngineImpl createScriptEngine(String siteId) {
+		logger.debug("Create a lifecycle Script Engine for site '{}'", siteId);
+		GroovyScriptEngineImpl scriptEngine = (GroovyScriptEngineImpl) scriptEngineFactory.getEngineByName(GROOVY_ENGINE_NAME);
+		GroovyClassLoader siteClassLoader = new GroovyClassLoader(sharedClassLoader, compilerConfig);
+		scriptEngine.setClassLoader(siteClassLoader);
+		return scriptEngine;
+	}
+
+	@EventListener
+	public void onSiteDeleting(SiteDeletingEvent event) {
+		removeScriptEngine(event.getSiteId());
+	}
+
+	protected void removeScriptEngine(String siteId) {
+		logger.debug("Remove the lifecycle Script Engine for site '{}'", siteId);
+		GroovyScriptEngineImpl removed = scriptEngines.remove(siteId);
+		if (removed != null) {
+			// Close the site child only; keep the shared parent classpath loader
+			GroovyClassLoaderUtils.closeQuietly(removed.getClassLoader(), sharedClassLoader);
 		}
 	}
 
